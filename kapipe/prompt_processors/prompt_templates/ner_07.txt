@@ -1,0 +1,15 @@
+Based on the given text, please identify entity mentions that represent one of the following entity types.
+1. Possible entity types: {entity_types_prompt}
+2. Output a bulleted list of mention-type pairs. Each bullet line must follow the following format: ``<BULLET> <MENTION> -> <ENTITY TYPE>'',
+where <MENTION> and <ENTITY TYPE> correspond to a mention and the corresponding entity type, respectively.
+3. The mention must be copied from the text without changing the original string.
+
+Below are some examples.
+
+{demonstrations_prompt}
+
+Let's try the following test example.
+
+{test_prompt}
+
+Please output the answer to the test example in bullet points, following the format specified above.

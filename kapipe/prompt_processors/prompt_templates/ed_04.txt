@@ -1,0 +1,15 @@
+Based on the given text and entity mentions associated with the text, please identify {knowledge_base_name_prompt} Concept IDs that the mentions refer to best.
+1. Entity mentions are listed next to the text. In the answer, the mentions must be chosen from this list.
+2. The Concept ID candidates are listed next to the the mentions. In the answer, the Concept IDs must be chosen from this list for each mention.
+3. Output a bulleted list of mention-entity pairs. Each bullet line must follow the following format: ``<BULLET> <MENTION> -> <CONCEPT ID>``,
+where <MENTION> and <CONCEPT ID> correspond to a mention and the corresponding Concept ID, respectively.
+
+Below are some examples.
+
+{demonstrations_prompt}
+
+Let's try the following test example.
+
+{test_prompt}
+
+Please output the answer to the test example in bullet points, following the format specified above.

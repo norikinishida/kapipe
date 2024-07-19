@@ -1,0 +1,16 @@
+Based on the given text and entities associated with the text, please identify relations between the entities.
+1. Named entities are listed next to the text.
+2. Each entity is represented using {knowledge_base_name_prompt} Concept ID.
+3. Possible relations: {relations_prompt}
+4. Output a bulleted list of triples. Each bullet line corresponds to each triple: ``<BULLET> (<SUBJECT ENTITY>, <RELATION>, <OBJECT ENTITY>)``,
+where <SUBJECT ENTITY>, <RELATION>, and <OBJECT ENTITY>, correspond to the subject entity, the relation label, and the object entity, respectively.
+
+Below are some examples.
+
+{demonstrations_prompt}
+
+Let's try the following test example.
+
+{test_prompt}
+
+Please output the answer to the test example in bullet points, following the format specified above.
