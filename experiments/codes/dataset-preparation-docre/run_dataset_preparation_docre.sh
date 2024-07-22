@@ -4,8 +4,7 @@ EOG=/home/nishida/storage/projects/others/fenchri.edge-oriented-graph
 DOCRED=/home/nishida/storage/dataset/DocRED/DocRED
 REDOCRED=/home/nishida/storage/dataset/Re-DocRED/Re-DocRED
 CTD=/home/nishida/storage/dataset/CTD
-HOIP=/home/nishida/storage/dataset/HOIP-Dataset/processed-v5
-HOIP_FILE=COVID_ARDS_36006_lv2_231027.triples.aggregated.merged
+HOIP=/home/nishida/projects/hoip-dataset/releases/v1
 
 STORAGE=/home/nishida/storage/projects/kapipe/experiments
 STORAGE_DATA=${STORAGE}/data
@@ -129,28 +128,20 @@ cp ${REDOCRED}/data/test_revised.json ${STORAGE_DATA}/docre/redocred/original/
 
 # Results:
 #   - STORAGE_DATA/docre/hoip/{train,dev,test}.json
-#   - STORAGE_DATA/docre/hoip/{train,dev,test}.merged.json
-#   - STORAGE_DATA/docre/hoip/{train,dev,test}.merged.hypernyms_marked.json
 for split in train dev test
 do
     python prepare_hoip.py \
-        --input_file ${HOIP}/${HOIP_FILE}.triples.aggregated.${split}.json \
-        --output_file ${STORAGE_DATA}/docre/hoip-v5/${split}.json
-    python prepare_hoip.py \
-        --input_file ${HOIP}/${HOIP_FILE}.triples.aggregated.merged.${split}.json \
-        --output_file ${STORAGE_DATA}/docre/hoip-v5/${split}.merged.json
-    python prepare_hoip.py \
-        --input_file ${HOIP}/${HOIP_FILE}.triples.aggregated.merged.hypernyms_marked.${split}.json \
-        --output_file ${STORAGE_DATA}/docre/hoip-v5/${split}.merged.hypernyms_marked.json
+        --input_file ${HOIP}/${split}.json \
+        --output_file ${STORAGE_DATA}/docre/hoip-v1/${split}.json
 done
 
 # # Results:
-# #   - STORAGE_DATA/docre/hoip/{train,dev,test}.merged.filtered.json
+# #   - STORAGE_DATA/docre/hoip/{train,dev,test}.filtered.json
 # for split in train dev test
 # do
 #     python filter_hoip.py \
-#         --input_file ${STORAGE_DATA}/docre/hoip-v5/${split}.merged.json \
-#         --output_file ${STORAGE_DATA}/docre/hoip-v5/${split}.merged.filtered.json \
+#         --input_file ${STORAGE_DATA}/docre/hoip-v1/${split}.json \
+#         --output_file ${STORAGE_DATA}/docre/hoip-v1/${split}.filtered.json \
 #         --target_relations "has result"
 # done
 
@@ -167,10 +158,10 @@ RETRIEVER_METHOD=first
 for split in train dev test
 do
     python ../dataset-preparation-ner/generate_demonstrations.py \
-        --documents ${STORAGE_DATA}/docre/hoip-v5/${split}.json \
+        --documents ${STORAGE_DATA}/docre/hoip-v1/${split}.json \
         --n_demos ${N_DEMOS} \
         --method ${RETRIEVER_METHOD} \
-        --demonstration_pool ${STORAGE_DATA}/docre/hoip-v5/train.json \
-        --output_file ${STORAGE_DATA}/docre/hoip-v5-demos/${split}.demonstrations.${N_DEMOS}.${RETRIEVER_METHOD}.json
+        --demonstration_pool ${STORAGE_DATA}/docre/hoip-v1/train.json \
+        --output_file ${STORAGE_DATA}/docre/hoip-v1-demos/${split}.demonstrations.${N_DEMOS}.${RETRIEVER_METHOD}.json
 done
 

@@ -58,70 +58,76 @@ def process(documents):
             entity_ids.append(entity_id)
             entity_id_to_names[entity_id].append(entity_name)
             entity_id_to_types[entity_id].append(entity_type)
-        entity_ids = list(set(entity_ids))
-        entity_ids = sorted(entity_ids)
+        entity_ids = sorted(list(set(entity_ids)))
         for e_id in entity_ids:
             names = entity_id_to_names[e_id]
             names = sorted(list(set(names)))
             entity_id_to_names[e_id] = names
+            assert len(set(entity_id_to_names[e_id])) == 1
             assert len(set(entity_id_to_types[e_id])) == 1
-        # for e_id in entity_id_to_names:
-        #     if len(entity_id_to_names[e_id]):
-        #         print(f"Entity ID {e_id} has {len(entity_id_to_names[e_id])} names")
 
         # Set mentions
         mentions = []
-        entity_id_to_mention_indices = defaultdict(list)
+        # entity_id_to_mention_indices = defaultdict(list)
+        # m_i = 0
+        # for e_id in entity_ids:
+        #     for e_name in entity_id_to_names[e_id]:
+        #         mention = {"span": None,
+        #                    "name": e_name,
+        #                    "entity_type": entity_id_to_types[e_id][0],
+        #                    "entity_id": e_id}
+        #         mentions.append(mention)
+        #         entity_id_to_mention_indices[e_id].append(m_i)
+        #         m_i += 1
+        entity_id_to_mention_index = {}
         m_i = 0
         for e_id in entity_ids:
-            for e_name in entity_id_to_names[e_id]:
-                mention = {"span": None,
-                           "name": e_name,
-                           "entity_type": entity_id_to_types[e_id][0],
-                           "entity_id": e_id}
-                mentions.append(mention)
-                entity_id_to_mention_indices[e_id].append(m_i)
-                m_i += 1
+            mention = {
+                "span": None,
+                "name": entity_id_to_names[e_id][0],
+                "entity_type": entity_id_to_types[e_id][0],
+                "entity_id": e_id
+            }
+            mentions.append(mention)
+            entity_id_to_mention_index[e_id] = m_i
+            m_i += 1
         result["mentions"] = mentions
 
         # Set entities
         entities = []
         entity_id_to_index = {}
         for e_i, e_id in enumerate(entity_ids):
-            entity = {"mention_indices": entity_id_to_mention_indices[e_id],
-                      "entity_type": entity_id_to_types[e_id][0],
-                      "entity_id": e_id}
+            entity = {
+                # "mention_indices": entity_id_to_mention_indices[e_id],
+                "mention_indices": [entity_id_to_mention_index[e_id]],
+                "entity_type": entity_id_to_types[e_id][0],
+                "entity_id": e_id
+            }
             entities.append(entity)
             entity_id_to_index[e_id] = e_i
         result["entities"] = entities
 
-        # Set relations and `not_include_pairs`
+        # Set relations
         relations = []
-        not_include_pairs = []
         for triple in document["triples"]:
             head_entity_id = triple["head_entity"]["id"]
             head_entity_idx = entity_id_to_index[head_entity_id]
             tail_entity_id = triple["tail_entity"]["id"]
             tail_entity_idx = entity_id_to_index[tail_entity_id]
             relation = triple["relation"]["name"]
-            if "is_hypernym" in triple:
-                is_hypernym = triple["is_hypernym"]
-            else:
-                is_hypernym = False
-            if not is_hypernym:
-                relations.append({
-                    "arg1": head_entity_idx,
-                    "relation": relation,
-                    "arg2": tail_entity_idx,
-                })
-            else:
-                not_include_pairs.append({
-                    "arg1": head_entity_idx,
-                    "relation": relation,
-                    "arg2": tail_entity_idx,
-                })
+            relations.append((head_entity_idx, relation, tail_entity_idx))
+        # NOTE: We need to filter out redundant triples when using coarse-grained triples
+        relations = sorted(list(set(relations)), key=lambda x: (x[0],x[2],x[1]))
+        relations = [
+            {
+                "arg1": x[0],
+                "relation": x[1],
+                "arg2": x[2]
+            }
+            for x in relations
+        ]
         result["relations"] = relations
-        result["not_include_pairs"] = not_include_pairs
+        result["not_include_pairs"] = []
 
         results.append(result)
 
