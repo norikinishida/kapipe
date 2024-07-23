@@ -6,6 +6,8 @@ import os
 import torch
 import transformers
 
+# import sys
+# sys.path.append("../..")
 from kapipe.systems import EntityRetrievalBiEncoderSystem
 from kapipe.trainers import EntityRetrievalBiEncoderTrainer
 from kapipe import utils

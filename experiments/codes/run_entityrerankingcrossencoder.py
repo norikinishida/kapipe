@@ -6,6 +6,8 @@ import os
 import torch
 import transformers
 
+# import sys
+# sys.path.append("../..")
 from kapipe.systems import EntityRerankingCrossEncoderSystem
 from kapipe.trainers import EntityRerankingCrossEncoderTrainer
 from kapipe import evaluation

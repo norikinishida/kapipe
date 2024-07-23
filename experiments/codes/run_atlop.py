@@ -5,6 +5,8 @@ import os
 import torch
 import transformers
 
+# import sys
+# sys.path.append("../..")
 from kapipe.systems import ATLOPSystem
 from kapipe.trainers import ATLOPTrainer
 from kapipe import utils

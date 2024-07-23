@@ -25,7 +25,7 @@ from . import utils
 from .pipeline import Pipeline
 
 
-__version__ = "0.0.1"
+__version__ = "0.0.3"
 
 
 def load(identifier, gpu_map=None):

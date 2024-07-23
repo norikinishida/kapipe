@@ -4,6 +4,8 @@ import os
 
 # import numpy as np
 
+# import sys
+# sys.path.append("../..")
 from kapipe.systems import LexicalEntityRetrievalSystem
 from kapipe.trainers import LexicalEntityRetrievalTrainer
 from kapipe import utils

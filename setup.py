@@ -15,6 +15,7 @@
 
 import os
 from setuptools import setup, find_packages
+import shutil
 
 
 if __name__ == "__main__":
@@ -24,7 +25,7 @@ if __name__ == "__main__":
         "scipy>=1.10.1",
         "pandas>=1.5.3",
         "spacy>=3.7.1",
-        "torch>=2.1.0",
+        "torch",
         "opt-einsum>=3.3.0",
         "faiss-gpu>=1.7.2",
         "pyhocon>=0.3.60",
@@ -32,10 +33,12 @@ if __name__ == "__main__":
         "jsonlines>=4.0.0",
         "Levenshtein>=0.25.0",
         "transformers",
+        "accelerate",
+        "bitsandbytes"
     ]
     setup(
         name="kapipe",
-        version="0.0.1",
+        version="0.0.3",
         author= "Noriki Nishida",
         author_email="norikinishida@gmail.com",
         description="A learnable pipeline for knowledge acquisition",

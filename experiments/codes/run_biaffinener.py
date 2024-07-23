@@ -5,6 +5,8 @@ import os
 import torch
 import transformers
 
+# import sys
+# sys.path.append("../..")
 from kapipe.systems import BiaffineNERSystem
 from kapipe.trainers import BiaffineNERTrainer
 from kapipe import utils

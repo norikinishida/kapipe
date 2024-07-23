@@ -5,6 +5,8 @@ import os
 import torch
 import transformers
 
+# import sys
+# sys.path.append("../..")
 from kapipe.systems import LLMNERSystem
 from kapipe.trainers import LLMNERTrainer
 from kapipe import utils
