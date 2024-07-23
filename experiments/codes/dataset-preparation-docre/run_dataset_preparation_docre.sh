@@ -127,7 +127,7 @@ cp ${REDOCRED}/data/test_revised.json ${STORAGE_DATA}/docre/redocred/original/
 
 
 # Results:
-#   - STORAGE_DATA/docre/hoip/{train,dev,test}.json
+#   - STORAGE_DATA/docre/hoip-v1/{train,dev,test}.json
 for split in train dev test
 do
     python prepare_hoip.py \
@@ -136,7 +136,7 @@ do
 done
 
 # # Results:
-# #   - STORAGE_DATA/docre/hoip/{train,dev,test}.filtered.json
+# #   - STORAGE_DATA/docre/hoip-v1/{train,dev,test}.filtered.json
 # for split in train dev test
 # do
 #     python filter_hoip.py \
@@ -152,7 +152,7 @@ python prepare_hoip_kb.py \
     --output_file ${STORAGE_DATA}/kb/hoip-kb/hoip.entity_dict.json
 
 # Results:
-#   - STORAGE_DATA/docre/hoip-demos/{train,dev,test}.demonstrations.${N_DEMOS}.${RETRIEVER_METHOD}.json
+#   - STORAGE_DATA/docre/hoip-v1-demos/{train,dev,test}.demonstrations.${N_DEMOS}.${RETRIEVER_METHOD}.json
 N_DEMOS=5
 RETRIEVER_METHOD=first
 for split in train dev test

@@ -9,9 +9,9 @@ STORAGE_RESULTS=${STORAGE}/results
 # TEST=${STORAGE_DATA}/docre/cdr/test.json
 # ENTITY_DICT=${STORAGE_DATA}/kb/mesh/mesh2015.entity_dict.json
 #
-TRAIN=${STORAGE_DATA}/docre/hoip-v5/train.merged.json
-DEV=${STORAGE_DATA}/docre/hoip-v5/dev.merged.json
-TEST=${STORAGE_DATA}/docre/hoip-v5/test.merged.json
+TRAIN=${STORAGE_DATA}/docre/hoip-v1/train.json
+DEV=${STORAGE_DATA}/docre/hoip-v1/dev.json
+TEST=${STORAGE_DATA}/docre/hoip-v1/test.json
 ENTITY_DICT=${STORAGE_DATA}/kb/hoip-kb/hoip.entity_dict.json
 
 GPU=0

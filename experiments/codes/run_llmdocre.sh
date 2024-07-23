@@ -12,13 +12,13 @@ TRAIN_DEMOS=${STORAGE_DATA}/docre/cdr-demos/train.demonstrations.5.first_adjuste
 DEV_DEMOS=${STORAGE_DATA}/docre/cdr-demos/dev.demonstrations.5.first_adjusted.json
 TEST_DEMOS=${STORAGE_DATA}/docre/cdr-demos/test.demonstrations.5.first_adjusted.json
 #
-# TRAIN=${STORAGE_DATA}/docre/hoip-v5/train.merged.json
-# DEV=${STORAGE_DATA}/docre/hoip-v5/dev.merged.json
-# TEST=${STORAGE_DATA}/docre/hoip-v5/test.merged.json
+# TRAIN=${STORAGE_DATA}/docre/hoip-v1/train.json
+# DEV=${STORAGE_DATA}/docre/hoip-v1/dev.json
+# TEST=${STORAGE_DATA}/docre/hoip-v1/test.json
 # ENTITY_DICT=${STORAGE_DATA}/kb/hoip-kb/hoip.entity_dict.json
-# TRAIN_DEMOS=${STORAGE_DATA}/docre/hoip-v5-demos/train.demonstrations.5.random.json
-# DEV_DEMOS=${STORAGE_DATA}/docre/hoip-v5-demos/dev.demonstrations.5.random.json
-# TEST_DEMOS=${STORAGE_DATA}/docre/hoip-v5-demos/test.demonstrations.5.random.json
+# TRAIN_DEMOS=${STORAGE_DATA}/docre/hoip-v1-demos/train.demonstrations.5.random.json
+# DEV_DEMOS=${STORAGE_DATA}/docre/hoip-v1-demos/dev.demonstrations.5.random.json
+# TEST_DEMOS=${STORAGE_DATA}/docre/hoip-v1-demos/test.demonstrations.5.random.json
 
 GPU=0
 
