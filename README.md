@@ -445,6 +445,33 @@ ka.docre.fit(
 ka.save("your favorite identifier")
 ```
 
+For training the ED components, entity dictionary (`entity_dict` in the above example) is required.
+An entity dictionary is a list of dictionaries as follows.
+Each element of the list contains information about each entity recorded in the target knowledge base.
+```JSON
+[
+    {
+        "entity_id": "D000001",
+        "entity_index": 0,
+        "entity_type": "Chemical",
+        "canonical_name": "Calcimycin",
+        "synonyms": [],
+        "description": "An ionophorous, polyether antibiotic from Streptomyces chartreusensis. It binds and transports CALCIUM and other divalent cations across membranes and uncouples oxidative phosphorylation while inhibiting ATPase of rat liver mitochondria. The substance is used mostly as a biochemical tool to study the role of divalent cations in various biological systems."
+    },
+    {
+        "entity_id": "D000002",
+        "entity_index": 1,
+        "entity_type": "Chemical",
+        "canonical_name": "Temefos",
+        "synonyms": [
+            "Temephos"
+        ],
+        "description": "for use to kill or control insects, use no qualifiers on the insecticide or the insect; appropriate qualifiers may be used when other aspects of the insecticide are discussed such as the effect on a physiologic process or behavioral aspect of the insect; for poisoning, coordinate with ORGANOPHOSPHATE POISONING An organothiophosphate insecticide."
+    },
+    ...
+]
+```
+
 If you would like to train only specific task components (for example, if you would like to use models trained on CDR for NER and DocRE, and train a new model on a different version of MeSH for ED), please do the following.
 
 ```python
