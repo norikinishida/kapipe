@@ -5,8 +5,9 @@ import os
 import torch
 import transformers
 
-# import sys
-# sys.path.append("../..")
+import sys
+sys.path.insert(0, "../..")
+from kapipe.systems import LexicalEntityRetrievalSystem
 from kapipe.systems import LLMDocRESystem
 from kapipe.trainers import LLMDocRETrainer
 from kapipe import utils

@@ -126,8 +126,8 @@ class MAATLOPModel(nn.Module):
         ########################
 
         self.preprocessor = MAATLOPPreprocessor(
-            tokenizer=self.model.tokenizer,
-            max_seg_len=self.model.max_seg_len,
+            tokenizer=self.tokenizer,
+            max_seg_len=self.max_seg_len,
             entity_dict=self.entity_dict,
             entity_seq_length=self.entity_seq_length,
             vocab_relation=self.vocab_relation,

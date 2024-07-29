@@ -5,6 +5,8 @@ import os
 from tqdm import tqdm
 # from spacy_alignments import tokenizations
 
+import sys
+sys.path.insert(0, "../../..")
 from kapipe import utils
 
 

@@ -8,8 +8,8 @@ import transformers
 # import tabulate
 # from tqdm import tqdm
 
-# import sys
-# sys.path.append("../..")
+import sys
+sys.path.insert(0, "../..")
 from kapipe.systems import MAQASystem
 from kapipe.trainers import MAQATrainer
 from kapipe import utils

@@ -3,6 +3,8 @@ import os
 
 from tqdm import tqdm
 
+import sys
+sys.path.insert(0, "../../..")
 from kapipe.demonstration_retrievers import DemonstrationRetriever
 from kapipe import utils
 
