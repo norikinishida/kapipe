@@ -218,7 +218,7 @@ def main(args):
     if actiontype == "check_preprocessing":
         results = []
         for document in dev_documents:
-            preprocessed_data = system.preprocessor.preprocess(document)
+            preprocessed_data = system.model.preprocessor.preprocess(document)
             results.append(preprocessed_data)
         utils.write_json(base_output_path + "/dev.check_preprocessing.json", results)
 

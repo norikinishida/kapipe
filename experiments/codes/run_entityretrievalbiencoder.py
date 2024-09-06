@@ -8,7 +8,6 @@ import transformers
 
 import sys
 sys.path.insert(0, "../..")
-from kapipe.systems import EntityRerankingCrossEncoderSystem
 from kapipe.systems import EntityRetrievalBiEncoderSystem
 from kapipe.trainers import EntityRetrievalBiEncoderTrainer
 from kapipe import utils

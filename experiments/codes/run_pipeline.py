@@ -73,6 +73,10 @@ def predict_and_eval(ka, path_in_file, path_out_file):
         skip_normalization=True,
         on_predicted_spans=True
     )
+    ed_scores2 = evaluation.ed.entity_level_fscore(
+        pred_path=path_out_file + ".pred.json",
+        gold_path=path_in_file
+    )
     docre_scores = evaluation.docre.fscore(
         pred_path=path_out_file + ".pred.json",
         gold_path=path_in_file,
@@ -82,6 +86,7 @@ def predict_and_eval(ka, path_in_file, path_out_file):
     scores = {
         "ner": ner_scores,
         "ed": ed_scores,
+        "ed_entity_level": ed_scores2,
         "docre": docre_scores,
     }
     logging.info(utils.pretty_format_dict(scores))

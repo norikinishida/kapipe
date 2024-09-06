@@ -243,7 +243,7 @@ def main(args):
                         * system.config["negative_entity_ratio"]
                     )
                 )
-            preprocessed_data = system.preprocessor.preprocess(document)
+            preprocessed_data = system.model.preprocessor.preprocess(document)
             preprocessed_data["pair_head_entity_indices"] = preprocessed_data["pair_head_entity_indices"].tolist()
             preprocessed_data["pair_tail_entity_indices"] = preprocessed_data["pair_tail_entity_indices"].tolist()
             preprocessed_data["pair_gold_relation_labels"] = preprocessed_data["pair_gold_relation_labels"].tolist()

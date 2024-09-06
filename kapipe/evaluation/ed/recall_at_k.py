@@ -16,6 +16,7 @@ def recall_at_k(pred_path, gold_path, inkb=True):
     -------
     dict[str, Any]
     """
+    scores = {}
 
     # Load
     if isinstance(pred_path, str):
@@ -35,11 +36,13 @@ def recall_at_k(pred_path, gold_path, inkb=True):
         assert pred_doc["doc_key"] == gold_doc["doc_key"]
 
     # Evaluate
-    return _recall_at_k(
+    key = "inkb_recall_at_k" if inkb else "recall_at_k"
+    scores[key] = _recall_at_k(
         pred_documents=pred_documents,
         gold_documents=gold_documents,
         inkb=inkb
     )
+    return scores
 
 
 def _recall_at_k(pred_documents, gold_documents, inkb):
