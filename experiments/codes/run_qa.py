@@ -10,6 +10,7 @@ sys.path.insert(0, "../..")
 from kapipe.qa import LLMQA, LLMQATrainer
 from kapipe import utils
 from kapipe.utils import StopWatch
+from kapipe.datatypes import Question, ContextsForOneExample
 
 import shared_functions
 
@@ -47,7 +48,7 @@ def main(args):
     actiontype = args.actiontype
 
     assert method_name in ["llmqa"]
-    assert actiontype in ["evaluate", "check_prompt"]
+    assert actiontype in ["evaluate", "check_prompt", "inference_only"]
 
     ##################
     # Logging Setup
@@ -67,6 +68,11 @@ def main(args):
     if actiontype == "evaluate":
         shared_functions.set_logger(
             base_output_path + "/evaluation.log",
+            # overwrite=True
+        )
+    elif actiontype == "inference_only":
+        shared_functions.set_logger(
+            base_output_path + "/inference_only.log",
             # overwrite=True
         )
 
@@ -165,6 +171,21 @@ def main(args):
         # Save the configurations of the Answerer
         trainer.save_answerer(answerer=answerer)
 
+        # Apply the Answerer on the datasets (without evaluation)
+        if actiontype == "inference_only":
+            results = inference_only(
+                answerer=answerer,
+                questions=dev_questions,
+                contexts=dev_contexts,
+                path=trainer.paths["path_dev_pred"]
+            )
+            results = inference_only(
+                answerer=answerer,
+                questions=test_questions,
+                contexts=test_contexts,
+                path=trainer.paths["path_test_pred"]
+            )
+ 
         # Apply and evaluate the Answerer on the datasets
         if actiontype == "evaluate":
             trainer.evaluate(
@@ -193,6 +214,20 @@ def main(args):
     logging.info("Time: %f min." % sw.get_time("main", minute=True))
 
     return prefix
+
+
+def inference_only(
+    answerer: LLMQA,
+    questions: list[Question],
+    contexts: list[ContextsForOneExample],
+    path: str
+) -> None:
+    result_questions = answerer.batch_run(
+        questions=questions,
+        demonstrations=None,
+        contexts=contexts
+    )
+    utils.write_json(path, result_questions)
 
 
 if __name__ == "__main__":

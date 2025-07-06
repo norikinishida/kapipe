@@ -2,7 +2,7 @@
 
 ## Table of Contents
 
-- [🤖 KAPipe Overview](#kapipe-overview)
+- [🤖 What is KAPipe?](#what-is-kapipe)
 - [📦 Installation](#-installation)
 - [🧩 Triple Extraction](#-triple-extraction)
 - [🕸️ Knowledge Graph Construction](#-knowledge-graph-construction)
@@ -12,40 +12,39 @@
 - [🔍 Passage Retrieval](#-passage-retrieval)
 - [💬 Question Answering](#-question-answering)
 
-## 🤖 KAPipe Overview
+## 🤖 What is KAPipe?
 
 **KAPipe** is a modular pipeline for comprehensive **knowledge acquisition** from unstructured documents.  
-It supports extraction, organization, retrieval, and utilization of knowledge, serving as a core framework for building intelligent systems that reason over structured knowledge.
-These components together form a powerful implementation of **graph-based retrieval-augmented generation (GraphRAG)**, enabling question answering and reasoning grounded in structured knowledge.
+It supports **extraction**, **organization**, **retrieval**, and **utilization** of knowledge, serving as a core framework for building intelligent systems that reason over structured knowledge.  
 
-KAPipe provides the following functionalities:
+Currently, KAPipe provides the following functionalities:
 
 - 🧩**Triple Extraction**  
-    - Extract relational facts in the form of (head entity, relation, tail entity) from raw text using BERT-based models or proprietary/open-source LLMs.
+    - Extract facts in the form of (head entity, relation, tail entity) triples from raw text.
 
 - 🕸️**Knowledge Graph Construction**  
-    - Build a symbolic knowledge graph from extracted triples, optionally augmented with external ontologies or knowledge bases (e.g., UMLS).
+    - Build a symbolic knowledge graph from triples, optionally augmented with external ontologies or knowledge bases (e.g., Wikidata, UMLS).
 
 - 🧱**Community Clustering**  
     - Cluster the knowledge graph into semantically coherent subgraphs (*communities*).
 
 - 📝**Report Generation**  
-    - Generate textual summaries of graph communities to support interpretable retrieval and reasoning.
+    - Generate textual reports (or summaries) of graph communities.
 
 - ✂️**Chunking**  
-    - Split passages into fixed-size chunks based on a predefined token length (e.g., n=300).
+    - Split text (e.g., community report) into fixed-size chunks based on a predefined token length (e.g., n=300).
 
 - 🔍**Passage Retrieval**  
-    - Retrieve relevant chunks using lexical or dense retrieval to support downstream tasks.
+    - Retrieve relevant chunks for given queries using lexical or dense retrieval.
 
 - 💬**Question Answering**  
     - Answer questions using retrieved chunks as context.
 
-KAPipe is designed to be modular, composable, and domain-adaptable, making it suitable for various applications such as biomedical text mining, scientific discovery, and explainable AI.
+These components together form an implementation of **graph-based retrieval-augmented generation (GraphRAG)**, enabling question answering and reasoning grounded in structured knowledge.
 
 ## 📦 Installation
 
-NOTE: This part (installation) is currently under construction. I will update this part until July 9, 2025.
+⚠️ Note: Installation steps will be finalized by July 9, 2025.
 
 ### Step 1: Set up a Python environment
 ```bash
@@ -78,9 +77,9 @@ tar -zxvf release.YYYYMMDD.tar.gz
 
 ### Overview
 
-The **Triple Extraction** module identifies relational facts from raw text in the form of (head entity, relation, tail entity) triples.
+The **Triple Extraction** module identifies relational facts from raw text in the form of (head entity, relation, tail entity) **triples**.
 
-This is achieved through the following cascade of subtasks:
+Specifically, this is achieved through the following cascade of subtasks:
 
 1. **Named Entity Recognition (NER):**
     - Detect entity mentions (spans) and classify their types.
@@ -91,27 +90,6 @@ This is achieved through the following cascade of subtasks:
 1. **Document-level Relation Extraction (DocRE)**:
     - Extract relational triples based on the disambiguated entity set.
 
-### Supported Methods
-
-#### Named Entity Recognition (NER)
-- **Biaffine-NER** ([`Yu et al., 2020`](https://aclanthology.org/2020.acl-main.577/)): Span-based BERT model using biaffine scoring
-- **LLM-NER**: A proprietary/open-source LLM using a NER-specific prompt template and few-shot examples
-
-#### Entity Disambiguation Retrieval (ED-Retrieval)
-- **BLINK Bi-Encoder** ([`Wu et al., 2020`](https://aclanthology.org/2020.emnlp-main.519/)): Dense retriever using BERT-based encoders and approximate nearest neighbor search
-- **BM25**: Lexical matching
-- **Levenshtein**: Edit distance matching
-
-#### Entity Disambiguation Reranking (ED-Reranking)
-- **BLINK Cross-Encoder** (Wu et al., 2020): Reranker using a BERT-based encoder for candidates from the Bi-Encoder
-- **LLM-ED**: A proprietary/open-source LLM using a ED-specific prompt template and few-shot examples
-
-**Document-level Relation Extraction (DocRE)**
-- **ATLOP** ([`Zhou et al., 2021`](https://ojs.aaai.org/index.php/AAAI/article/view/17717)): BERT-based model for DocRE
-- **MA-ATLOP** (Oumaima & Nishida et al., 2024): Mention-agnostic extension of ATLOP
-- **MA-QA** (Oumaima & Nishida, 2024): Question-answering style DocRE model
-- **LLM-DocRE**: A proprietary/open-source LLM using a DocRE-specific prompt template and few-shot examples
-
 ### Input
 
 This module takes as input:
@@ -119,6 +97,7 @@ This module takes as input:
 1. ***Document***, or a dictionary containing
     - `doc_key` (str): Unique identifier for the document
     - `sentences` (list[str]): List of sentence strings (tokenized)
+
 ```json
 {
     "doc_key": "6794356",
@@ -129,38 +108,10 @@ This module takes as input:
     ]
 }
 ```
+(See `experiments/data/examples/documents_without_triples.json`)
 
-Each subtask takes a ***Document*** object as input, augments it with new fields, and returns it. This allows custom metadata to persist throughout the pipeline.
-
-`.jsonl`ファイル (各行は`"title"`と`"text"`を持つ辞書; 後述の ***Passage*** ) から、list of ***Document*** objectsを作成する方法を提供しています。
-
-```python
-from kapipe.chunkers import Chunker
-from kapipe import utils
-
-SPACY_MODEL_NAME=en_core_sci_md
-PATH_TO_PASSAGES = "./raw_passages.jsonl"
-PATH_TO_DOCUMENTS = "./documents.json
-
-# Initialize the Chunker
-chunker = Chunker(model_name=SPACY_MODEL_NAME)
-
-documents = []
-with open(PATH_TO_PASSAGES) as f:
-    for line in f:
-        # Load Passage
-        passage = json.loads(line.strip())
-        # Convert Passage to Document
-        document = chunker.convert_passage_to_document(
-            doc_key=f"Passage#{len(documents)}",
-            passage=passage,
-            do_tokenize=True
-        )
-        documents.append(document)
-
-# Save the Documents
-utils.write_json(PATH_TO_DOCUMENTS, documents)
-```
+Each subtask takes a ***Document*** object as input, augments it with new fields, and returns it.  
+This allows custom metadata to persist throughout the pipeline.
 
 ### Output
 
@@ -213,6 +164,7 @@ The output is also the same-format dictionary (***Document***), augmented with e
     ]
 }
 ```
+(See `experiments/data/examples/documents_with_triples.json`)
 
 ### How to Use
 
@@ -222,33 +174,64 @@ import kapipe.triple_extraction
 IDENTIFIER = "biaffinener_blink_blink_atlop_cdr"
 
 # Load the Triple Extraction pipeline
-pipe = kapipe.extractors.load(
+pipe = kapipe.triple_extraction.load(
     identifier=IDENTIFIER,
-    gpu_map={
-        "ner": 0,
-        "ed_retrieval": 0,
-        "ed_reranking": 2,
-        "docre": 3
-    }
+    gpu_map={"ner": 0, "ed_retrieval": 0, "ed_reranking": 2, "docre": 3}
 )
+
+# We provide a utility for converting text (string) to Document format
+# `title` is optional
+document = pipe.text_to_document(doc_key=your_doc_key, text=your_text, title=your_title)
 
 # Apply the pipeline to your input document
 document = pipe(document)
 ```
 
-The `identifier` determines the specific models used for each subtask.  
+<!-- The `identifier` determines the specific models used for each subtask.  
 For example, `"biaffinener_blink_blink_atlop_cdr"` uses:
 
 - **NER**: Biaffine-NER (trained on BC5CDR for Chemical and Disease types)
 - **ED-Retrieval**: BLINK Bi-Encoder (trained on BC5CDR for MeSH 2015)
 - **ED-Reranking**: BLINK Cross-Encoder (trained on BC5CDR for MeSH 2015)
-- **DocRE**: ATLOP (trained on BC5CDR for Chemical-Induce-Disease (CID) relation)
+- **DocRE**: ATLOP (trained on BC5CDR for Chemical-Induce-Disease (CID) relation) -->
+
+### Supported Methods
+
+#### Named Entity Recognition (NER)
+- **Biaffine-NER** ([`Yu et al., 2020`](https://aclanthology.org/2020.acl-main.577/)): Span-based BERT model using biaffine scoring
+- **LLM-NER**: A proprietary/open-source LLM using a NER-specific prompt template and few-shot examples
+
+#### Entity Disambiguation Retrieval (ED-Retrieval)
+- **BLINK Bi-Encoder** ([`Wu et al., 2020`](https://aclanthology.org/2020.emnlp-main.519/)): Dense retriever using BERT-based encoders and approximate nearest neighbor search
+- **BM25**: Lexical matching
+- **Levenshtein**: Edit distance matching
+
+#### Entity Disambiguation Reranking (ED-Reranking)
+- **BLINK Cross-Encoder** (Wu et al., 2020): Reranker using a BERT-based encoder for candidates from the Bi-Encoder
+- **LLM-ED**: A proprietary/open-source LLM using a ED-specific prompt template and few-shot examples
+
+#### Document-level Relation Extraction (DocRE)
+- **ATLOP** ([`Zhou et al., 2021`](https://ojs.aaai.org/index.php/AAAI/article/view/17717)): BERT-based model for DocRE
+- **MA-ATLOP** (Oumaima & Nishida et al., 2024): Mention-agnostic extension of ATLOP
+- **MA-QA** (Oumaima & Nishida, 2024): Question-answering style DocRE model
+- **LLM-DocRE**: A proprietary/open-source LLM using a DocRE-specific prompt template and few-shot examples
+
+### Available Pipeline Identifiers
+
+The following pipeline configurations are currently available:
+
+| identifier | NER (Entity Types) | ED-Retrieval (Knowledge Base) | ED-Reranking (Knowledge Base) | DocRE (Relations) |
+| --- | --- | --- | --- | --- |
+| `biaffinener_blink_blink_atlop_cdr` | Biaffine-NER ({Chemical, Disease}) | BLINK Bi-Encoder (MeSH 2015) | BLINK Cross-Encoder (MeSH 2015) | ATLOP ({Chemical-Induce-Disease}) |
+| `biaffinener_blink_blink_atlop_linked_docred` | Biaffine-NER ({Person, Organization, Location, Time, Number, Misc}) | BLINK Bi-Encoder (DBPedia 2020.02.01) | BLINK Cross-Encoder (DBPedia 2020.02.01) | ATLOP (DBPedia 96 relations) |
+| `llmner_blink_llmed_llmdocre_cdr` | LLM-NER `gpt-4o-mini` ({Chemical, Disease}) | BLINK Bi-Encoder (MeSH 2015) | LLM-ED `gpt-4o-mini` (MeSH 2015) | LLM-DocRE `gpt-4o-mini` ({Chemical-Induce-Disease}) |
+| `llmner_blink_llmed_llmdocre_linked_docred` | LLM-NER `gpt-4o-mini` ({Person, Organization, Location, Time, Number, Misc}) | BLINK Bi-Encoder (DBPedia 2020.02.01) | LLM-ED `gpt-4o-mini` (DBPedia 2020.02.01) | LLM-DocRE `gpt-4o-mini` (DBPedia 96 relations) |
 
 ## 🕸️ Knowledge Graph Construction
 
 ### Overview
 
-The **Knowledge Graph Construction** module builds a directed multi-relational graph from a set of extracted triples.
+The **Knowledge Graph Construction** module builds a **directed multi-relational graph** from a set of extracted triples.
 
 - **Nodes** represent unique entities (i.e., concepts).
 - **Edges** represent semantic relations between entities.
@@ -257,39 +240,9 @@ The **Knowledge Graph Construction** module builds a directed multi-relational g
 
 This module takes as input:
 
-1. List of ***Document*** objects with triples
+1. List of ***Document*** objects with triples, produced by the **Triple Extraction** module
 
-1. ***Entity Dictionary***, or a list of dictionaries, each containing:
-    - `entity_id` (str): Unique concept ID
-    - `canonical_name` (str): Official name of the concept
-    - `entity_type` (str): Type/category of the concept
-    - `synonyms` (list[str]): A list of alternative names
-    - `description` (str): Textual definition of the concept
-```JSON
-[
-    {
-        "entity_id": "D000001",
-        "entity_index": 0,
-        "entity_type": "Chemical",
-        "canonical_name": "Calcimycin",
-        "synonyms": [],
-        "description": "An ionophorous, polyether antibiotic from Streptomyces chartreusensis. It binds and transports CALCIUM and other divalent cations across membranes and uncouples oxidative phosphorylation while inhibiting ATPase of rat liver mitochondria. The substance is used mostly as a biochemical tool to study the role of divalent cations in various biological systems."
-    },
-    {
-        "entity_id": "D000002",
-        "entity_index": 1,
-        "entity_type": "Chemical",
-        "canonical_name": "Temefos",
-        "synonyms": [
-            "Temephos"
-        ],
-        "description": "for use to kill or control insects, use no qualifiers on the insecticide or the insect; appropriate qualifiers may be used when other aspects of the insecticide are discussed such as the effect on a physiologic process or behavioral aspect of the insect; for poisoning, coordinate with ORGANOPHOSPHATE POISONING An organothiophosphate insecticide."
-    },
-    ...
-]
-```
-
-3. (optional) ***Additional Triples*** (existing KBs), or a list of dictionaries, each containing:
+2. (optional) ***Additional Triples*** (existing KBs), or a list of dictionaries, each containing:
     - `head` (str): Entity ID of the subject
     - `relation` (str): Relation type (e.g., treats, causes)
     - `tail` (str): Entity ID of the object
@@ -303,6 +256,45 @@ This module takes as input:
     ...
 ]
 ```
+(See `experiments/data/examples/additional_triples.json`)
+
+
+3. ***Entity Dictionary***, or a list of dictionaries, each containing:
+    - `entity_id` (str): Unique concept ID
+    - `canonical_name` (str): Official name of the concept
+    - `entity_type` (str): Type/category of the concept
+    - `synonyms` (list[str]): A list of alternative names
+    - `description` (str): Textual definition of the concept
+```JSON
+[
+    {
+        "entity_id": "C009166",
+        "entity_index": 252696,
+        "entity_type": null,
+        "canonical_name": "retinol acetate",
+        "synonyms": [
+            "retinyl acetate",
+            "vitamin A acetate"
+        ],
+        "description": "",
+        "tree_numbers": []
+    },
+    {
+        "entity_id": "D000641",
+        "entity_index": 610,
+        "entity_type": "Chemical",
+        "canonical_name": "Ammonia",
+        "synonyms": [],
+        "description": "A colorless alkaline gas. It is formed in the body during decomposition of organic materials during a large number of metabolically important reactions. Note that the aqueous form of ammonia is referred to as AMMONIUM HYDROXIDE.",
+        "tree_numbers": [
+            "D01.362.075",
+            "D01.625.050"
+        ]
+    },
+    ...
+]
+```
+(See `experiments/data/examples/entity_dict.json`)
 
 ### Output
 
@@ -323,14 +315,16 @@ Each edge has the following attributes:
 - `relation` (str): Type of semantic relation
 - `doc_key_list` (list[str]): List of document IDs supporting this relation
 
+(See `experiments/data/examples/graph.graphml`)
+
 ### How to Use
 
 ```python
 from kapipe.graph_construction import GraphConstructor
 
-PATH_TO_DOCUMENTS = "./documents.json"
-PATH_TO_ENTITY_DICT = "./entity_dict.json"
-PATH_TO_TRIPLES = "./triples.json"  # Or set to None if unused
+PATH_TO_DOCUMENTS = "./experiments/data/examples/documents.json"
+PATH_TO_TRIPLES = "./experiments/data/examples/additional_triples.json" # Or set to None if unused
+PATH_TO_ENTITY_DICT = "./experiments/data/examples/entity_dict.json"
 
 # Initialize the knowledge graph constructor
 constructor = GraphConstructor()
@@ -338,8 +332,8 @@ constructor = GraphConstructor()
 # Construct the knowledge graph
 graph = constructor.construct_knowledge_graph(
     path_documents_list=[PATH_TO_DOCUMENTS],
-    path_additional_triples=PATH_TO_TRIPLES  # Optional
-    path_entity_dict=PATH_TO_ENTITY_DICT,
+    path_additional_triples=PATH_TO_TRIPLES, # Optional
+    path_entity_dict=PATH_TO_ENTITY_DICT
 )
 ```
 
@@ -348,16 +342,7 @@ graph = constructor.construct_knowledge_graph(
 ### Overview
 
 The **Community Clustering** module partitions the knowledge graph into **semantically coherent subgraphs**, referred to as *communities*.  
-Each community represents a localized set of closely related concepts and relations, and serves as a fundamental unit for downstream tasks such as report generation and retrieval.
-
-### Supported Methods
-
-- **Hierarchical Leiden**
-    - Recursively applies the Leiden algorithm (Traag et al., 2019) to optimize modularity. Large communities are subdivided until they satisfy a predefined size constraint (default: 10 nodes).
-- **Neighborhood Aggregation**
-    - Groups each node with its immediate neighbors to form local communities.
-- **Triple-level Factorization**
-    - Treats each individual (subject, relation, object) triple as an atomic community.
+Each community represents a localized set of closely related concepts and relations, and serves as a fundamental unit of structured knowledge.
 
 ### Input
 
@@ -382,18 +367,36 @@ The output is a list of hierarchical community records (dictionaries), each cont
         "nodes": null,
         "level": -1,
         "parent_community_id": null,
-        "child_community_ids": ["<community ID>", ...]
+        "child_community_ids": [
+            "0",
+            "1",
+            "2",
+            "3",
+            "4",
+            "5",
+            "6",
+            "7",
+            "8",
+            "9"
+        ]
     },
     {
-        "community_id": "<community id>",
-        "nodes": ["<entity ID>", ...],
+        "community_id": "0",
+        "nodes": [
+            "D016651",
+            "D014262",
+            "D003866",
+            "D003490",
+            "D001145"
+        ],
         "level": 0,
-        "parent_community_id": "<parent community id>",
-        "child_community_ids": ["<child community id>", ...]
+        "parent_community_id": "ROOT",
+        "child_community_ids": [...]
     },
     ...
 ]
 ```
+(See `experiments/data/examples/communities.json`)
 
 This hierarchical structure enables multi-level organization of knowledge, particularly useful for coarse-to-fine report generation and scalable retrieval.
 
@@ -415,27 +418,27 @@ clusterer = HierarchicalLeiden()
 communities = clusterer.cluster_communities(graph)
 ```
 
+### Supported Methods
+
+- **Hierarchical Leiden**
+    - Recursively applies the Leiden algorithm (Traag et al., 2019) to optimize modularity. Large communities are subdivided until they satisfy a predefined size constraint (default: 10 nodes).
+- **Neighborhood Aggregation**
+    - Groups each node with its immediate neighbors to form local communities.
+- **Triple-level Factorization**
+    - Treats each individual (subject, relation, object) triple as an atomic community.
+
 ## 📝 Report Generation
 
 ### Overview
 
-The **Report Generation** module converts each community into a **natural language summary**, making structured knowledge interpretable for both humans and language models.  
-
-### Supported Methods
-
-- **LLM-based Generation**
-    - Uses a large language model (e.g., GPT-4o-mini) prompted with a community content to generate fluent summaries.
-- **Template-based Generation**
-    - Uses a deterministic format that verbalizes each entity/triple and linearizes them:
-        - Entity format: `"{name} | {type} | {definition}"`
-        - Triple format: `"{subject} | {relation} | {object}"`
+The **Report Generation** module converts each community into a **natural language report**, making structured knowledge interpretable for both humans and language models.  
 
 ### Input
 
 This module takes as input:
 
 1. Knowledge graph (`networkx.MultiDiGraph`) generated by the **Knowledge Graph Construction** module.
-1. List of community records created by the **Community Clustering** module
+1. List of community records generated by the **Community Clustering** module.
 
 ### Output
 
@@ -445,39 +448,46 @@ The output is a `.jsonl` file, where each line corresponds to one ***Passage***,
 - `text` (str): Full natural language description of the community's content
 
 ```json
-{
-    "title": "Methyldopa and Its Associated Health Risks",
-    "text": "The community surrounding Methyldopa consists of various diseases that are chemically induced by this antihypertensive agent. Methyldopa is linked to a range of adverse health effects, including hypotension, ...",
-}
+{"title": "Lithium Carbonate and Related Health Conditions", "text": "This report examines the interconnections between Lithium Carbonate, ...."}
+{"title": "Phenobarbital and Drug-Induced Dyskinesia", "text": "This report examines the relationship between Phenobarbital, ..."}
+{"title": "Ammonia and Valproic Acid in Disorders of Excessive Somnolence", "text": "This report examines the relationship between ammonia and valproic acid, ..."}
+...
 ```
+(See `experiments/data/examples/reports.jsonl`)
 
-✅ The output format is fully compatible with the Chunking module,  
-which accepts any dictionary containing a `title` and `text` field.  
-Thus, each community report can also be treated as a generic *Passage*.
+✅ The output format is fully compatible with the **Chunking** module, which accepts any dictionary containing a `title` and `text` field.  
+Thus, each community report can also be treated as a generic ***Passage***.
 
 ### How to Use
 
 ```python
-from kapipe.graphs import (
-    generate_community_reports_by_llm,
-    generate_community_reports_by_template,
+from kapipe.report_generation import (
+    LLMBasedReportGenerator,
+    TemplateBasedReportGenerator
 )
 
-PATH_TO_REPORTS = "./reports.jsonl"
+PATH_TO_REPORTS = "./experiments/data/examples/reports.jsonl"
 
-# Generate reports using an LLM
-generate_community_reports_by_llm(
-    graph=graph,
-    communities=communities,
-    path_output=PATH_TO_REPORTS
-)
-# Alternatively, use template-based generation
-generate_community_reports_by_template(
+# Initialize the report generator
+generator = LLMBasedReportGenerator()
+# generator = TemplateBasedReportGenerator()
+ 
+# Generate community reports
+generator.generate_community_reports(
     graph=graph,
     communities=communities,
     path_output=PATH_TO_REPORTS
 )
 ```
+
+### Supported Methods
+
+- **LLM-based Generation**
+    - Uses a large language model (e.g., GPT-4o-mini) prompted with a community content to generate fluent summaries.
+- **Template-based Generation**
+    - Uses a deterministic format that verbalizes each entity/triple and linearizes them:
+        - Entity format: `"{name} | {type} | {definition}"`
+        - Triple format: `"{subject} | {relation} | {object}"`
 
 ## ✂️ Chunking
 
@@ -496,7 +506,17 @@ This makes the module applicable not only to **community reports**, but also to 
 
 This module takes as input:
 
-1. ***Passage***, or a dictionary containing a `"title"` and `"text"` field.
+1. ***Passage***, or a dictionary containing `title` and `text` field.
+
+    - `title` (str): Title of the passage
+    - `text` (str): Full natural language description of the passage
+
+```json
+{
+    "title": "Lithium Carbonate and Related Health Conditions",
+    "text": "This report examines the interconnections between Lithium Carbonate, ..."
+}
+```
 
 ### Output
 
@@ -508,16 +528,21 @@ The output is a list of ***Passage*** objects, each containing:
 ```json
 [
     {
-        "title": "Methyldopa and Its Associated Health Risks",
-        "text": "The community surrounding Methyldopa consists of ..."
+        "title": "Lithium Carbonate and Related Health Conditions",
+        "text": "This report examines the interconnections between Lithium Carbonate, ..."
     },
     {
-        "title": "Methyldopa and Its Associated Health Risks",
-        "text": "The drug's impact on liver health is particularly ..."
+        "title": "Lithium Carbonate and Related Health Conditions",
+        "text": "This duality necessitates careful monitoring of patients receiving Lithium treatment, ..."
     },
+    {
+        "title": "Lithium Carbonate and Related Health Conditions",
+        "text": "Similarly, cardiac arrhythmias, which involve irregular heartbeats, can pose ..."
+    }
     ...
 ]
 ```
+(See `experiments/data/examples/reports.chunked_w100.jsonl`)
 
 ### How to Use
 
@@ -541,74 +566,82 @@ chunked_passages = chunker.split_passage_to_chunked_passages(
 
 ### Overview
 
-The **Passage Retrieval** module searches for the top-k most relevant **chunks** given a user query (question).  
-It uses dense retrievers (e.g., Contriever, ColBERTv2) to compute semantic similarity between queries and chunks using embedding-based methods.
-
-This module is critical for selecting informative contexts before passing them to the Question Answering (QA) stage.
-
-### Supported Methods
-
-- **Contriever** (Izacard et al., 2022)
-    - A dual-encoder retriever trained with contrastive learning (Izacard et al., 2022). Computes similarity between query and chunk embeddings.
-- **ColBERTv2** (Santhanam et al., 2022)
-    - A token-level late-interaction retriever for fine-grained semantic matching. Provides higher accuracy with increased inference cost.
+The **Passage Retrieval** module searches for the top-k most **relevant chunks** given a user query.  
+It uses lexical or dense retrievers (e.g., BM25, Contriever, ColBERTv2) to compute semantic similarity between queries and chunks using embedding-based methods.
 
 ### Input
 
+**(1) Indexing**:
+
 During the indexing phase, this module takes as input:
 
-- List of ***Passage*** objects
+1. List of ***Passage*** objects
+
+**(2) Search**:
 
 During the search phase, this module takes as input:
 
-- ***Question***, or a dictionary containing:
+1. ***Question***, or a dictionary containing:
     - `question_key` (str): Unique identifier for the question
     - `question` (str): Natural language question
 
 ```json
 {
-    "question_key": "Q123",
-    "question": "What cardiac conditions are associated with lithium exposure in newborns?"
+    "question_key": "question#123",
+    "question": "What does lithium carbonate induce?"
 }
 ```
+(See `experiments/data/examples/questions.json`)
 
 ### Output
 
-The search result for each question is represented as a dictionarty containing:
+**(1) Indexing**:
+
+The indexing result is automatically saved to the path specified by `index_root` and `index_name`.
+
+**(2) Search**:
+
+The search result for each question is represented as a dictionary containing:
 - `question_key` (str): Refers back to the original query
-- `contexts` (list[***Passage***]): Top-k retrieved chunks (***Passages***) sorted by relevance, each containing:
-    - `title` (str): Same as the source chunk
-    - `text` (str): Same as the source chunk
+- `contexts` (list[***Passage***]): Top-k retrieved chunks sorted by relevance, each containing:
+    - `title` (str): Chunk title
+    - `text` (str): Chunk text
     - `score` (float): Similarity score computed by the retriever
     - `rank` (int): Rank of the chunk (1-based)
 
 ```json
 {
-    "question_key": "Q123",
+    "question_key": "question#123",
     "contexts": [
         {
-          "title": "Lithium-induced cardiac disorders in newborns",
-          "text": "This community discusses the effects of lithium exposure...",
-          "score": 1.7323,
-          "rank": 1
+            "title": "Lithium Carbonate and Related Health Conditions",
+            "text": "This report examines the interconnections between Lithium Carbonate, ...",
+            (meta data, if exists)
+            "score": 1.5991605520248413,
+            "rank": 1
+        },
+        {
+            "title": "Lithium Carbonate and Related Health Conditions",
+            "text": "\n\nIn summary, while Lithium Carbonate is an effective treatment for mood disorders, ...",
+            (meta data, if exists)
+            "score": 1.51018488407135,
+            "rank": 2
         },
         ...
     ]
 }
 ```
+(See `experiments/data/examples/questions.contexts.json`)
 
 ### How to Use
 
 **(1) Indexing**:
 
 ```python
-from kapipe.passage_retrieval import (
-    Contriever,
-    ColBERTv2Retriever
-)
+from kapipe.passage_retrieval import Contriever
 
 INDEX_ROOT = "./"
-INDEX_NAME = "community_chunks"
+INDEX_NAME = "example"
 
 # Initialize retriever
 retriever = Contriever(
@@ -618,7 +651,6 @@ retriever = Contriever(
     gpu_id=0,
     metric="inner-product"
 )
-# retriever = ColBERTv2Retriever()
 
 # Build index
 retriever.make_index(
@@ -631,10 +663,7 @@ retriever.make_index(
 **(2) Search**:
 
 ```python
-from kapipe.retrievers import Contriever, ColBERTv2Retriever
-
-# Initalize the retriever, and load the index
-retriever = ...
+# Load the index
 retriever.load_index(index_root=INDEX_ROOT, index_name=INDEX_NAME)
 
 # Search for top-k contexts
@@ -644,6 +673,15 @@ contexts_for_question = {
     "contexts": retrieved_passages
 }
 ```
+
+### Supported Methods
+
+- **BM25**
+    - A sparse lexical matching model based on term frequency and inverse document frequency.
+- **Contriever** (Izacard et al., 2022)
+    - A dual-encoder retriever trained with contrastive learning (Izacard et al., 2022). Computes similarity between query and chunk embeddings.
+- **ColBERTv2** (Santhanam et al., 2022)
+    - A token-level late-interaction retriever for fine-grained semantic matching. Provides higher accuracy with increased inference cost.
 
 ## 💬 Question Answering
 
@@ -660,31 +698,13 @@ This module takes as input:
     - `question_key`: Unique identifier for the question
     - `question`: Natural language question string
 
-```json
-{
-    "question_key": "Q123",
-    "question": "What cardiac conditions are associated with lithium exposure in newborns?"
-}
-```
+(See `experiments/data/examples/questions.json`)
 
-2. ***Contexts***, or a dictionary containing:
+2. A dictionary containing:
     - `question_key`: The same identifier with the ***Question***
     - `contexts`: List of ***Passage*** objects
 
-```json
-{
-    "question_key": "Q123",
-    "contexts": [
-        {
-          "title": "Lithium-induced cardiac disorders in newborns",
-          "text": "This community discusses the effects of lithium exposure...",
-          "score": 1.7323,
-          "rank": 1
-        },
-        ...
-    ]
-}
-```
+(See `experiments/data/examples/questions.contexts.json`)
 
 ### Output
 
@@ -693,14 +713,17 @@ The answer is a dictionary containing:
 - `question_key` (str): Same as input
 - `question` (str): Original question text
 - `output_answer` (str): Model-generated natural language answer
+- `helpfulness_score` (float): Confidence score generated by the model
 
 ```json
 {
-    "question_key": "Q123",
-    "question": "What cardiac conditions are associated with lithium exposure in newborns?",
-    "output_answer": "Lithium exposure during pregnancy is associated with tricuspid regurgitation, atrial flutter, and cardiac arrhythmia in newborns.",
+    "question_key": "question#123",
+    "question": "What does lithium carbonate induce?",
+    "output_answer": "Lithium carbonate can induce depressive disorder, cyanosis, and cardiac arrhythmias.",
+    "helpfulness_score": 1.0
 }
 ```
+(See `experiments/data/examples/answers.json`)
 
 ### How to Use
 
@@ -708,7 +731,7 @@ The answer is a dictionary containing:
 from kapipe.qa import LLMQA
 from kapipe import utils
 
-# Load the LLM configuration
+# Initialize the QA module
 config = utils.get_hocon_config(
     config_path="./kapipe/results/qa/llmqa/openai_gpt4o/config"
 )

@@ -623,7 +623,9 @@ def show_questions_statistics(questions, title):
     n_synonyms_list = []
 
     for q in tqdm(questions):
-        answers = q["answers"]
+        answers = q.get("answers", None)
+        if answers is None:
+            continue
 
         n_yesno_answers = 0
         n_long_answers = 0
@@ -664,9 +666,12 @@ def show_questions_statistics(questions, title):
 
 
 def get_statistics_text(xs):
-    sum_ = np.sum(xs)
-    mean_ = np.mean(xs)
-    max_ = np.max(xs)
-    min_ = np.min(xs)
+    if len(xs) == 0:
+        sum_ = mean_ = max_ = min_ = 0
+    else:
+        sum_ = np.sum(xs)
+        mean_ = np.mean(xs)
+        max_ = np.max(xs)
+        min_ = np.min(xs)
     return f"Total: {sum_} / Average per instance: {mean_} / Max: {max_} / Min: {min_}"
 

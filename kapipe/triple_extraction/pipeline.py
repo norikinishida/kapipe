@@ -83,13 +83,30 @@ class Pipeline:
             verbose=verbose
         )
 
-    def convert_passage_to_document(self, doc_key: str, passage: Passage, do_tokenize: bool) -> Document:
-        return self.chunker.convert_passage_to_document(
-            doc_key=doc_key,
-            passage=passage,
-            do_tokenize=do_tokenize
-        )
-        
+    def text_to_document(
+        self,
+        doc_key: str,
+        text: str,
+        title: str | None = None
+    ) -> Document:
+        # Split the text to (tokenized) sentences
+        sentences = self.chunker.split_text_to_tokenized_sentences(text=text)
+        sentences = [" ".join(s) for s in sentences]
+        # Prepend the title as the first (tokenized) sentence
+        if title:
+            title = self.chunker.split_text_to_tokens(text=title)
+            title = " ".join(title)
+            sentences = [title] + sentences
+        # Clean up the sentences
+        sentences = self.chunker.remove_line_breaks(sentences=sentences)
+        # Create a Document object
+        document = {
+            "doc_key": doc_key,
+            "source_text": text,
+            "sentences": sentences
+        }
+        return document
+       
     def __call__(self, document: Document, num_candidate_entities: int = 10) -> Document:
         # Apply the NER wrapper
         document = self.ner(document=document)

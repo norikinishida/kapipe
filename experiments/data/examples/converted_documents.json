@@ -1,0 +1,878 @@
+[
+    {
+        "doc_key": "Passage#0",
+        "source_passage": {
+            "title": "Influence of a new virostatic compound on the induction of enzymes in rat liver.",
+            "text": "The virostatic compound N,N-diethyl-4-[2-(2-oxo-3-tetradecyl-1-imidazolidinyl)-ethyl]-1-piperazinecarboxamide-hydrochloride (5531) was analyzed as to its effect on the induction of tryptophan-pyrrolase and tyrosineaminotransferase in rat liver. 1. The basic activity of the enzymes was not influenced by the substance either in normal or in adrenalectomized animals. 2. The induction of the enzymes by cortisone increased in the presence of the compound whereas the substrate induction remained unchanged. 3. The induction of tyrosine-aminotransferase by dexamethasonephosphate in tissue culture is inhibited if the dose of compound 5531 is higher than 5 mug/ml.",
+            "pmid": "24",
+            "authors": {
+                "LastName": [
+                    "Kr\u00f6ger",
+                    "Donner",
+                    "Skiello"
+                ],
+                "ForeName": [
+                    "H",
+                    "I",
+                    "G"
+                ],
+                "Initials": [
+                    "H",
+                    "I",
+                    "G"
+                ],
+                "CollectiveName": [
+                    "",
+                    "",
+                    ""
+                ]
+            },
+            "n_references": 0,
+            "chemicals": {
+                "RegistryNumber": [
+                    "0",
+                    "0",
+                    "0",
+                    "42HK56048U",
+                    "EC 1.13.11.11",
+                    "EC 2.6.1.5",
+                    "V27W9254FZ"
+                ],
+                "NameOfSubstance": [
+                    "Antiviral Agents",
+                    "Imidazoles",
+                    "Piperazines",
+                    "Tyrosine",
+                    "Tryptophan Oxygenase",
+                    "Tyrosine Transaminase",
+                    "Cortisone"
+                ]
+            },
+            "mesh_headings": {
+                "DescriptorName": [
+                    "Adrenalectomy",
+                    "Animals",
+                    "Antiviral Agents",
+                    "Cortisone",
+                    "Culture Techniques",
+                    "Dose-Response Relationship, Drug",
+                    "Enzyme Induction",
+                    "Female",
+                    "Imidazoles",
+                    "Liver",
+                    "Piperazines",
+                    "Rats",
+                    "Time Factors",
+                    "Tryptophan Oxygenase",
+                    "Tyrosine",
+                    "Tyrosine Transaminase"
+                ],
+                "QualifierName": [
+                    "",
+                    "",
+                    "pharmacology",
+                    "pharmacology",
+                    "",
+                    "",
+                    "drug effects",
+                    "",
+                    "pharmacology",
+                    "enzymology",
+                    "pharmacology",
+                    "",
+                    "",
+                    "metabolism",
+                    "pharmacology",
+                    "metabolism"
+                ]
+            }
+        },
+        "sentences": [
+            "Influence of a new virostatic compound on the induction of enzymes in rat liver .",
+            "The virostatic compound N , N-diethyl-4-[2-(2-oxo-3-tetradecyl-1-imidazolidinyl)-ethyl]-1-piperazinecarboxamide-hydrochloride ( 5531 ) was analyzed as to its effect on the induction of tryptophan-pyrrolase and tyrosineaminotransferase in rat liver .",
+            "1 .",
+            "The basic activity of the enzymes was not influenced by the substance either in normal or in adrenalectomized animals .",
+            "2 .",
+            "The induction of the enzymes by cortisone increased in the presence of the compound whereas the substrate induction remained unchanged .",
+            "3 .",
+            "The induction of tyrosine-aminotransferase by dexamethasonephosphate in tissue culture is inhibited if the dose of compound 5531 is higher than 5 mug/ml ."
+        ]
+    },
+    {
+        "doc_key": "Passage#1",
+        "source_passage": {
+            "title": "Effect of etafenone on total and regional myocardial blood flow.",
+            "text": "The distribution of blood flow to the subendocardial, medium and subepicardial layers of the left ventricular free wall was studied in anaesthetized dogs under normoxic (A), hypoxic (B) conditions and under pharmacologically induced (etafenone) coronary vasodilation (C). Regional myocardial blood flow was determined by means of the particle distribution method. In normoxia a transmural gradient of flow was observed, with the subendocardial layers receiving a significantly higher flow rate compared with the subepicardial layers. In hypoxia induced vasodilation this transmural gradient of flow was persistent. In contrast a marked redistribution of regional flow was observed under pharmacologically induced vasodilation. The transmural gradient decreased. In contrast to some findings these experiments demonstrate that a considerable vasodilatory capacity exists in all layers of the myocardium and can be utilized by drugs. The differences observed for the intramural distribution pattern of flow under hypoxia and drug induced vasodilation support the hypothesis that this pattern reflects corresponding gradients of regional myocardial metabolism.",
+            "pmid": "23",
+            "authors": {
+                "LastName": [
+                    "Flohr",
+                    "Breull"
+                ],
+                "ForeName": [
+                    "H",
+                    "W"
+                ],
+                "Initials": [
+                    "H",
+                    "W"
+                ],
+                "CollectiveName": [
+                    "",
+                    ""
+                ]
+            },
+            "n_references": 0,
+            "chemicals": {
+                "RegistryNumber": [
+                    "0",
+                    "0",
+                    "142M471B3J",
+                    "S88TT14065"
+                ],
+                "NameOfSubstance": [
+                    "Propiophenones",
+                    "Vasodilator Agents",
+                    "Carbon Dioxide",
+                    "Oxygen"
+                ]
+            },
+            "mesh_headings": {
+                "DescriptorName": [
+                    "Animals",
+                    "Blood Pressure",
+                    "Carbon Dioxide",
+                    "Cardiac Output",
+                    "Coronary Circulation",
+                    "Coronary Vessels",
+                    "Dogs",
+                    "Heart Rate",
+                    "Heart Septum",
+                    "Heart Ventricles",
+                    "Hydrogen-Ion Concentration",
+                    "Hypoxia",
+                    "Oxygen",
+                    "Propiophenones",
+                    "Vasodilator Agents"
+                ],
+                "QualifierName": [
+                    "",
+                    "drug effects",
+                    "blood",
+                    "drug effects",
+                    "drug effects",
+                    "drug effects",
+                    "",
+                    "drug effects",
+                    "",
+                    "",
+                    "",
+                    "physiopathology",
+                    "blood",
+                    "pharmacology",
+                    "pharmacology"
+                ]
+            }
+        },
+        "sentences": [
+            "Effect of etafenone on total and regional myocardial blood flow .",
+            "The distribution of blood flow to the subendocardial , medium and subepicardial layers of the left ventricular free wall was studied in anaesthetized dogs under normoxic ( A ) , hypoxic ( B ) conditions and under pharmacologically induced ( etafenone ) coronary vasodilation ( C ) .",
+            "Regional myocardial blood flow was determined by means of the particle distribution method .",
+            "In normoxia a transmural gradient of flow was observed , with the subendocardial layers receiving a significantly higher flow rate compared with the subepicardial layers .",
+            "In hypoxia induced vasodilation this transmural gradient of flow was persistent .",
+            "In contrast a marked redistribution of regional flow was observed under pharmacologically induced vasodilation .",
+            "The transmural gradient decreased .",
+            "In contrast to some findings these experiments demonstrate that a considerable vasodilatory capacity exists in all layers of the myocardium and can be utilized by drugs .",
+            "The differences observed for the intramural distribution pattern of flow under hypoxia and drug induced vasodilation support the hypothesis that this pattern reflects corresponding gradients of regional myocardial metabolism ."
+        ]
+    },
+    {
+        "doc_key": "Passage#2",
+        "source_passage": {
+            "title": "Pharmacological properties of new neuroleptic compounds.",
+            "text": "RMI 61 140, RMI 61 144 and RMI 61 280 are newly synthetized N-[8-R-dibenzo(b,f)oxepin-10-yl]-N'-methyl-piperazine-maleates which show interesting psychopharmacologic effects. This work contains the results of a study performed with these three compounds, in order to demonstrate their neuropsycholeptic activity in comparison with chloropromazine (CPZ) and chlordiazepoxide (CPD). The inhibition of motility observed in mice shows that the compounds reduce the normal spontaneous motility as well as the muscle tone. The central-depressant activity is evidenced by increased barbiturate-induced sleep and a remarkable eyelid ptosis can also be observed. Our compounds do not show any activity on electroshock just as do CPZ and CPD. As to the antipsychotic outline, our compounds show strong reduction of lethality due to amphetamine in grouped mice and a strong antiapomorphine activity. They show also an antiaggressive effect and an inhibitory activity on avoidance behaviour much stronger than CPZ. We have also found extrapyramidal effects, as catalepsy, common to many tranquillizers of the kind of the standards used by us. As for vegetative phenomena, the compounds show hypotensive dose related action ranging from moderate to strong, probably due to an a-receptor inhibition. Adrenolytic activity against lethal doses of adrenaline, antiserotonin and antihistaminic effects, as well as other actions (hypothermia, analgesia, etc.) confirm that RMI 61 140, RMI 61 144 and RMI 61 280 are endowed with pharmacologic properties similar and more potent than those of CPZ. Studies on the metabolism of brain catecholamines show that they are similar to CPZ, although with less effect on dopamine level.",
+            "pmid": "25",
+            "authors": {
+                "LastName": [
+                    "Coscia",
+                    "Causa",
+                    "Giuliani",
+                    "Nunziata"
+                ],
+                "ForeName": [
+                    "L",
+                    "P",
+                    "E",
+                    "A"
+                ],
+                "Initials": [
+                    "L",
+                    "P",
+                    "E",
+                    "A"
+                ],
+                "CollectiveName": [
+                    "",
+                    "",
+                    "",
+                    ""
+                ]
+            },
+            "n_references": 0,
+            "chemicals": {
+                "RegistryNumber": [
+                    "0",
+                    "0",
+                    "0",
+                    "0",
+                    "6RZ6XEZ3CR",
+                    "CK833KGX7E",
+                    "N21FAR7B4S",
+                    "U42B7VYA4P",
+                    "YKH834O4BH"
+                ],
+                "NameOfSubstance": [
+                    "Dibenzoxepins",
+                    "Histamine H1 Antagonists",
+                    "Piperazines",
+                    "Tranquilizing Agents",
+                    "Chlordiazepoxide",
+                    "Amphetamine",
+                    "Apomorphine",
+                    "Chlorpromazine",
+                    "Epinephrine"
+                ]
+            },
+            "mesh_headings": {
+                "DescriptorName": [
+                    "Aggression",
+                    "Amphetamine",
+                    "Animals",
+                    "Apomorphine",
+                    "Avoidance Learning",
+                    "Behavior, Animal",
+                    "Blood Pressure",
+                    "Chlordiazepoxide",
+                    "Chlorpromazine",
+                    "Dibenzoxepins",
+                    "Drug Evaluation, Preclinical",
+                    "Epinephrine",
+                    "Guinea Pigs",
+                    "Histamine H1 Antagonists",
+                    "Humans",
+                    "Lethal Dose 50",
+                    "Male",
+                    "Mice",
+                    "Motor Activity",
+                    "Muscle Contraction",
+                    "Piperazines",
+                    "Rats",
+                    "Sleep",
+                    "Time Factors",
+                    "Tranquilizing Agents"
+                ],
+                "QualifierName": [
+                    "drug effects",
+                    "antagonists & inhibitors",
+                    "",
+                    "antagonists & inhibitors",
+                    "drug effects",
+                    "drug effects",
+                    "drug effects",
+                    "pharmacology",
+                    "pharmacology",
+                    "pharmacology",
+                    "",
+                    "antagonists & inhibitors",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "drug effects",
+                    "drug effects",
+                    "pharmacology",
+                    "",
+                    "drug effects",
+                    "",
+                    "pharmacology"
+                ]
+            }
+        },
+        "sentences": [
+            "Pharmacological properties of new neuroleptic compounds .",
+            "RMI 61 140 , RMI 61 144 and RMI 61 280 are newly synthetized N-[8-R-dibenzo(b , f)oxepin-10-yl]-N'-methyl-piperazine-maleates which show interesting psychopharmacologic effects .",
+            "This work contains the results of a study performed with these three compounds , in order to demonstrate their neuropsycholeptic activity in comparison with chloropromazine ( CPZ ) and chlordiazepoxide ( CPD ) .",
+            "The inhibition of motility observed in mice shows that the compounds reduce the normal spontaneous motility as well as the muscle tone .",
+            "The central-depressant activity is evidenced by increased barbiturate-induced sleep and a remarkable eyelid ptosis can also be observed .",
+            "Our compounds do not show any activity on electroshock just as do CPZ and CPD .",
+            "As to the antipsychotic outline , our compounds show strong reduction of lethality due to amphetamine in grouped mice and a strong antiapomorphine activity .",
+            "They show also an antiaggressive effect and an inhibitory activity on avoidance behaviour much stronger than CPZ .",
+            "We have also found extrapyramidal effects , as catalepsy , common to many tranquillizers of the kind of the standards used by us .",
+            "As for vegetative phenomena , the compounds show hypotensive dose related action ranging from moderate to strong , probably due to an a-receptor inhibition .",
+            "Adrenolytic activity against lethal doses of adrenaline , antiserotonin and antihistaminic effects , as well as other actions ( hypothermia , analgesia , etc . ) confirm that RMI 61 140 , RMI 61 144 and RMI 61 280 are endowed with pharmacologic properties similar and more potent than those of CPZ .",
+            "Studies on the metabolism of brain catecholamines show that they are similar to CPZ , although with less effect on dopamine level ."
+        ]
+    },
+    {
+        "doc_key": "Passage#3",
+        "source_passage": {
+            "title": "Lysosomal hydrolases of the epidermis. I. Glycosidases.",
+            "text": "Seven distinct glycosidases (EC 3.2) have been characterized in guinea-pig epidermis. Their properties indicate them to be of lysosomal origin. The 'profile' of the epidermal glycosidases is significantly different from that reported for whole skin, the activities of beta-galactosidase and beta-acetylglucosaminidase being very high and those of the remaining enzymes relatively low in epidermis.",
+            "pmid": "30",
+            "authors": {
+                "LastName": [
+                    "Mier",
+                    "van den Hurk"
+                ],
+                "ForeName": [
+                    "P D",
+                    "J J"
+                ],
+                "Initials": [
+                    "PD",
+                    "JJ"
+                ],
+                "CollectiveName": [
+                    "",
+                    ""
+                ]
+            },
+            "n_references": 0,
+            "chemicals": {
+                "RegistryNumber": [
+                    "EC 3.2.1.-",
+                    "EC 3.2.1.-",
+                    "EC 3.2.1.52"
+                ],
+                "NameOfSubstance": [
+                    "Galactosidases",
+                    "Glycoside Hydrolases",
+                    "Acetylglucosaminidase"
+                ]
+            },
+            "mesh_headings": {
+                "DescriptorName": [
+                    "Acetylglucosaminidase",
+                    "Animals",
+                    "Galactosidases",
+                    "Glycoside Hydrolases",
+                    "Guinea Pigs",
+                    "Hydrogen-Ion Concentration",
+                    "Kinetics",
+                    "Lysosomes",
+                    "Skin"
+                ],
+                "QualifierName": [
+                    "metabolism",
+                    "",
+                    "metabolism",
+                    "metabolism",
+                    "",
+                    "",
+                    "",
+                    "enzymology",
+                    "enzymology"
+                ]
+            }
+        },
+        "sentences": [
+            "Lysosomal hydrolases of the epidermis . I. Glycosidases .",
+            "Seven distinct glycosidases ( EC 3.2 ) have been characterized in guinea-pig epidermis .",
+            "Their properties indicate them to be of lysosomal origin .",
+            "The ' profile ' of the epidermal glycosidases is significantly different from that reported for whole skin , the activities of beta-galactosidase and beta-acetylglucosaminidase being very high and those of the remaining enzymes relatively low in epidermis ."
+        ]
+    },
+    {
+        "doc_key": "Passage#4",
+        "source_passage": {
+            "title": "Lysosomal hydrolases of the epidermis. 2. Ester hydrolases.",
+            "text": "Five distinct ester hydrolases (EC 3-1) have been characterized in guinea-pig epidermis. These are carboxylic esterase, acid phosphatase, pyrophosphatase, and arylsulphatase A and B. Their properties are consistent with those of lysosomal enzymes.",
+            "pmid": "31",
+            "authors": {
+                "LastName": [
+                    "Mier",
+                    "van den Hurk"
+                ],
+                "ForeName": [
+                    "P D",
+                    "J J"
+                ],
+                "Initials": [
+                    "PD",
+                    "JJ"
+                ],
+                "CollectiveName": [
+                    "",
+                    ""
+                ]
+            },
+            "n_references": 0,
+            "chemicals": {
+                "RegistryNumber": [
+                    "EC 3.-",
+                    "EC 3.1.1.-",
+                    "EC 3.1.3.2",
+                    "EC 3.1.6.8",
+                    "EC 3.1.6.9",
+                    "EC 3.6.1.-"
+                ],
+                "NameOfSubstance": [
+                    "Hydrolases",
+                    "Carboxylic Ester Hydrolases",
+                    "Acid Phosphatase",
+                    "Cerebroside-Sulfatase",
+                    "Chondro-4-Sulfatase",
+                    "Pyrophosphatases"
+                ]
+            },
+            "mesh_headings": {
+                "DescriptorName": [
+                    "Acid Phosphatase",
+                    "Animals",
+                    "Carboxylic Ester Hydrolases",
+                    "Cerebroside-Sulfatase",
+                    "Chondro-4-Sulfatase",
+                    "Guinea Pigs",
+                    "Hydrogen-Ion Concentration",
+                    "Hydrolases",
+                    "Kinetics",
+                    "Lysosomes",
+                    "Pyrophosphatases",
+                    "Skin"
+                ],
+                "QualifierName": [
+                    "metabolism",
+                    "",
+                    "metabolism",
+                    "metabolism",
+                    "metabolism",
+                    "",
+                    "",
+                    "metabolism",
+                    "",
+                    "enzymology",
+                    "metabolism",
+                    "enzymology"
+                ]
+            }
+        },
+        "sentences": [
+            "Lysosomal hydrolases of the epidermis . 2 . Ester hydrolases .",
+            "Five distinct ester hydrolases ( EC 3 - 1 ) have been characterized in guinea-pig epidermis .",
+            "These are carboxylic esterase , acid phosphatase , pyrophosphatase , and arylsulphatase A and B. Their properties are consistent with those of lysosomal enzymes ."
+        ]
+    },
+    {
+        "doc_key": "Passage#5",
+        "source_passage": {
+            "title": "A serum haemagglutinating property dependent upon polycarboxyl groups.",
+            "text": "A serum agglutinin reactive with red cells in the presence of polycarboxyl groups is reported. It is likely that this represents an additional example of the type of agglutinin previously described as agglutinating red cells in the absence of ionized calcium. Experimental evidence is presented indicating that it is free polycarboxyl groups that potentiate agglutination and that any metal ion, such as calcium, capable of chelating with these groups will prove to be inhibitory.",
+            "pmid": "32",
+            "authors": {
+                "LastName": [
+                    "Beck",
+                    "Freihaut",
+                    "Henry",
+                    "Pierce",
+                    "Bayer"
+                ],
+                "ForeName": [
+                    "M L",
+                    "B",
+                    "R",
+                    "S",
+                    "W L"
+                ],
+                "Initials": [
+                    "ML",
+                    "B",
+                    "R",
+                    "S",
+                    "WL"
+                ],
+                "CollectiveName": [
+                    "",
+                    "",
+                    "",
+                    "",
+                    ""
+                ]
+            },
+            "n_references": 0,
+            "chemicals": {
+                "RegistryNumber": [
+                    "0",
+                    "0",
+                    "0",
+                    "0",
+                    "0",
+                    "9G34HU7RV0",
+                    "EC 3.2.1.18",
+                    "EC 3.4.22.2",
+                    "EC 3.4.22.3"
+                ],
+                "NameOfSubstance": [
+                    "ABO Blood-Group System",
+                    "Agglutinins",
+                    "Carboxylic Acids",
+                    "Cations, Divalent",
+                    "Citrates",
+                    "Edetic Acid",
+                    "Neuraminidase",
+                    "Papain",
+                    "Ficain"
+                ]
+            },
+            "mesh_headings": {
+                "DescriptorName": [
+                    "ABO Blood-Group System",
+                    "Aged",
+                    "Agglutinins",
+                    "Antibody Specificity",
+                    "Carboxylic Acids",
+                    "Cations, Divalent",
+                    "Citrates",
+                    "Edetic Acid",
+                    "Ficain",
+                    "Hemagglutination",
+                    "Humans",
+                    "Hydrogen-Ion Concentration",
+                    "Neuraminidase",
+                    "Papain"
+                ],
+                "QualifierName": [
+                    "",
+                    "",
+                    "analysis",
+                    "",
+                    "pharmacology",
+                    "",
+                    "pharmacology",
+                    "pharmacology",
+                    "pharmacology",
+                    "drug effects",
+                    "",
+                    "",
+                    "pharmacology",
+                    "pharmacology"
+                ]
+            }
+        },
+        "sentences": [
+            "A serum haemagglutinating property dependent upon polycarboxyl groups .",
+            "A serum agglutinin reactive with red cells in the presence of polycarboxyl groups is reported .",
+            "It is likely that this represents an additional example of the type of agglutinin previously described as agglutinating red cells in the absence of ionized calcium .",
+            "Experimental evidence is presented indicating that it is free polycarboxyl groups that potentiate agglutination and that any metal ion , such as calcium , capable of chelating with these groups will prove to be inhibitory ."
+        ]
+    },
+    {
+        "doc_key": "Passage#6",
+        "source_passage": {
+            "title": "Effect of human erythrocyte stromata on complement activation.",
+            "text": "Stroma from either normal or PNH-like red cells is capable of inhibiting, to some extent, lysis in the sucrose test and enhancing lysis in the acidified-serum test. The same opposing effects are displayed by the exclusion peaks from Sephadex G-200 obtained from each stroma preparation, suggesting that the same factor could be responsible for both activities. Stromata and peaks also induce lysis of PNH-like cells in unacidified serum, indicating activation of complement through the alternate pathway. This is confirmed by immunoelectrophoretic observation. When serum previously activated through the alternate pathway is used in the sucrose test the amount of lysis is markedly reduced. This would indicate that the classical pathway activation can be controlled by the alternate pathway. The possible clinical significance of these factors in determining the haemolytic crisis in PNH patients is discussed.",
+            "pmid": "33",
+            "authors": {
+                "LastName": [
+                    "Corrocher",
+                    "Tedesco",
+                    "Rabusin",
+                    "De Sandre"
+                ],
+                "ForeName": [
+                    "R",
+                    "F",
+                    "P",
+                    "G"
+                ],
+                "Initials": [
+                    "R",
+                    "F",
+                    "P",
+                    "G"
+                ],
+                "CollectiveName": [
+                    "",
+                    "",
+                    "",
+                    ""
+                ]
+            },
+            "n_references": 0,
+            "chemicals": {
+                "RegistryNumber": [
+                    "57-50-1",
+                    "9007-36-7"
+                ],
+                "NameOfSubstance": [
+                    "Sucrose",
+                    "Complement System Proteins"
+                ]
+            },
+            "mesh_headings": {
+                "DescriptorName": [
+                    "Complement System Proteins",
+                    "Erythrocytes",
+                    "Hemoglobinuria, Paroxysmal",
+                    "Hemolysis",
+                    "Humans",
+                    "Hydrogen-Ion Concentration",
+                    "Sucrose"
+                ],
+                "QualifierName": [
+                    "metabolism",
+                    "metabolism",
+                    "immunology",
+                    "",
+                    "",
+                    "",
+                    "metabolism"
+                ]
+            }
+        },
+        "sentences": [
+            "Effect of human erythrocyte stromata on complement activation .",
+            "Stroma from either normal or PNH-like red cells is capable of inhibiting , to some extent , lysis in the sucrose test and enhancing lysis in the acidified-serum test .",
+            "The same opposing effects are displayed by the exclusion peaks from Sephadex G-200 obtained from each stroma preparation , suggesting that the same factor could be responsible for both activities .",
+            "Stromata and peaks also induce lysis of PNH-like cells in unacidified serum , indicating activation of complement through the alternate pathway .",
+            "This is confirmed by immunoelectrophoretic observation .",
+            "When serum previously activated through the alternate pathway is used in the sucrose test the amount of lysis is markedly reduced .",
+            "This would indicate that the classical pathway activation can be controlled by the alternate pathway .",
+            "The possible clinical significance of these factors in determining the haemolytic crisis in PNH patients is discussed ."
+        ]
+    },
+    {
+        "doc_key": "Passage#7",
+        "source_passage": {
+            "title": "The effects of processing of barley-based supplements on rumen pH, rate of digestion of voluntary intake of dried grass in sheep.",
+            "text": "1. In one experiment the effect on rumen pH of feeding with restricted amounts of whole or pelleted barley was studied. With whole barley there was little variation in rumen pH associated with feeding time, but with pelleted barley the pH decreased from about 7-0 before feeding to about 5-3, 2--3 h after feeding. 2. The rate of disappearance of dried grass during incubation in the rumens of sheep receiving either whole or pelleted barley was studied in a second experiment. After 24 h incubation only 423 mg/g incubated had disappeared in the rumen of sheep receiving pelleted barley while 625 mg/g incubated had disappeared when it was incubated in the rumen of sheep receiving whole barley. 3. The voluntary intake of dried grass of lambs was studied in a third experiment when they received supplements of either 25 or 50 g whole or pelleted barley/kg live weight 0-75. At the high level, pelleted barley reduced intake of dried grass by 534 g/kg but whole barley reduced it by only 352 g/kg. The digestibility of acid-detergent fibre was reduced more by pelleted barley than by whole barley but there was a tendency for a small increase in digestibility of the barley due to processing. 4. The implications of these findings on supplementation of roughages with cereals are discussed.",
+            "pmid": "36",
+            "authors": {
+                "LastName": [
+                    "Orskov",
+                    "Fraser"
+                ],
+                "ForeName": [
+                    "E R",
+                    "C"
+                ],
+                "Initials": [
+                    "ER",
+                    "C"
+                ],
+                "CollectiveName": [
+                    "",
+                    ""
+                ]
+            },
+            "n_references": 0,
+            "chemicals": {
+                "RegistryNumber": [],
+                "NameOfSubstance": []
+            },
+            "mesh_headings": {
+                "DescriptorName": [
+                    "Animal Feed",
+                    "Animals",
+                    "Digestion",
+                    "Edible Grain",
+                    "Gastric Juice",
+                    "Hordeum",
+                    "Hydrogen-Ion Concentration",
+                    "Rumen",
+                    "Sheep"
+                ],
+                "QualifierName": [
+                    "standards",
+                    "",
+                    "",
+                    "",
+                    "metabolism",
+                    "",
+                    "",
+                    "metabolism",
+                    ""
+                ]
+            }
+        },
+        "sentences": [
+            "The effects of processing of barley-based supplements on rumen pH , rate of digestion of voluntary intake of dried grass in sheep .",
+            "1 . In one experiment the effect on rumen pH of feeding with restricted amounts of whole or pelleted barley was studied .",
+            "With whole barley there was little variation in rumen pH associated with feeding time , but with pelleted barley the pH decreased from about 7 - 0 before feeding to about 5 - 3 , 2 - -3 h after feeding .",
+            "2 . The rate of disappearance of dried grass during incubation in the rumens of sheep receiving either whole or pelleted barley was studied in a second experiment .",
+            "After 24 h incubation only 423 mg/g incubated had disappeared in the rumen of sheep receiving pelleted barley while 625 mg/g incubated had disappeared when it was incubated in the rumen of sheep receiving whole barley .",
+            "3 .",
+            "The voluntary intake of dried grass of lambs was studied in a third experiment when they received supplements of either 25 or 50 g whole or pelleted barley/kg live weight 0 - 75 .",
+            "At the high level , pelleted barley reduced intake of dried grass by 534 g/kg but whole barley reduced it by only 352 g/kg .",
+            "The digestibility of acid-detergent fibre was reduced more by pelleted barley than by whole barley but there was a tendency for a small increase in digestibility of the barley due to processing .",
+            "4 .",
+            "The implications of these findings on supplementation of roughages with cereals are discussed ."
+        ]
+    },
+    {
+        "doc_key": "Passage#8",
+        "source_passage": {
+            "title": "The effect of o-salicylate upon pentose phosphate pathway activity in normal and G6PD-deficient red cells.",
+            "text": "The effect of the major metabolite of aspirin, namely salicylic acid, upon the pentose phosphate pathway (PPP) of normal and G6PD-deficient red cells has been studied. Salicylic acid was shown to inhibit this pathway in proportion to the amount present. At any concentration of this substance there was greater inhibition of the PPP in G6PD-deficient than in normal red cells.",
+            "pmid": "35",
+            "authors": {
+                "LastName": [
+                    "Worathumrong",
+                    "Grimes"
+                ],
+                "ForeName": [
+                    "N",
+                    "A J"
+                ],
+                "Initials": [
+                    "N",
+                    "AJ"
+                ],
+                "CollectiveName": [
+                    "",
+                    ""
+                ]
+            },
+            "n_references": 0,
+            "chemicals": {
+                "RegistryNumber": [
+                    "0",
+                    "0",
+                    "T42P99266K",
+                    "WIQ1H85SYP"
+                ],
+                "NameOfSubstance": [
+                    "Blood Glucose",
+                    "Pentosephosphates",
+                    "Methylene Blue",
+                    "Sodium Salicylate"
+                ]
+            },
+            "mesh_headings": {
+                "DescriptorName": [
+                    "Blood Glucose",
+                    "Erythrocytes",
+                    "Glucosephosphate Dehydrogenase Deficiency",
+                    "Humans",
+                    "Hydrogen-Ion Concentration",
+                    "Methylene Blue",
+                    "Pentosephosphates",
+                    "Sodium Salicylate"
+                ],
+                "QualifierName": [
+                    "metabolism",
+                    "metabolism",
+                    "blood",
+                    "",
+                    "",
+                    "",
+                    "antagonists & inhibitors",
+                    "metabolism"
+                ]
+            }
+        },
+        "sentences": [
+            "The effect of o-salicylate upon pentose phosphate pathway activity in normal and G6PD-deficient red cells .",
+            "The effect of the major metabolite of aspirin , namely salicylic acid , upon the pentose phosphate pathway ( PPP ) of normal and G6PD-deficient red cells has been studied .",
+            "Salicylic acid was shown to inhibit this pathway in proportion to the amount present .",
+            "At any concentration of this substance there was greater inhibition of the PPP in G6PD-deficient than in normal red cells ."
+        ]
+    },
+    {
+        "doc_key": "Passage#9",
+        "source_passage": {
+            "title": "Poly(8-aminoguanylic acid): formation of ordered self-structures and interaction with poly(cytidylic acid).",
+            "text": "Poly(8-aminoguanylic acid) has in neutral solution a novel ordered structure of high stability. The 8-amino group permits formation of three hydrogen bonds between two residues along the \"top\", or long axis, of the purines. The usual hydrogen bonding protons and Watson-Crick pairing sites are not involved in the association. The bonding scheme has a twofold rotation axis and is hemiprotonated at N(7). Poly(8NH2G) is converted by alkaline titration (pK = 9.7) to a quite different ordered structure, which is the favored form over the range approximately pH 10-11. The bonding scheme appears to be composed of a planar, tetrameric array of guanine residues, in which the 8-amino group does not participate in interbase hydrogen bonding. Poly (8NH2G) does not interact with poly(C) in neutral solution because of the high stability of the hemiprotonated G-G self-structure. Titration to the alkaline plateau, however, permits ready formation of a two-stranded Watson-Crick helix. In contrast to the monomer 8NH2GMP, poly(8NH2G) does not form a triple helix with poly(C) under any conditions. The properties of the ordered structures are interpreted in terms of a strong tendency of the 8-amino group to form a third interbase hydrogen bond, when this possibility is not prevented by high pH.",
+            "pmid": "37",
+            "authors": {
+                "LastName": [
+                    "Hattori",
+                    "Frazier",
+                    "Miles"
+                ],
+                "ForeName": [
+                    "M",
+                    "J",
+                    "H T"
+                ],
+                "Initials": [
+                    "M",
+                    "J",
+                    "HT"
+                ],
+                "CollectiveName": [
+                    "",
+                    "",
+                    ""
+                ]
+            },
+            "n_references": 0,
+            "chemicals": {
+                "RegistryNumber": [
+                    "0",
+                    "25191-14-4",
+                    "30811-80-4",
+                    "EC 2.7.7.8"
+                ],
+                "NameOfSubstance": [
+                    "Polyribonucleotides",
+                    "Poly G",
+                    "Poly C",
+                    "Polyribonucleotide Nucleotidyltransferase"
+                ]
+            },
+            "mesh_headings": {
+                "DescriptorName": [
+                    "Binding Sites",
+                    "Circular Dichroism",
+                    "Drug Stability",
+                    "Escherichia coli",
+                    "Hydrogen Bonding",
+                    "Hydrogen-Ion Concentration",
+                    "Micrococcus",
+                    "Models, Molecular",
+                    "Nucleic Acid Conformation",
+                    "Poly C",
+                    "Poly G",
+                    "Polyribonucleotide Nucleotidyltransferase",
+                    "Polyribonucleotides",
+                    "Spectrophotometry, Infrared",
+                    "Spectrophotometry, Ultraviolet",
+                    "Temperature"
+                ],
+                "QualifierName": [
+                    "",
+                    "",
+                    "",
+                    "enzymology",
+                    "",
+                    "",
+                    "enzymology",
+                    "",
+                    "",
+                    "",
+                    "analogs & derivatives",
+                    "metabolism",
+                    "analogs & derivatives",
+                    "",
+                    "",
+                    ""
+                ]
+            }
+        },
+        "sentences": [
+            "Poly(8-aminoguanylic acid ): formation of ordered self-structures and interaction with poly(cytidylic acid ) .",
+            "Poly(8-aminoguanylic acid ) has in neutral solution a novel ordered structure of high stability .",
+            "The 8-amino group permits formation of three hydrogen bonds between two residues along the \" top \" , or long axis , of the purines .",
+            "The usual hydrogen bonding protons and Watson-Crick pairing sites are not involved in the association .",
+            "The bonding scheme has a twofold rotation axis and is hemiprotonated at N(7 ) .",
+            "Poly(8NH2 G ) is converted by alkaline titration ( pK = 9.7 ) to a quite different ordered structure , which is the favored form over the range approximately pH 10 - 11 .",
+            "The bonding scheme appears to be composed of a planar , tetrameric array of guanine residues , in which the 8-amino group does not participate in interbase hydrogen bonding .",
+            "Poly ( 8NH2 G ) does not interact with poly(C ) in neutral solution because of the high stability of the hemiprotonated G-G self-structure .",
+            "Titration to the alkaline plateau , however , permits ready formation of a two-stranded Watson-Crick helix .",
+            "In contrast to the monomer 8NH2GMP , poly(8NH2 G ) does not form a triple helix with poly(C ) under any conditions .",
+            "The properties of the ordered structures are interpreted in terms of a strong tendency of the 8-amino group to form a third interbase hydrogen bond , when this possibility is not prevented by high pH."
+        ]
+    }
+]
