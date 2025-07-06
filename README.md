@@ -45,6 +45,8 @@ KAPipe is designed to be modular, composable, and domain-adaptable, making it su
 
 ## 📦 Installation
 
+NOTE: This part (installation) is currently under construction. I will update this part until July 9, 2025.
+
 ### Step 1: Set up a Python environment
 ```bash
 python -m venv .env
