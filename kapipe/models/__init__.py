@@ -2,13 +2,14 @@
 from .biaffinener_model import BiaffineNERModel
 
 # ED
-from .entityretrievalbiencoder_model import EntityRetrievalBiEncoderModel
-from .entityrerankingcrossencoder_model import EntityRerankingCrossEncoderModel
+from .blinkbiencoder_model import BlinkBiEncoderModel
+from .blinkcrossencoder_model import BlinkCrossEncoderModel
 
 # DocRE
 from .atlop_model import ATLOPModel
 from .maqa_model import MAQAModel
 from .maatlop_model import MAATLOPModel
 
-# General
+# General LLM
 from .llm import LLM
+from .openai_llm import OpenAILLM

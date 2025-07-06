@@ -9,7 +9,7 @@ class AdaptiveThresholdingLoss(nn.Module):
     def __init__(self):
         super().__init__()
 
-    def forward(self, output, target):
+    def forward(self, output, target, pos_weight=1.0, neg_weight=1.0):
         """
         Parameters
         ----------
@@ -17,6 +17,10 @@ class AdaptiveThresholdingLoss(nn.Module):
             shape of (batch_size, n_labels)
         target : torch.Tensor
             shape of (batch_size, n_labels); binary
+        pos_weight : float
+            by default 1.0
+        neg_weight : float
+            by default 1.0
 
         Returns
         -------
@@ -50,7 +54,7 @@ class AdaptiveThresholdingLoss(nn.Module):
         loss2 = -(F.log_softmax(n_and_th_output, dim=-1) * th_target).sum(dim=1)
 
         # Sum two parts
-        loss = loss1 + loss2
+        loss = pos_weight * loss1 + neg_weight * loss2
         return loss
 
     def get_labels(self, logits, top_k=-1):

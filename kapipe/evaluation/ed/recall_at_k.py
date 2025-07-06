@@ -20,10 +20,10 @@ def recall_at_k(pred_path, gold_path, inkb=True):
 
     # Load
     if isinstance(pred_path, str):
-        pred_documents = utils.read_json(pred_path)
+        pred_candidate_entities = utils.read_json(pred_path)
     else:
-        pred_documents = pred_path
-    assert isinstance(pred_documents, list)
+        pred_candidate_entities = pred_path
+    assert isinstance(pred_candidate_entities, list)
     if isinstance(gold_path, str):
         gold_documents = utils.read_json(gold_path)
     else:
@@ -31,25 +31,25 @@ def recall_at_k(pred_path, gold_path, inkb=True):
     assert isinstance(gold_documents, list)
 
     # Check
-    assert len(pred_documents) == len(gold_documents)
-    for pred_doc, gold_doc in zip(pred_documents, gold_documents):
-        assert pred_doc["doc_key"] == gold_doc["doc_key"]
+    assert len(pred_candidate_entities) == len(gold_documents)
+    for pred_cands_for_doc, gold_doc in zip(pred_candidate_entities, gold_documents):
+        assert pred_cands_for_doc["doc_key"] == gold_doc["doc_key"]
 
     # Evaluate
     key = "inkb_recall_at_k" if inkb else "recall_at_k"
     scores[key] = _recall_at_k(
-        pred_documents=pred_documents,
+        pred_candidate_entities=pred_candidate_entities,
         gold_documents=gold_documents,
         inkb=inkb
     )
     return scores
 
 
-def _recall_at_k(pred_documents, gold_documents, inkb):
+def _recall_at_k(pred_candidate_entities, gold_documents, inkb):
     """
     Parameters
     ----------
-    pred_documents : list[Document]
+    pred_candidate_entities : list[dict[str, str | list[list[CandEntKeyInfo]]]]
     gold_documents : list[Document]
     inkb : bool
 
@@ -61,8 +61,8 @@ def _recall_at_k(pred_documents, gold_documents, inkb):
 
     total_count_mentions = 0
     ranks = [] # list[int]
-    for pred_doc, gold_doc in zip(pred_documents, gold_documents):
-        candidate_entities_for_mentions = pred_doc["candidate_entities"]
+    for pred_cands_for_doc, gold_doc in zip(pred_candidate_entities, gold_documents):
+        candidate_entities_for_mentions = pred_cands_for_doc["candidate_entities"]
         gold_mentions = gold_doc["mentions"]
         assert len(gold_mentions) == len(candidate_entities_for_mentions)
         # For InKB mode, we skip mentions without valid KB entities
@@ -70,11 +70,13 @@ def _recall_at_k(pred_documents, gold_documents, inkb):
             # NOTE: Order should be candidates then mentions
             candidate_entities_for_mentions = [
                 y for y_i, y in enumerate(candidate_entities_for_mentions)
-                if gold_mentions[y_i]["entity_id"] != "NOT-IN-KB"
+                # if gold_mentions[y_i]["entity_id"] != "NOT-IN-KB"
+                if gold_mentions[y_i]["in_kb"]
             ]
             gold_mentions = [
                 y for y_i, y in enumerate(gold_mentions)
-                if gold_mentions[y_i]["entity_id"] != "NOT-IN-KB"
+                # if gold_mentions[y_i]["entity_id"] != "NOT-IN-KB"
+                if gold_mentions[y_i]["in_kb"]
             ]
         for m, cs in zip(gold_mentions, candidate_entities_for_mentions):
             entity_id = m["entity_id"]
@@ -86,14 +88,14 @@ def _recall_at_k(pred_documents, gold_documents, inkb):
     scores["total_count_mentions"] = total_count_mentions
 
     k_list = [1, 2, 4, 5, 8, 10, 16, 20, 30, 32, 50, 64, 100, 128]
+
     for k in k_list:
         total_count_recall_at_k = int((ranks < k).sum())
         scores[f"total_count_recall@{k}"] = total_count_recall_at_k
 
     for k in k_list:
         total_count_recall_at_k = float(scores[f"total_count_recall@{k}"])
-        scores[f"recall@{k}"] \
-            = total_count_recall_at_k / total_count_mentions * 100.0
+        scores[f"recall@{k}"] = total_count_recall_at_k / total_count_mentions * 100.0
 
     return scores
 

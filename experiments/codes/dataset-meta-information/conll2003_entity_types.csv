@@ -1,0 +1,5 @@
+Entity Type,Pretty Name,Definition
+PER,PERSON,Person
+ORG,ORGANIZATION,Organization
+LOC,LOCATION,Location
+MISC,MISC,Misc.

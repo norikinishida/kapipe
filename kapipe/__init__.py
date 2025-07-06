@@ -1,39 +1,56 @@
-# Types defined
+#####
+# Data type definitions
+#####
+
 from . import datatypes
 
-# Top-level modules
-from . import systems
+#####
+# Extraction
+#####
 
-# Submodules for `systems`
+from . import triple_extraction
+
+#####
+# Organization
+#####
+
+from . import graph_construction
+from . import community_clustering
+from . import report_generation
+from . import chunking
+
+#####
+# Retrieval
+#####
+
+from . import passage_retrieval
+
+#####
+# Utilization
+#####
+
+from . import qa
+
+#####
+# Others
+#####
+
 from . import models
 from . import decoders
-from . import prompt_processors
-from . import misc
-
-# Top modules for training and evaluation
-from . import trainers
-
-# Evaluation metrics
-from . import evaluation
-
-# Retrievers for few-shot in-context learning
+from . import prompt_templates
 from . import demonstration_retrievers
+
+#####
+# Evaluation and utilities
+#####
+
+from . import evaluation
 
 from . import utils
 
+#####
+# Package information
+#####
 
-from .pipeline import Pipeline
-
-
-__version__ = "0.0.3"
-
-
-def load(identifier, gpu_map=None):
-    ka = Pipeline(identifier=identifier, gpu_map=gpu_map)
-    return ka
-
-
-def blank(gpu_map=None):
-    ka = Pipeline(identifier=None, gpu_map=gpu_map)
-    return ka
+__version__ = "0.0.4"
 

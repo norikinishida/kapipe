@@ -1,0 +1,7 @@
+Question Type,Relation,Template
+neighborhood,CID,"What diseases are induced by {target}?"
+neighborhood,CID#inverse,"What chemical compounds induce {target}?"
+intersection,CID,"What diseases are commonly induced by both {target_a} and {target_b}?"
+intersection,CID#inverse,"What chemical compounds commonly induce both {target_a} and {target_b}?"
+twohop,CID-CID#inverse,"What chemical compounds induce the diseases that are also induced by {target}?"
+twohop,CID#inverse-CID,"What diseases are induced by the chemical compounds that also induce {target}?"

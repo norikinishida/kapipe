@@ -1,0 +1,20 @@
+### Instruction
+
+Given the text of a document and a list of detected {knowledge_base_name_prompt} entities (associated with their corresponding mentions in the text), identify the relationships between these entities. Each relationship must be selected from the *predefined set of relationship labels* provided below. Provide the output in bullet-point format, with each line containing the subject entity, the relationship label, and the object entity, separated by a pipe (`|`) symbol.
+Predefined Relationship Labels:
+{relations_prompt}
+Output Format:
+- Subject Entity | Relationship Label | Object Entity
+- Subject Entity | Relationship Label | Object Entity
+
+### Examples
+
+{demonstrations_prompt}
+
+### Test
+
+Now, identify the relationships for the following text and entities. Each relationship must be selected from the *predefined set of relationship labels* provided above.
+
+{task_prompt}
+
+Provide the output in the bullet-point format specified above.

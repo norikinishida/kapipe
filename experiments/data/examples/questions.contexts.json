@@ -1,0 +1,105 @@
+[
+    {
+        "question_key": "question#123",
+        "contexts": [
+            {
+                "title": "Lithium Carbonate and Related Health Conditions",
+                "text": "This report examines the interconnections between Lithium Carbonate, a chemical compound, and various health conditions including Tricuspid Valve Insufficiency, Depressive Disorder, Cyanosis, and Cardiac Arrhythmias. Lithium Carbonate is primarily known for its mood-stabilizing properties but is also associated with several diseases, indicating a complex relationship that warrants further investigation. \n[Finding 1] Lithium Carbonate's Role in Inducing Health Conditions: Lithium Carbonate is a chemical widely used in the treatment of mood disorders, particularly bipolar disorder. However, its relationship with various diseases highlights a dual role as both a therapeutic agent and a potential inducer of adverse health conditions. Notably, it is linked to Depressive Disorder, Cyanosis, and Cardiac Arrhythmias.",
+                "community_id": "0",
+                "nodes": [
+                    "D016651",
+                    "D014262",
+                    "D003866",
+                    "D003490",
+                    "D001145"
+                ],
+                "level": 0,
+                "parent_community_id": "ROOT",
+                "child_community_ids": [],
+                "score": 1.5991605520248413,
+                "rank": 1
+            },
+            {
+                "title": "Lithium Carbonate and Related Health Conditions",
+                "text": "\n\nIn summary, while Lithium Carbonate is an effective treatment for mood disorders, its potential impact on cardiac health requires careful consideration and proactive management strategies to mitigate risks.",
+                "community_id": "0",
+                "nodes": [
+                    "D016651",
+                    "D014262",
+                    "D003866",
+                    "D003490",
+                    "D001145"
+                ],
+                "level": 0,
+                "parent_community_id": "ROOT",
+                "child_community_ids": [],
+                "score": 1.51018488407135,
+                "rank": 2
+            },
+            {
+                "title": "Lithium Carbonate and Related Health Conditions",
+                "text": "The potential for Lithium to exacerbate or induce this condition necessitates vigilance in monitoring heart function in patients receiving Lithium therapy. \n\nFurthermore, the risk of cardiac arrhythmias associated with Lithium use cannot be overlooked. These disturbances in heart rhythm can lead to severe complications, including stroke or sudden cardiac arrest. Patients on Lithium should be regularly screened for signs of arrhythmias, especially if they present with symptoms such as palpitations, dizziness, or syncope. The interplay between Lithium treatment and cardiac health highlights the need for a multidisciplinary approach in managing patients, involving both psychiatric and cardiology expertise to optimize outcomes.",
+                "community_id": "0",
+                "nodes": [
+                    "D016651",
+                    "D014262",
+                    "D003866",
+                    "D003490",
+                    "D001145"
+                ],
+                "level": 0,
+                "parent_community_id": "ROOT",
+                "child_community_ids": [],
+                "score": 1.4798567295074463,
+                "rank": 3
+            }
+        ]
+    },
+    {
+        "question_key": "question#456",
+        "contexts": [
+            {
+                "title": "Phenobarbital and Drug-Induced Dyskinesia",
+                "text": "This report examines the relationship between Phenobarbital, a central nervous system depressant, and its association with Drug-Induced Dyskinesia, a condition characterized by abnormal movements due to medication use. The findings highlight the potential risks of using Phenobarbital, particularly in patients who may be susceptible to movement disorders. \n[Finding 1] Phenobarbital is a significant risk factor for Drug-Induced Dyskinesia.: Phenobarbital, a barbituric acid derivative, acts as a nonselective central nervous system depressant. Its mechanism involves potentiating the action of GABA-A receptors, which can lead to various neurological effects. One of the notable risks associated with Phenobarbital is the development of Drug-Induced Dyskinesia.",
+                "community_id": "1",
+                "nodes": [
+                    "D010634",
+                    "D004409"
+                ],
+                "level": 0,
+                "parent_community_id": "ROOT",
+                "child_community_ids": [],
+                "score": 1.5124461650848389,
+                "rank": 1
+            },
+            {
+                "title": "Phenobarbital and Drug-Induced Dyskinesia",
+                "text": "This condition manifests as abnormal movements, including hyperkinesis, hypokinesis, tremors, and dystonia, particularly affecting the muscles of the face, trunk, neck, and extremities. The relationship between Phenobarbital and Dyskinesia is critical for healthcare providers to consider, especially when prescribing this medication to patients with a history of movement disorders or those on multiple medications that may exacerbate these symptoms. \n[Finding 2] Understanding the implications of Drug-Induced Dyskinesia is essential for patient management.: Drug-Induced Dyskinesia can significantly impact a patient's quality of life, leading to distress and functional impairment. The abnormal movements associated with this condition can be mistaken for other neurological disorders, complicating diagnosis and treatment.",
+                "community_id": "1",
+                "nodes": [
+                    "D010634",
+                    "D004409"
+                ],
+                "level": 0,
+                "parent_community_id": "ROOT",
+                "child_community_ids": [],
+                "score": 1.509352445602417,
+                "rank": 2
+            },
+            {
+                "title": "Phenobarbital and Drug-Induced Dyskinesia",
+                "text": "It is crucial for clinicians to monitor patients on Phenobarbital closely for signs of dyskinesia, particularly during the initiation of therapy or dosage adjustments. Early recognition and intervention can help mitigate the severity of symptoms and improve patient outcomes. Furthermore, educating patients about the potential side effects of Phenobarbital, including the risk of developing dyskinesia, is vital for informed consent and shared decision-making in their treatment plans.",
+                "community_id": "1",
+                "nodes": [
+                    "D010634",
+                    "D004409"
+                ],
+                "level": 0,
+                "parent_community_id": "ROOT",
+                "child_community_ids": [],
+                "score": 1.4053480625152588,
+                "rank": 3
+            }
+        ]
+    }
+]

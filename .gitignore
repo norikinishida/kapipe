@@ -164,8 +164,11 @@ cython_debug/
 # Original
 tmp*
 temp*
+!template_based*
 raiden*
 aip*
 _*
 !__init__.py
-
+project*/
+experiments/results/*
+settings.json

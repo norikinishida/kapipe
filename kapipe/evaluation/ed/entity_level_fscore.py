@@ -4,12 +4,18 @@ from ... import utils
 def entity_level_fscore(
     pred_path,
     gold_path,
+    ignored_types=None,
+    ignored_ids=None
 ):
     """
     Parameters
     ----------
     pred_path : str | list[Document]
     gold_path : str | list[Document]
+    ignored_types : list[str] | None
+        by default None
+    ignored_ids : list[str] | None
+        by default None
 
     Returns
     -------
@@ -34,17 +40,26 @@ def entity_level_fscore(
     for pred_doc, gold_doc in zip(pred_documents, gold_documents):
         assert pred_doc["doc_key"] == gold_doc["doc_key"]
 
+    if ignored_types is None:
+        ignored_types = []
+    if ignored_ids is None:
+        ignored_ids = []
+
     # Evaluate
     scores["entity_level_fscore"] = _entity_level_fscore(
         pred_documents=pred_documents,
-        gold_documents=gold_documents
+        gold_documents=gold_documents,
+        ignored_types=ignored_types,
+        ignored_ids=ignored_ids
     )
     return scores
 
 
 def _entity_level_fscore(
     pred_documents,
-    gold_documents
+    gold_documents,
+    ignored_types,
+    ignored_ids
 ):
     scores = {}
 
@@ -56,11 +71,19 @@ def _entity_level_fscore(
         gold_entities = gold_doc["entities"]
         pred_entities = set([
             y["entity_id"] for y in pred_entities
-            if y["entity_id"] != "NO-PRED"
+            if (
+                y["entity_id"] != "NO-PRED"
+                and
+                (not y["entity_type"] in ignored_types)
+            )
         ])
         gold_entities = set([
             y["entity_id"] for y in gold_entities
-            if y["entity_id"] != "NO-PRED"
+            if (
+                not(any([y["entity_id"].startswith(x) for x in ignored_ids]))
+                and
+                (not y["entity_type"] in ignored_types)
+            )
         ])
         total_count_pred_entities += len(pred_entities)
         total_count_gold_entities += len(gold_entities)

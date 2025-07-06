@@ -1,0 +1,10 @@
+Given the text of a document, extract all entity mentions and classify them into one of the *predefined entity types* specified below. Each entity mention must be exact copies of their corresponding original text spans, without any modifications or alternations. Provide the output in bullet-point format, with each line containing the entity mention and its corresponding entity type, separated by a pipe (`|`) symbol.
+Predefined Entity Types:
+{entity_types_prompt}
+Output Format:
+- Entity Mention 1 | Entity Type of Entity Mention 1
+- Entity Mention 2 | Entity Type of Entity Mention 2
+
+{task_prompt}
+
+Provide the output in the bullet-point format specified above.

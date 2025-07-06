@@ -1,0 +1,36 @@
+Relation,Pretty Name,Definition
+is_a,is_a,The subject is the object.
+is_sibling_with,is_sibling_with,The subject and object are siblings in an is_a relationship.
+is_equivalent_to,is_equivalent_to,The subject and object are synonymous or equivalent.
+is_classified_as,is_classified_as,The subject is classified as the object. This includes relationships that are not strict is_a relations as defined in UMLS.
+has_variant,has_variant,he subject has the object as a variant.
+has_part,has_part,The subject contains the object as a constituent.
+has_ingredient,has_ingredient,"The subject (e.g., a drug) contains the object (e.g., an ingredient)."
+causes,causes,The subject (a factor) causes or leads to the object (a result).
+occurs_in,occurs_in,The subject occurs or is observed in the object (a location).
+occurs_during,occurs_during,The subject occurs or is observed during the object (a time period).
+has_property,has_property,"The subject has the object (e.g., a finding or shape) as a characteristic."
+treats,treats,"The subject (e.g., a compound or procedure) treats the object (a disorder). Example: (antibiotic, treats, bacterial pneumonia)."
+prevents,prevents,"The subject (e.g., a compound or procedure) prevents the object (a disorder). Example: (HPV vaccine, prevents, cervical cancer)."
+targets,targets,"The subject (e.g., a compound or procedure) targets or acts on the object (a biological element or patient group)."
+is_contraindicated_for,is_contraindicated_for,"The subject (e.g., a compound or procedure) is contraindicated for the object (a disorder or patient group), as it may exacerbate or induce other conditions."
+inhibits_effect_of,inhibits_effect_of,"The subject (e.g., a compound or procedure) suppresses the effect of the object (another compound or procedure)."
+is_contraindicated_combination_with,is_contraindicated_combination_with,"The subject (e.g., a compound or procedure) is contraindicated when combined with the object (another compound or procedure)."
+investigates,investigates,"The subject (e.g., a procedure) diagnoses or examines the object."
+reveals,reveals,"The subject (e.g., a procedure) reveals the object as a diagnostic or test result."
+uses,uses,"The subject (e.g., a procedure) uses the object."
+is_investigated_using,is_investigated_using,"The subject is investigated or diagnosed using the object (e.g., a sample or access route)."
+is_obtained_by,is_obtained_by,The subject is obtained by the object.
+is_obtained_from,is_obtained_from,The subject is obtained from the object.
+regulates,regulates,"The subject (a biological entity) regulates, controls, initiates, or halts the object. Example: (gene expression, regulates, cell cycle progression)."
+performs,performs,"The subject (a biological entity) performs or achieves the object (a function). Example: (chalcone isomerase, performs, chalcone isomerase activity)."
+indicates,indicates,"The subject (a biological entity) indicates the presence of the object (e.g., a disorder)."
+is_metabolized_by,is_metabolized_by,The subject (a compound) is metabolized by the object.
+is_metabolized_at,is_metabolized_at,The subject (a compound) is metabolized at the object (a location).
+is_metabolized_into,is_metabolized_into,The subject (a compound) is metabolized to produce the object (a metabolite).
+is_physically_connected_with,is_physically_connected_with,The subject (a biological entity) is physically connected to or linked with the object.
+physically_interconnects,physically_interconnects,The subject (a biological entity) mediates the connection of the object (another biological entity).
+is_spatially_adjacent_to,is_spatially_adjacent_to,"The subject (a biological entity) is spatially adjacent, in contact, or close to the object. Note: Focuses on spatial proximity rather than connection."
+is_temporally_followed_by,is_temporally_followed_by,The subject precedes the object in a time sequence.
+is_associated_with,is_associated_with,A general relationship used when none of the above applies.
+misc.,misc,Other types of relationships.

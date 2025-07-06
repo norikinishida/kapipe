@@ -1,0 +1,1005 @@
+[
+    {
+        "entity_id": "C009166",
+        "entity_index": 252696,
+        "entity_type": null,
+        "canonical_name": "retinol acetate",
+        "synonyms": [
+            "retinyl acetate",
+            "vitamin A acetate"
+        ],
+        "description": "",
+        "tree_numbers": []
+    },
+    {
+        "entity_id": "D000641",
+        "entity_index": 610,
+        "entity_type": "Chemical",
+        "canonical_name": "Ammonia",
+        "synonyms": [],
+        "description": "A colorless alkaline gas. It is formed in the body during decomposition of organic materials during a large number of metabolically important reactions. Note that the aqueous form of ammonia is referred to as AMMONIUM HYDROXIDE.",
+        "tree_numbers": [
+            "D01.362.075",
+            "D01.625.050"
+        ]
+    },
+    {
+        "entity_id": "D001058",
+        "entity_index": 1001,
+        "entity_type": "Chemical",
+        "canonical_name": "Apomorphine",
+        "synonyms": [],
+        "description": "apomorphine derivatives = APOMORPHINE/analogs A derivative of morphine that is a dopamine D2 agonist. It is a powerful emetic and has been used for that effect in acute poisoning. It has also been used in the diagnosis and treatment of parkinsonism, but its adverse effects limit its use.",
+        "tree_numbers": [
+            "D03.132.098.038.290",
+            "D03.438.531.085.030.290",
+            "D03.549.095.290"
+        ]
+    },
+    {
+        "entity_id": "D001145",
+        "entity_index": 1084,
+        "entity_type": "Disease",
+        "canonical_name": "Arrhythmias, Cardiac",
+        "synonyms": [
+            "Arrhythmia, Cardiac",
+            "Cardiac Dysrhythmia",
+            "Dysrhythmia, Cardiac",
+            "Cardiac Arrhythmia",
+            "Cardiac Arrhythmias",
+            "Arrhythmia",
+            "Arrythmia"
+        ],
+        "description": "general: prefer specifics Any disturbances of the normal rhythmic beating of the heart or MYOCARDIAL CONTRACTION. Cardiac arrhythmias can be classified by the abnormalities in HEART RATE, disorders of electrical impulse generation, or impulse conduction.",
+        "tree_numbers": [
+            "C14.280.067",
+            "C23.550.073"
+        ]
+    },
+    {
+        "entity_id": "D001282",
+        "entity_index": 1218,
+        "entity_type": "Disease",
+        "canonical_name": "Atrial Flutter",
+        "synonyms": [
+            "Atrial Flutters",
+            "Flutter, Atrial",
+            "Flutters, Atrial",
+            "Auricular Flutter",
+            "Auricular Flutters",
+            "Flutter, Auricular",
+            "Flutters, Auricular"
+        ],
+        "description": "do not confuse with ATRIAL FIBRILLATION Rapid, irregular atrial contractions caused by a block of electrical impulse conduction in the right atrium and a reentrant wave front traveling up the inter-atrial septum and down the right atrial free wall or vice versa. Unlike ATRIAL FIBRILLATION which is caused by abnormal impulse generation, typical atrial flutter is caused by abnormal impulse conduction. As in atrial fibrillation, patients with atrial flutter cannot effectively pump blood into the lower chambers of the heart (HEART VENTRICLES).",
+        "tree_numbers": [
+            "C14.280.067.248",
+            "C23.550.073.248"
+        ]
+    },
+    {
+        "entity_id": "D001919",
+        "entity_index": 1828,
+        "entity_type": "Disease",
+        "canonical_name": "Bradycardia",
+        "synonyms": [
+            "Bradycardias",
+            "Bradyarrhythmias",
+            "Bradyarrhythmia"
+        ],
+        "description": "Cardiac arrhythmias that are characterized by excessively slow HEART RATE, usually below 50 beats per minute in human adults. They can be classified broadly into SINOATRIAL NODE dysfunction and ATRIOVENTRICULAR BLOCK.",
+        "tree_numbers": [
+            "C14.280.067.319",
+            "C23.550.073.300"
+        ]
+    },
+    {
+        "entity_id": "D002083",
+        "entity_index": 1981,
+        "entity_type": "Chemical",
+        "canonical_name": "Butylated Hydroxyanisole",
+        "synonyms": [
+            "Hydroxyanisole, Butylated",
+            "Butylhydroxyanisole",
+            "Butyl Methoxyphenol",
+            "Methoxyphenol, Butyl",
+            "(1,1-Dimethylethyl)-4-methoxyphenol",
+            "BHA"
+        ],
+        "description": "D25-26 qualif; DF: BHA Mixture of 2- and 3-tert-butyl-4-methoxyphenols that is used as an antioxidant in foods, cosmetics, and pharmaceuticals.",
+        "tree_numbers": [
+            "D02.355.601.200.324",
+            "D02.355.726.158.324",
+            "D02.455.426.559.389.657.654.158.324"
+        ]
+    },
+    {
+        "entity_id": "D002245",
+        "entity_index": 2135,
+        "entity_type": "Chemical",
+        "canonical_name": "Carbon Dioxide",
+        "synonyms": [
+            "Dioxide, Carbon",
+            "Carbonic Anhydride",
+            "Anhydride, Carbonic"
+        ],
+        "description": "in respiration, /physiol permitted; /metab permitted for cell & tissue resp & non-lung tissue but do not use /metab for gas exchange in lung ( = PULMONARY GAS EXCHANGE) or blood CO2 transport ( = /blood but consider also HYPERCAPNIA & HYPOCAPNIA) A colorless, odorless gas that can be formed by the body and is necessary for the respiration cycle of plants and animals.",
+        "tree_numbers": [
+            "D01.200.200",
+            "D01.362.150",
+            "D01.650.550.200"
+        ]
+    },
+    {
+        "entity_id": "D002277",
+        "entity_index": 2166,
+        "entity_type": "Disease",
+        "canonical_name": "Carcinoma",
+        "synonyms": [
+            "Carcinomas",
+            "Epithelial Neoplasms, Malignant",
+            "Malignant Epithelial Neoplasms",
+            "Epithelial Neoplasm, Malignant",
+            "Malignant Epithelial Neoplasm",
+            "Neoplasm, Malignant Epithelial",
+            "Neoplasms, Malignant Epithelial",
+            "Epithelial Tumors, Malignant",
+            "Epithelial Tumor, Malignant",
+            "Malignant Epithelial Tumor",
+            "Malignant Epithelial Tumors",
+            "Tumor, Malignant Epithelial",
+            "Tumors, Malignant Epithelial",
+            "Epithelioma",
+            "Epitheliomas"
+        ],
+        "description": "do not use for \"cancer\" routinely: use only for carcinoma as a histological type: Manual 24.2.1.3; /blood supply /chem /second /secret /ultrastruct permitted; coord IM with precoord organ/neopl term (IM); X ref CARCINOMA, ANAPLASTIC: do not coord with ANAPLASIA unless anaplasia is particularly discussed A malignant neoplasm made up of epithelial cells tending to infiltrate the surrounding tissues and give rise to metastases. It is a histological type of neoplasm but is often wrongly used as a synonym for \"cancer.\" (From Dorland, 27th ed)",
+        "tree_numbers": [
+            "C04.557.470.200"
+        ]
+    },
+    {
+        "entity_id": "D002318",
+        "entity_index": 2206,
+        "entity_type": "Disease",
+        "canonical_name": "Cardiovascular Diseases",
+        "synonyms": [
+            "Cardiovascular Disease",
+            "Disease, Cardiovascular",
+            "Diseases, Cardiovascular"
+        ],
+        "description": "general, prefer specifics; /diag: consider also DIAGNOSTIC TECHNIQUES, CARDIOVASCULAR; DF: CARDIOVASC DIS Pathological conditions involving the CARDIOVASCULAR SYSTEM including the HEART; the BLOOD VESSELS; or the PERICARDIUM.",
+        "tree_numbers": [
+            "C14"
+        ]
+    },
+    {
+        "entity_id": "D002375",
+        "entity_index": 2260,
+        "entity_type": "Disease",
+        "canonical_name": "Catalepsy",
+        "synonyms": [
+            "Catalepsies",
+            "Anochlesia",
+            "Anochlesias"
+        ],
+        "description": "do not confuse with CATAPLEXY A condition characterized by inactivity, decreased responsiveness to stimuli, and a tendency to maintain an immobile posture. The limbs tend to remain in whatever position they are placed (waxy flexibility). Catalepsy may be associated with PSYCHOTIC DISORDERS (e.g., SCHIZOPHRENIA, CATATONIC), nervous system drug toxicity, and other conditions.",
+        "tree_numbers": [
+            "C10.597.350.200",
+            "C23.888.592.350.200"
+        ]
+    },
+    {
+        "entity_id": "D002707",
+        "entity_index": 2583,
+        "entity_type": "Chemical",
+        "canonical_name": "Chlordiazepoxide",
+        "synonyms": [
+            "Methaminodiazepoxide",
+            "7-Chloro-N-methyl-5-phenyl-3H-1,4-benzodiazepin-2-amine 4-oxide",
+            "7 Chloro N methyl 5 phenyl 3H 1,4 benzodiazepin 2 amine 4 oxide"
+        ],
+        "description": "An anxiolytic benzodiazepine derivative with anticonvulsant, sedative, and amnesic properties. It has also been used in the symptomatic treatment of alcohol withdrawal.",
+        "tree_numbers": [
+            "D03.438.079.080.150"
+        ]
+    },
+    {
+        "entity_id": "D003490",
+        "entity_index": 3333,
+        "entity_type": "Disease",
+        "canonical_name": "Cyanosis",
+        "synonyms": [
+            "Cyanoses"
+        ],
+        "description": "do not use for cyanotic heart disease unless particularly discussed (=probably HEART DEFECTS, CONGENITAL) A bluish or purplish discoloration of the skin and mucous membranes due to an increase in the amount of deoxygenated hemoglobin in the blood or a structural defect in the hemoglobin molecule.",
+        "tree_numbers": [
+            "C23.888.248"
+        ]
+    },
+    {
+        "entity_id": "D003866",
+        "entity_index": 3695,
+        "entity_type": "PhychiatryAndPsychology",
+        "canonical_name": "Depressive Disorder",
+        "synonyms": [
+            "Depressive Disorders",
+            "Disorder, Depressive",
+            "Disorders, Depressive",
+            "Neurosis, Depressive",
+            "Depressive Neuroses",
+            "Depressive Neurosis",
+            "Neuroses, Depressive"
+        ],
+        "description": "do not confuse with DEPRESSION: see note there; depression lasting over 2 years = DYSTHYMIC DISORDER An affective disorder manifested by either a dysphoric mood or loss of interest or pleasure in usual activities. The mood disturbance is prominent and relatively persistent.",
+        "tree_numbers": [
+            "F03.600.300"
+        ]
+    },
+    {
+        "entity_id": "D004298",
+        "entity_index": 4107,
+        "entity_type": "Chemical",
+        "canonical_name": "Dopamine",
+        "synonyms": [
+            "4-(2-Aminoethyl)-1,2-benzenediol",
+            "Hydroxytyramine",
+            "3,4-Dihydroxyphenethylamine",
+            "3,4 Dihydroxyphenethylamine"
+        ],
+        "description": "One of the catecholamine NEUROTRANSMITTERS in the brain. It is derived from TYROSINE and is the precursor to NOREPINEPHRINE and EPINEPHRINE. Dopamine is a major transmitter in the extrapyramidal system of the brain, and important in regulating movement. A family of receptors (RECEPTORS, DOPAMINE) mediate its action.",
+        "tree_numbers": [
+            "D02.092.211.215.311.342",
+            "D02.092.311.342"
+        ]
+    },
+    {
+        "entity_id": "D004409",
+        "entity_index": 4217,
+        "entity_type": "Disease",
+        "canonical_name": "Dyskinesia, Drug-Induced",
+        "synonyms": [
+            "Drug-Induced Dyskinesia",
+            "Drug-Induced Dyskinesias",
+            "Dyskinesia, Drug Induced",
+            "Dyskinesias, Drug-Induced"
+        ],
+        "description": "do not confuse with AKATHISIA, DRUG-INDUCED Abnormal movements, including HYPERKINESIS; HYPOKINESIA; TREMOR; and DYSTONIA, associated with the use of certain medications or drugs. Muscles of the face, trunk, neck, and extremities are most commonly affected. Tardive dyskinesia refers to abnormal hyperkinetic movements of the muscles of the face, tongue, and neck associated with the use of neuroleptic agents (see ANTIPSYCHOTIC AGENTS). (Adams et al., Principles of Neurology, 6th ed, p1199)",
+        "tree_numbers": [
+            "C10.228.662.262.500",
+            "C10.720.312",
+            "C25.100.750",
+            "C25.723.705.200"
+        ]
+    },
+    {
+        "entity_id": "D004491",
+        "entity_index": 4295,
+        "entity_type": "Chemical",
+        "canonical_name": "Edrophonium",
+        "synonyms": [
+            "Edroponium"
+        ],
+        "description": "A rapid-onset, short-acting cholinesterase inhibitor used in cardiac arrhythmias and in the diagnosis of myasthenia gravis. It has also been used as an antidote to curare principles.",
+        "tree_numbers": [
+            "D02.092.877.674.333",
+            "D02.675.276.352"
+        ]
+    },
+    {
+        "entity_id": "D004827",
+        "entity_index": 4617,
+        "entity_type": "Disease",
+        "canonical_name": "Epilepsy",
+        "synonyms": [
+            "Epilepsies",
+            "Seizure Disorder",
+            "Seizure Disorders",
+            "Seizures, Epileptic",
+            "Epileptic Seizures",
+            "Epileptic Seizure",
+            "Seizure, Epileptic"
+        ],
+        "description": "GEN or unspecified; prefer specifics A disorder characterized by recurrent episodes of paroxysmal brain dysfunction due to a sudden, disorderly, and excessive neuronal discharge. Epilepsy classification systems are generally based upon: (1) clinical features of the seizure episodes (e.g., motor seizure), (2) etiology (e.g., post-traumatic), (3) anatomic site of seizure origin (e.g., frontal lobe seizure), (4) tendency to spread to other structures in the brain, and (5) temporal patterns (e.g., nocturnal epilepsy). (From Adams et al., Principles of Neurology, 6th ed, p313)",
+        "tree_numbers": [
+            "C10.228.140.490"
+        ]
+    },
+    {
+        "entity_id": "D005283",
+        "entity_index": 5052,
+        "entity_type": "Chemical",
+        "canonical_name": "Fentanyl",
+        "synonyms": [
+            "Phentanyl"
+        ],
+        "description": "A potent narcotic analgesic, abuse of which leads to habituation or addiction. It is primarily a mu-opioid agonist. Fentanyl is also used as an adjunct to general anesthetics, and as an anesthetic for induction and maintenance. (From Martindale, The Extra Pharmacopoeia, 30th ed, p1078)",
+        "tree_numbers": [
+            "D03.383.621.265"
+        ]
+    },
+    {
+        "entity_id": "D006024",
+        "entity_index": 5766,
+        "entity_type": "Chemical",
+        "canonical_name": "Glycopyrrolate",
+        "synonyms": [
+            "Glycopyrronium Bromide",
+            "Bromide, Glycopyrronium"
+        ],
+        "description": "A muscarinic antagonist used as an antispasmodic, in some disorders of the gastrointestinal tract, and to reduce salivation with some anesthetics.",
+        "tree_numbers": [
+            "D02.092.877.425",
+            "D02.675.276.425",
+            "D03.383.773.342"
+        ]
+    },
+    {
+        "entity_id": "D006220",
+        "entity_index": 5948,
+        "entity_type": "Chemical",
+        "canonical_name": "Haloperidol",
+        "synonyms": [],
+        "description": "A phenyl-piperidinyl-butyrophenone that is used primarily to treat SCHIZOPHRENIA and other PSYCHOSES. It is also used in schizoaffective disorder, DELUSIONAL DISORDERS, ballism, and TOURETTE SYNDROME (a drug of choice) and occasionally as adjunctive therapy in INTELLECTUAL DISABILITY and the chorea of HUNTINGTON DISEASE. It is a potent antiemetic and is used in the treatment of intractable HICCUPS. (From AMA Drug Evaluations Annual, 1994, p279)",
+        "tree_numbers": [
+            "D02.522.352.506"
+        ]
+    },
+    {
+        "entity_id": "D006331",
+        "entity_index": 6055,
+        "entity_type": "Disease",
+        "canonical_name": "Heart Diseases",
+        "synonyms": [
+            "Disease, Heart",
+            "Diseases, Heart",
+            "Heart Disease",
+            "Cardiac Diseases",
+            "Cardiac Disease",
+            "Disease, Cardiac",
+            "Diseases, Cardiac"
+        ],
+        "description": "Pathological conditions involving the HEART including its structural and functional abnormalities.",
+        "tree_numbers": [
+            "C14.280"
+        ]
+    },
+    {
+        "entity_id": "D006332",
+        "entity_index": 6056,
+        "entity_type": "Disease",
+        "canonical_name": "Cardiomegaly",
+        "synonyms": [
+            "Heart Enlargement",
+            "Enlargement, Heart",
+            "Enlarged Heart",
+            "Heart, Enlarged"
+        ],
+        "description": "general or unspecified; prefer HYPERTROPHY, LEFT VENTRICULAR or HYPERTROPHY, RIGHT VENTRICULAR; note entry term CARDIAC HYPERTROPHY: do not confuse with CARDIOMYOPATHY, HYPERTROPHIC; CARDIOMEGALY, EXERCISE-INDUCED is also available Enlargement of the HEART, usually indicated by a cardiothoracic ratio above 0.50. Heart enlargement may involve the right, the left, or both HEART VENTRICLES or HEART ATRIA. Cardiomegaly is a nonspecific symptom seen in patients with chronic systolic heart failure (HEART FAILURE) or several forms of CARDIOMYOPATHIES.",
+        "tree_numbers": [
+            "C14.280.195",
+            "C23.300.775.250"
+        ]
+    },
+    {
+        "entity_id": "D006333",
+        "entity_index": 6057,
+        "entity_type": "Disease",
+        "canonical_name": "Heart Failure",
+        "synonyms": [
+            "Cardiac Failure"
+        ],
+        "description": "\"scompenso di cuore\" is \"heart decompensation\" in Italian; do not confuse with CARDIOMYOPATHY, CONGESTIVE A heterogeneous condition in which the heart is unable to pump out sufficient blood to meet the metabolic need of the body. Heart failure can be caused by structural defects, functional abnormalities (VENTRICULAR DYSFUNCTION), or a sudden overload beyond its capacity. Chronic heart failure is more common than acute heart failure which results from sudden insult to cardiac function, such as MYOCARDIAL INFARCTION.",
+        "tree_numbers": [
+            "C14.280.434"
+        ]
+    },
+    {
+        "entity_id": "D006473",
+        "entity_index": 6195,
+        "entity_type": "Disease",
+        "canonical_name": "Postpartum Hemorrhage",
+        "synonyms": [
+            "Hemorrhage, Postpartum"
+        ],
+        "description": "check the tags FEMALE & PREGNANCY Excess blood loss from uterine bleeding associated with OBSTETRIC LABOR or CHILDBIRTH. It is defined as blood loss greater than 500 ml or of the amount that adversely affects the maternal physiology, such as BLOOD PRESSURE and HEMATOCRIT. Postpartum hemorrhage is divided into two categories, immediate (within first 24 hours after birth) or delayed (after 24 hours postpartum).",
+        "tree_numbers": [
+            "C13.703.420.725",
+            "C13.703.844.700",
+            "C23.550.414.993.850"
+        ]
+    },
+    {
+        "entity_id": "D006909",
+        "entity_index": 6596,
+        "entity_type": "Chemical",
+        "canonical_name": "Hydroxyproline",
+        "synonyms": [
+            "4-Hydroxyproline",
+            "4 Hydroxyproline",
+            "Oxyproline"
+        ],
+        "description": "A hydroxylated form of the imino acid proline. A deficiency in ASCORBIC ACID can result in impaired hydroxyproline formation.",
+        "tree_numbers": [
+            "D12.125.072.401.623.478"
+        ]
+    },
+    {
+        "entity_id": "D006948",
+        "entity_index": 6635,
+        "entity_type": "Disease",
+        "canonical_name": "Hyperkinesis",
+        "synonyms": [
+            "Hyperkinesia",
+            "Hyperkinetic Movements",
+            "Hyperkinetic Movement",
+            "Movement, Hyperkinetic",
+            "Movements, Hyperkinetic",
+            "Hyperactivity, Motor",
+            "Motor Hyperactivity"
+        ],
+        "description": "human & animal; MOTOR ACTIVITY is also available: see note there; do not confuse with MYOKYMIA or ISAACS SYNDROME Excessive movement of muscles of the body as a whole, which may be associated with organic or psychological disorders.",
+        "tree_numbers": [
+            "C10.597.350.350",
+            "C23.888.592.350.350"
+        ]
+    },
+    {
+        "entity_id": "D006965",
+        "entity_index": 6652,
+        "entity_type": "Disease",
+        "canonical_name": "Hyperplasia",
+        "synonyms": [
+            "Hyperplasias"
+        ],
+        "description": "general or unspecified; coordinate NIM with organ /pathol (IM); many specific precoordinated hyperplasia terms are available; congen adrenal hyperplasia = ADRENAL HYPERPLASIA, CONGENITAL but non-congenital adrenal hyperplasia = ADRENAL GLANDS /pathol (IM) + HYPERPLASIA (NIM) An increase in the number of cells in a tissue or organ without tumor formation. It differs from HYPERTROPHY, which is an increase in bulk without an increase in the number of cells.",
+        "tree_numbers": [
+            "C23.550.444"
+        ]
+    },
+    {
+        "entity_id": "D006970",
+        "entity_index": 6657,
+        "entity_type": "Disease",
+        "canonical_name": "Disorders of Excessive Somnolence",
+        "synonyms": [
+            "Excessive Somnolence Disorder",
+            "Somnolence Disorder, Excessive",
+            "Somnolence Disorders, Excessive",
+            "Excessive Somnolence Disorders",
+            "Hypersomnolence Disorders",
+            "Hypersomnolence Disorder",
+            "DOES (Disorders of Excessive Somnolence)",
+            "DOESs (Disorders of Excessive Somnolence)"
+        ],
+        "description": "Disorders characterized by hypersomnolence during normal waking hours that may impair cognitive functioning. Subtypes include primary hypersomnia disorders (e.g., IDIOPATHIC HYPERSOMNOLENCE; NARCOLEPSY; and KLEINE-LEVIN SYNDROME) and secondary hypersomnia disorders where excessive somnolence can be attributed to a known cause (e.g., drug affect, MENTAL DISORDERS, and SLEEP APNEA SYNDROME). (From J Neurol Sci 1998 Jan 8;153(2):192-202; Thorpy, Principles and Practice of Sleep Medicine, 2nd ed, p320)",
+        "tree_numbers": [
+            "C10.886.425.800.200",
+            "F03.870.400.800.200"
+        ]
+    },
+    {
+        "entity_id": "D006984",
+        "entity_index": 6671,
+        "entity_type": "Disease",
+        "canonical_name": "Hypertrophy",
+        "synonyms": [
+            "Hypertrophies"
+        ],
+        "description": "NIM; general or unspecified: many precoordinated organ/hypertrophy terms are available; do not confuse with HYPERPLASIA; coord with organ /pathol (IM) General increase in bulk of a part or organ due to CELL ENLARGEMENT and accumulation of FLUIDS AND SECRETIONS, not due to tumor formation, nor to an increase in the number of cells (HYPERPLASIA).",
+        "tree_numbers": [
+            "C23.300.775"
+        ]
+    },
+    {
+        "entity_id": "D007545",
+        "entity_index": 7212,
+        "entity_type": "Chemical",
+        "canonical_name": "Isoproterenol",
+        "synonyms": [
+            "Isoprenaline",
+            "Isopropylnorepinephrine",
+            "Isopropylarterenol",
+            "Isopropylnoradrenaline",
+            "4-(1-Hydroxy-2-((1-methylethyl)amino)ethyl)-1,2-benzenediol",
+            "Isopropyl Noradrenaline",
+            "Noradrenaline, Isopropyl"
+        ],
+        "description": "Isopropyl analog of EPINEPHRINE; beta-sympathomimetic that acts on the heart, bronchi, skeletal muscle, alimentary tract, etc. It is used mainly as bronchodilator and heart stimulant.",
+        "tree_numbers": [
+            "D02.033.100.291.439",
+            "D02.092.063.291.439",
+            "D02.092.311.649"
+        ]
+    },
+    {
+        "entity_id": "D007649",
+        "entity_index": 7310,
+        "entity_type": "Chemical",
+        "canonical_name": "Ketamine",
+        "synonyms": [
+            "2-(2-Chlorophenyl)-2-(methylamino)cyclohexanone"
+        ],
+        "description": "A cyclohexanone derivative used for induction of anesthesia. Its mechanism of action is not well understood, but ketamine can block NMDA receptors (RECEPTORS, N-METHYL-D-ASPARTATE) and may interact with sigma receptors.",
+        "tree_numbers": [
+            "D02.455.426.392.368.367.652"
+        ]
+    },
+    {
+        "entity_id": "D007650",
+        "entity_index": 7311,
+        "entity_type": "Chemical",
+        "canonical_name": "Ketanserin",
+        "synonyms": [
+            "3-(2-(4-(4-Fluorobenzoyl)piperidinol)ethyl)-2,4(1H,3H)-quinazolinedione"
+        ],
+        "description": "A selective serotonin receptor antagonist with weak adrenergic receptor blocking properties. The drug is effective in lowering blood pressure in essential hypertension. It also inhibits platelet aggregation. It is well tolerated and is particularly effective in older patients.",
+        "tree_numbers": [
+            "D03.383.621.365",
+            "D03.438.786.830.333"
+        ]
+    },
+    {
+        "entity_id": "D008094",
+        "entity_index": 7730,
+        "entity_type": "Chemical",
+        "canonical_name": "Lithium",
+        "synonyms": [],
+        "description": "Li-7; Li-6 = LITHIUM (IM) + ISOTOPES (NIM); Li-5, 8, 9 = LITHIUM (IM) + RADIOISOTOPES (IM); therapeutic use of lithium = LITHIUM COMPOUNDS / ther use or specific lithium compound /ther use An element in the alkali metals family. It has the atomic symbol Li, atomic number 3, and atomic weight [6.938; 6.997]. Salts of lithium are used in treating BIPOLAR DISORDER.",
+        "tree_numbers": [
+            "D01.268.549.450",
+            "D01.268.557.290",
+            "D01.552.528.480",
+            "D01.552.547.290"
+        ]
+    },
+    {
+        "entity_id": "D008595",
+        "entity_index": 8214,
+        "entity_type": "Disease",
+        "canonical_name": "Menorrhagia",
+        "synonyms": [
+            "Hypermenorrhea"
+        ],
+        "description": "do not confuse with METRORRHAGIA Excessive uterine bleeding during MENSTRUATION.",
+        "tree_numbers": [
+            "C13.351.500.852.691.449",
+            "C23.550.568.875"
+        ]
+    },
+    {
+        "entity_id": "D009069",
+        "entity_index": 8665,
+        "entity_type": "Disease",
+        "canonical_name": "Movement Disorders",
+        "synonyms": [
+            "Movement Disorder",
+            "Movement Disorder Syndromes",
+            "Movement Disorder Syndrome",
+            "Dyskinesia Syndromes",
+            "Dyskinesia Syndrome"
+        ],
+        "description": "consider DYSKINESIAS for abnormal involuntary movements as a manifestation of an underlying disease Syndromes which feature DYSKINESIAS as a cardinal manifestation of the disease process. Included in this category are degenerative, hereditary, post-infectious, medication-induced, post-inflammatory, and post-traumatic conditions.",
+        "tree_numbers": [
+            "C10.228.662"
+        ]
+    },
+    {
+        "entity_id": "D009127",
+        "entity_index": 8720,
+        "entity_type": "Disease",
+        "canonical_name": "Muscle Rigidity",
+        "synonyms": [
+            "Rigidity, Muscle",
+            "Rigidity, Muscular",
+            "Muscular Rigidity"
+        ],
+        "description": "Continuous involuntary sustained muscle contraction which is often a manifestation of BASAL GANGLIA DISEASES. When an affected muscle is passively stretched, the degree of resistance remains constant regardless of the rate at which the muscle is stretched. This feature helps to distinguish rigidity from MUSCLE SPASTICITY. (From Adams et al., Principles of Neurology, 6th ed, p73)",
+        "tree_numbers": [
+            "C05.651.504",
+            "C10.597.613.550.500",
+            "C23.888.592.608.550.500"
+        ]
+    },
+    {
+        "entity_id": "D009369",
+        "entity_index": 8950,
+        "entity_type": "Disease",
+        "canonical_name": "Neoplasms",
+        "synonyms": [
+            "Neoplasm",
+            "Tumors",
+            "Tumor",
+            "Neoplasia"
+        ],
+        "description": "general; prefer specifics; policy: see Manual Chapter 24; familial: consider also NEOPLASTIC SYNDROMES, HEREDITARY; metastatic cancer of unknown origin: index under NEOPLASM METASTASIS New abnormal growth of tissue. Malignant neoplasms show a greater degree of anaplasia and have the properties of invasion and metastasis, compared to benign neoplasms.",
+        "tree_numbers": [
+            "C04"
+        ]
+    },
+    {
+        "entity_id": "D009422",
+        "entity_index": 9002,
+        "entity_type": "Disease",
+        "canonical_name": "Nervous System Diseases",
+        "synonyms": [
+            "Disease, Nervous System",
+            "Diseases, Nervous System",
+            "Nervous System Disease",
+            "Neurologic Disorders",
+            "Disorder, Neurologic",
+            "Disorders, Neurologic",
+            "Neurologic Disorder",
+            "Neurological Disorders",
+            "Disorder, Neurological",
+            "Disorders, Neurological",
+            "Neurological Disorder",
+            "Nervous System Disorders",
+            "Disorder, Nervous System",
+            "Disorders, Nervous System",
+            "Nervous System Disorder"
+        ],
+        "description": "GEN or unspecified; prefer specifics; /diag: consider also DIAGNOSTIC TECHNIQUES, NEUROLOGICAL; inflamm dis = NEURITIS; \"diabetic neuropathy\" & \"diabetic peripheral neuropathy\": index only under DIABETIC NEUROPATHIES;/chem ind: consider NEUROTOXICITY SYNDROMES Diseases of the central and peripheral nervous system. This includes disorders of the brain, spinal cord, cranial nerves, peripheral nerves, nerve roots, autonomic nervous system, neuromuscular junction, and muscle.",
+        "tree_numbers": [
+            "C10"
+        ]
+    },
+    {
+        "entity_id": "D010212",
+        "entity_index": 9767,
+        "entity_type": "Disease",
+        "canonical_name": "Papilloma",
+        "synonyms": [
+            "Papillomas"
+        ],
+        "description": "coordinate IM with precoordinated organ/neoplasm term (IM); PAPILLOMA, CHOROID PLEXUS is also available A circumscribed benign epithelial tumor projecting from the surrounding surface; more precisely, a benign epithelial neoplasm consisting of villous or arborescent outgrowths of fibrovascular stroma covered by neoplastic cells. (Stedman, 25th ed)",
+        "tree_numbers": [
+            "C04.557.470.700.600"
+        ]
+    },
+    {
+        "entity_id": "D010634",
+        "entity_index": 10176,
+        "entity_type": "Chemical",
+        "canonical_name": "Phenobarbital",
+        "synonyms": [
+            "Phenobarbitone",
+            "Phenylethylbarbituric Acid",
+            "Acid, Phenylethylbarbituric",
+            "Phenemal",
+            "Phenylbarbital"
+        ],
+        "description": "A barbituric acid derivative that acts as a nonselective central nervous system depressant. It potentiates GAMMA-AMINOBUTYRIC ACID action on GABA-A RECEPTORS, and modulates chloride currents through receptor channels. It also inhibits glutamate induced depolarizations.",
+        "tree_numbers": [
+            "D03.383.742.698.253.650"
+        ]
+    },
+    {
+        "entity_id": "D011224",
+        "entity_index": 10741,
+        "entity_type": "Chemical",
+        "canonical_name": "Prazosin",
+        "synonyms": [
+            "Furazosin"
+        ],
+        "description": "A selective adrenergic alpha-1 antagonist used in the treatment of HEART FAILURE; HYPERTENSION; PHEOCHROMOCYTOMA; RAYNAUD DISEASE; PROSTATIC HYPERTROPHY; and URINARY RETENTION.",
+        "tree_numbers": [
+            "D03.438.786.750"
+        ]
+    },
+    {
+        "entity_id": "D012131",
+        "entity_index": 11606,
+        "entity_type": "Disease",
+        "canonical_name": "Respiratory Insufficiency",
+        "synonyms": [],
+        "description": "do not confuse with RESPIRATORY DISTRESS SYNDROME, NEWBORN in newborn inf Failure to adequately provide oxygen to cells of the body and to remove excess carbon dioxide from them. (Stedman, 25th ed)",
+        "tree_numbers": [
+            "C08.618.846"
+        ]
+    },
+    {
+        "entity_id": "D012640",
+        "entity_index": 12090,
+        "entity_type": "Disease",
+        "canonical_name": "Seizures",
+        "synonyms": [
+            "Seizure"
+        ],
+        "description": "note other specific seizure terms in MeSH; audiogenic or acoustic seizures = REFLEX EPILEPSY, AUDIOGENIC Clinical or subclinical disturbances of cortical function due to a sudden, abnormal, excessive, and disorganized discharge of brain cells. Clinical manifestations include abnormal motor, sensory and psychic phenomena. Recurrent seizures are usually referred to as EPILEPSY or \"seizure disorder.\"",
+        "tree_numbers": [
+            "C10.228.140.490.631",
+            "C10.597.742",
+            "C23.888.592.742"
+        ]
+    },
+    {
+        "entity_id": "D012701",
+        "entity_index": 12150,
+        "entity_type": "Chemical",
+        "canonical_name": "Serotonin",
+        "synonyms": [
+            "Hippophaine",
+            "5-Hydroxytryptamine",
+            "5 Hydroxytryptamine",
+            "Enteramine",
+            "3-(2-Aminoethyl)-1H-indol-5-ol",
+            "5-HT"
+        ],
+        "description": "/antag = SEROTONIN ANTAGONISTS but consider also SEROTONIN UPTAKE INHIBITORS A biochemical messenger and regulator, synthesized from the essential amino acid L-TRYPTOPHAN. In humans it is found primarily in the central nervous system, gastrointestinal tract, and blood platelets. Serotonin mediates several important physiological functions including neurotransmission, gastrointestinal motility, hemostasis, and cardiovascular integrity. Multiple receptor families (RECEPTORS, SEROTONIN) explain the broad physiological actions and distribution of this biochemical mediator.",
+        "tree_numbers": [
+            "D02.092.211.215.801.852",
+            "D03.438.473.914.814",
+            "D23.469.050.650"
+        ]
+    },
+    {
+        "entity_id": "D012851",
+        "entity_index": 12294,
+        "entity_type": "Disease",
+        "canonical_name": "Sinus Thrombosis, Intracranial",
+        "synonyms": [
+            "Intracranial Sinus Thromboses",
+            "Intracranial Sinus Thrombosis",
+            "Sinus Thromboses, Intracranial",
+            "Thromboses, Intracranial Sinus",
+            "Thrombosis, Intracranial Sinus",
+            "Sinus Thrombosis",
+            "Sinus Thromboses",
+            "Thromboses, Sinus",
+            "Thrombosis, Sinus",
+            "Venous Sinus Thrombosis, Cranial",
+            "Cranial Sinus Thrombosis",
+            "Cranial Sinus Thromboses",
+            "Sinus Thromboses, Cranial",
+            "Sinus Thrombosis, Cranial",
+            "Thromboses, Cranial Sinus",
+            "Thrombosis, Cranial Sinus"
+        ],
+        "description": "Formation or presence of a blood clot (THROMBUS) in the CRANIAL SINUSES, large endothelium-lined venous channels situated within the SKULL. Intracranial sinuses, also called cranial venous sinuses, include the superior sagittal, cavernous, lateral, petrous sinuses, and many others. Cranial sinus thrombosis can lead to severe HEADACHE; SEIZURE; and other neurological defects.",
+        "tree_numbers": [
+            "C10.228.140.300.525.425.500",
+            "C14.907.253.566.350.500",
+            "C14.907.355.590.213.350.500",
+            "C14.907.355.830.850.213.350.500"
+        ]
+    },
+    {
+        "entity_id": "D013274",
+        "entity_index": 12702,
+        "entity_type": "Disease",
+        "canonical_name": "Stomach Neoplasms",
+        "synonyms": [
+            "Neoplasm, Stomach",
+            "Stomach Neoplasm",
+            "Neoplasms, Stomach",
+            "Gastric Neoplasms",
+            "Gastric Neoplasm",
+            "Neoplasm, Gastric",
+            "Neoplasms, Gastric"
+        ],
+        "description": "coord IM with histol type of neopl (IM); neopl of ruminant stomach or its parts: coord STOMACH, RUMINANT or indention (IM) with STOMACH NEOPLASMS /vet (IM) + histol type of neopl /vet (IM) Tumors or cancer of the STOMACH.",
+        "tree_numbers": [
+            "C04.588.274.476.767",
+            "C06.301.371.767",
+            "C06.405.249.767",
+            "C06.405.748.789"
+        ]
+    },
+    {
+        "entity_id": "D013923",
+        "entity_index": 13321,
+        "entity_type": "Disease",
+        "canonical_name": "Thromboembolism",
+        "synonyms": [
+            "Thromboembolisms"
+        ],
+        "description": "Obstruction of a blood vessel (embolism) by a blood clot (THROMBUS) in the blood stream.",
+        "tree_numbers": [
+            "C14.907.355.590",
+            "C14.907.355.830.850"
+        ]
+    },
+    {
+        "entity_id": "D014262",
+        "entity_index": 13653,
+        "entity_type": "Disease",
+        "canonical_name": "Tricuspid Valve Insufficiency",
+        "synonyms": [
+            "Insufficiency, Tricuspid Valve",
+            "Valve Insufficiency, Tricuspid",
+            "Tricuspid Valve Regurgitation",
+            "Regurgitation, Tricuspid Valve",
+            "Valve Regurgitation, Tricuspid",
+            "Tricuspid Valve Incompetence",
+            "Incompetence, Tricuspid Valve",
+            "Valve Incompetence, Tricuspid",
+            "Tricuspid Incompetence",
+            "Incompetence, Tricuspid",
+            "Tricuspid Regurgitation",
+            "Regurgitation, Tricuspid"
+        ],
+        "description": "Backflow of blood from the RIGHT VENTRICLE into the RIGHT ATRIUM due to imperfect closure of the TRICUSPID VALVE.",
+        "tree_numbers": [
+            "C14.280.484.856"
+        ]
+    },
+    {
+        "entity_id": "D014635",
+        "entity_index": 14022,
+        "entity_type": "Chemical",
+        "canonical_name": "Valproic Acid",
+        "synonyms": [
+            "Acid, Valproic",
+            "Divalproex",
+            "Propylisopropylacetic Acid",
+            "Acid, Propylisopropylacetic",
+            "2-Propylpentanoic Acid",
+            "2 Propylpentanoic Acid"
+        ],
+        "description": "A fatty acid with anticonvulsant properties used in the treatment of epilepsy. The mechanisms of its therapeutic actions are not well understood. It may act by increasing GAMMA-AMINOBUTYRIC ACID levels in the brain or by altering the properties of voltage dependent sodium channels.",
+        "tree_numbers": [
+            "D02.241.081.944.509.900",
+            "D10.251.400.895.593.900"
+        ]
+    },
+    {
+        "entity_id": "D015102",
+        "entity_index": 14473,
+        "entity_type": "Chemical",
+        "canonical_name": "3,4-Dihydroxyphenylacetic Acid",
+        "synonyms": [
+            "3,4 Dihydroxyphenylacetic Acid",
+            "DOPAC",
+            "Homoprotocatechuic Acid"
+        ],
+        "description": "A deaminated metabolite of LEVODOPA.",
+        "tree_numbers": [
+            "D02.241.223.601.220"
+        ]
+    },
+    {
+        "entity_id": "D015119",
+        "entity_index": 14490,
+        "entity_type": "Chemical",
+        "canonical_name": "Aminocaproic Acid",
+        "synonyms": [
+            "6-Aminohexanoic Acid",
+            "6 Aminohexanoic Acid",
+            "epsilon-Aminocaproic Acid",
+            "epsilon Aminocaproic Acid",
+            "6-Aminocaproic Acid",
+            "6 Aminocaproic Acid"
+        ],
+        "description": "An antifibrinolytic agent that acts by inhibiting plasminogen activators which have fibrinolytic properties.",
+        "tree_numbers": [
+            "D02.241.081.193.150.075",
+            "D12.125.213.075"
+        ]
+    },
+    {
+        "entity_id": "D015760",
+        "entity_index": 14960,
+        "entity_type": "Chemical",
+        "canonical_name": "Alfentanil",
+        "synonyms": [
+            "Alfentanyl"
+        ],
+        "description": "A short-acting opioid anesthetic and analgesic derivative of FENTANYL. It produces an early peak analgesic effect and fast recovery of consciousness. Alfentanil is effective as an anesthetic during surgery, for supplementation of analgesia during surgical procedures, and as an analgesic for critically ill patients.",
+        "tree_numbers": [
+            "D03.383.621.265.100"
+        ]
+    },
+    {
+        "entity_id": "D016651",
+        "entity_index": 15663,
+        "entity_type": "Chemical",
+        "canonical_name": "Lithium Carbonate",
+        "synonyms": [
+            "Carbonate, Lithium",
+            "Dilithium Carbonate",
+            "Carbonate, Dilithium"
+        ],
+        "description": "A lithium salt, classified as a mood-stabilizing agent. Lithium ion alters the metabolism of BIOGENIC MONOAMINES in the CENTRAL NERVOUS SYSTEM, and affects multiple neurotransmission systems.",
+        "tree_numbers": [
+            "D01.045.125.500",
+            "D01.200.275.150.550",
+            "D01.510.475"
+        ]
+    },
+    {
+        "entity_id": "D017573",
+        "entity_index": 16464,
+        "entity_type": "Disease",
+        "canonical_name": "Focal Epithelial Hyperplasia",
+        "synonyms": [
+            "Epithelial Hyperplasia, Focal",
+            "Epithelial Hyperplasias, Focal",
+            "Focal Epithelial Hyperplasias",
+            "Hyperplasias, Focal Epithelial",
+            "Heck Disease",
+            "Disease, Heck",
+            "Hyperplasia, Focal Epithelial",
+            "Focal Epithelial Hyperplasia, Oral",
+            "Heck's Disease",
+            "Disease, Heck's",
+            "Hecks Disease"
+        ],
+        "description": "a mouth dis; DF: note short X ref Hyperplasia of the mucous membrane of the lips, tongue, and less commonly, the buccal mucosa, floor of the mouth, and palate, presenting soft, painless, round to oval sessile papules about 1 to 4 mm in diameter. The condition usually occurs in children and young adults and has familial predilection, lasting for several months, sometimes years, before running its course. A viral etiology is suspected, the isolated organism being usually the human papillomavirus. (Jablonski, Illustrated Dictionary of Dentistry; Belshe, Textbook of Human Virology, 2d ed, p954)",
+        "tree_numbers": [
+            "C07.465.342"
+        ]
+    },
+    {
+        "entity_id": "D020225",
+        "entity_index": 18698,
+        "entity_type": "Disease",
+        "canonical_name": "Sagittal Sinus Thrombosis",
+        "synonyms": [
+            "Sagittal Sinus Thromboses",
+            "Sinus Thromboses, Sagittal",
+            "Sinus Thrombosis, Sagittal",
+            "Thromboses, Sagittal Sinus",
+            "Thrombosis, Sagittal Sinus"
+        ],
+        "description": "Formation or presence of a blood clot (THROMBUS) in the SUPERIOR SAGITTAL SINUS or the inferior sagittal sinus. Sagittal sinus thrombosis can result from infections, hematological disorders, CRANIOCEREBRAL TRAUMA; and NEUROSURGICAL PROCEDURES. Clinical features are primarily related to the increased intracranial pressure causing HEADACHE; NAUSEA; and VOMITING. Severe cases can evolve to SEIZURES or COMA.",
+        "tree_numbers": [
+            "C10.228.140.300.525.425.500.750",
+            "C14.907.253.566.350.500.750",
+            "C14.907.355.590.213.350.500.750",
+            "C14.907.355.830.850.213.350.500.750"
+        ]
+    },
+    {
+        "entity_id": "D020227",
+        "entity_index": 18700,
+        "entity_type": "Disease",
+        "canonical_name": "Lateral Sinus Thrombosis",
+        "synonyms": [
+            "Lateral Sinus Thromboses",
+            "Thromboses, Lateral Sinus",
+            "Transverse Sinus Thrombosis",
+            "Sinus Thromboses, Transverse",
+            "Thromboses, Transverse Sinus",
+            "Thrombosis, Transverse Sinus",
+            "Transverse Sinus Thromboses",
+            "Thrombosis, Lateral Sinus"
+        ],
+        "description": "Formation or presence of a blood clot (THROMBUS) in the LATERAL SINUSES. This condition is often associated with ear infections (OTITIS MEDIA or MASTOIDITIS) without antibiotic treatment. In developed nations, lateral sinus thrombosis can result from CRANIOCEREBRAL TRAUMA; BRAIN NEOPLASMS; NEUROSURGICAL PROCEDURES; THROMBOPHILIA; and other conditions. Clinical features include HEADACHE; VERTIGO; and increased intracranial pressure.",
+        "tree_numbers": [
+            "C10.228.140.300.525.425.500.562",
+            "C14.907.253.566.350.500.562",
+            "C14.907.355.590.213.350.500.562",
+            "C14.907.355.830.850.213.350.500.562"
+        ]
+    },
+    {
+        "entity_id": "D063646",
+        "entity_index": 26846,
+        "entity_type": "Disease",
+        "canonical_name": "Carcinogenesis",
+        "synonyms": [
+            "Carcinogeneses",
+            "Tumorigenesis",
+            "Tumorigeneses",
+            "Oncogenesis",
+            "Oncogeneses"
+        ],
+        "description": "The origin, production or development of cancer through genotypic and phenotypic changes which upset the normal balance between cell proliferation and cell death. Carcinogenesis generally requires a constellation of steps, which may occur quickly or over a period of many years.",
+        "tree_numbers": [
+            "C04.697.098",
+            "C23.550.727.098"
+        ]
+    },
+    {
+        "entity_id": "D064420",
+        "entity_index": 27005,
+        "entity_type": "Disease",
+        "canonical_name": "Drug-Related Side Effects and Adverse Reactions",
+        "synonyms": [
+            "Drug Related Side Effects and Adverse Reactions"
+        ],
+        "description": "general or unspecified only; prefer specific drug-related disorder + specific drug with / adv eff / pois or / tox; for disorders relating to the abuse of drugs use SUBSTANCE-RELATED DISORDERS or specifics Disorders that result from the intended use of PHARMACEUTICAL PREPARATIONS. Included in this heading are a broad variety of chemically-induced adverse conditions due to toxicity, DRUG INTERACTIONS, and metabolic effects of pharmaceuticals.",
+        "tree_numbers": [
+            "C25.100"
+        ]
+    }
+]

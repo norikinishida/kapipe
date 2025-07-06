@@ -1,1 +1,1 @@
-recursive-include kapipe/prompt_processors/prompt_templates *
+recursive-include kapipe/prompt_templates *

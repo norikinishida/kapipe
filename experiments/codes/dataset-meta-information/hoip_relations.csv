@@ -1,0 +1,5 @@
+Relation,Pretty Name,Definition
+has result,has-result,The subject results in the object
+has part,has-part,The subject contains the object as a constituent.
+has molecular reaction,has-molecular-reaction,The subject has the object as the molecular reaction
+part of,part-of,The subject is part of the object

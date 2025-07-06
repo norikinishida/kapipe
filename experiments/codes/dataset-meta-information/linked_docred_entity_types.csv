@@ -1,0 +1,8 @@
+Entity Type,Pretty Name,Definition
+PER,PERSON,Person
+ORG,ORGANIZATION,Organization
+LOC,LOCATION,Location
+TIME,TIME,Time
+NUM,NUMBER,Number
+MISC,MISC,Misc.
+BLANK,BLANK,Dummy label

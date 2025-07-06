@@ -17,6 +17,8 @@ def main(args):
 
     doc_key_list = []
     n_sentences = 0
+    n_mentions = 0
+    n_entities = 0
     n_relations = 0
 
     # records = {}
@@ -52,7 +54,8 @@ def main(args):
                 record["relations"] = get_relations(data=data)
 
             n_sentences += len(record["sentences"])
-            # n_mentions += len(record["mentions"])
+            n_mentions += len(record["mentions"])
+            n_entities += len(record["entities"])
             if not test_mode:
                 n_relations += len(record["relations"])
 
@@ -64,6 +67,8 @@ def main(args):
 
     print(f"Processed {len(doc_key_list)} documents.")
     print(f"Average number of sentences per doc: {n_sentences}/{len(doc_key_list)} = {float(n_sentences) / len(doc_key_list)}")
+    print(f"Average number of mentions per doc: {n_mentions}/{len(doc_key_list)} = {float(n_mentions) / len(doc_key_list)}")
+    print(f"Average number of entities per doc: {n_entities}/{len(doc_key_list)} = {float(n_entities) / len(doc_key_list)}")
     if not test_mode:
         print(f"Average number of relations per doc: {n_relations}/{len(doc_key_list)} = {float(n_relations) / len(doc_key_list)}")
 

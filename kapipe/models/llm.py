@@ -16,15 +16,17 @@ class LLM:
     def __init__(
         self,
         device,
+        # Model
         llm_name_or_path,
         max_seg_len,
+        quantization_bits,
+        # Generation
         max_new_tokens,
         beam_size,
         do_sample,
         num_return_sequences,
-        clean_up_tokenization_spaces,
         stop_list,
-        quantization_bits,
+        clean_up_tokenization_spaces,
     ):
         """
         Parameters
@@ -33,27 +35,29 @@ class LLM:
         llm_name_or_path : str
         max_seg_len : int
         max_new_tokens : int
+        quantization_bits : int
         beam_size : int
         do_sample : bool
         num_return_sequences : int
-        clean_up_tokenization_spaces : bool
         stop_list : list[str]
-        quantization_bits : int
+        clean_up_tokenization_spaces : bool
         """
         ########################
         # Hyper parameters
         ########################
 
         self.device = device
+
         self.llm_name_or_path = llm_name_or_path
         self.max_seg_len = max_seg_len
+        self.quantization_bits = quantization_bits
+
         self.max_new_tokens = max_new_tokens
         self.beam_size = beam_size
         self.do_sample = do_sample
         self.num_return_sequences = num_return_sequences
-        self.clean_up_tokenization_spaces = clean_up_tokenization_spaces
         self.stop_list = stop_list
-        self.quantization_bits = quantization_bits
+        self.clean_up_tokenization_spaces = clean_up_tokenization_spaces
 
         ########################
         # Components
@@ -356,7 +360,9 @@ class LLMPreprocessor:
             truncation=True,
             return_overflowing_tokens=True
         )
-        assert len(inputs["input_ids"]) == 1, len(inputs["input_ids"])
+        # assert len(inputs["input_ids"]) == 1, len(inputs["input_ids"])
+        if len(inputs["input_ids"]) > 1:
+            preprocessed_data["skip"] = True
 
         if len(inputs["input_ids"][0]) >= 4096 - 512 - 5:
             preprocessed_data["skip"] = True

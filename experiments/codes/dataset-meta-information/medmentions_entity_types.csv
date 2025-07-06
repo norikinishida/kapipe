@@ -1,0 +1,128 @@
+Entity Type,Pretty Name,Definition
+Organism,Organism,"Generally, a living individual, including all plants and animals."
+Plant,Plant,"An organism having cellulose cell walls, growing by synthesis of inorganic substances, generally distinguished by the presence of chlorophyll, and lacking the power of locomotion. Plant parts are included here as well."
+Fungus,Fungus,"A eukaryotic organism characterized by the absence of chlorophyll and the presence of a rigid cell wall. Included here are both slime molds and true fungi such as yeasts, molds, mildews, and mushrooms."
+Virus,Virus,An organism consisting of a core of a single nucleic acid enclosed in a protective coat of protein. A virus may replicate only inside a host living cell. A virus exhibits some but not all of the usual characteristics of living things.
+Bacterium,Bacterium,"A small, typically one-celled, prokaryotic micro-organism."
+Animal,Animal,"An organism with eukaryotic cells, and lacking stiff cell walls, plastids and photosynthetic pigments."
+Vertebrate,Vertebrate,An animal which has a spinal column.
+Amphibian,Amphibian,"A cold-blooded, smooth-skinned vertebrate which characteristically hatches as an aquatic larva, breathing by gills. When mature, the amphibian breathes with lungs."
+Bird,Bird,A vertebrate having a constant body temperature and characterized by the presence of feathers.
+Fish,Fish,"A cold-blooded aquatic vertebrate characterized by fins and breathing by gills. Included here are fishes having either a bony skeleton, such as a perch, or a cartilaginous skeleton, such as a shark, or those lacking a jaw, such as a lamprey or hagfish."
+Reptile,Reptile,A cold-blooded vertebrate having an external covering of scales or horny plates. Reptiles breathe by means of lungs and are generally egg-laying.
+Mammal,Mammal,"A vertebrate having a constant body temperature and characterized by the presence of hair, mammary glands and sweat glands."
+Human,Human,"Modern man, the only remaining species of the Homo genus."
+Anatomical Structure,Anatomical Structure,A normal or pathological part of the anatomy or structural organization of an organism.
+Embryonic Structure,Embryonic Structure,"An anatomical structure that exists only before the organism is fully formed; in mammals, for example, a structure that exists only prior to the birth of the organism. This structure may be normal or abnormal."
+Congenital Abnormality,Congenital Abnormality,"An abnormal structure, or one that is abnormal in size or location, present at birth or evolving over time as a result of a defect in embryogenesis."
+Acquired Abnormality,Acquired Abnormality,"An abnormal structure, or one that is abnormal in size or location, found in or deriving from a previously normal structure. Acquired abnormalities are distinguished from diseases even though they may result in pathological functioning (e.g., ""hernias incarcerate"")."
+Fully Formed Anatomical Structure,Fully Formed Anatomical Structure,"An anatomical structure in a fully formed organism; in mammals, for example, a structure in the body after the birth of the organism."
+Body System,Body System,A complex of anatomical structures that performs a common function.
+"Body Part, Organ, or Organ Component","Body Part, Organ, or Organ Component",A collection of cells and tissues which are localized to a specific area or combine and carry out one or more specialized functions of an organism. This ranges from gross structures to small components of complex organs. These structures are relatively localized in comparison to tissues.
+Tissue,Tissue,"An aggregation of similarly specialized cells and the associated intercellular substance. Tissues are relatively non-localized in comparison to body parts, organs or organ components."
+Cell,Cell,The fundamental structural and functional unit of living organisms.
+Cell Component,Cell Component,"A part of a cell or the intercellular matrix, generally visible by light microscopy."
+Gene or Genome,Gene or Genome,"A specific sequence, or in the case of the genome the complete sequence, of nucleotides along a molecule of DNA or RNA (in the case of some viruses) which represent the functional units of heredity."
+Body Location or Region,Body Location or Region,"An area, subdivision, or region of the body demarcated for the purpose of topographical description."
+Body Space or Junction,Body Space or Junction,An area enclosed or surrounded by body parts or organs or the place where two anatomical structures meet or connect.
+Body Substance,Body Substance,"Extracellular material, or mixtures of cells and extracellular material, produced, excreted, or accreted by the body. Included here are substances such as saliva, dental enamel, sweat, and gastric acid."
+Organism Attribute,Organism Attribute,A property of the organism or its major parts.
+Finding,Finding,"That which is discovered by direct observation or measurement of an organism attribute or condition, including the clinical history of the patient. The history of the presence of a disease is a 'Finding' and is distinguished from the disease itself."
+Laboratory or Test Result,Laboratory or Test Result,"The outcome of a specific test to measure an attribute or to determine the presence, absence, or degree of a condition."
+Injury or Poisoning,Injury or Poisoning,"A traumatic wound, injury, or poisoning caused by an external agent or force."
+Biologic Function,Biologic Function,"A state, activity or process of the body or one of its systems or parts."
+Physiologic Function,Physiologic Function,"A normal process, activity, or state of the body."
+Organism Function,Organism Function,"A physiologic function of the organism as a whole, of multiple organ systems, or of multiple organs or tissues."
+Mental Process,Mental Process,A physiologic function involving the mind or cognitive processing.
+Organ or Tissue Function,Organ or Tissue Function,"A physiologic function of a particular organ, organ system, or tissue."
+Cell Function,Cell Function,A physiologic function inherent to cells or cell components.
+Molecular Function,Molecular Function,A physiologic function occurring at the molecular level.
+Genetic Function,Genetic Function,"Functions of or related to the maintenance, translation or expression of the genetic material."
+Pathologic Function,Pathologic Function,"A disordered process, activity, or state of the organism as a whole, of a body system or systems, or of multiple organs or tissues. Included here are normal responses to a negative stimulus as well as patholologic conditions or states that are less specific than a disease. Pathologic functions frequently have systemic effects."
+Disease or Syndrome,Disease or Syndrome,"A condition which alters or interferes with a normal process, state, or activity of an organism. It is usually characterized by the abnormal functioning of one or more of the host's systems, parts, or organs. Included here is a complex of symptoms descriptive of a disorder."
+Mental or Behavioral Dysfunction,Mental or Behavioral Dysfunction,A clinically significant dysfunction whose major manifestation is behavioral or psychological. These dysfunctions may have identified or presumed biological etiologies or manifestations.
+Cell or Molecular Dysfunction,Cell or Molecular Dysfunction,"A pathologic function inherent to cells, parts of cells, or molecules."
+Experimental Model of Disease,Experimental Model of Disease,A representation in a non-human organism of a human disease for the purpose of research into its mechanism or treatment.
+Event,Event,"A broad type for grouping activities, processes and states."
+Activity,Activity,An operation or series of operations that an organism or machine carries out or participates in.
+Behavior,Behavior,Any of the psycho-social activities of humans or animals that can be observed directly by others or can be made systematically observable by the use of special strategies.
+Social Behavior,Social Behavior,Behavior that is a direct result or function of the interaction of humans or animals with their fellows. This includes behavior that may be considered anti-social.
+Individual Behavior,Individual Behavior,"Behavior exhibited by a human or an animal that is not a direct result of interaction with other members of the species, but which may have an effect on others."
+Daily or Recreational Activity,Daily or Recreational Activity,"An activity carried out for recreation or exercise, or as part of daily life."
+Occupational Activity,Occupational Activity,An activity carried out as part of an occupation or job.
+Health Care Activity,Health Care Activity,An activity of or relating to the practice of medicine or involving the care of patients.
+Laboratory Procedure,Laboratory Procedure,"A procedure, method, or technique used to determine the composition, quantity, or concentration of a specimen, and which is carried out in a clinical laboratory. Included here are procedures which measure the times and rates of reactions."
+Diagnostic Procedure,Diagnostic Procedure,"A procedure, method, or technique used to determine the nature or identity of a disease or disorder. This excludes procedures which are primarily carried out on specimens in a laboratory."
+Therapeutic or Preventive Procedure,Therapeutic or Preventive Procedure,"A procedure, method, or technique designed to prevent a disease or a disorder, or to improve physical function, or used in the process of treating a disease or injury."
+Research Activity,Research Activity,An activity carried out as part of research or experimentation.
+Molecular Biology Research Technique,Molecular Biology Research Technique,Any of the techniques used in the study of or the directed modification of the gene complement of a living organism.
+Governmental or Regulatory Activity,Governmental or Regulatory Activity,"An activity carried out by officially constituted governments, or an activity related to the creation or enforcement of the rules or regulations governing some field of endeavor."
+Educational Activity,Educational Activity,An activity related to the organization and provision of education.
+Machine Activity,Machine Activity,An activity carried out primarily or exclusively by machines.
+Phenomenon or Process,Phenomenon or Process,A process or state which occurs naturally or as a result of an activity.
+Human-caused Phenomenon or Process,Human-caused Phenomenon or Process,A phenomenon or process that is a result of the activities of human beings.
+Environmental Effect of Humans,Environmental Effect of Humans,A change in the natural environment that is a result of the activities of human beings.
+Natural Phenomenon or Process,Natural Phenomenon or Process,A phenomenon or process that occurs irrespective of the activities of human beings.
+Entity,Entity,A broad type for grouping physical and conceptual entities.
+Physical Object,Physical Object,An object perceptible to the sense of vision or touch.
+Manufactured Object,Manufactured Object,A physical object made by human beings.
+Medical Device,Medical Device,"A manufactured object used primarily in the diagnosis, treatment, or prevention of physiologic or anatomic disorders."
+Research Device,Research Device,A manufactured object used primarily in carrying out scientific research or experimentation.
+Conceptual Entity,Conceptual Entity,A broad type for grouping abstract entities or concepts.
+Idea or Concept,Idea or Concept,"An abstract concept, such as a social, religious or philosophical concept."
+Temporal Concept,Temporal Concept,A concept which pertains to time or duration.
+Qualitative Concept,Qualitative Concept,"A concept which is an assessment of some quality, rather than a direct measurement."
+Quantitative Concept,Quantitative Concept,"A concept which involves the dimensions, quantity or capacity of something using some unit of measure, or which involves the quantitative comparison of entities."
+Spatial Concept,Spatial Concept,"A location, region, or space, generally having definite boundaries."
+Geographic Area,Geographic Area,"A geographic location, generally having definite boundaries."
+Molecular Sequence,Molecular Sequence,"A broad type for grouping the collected sequences of amino acids, carbohydrates, and nucleotide sequences. Descriptions of these sequences are generally reported in the published literature and/or are deposited in and maintained by databanks such as GenBank, European Molecular Biology Laboratory (EMBL), National Biomedical Research Foundation (NBRF), or other sequence repositories."
+Nucleotide Sequence,Nucleotide Sequence,"The sequence of purines and pyrimidines in nucleic acids and polynucleotides. Included here are nucleotide-rich regions, conserved sequence, and DNA transforming region."
+Amino Acid Sequence,Amino Acid Sequence,"The sequence of amino acids as arrayed in chains, sheets, etc., within the protein molecule. It is of fundamental importance in determining protein structure."
+Carbohydrate Sequence,Carbohydrate Sequence,"The sequence of carbohydrates within polysaccharides, glycoproteins, and glycolipids."
+Regulation or Law,Regulation or Law,An intellectual product resulting from legislative or regulatory activity.
+Occupation or Discipline,Occupation or Discipline,"A vocation, academic discipline, or field of study, or a subpart of an occupation or discipline."
+Biomedical Occupation or Discipline,Biomedical Occupation or Discipline,"A vocation, academic discipline, or field of study related to biomedicine."
+Organization,Organization,"The result of uniting for a common purpose or function. The continued existence of an organization is not dependent on any of its members, its location, or particular facility. Components or subparts of organizations are also included here. Although the names of organizations are sometimes used to refer to the buildings in which they reside, they are not inherently physical in nature."
+Health Care Related Organization,Health Care Related Organization,An established organization which carries out specific functions related to health care delivery or research in the life sciences.
+Professional Society,Professional Society,An organization uniting those who have a common vocation or who are involved with a common field of study.
+Self-help or Relief Organization,Self-help or Relief Organization,An organization whose purpose and function is to provide assistance to the needy or to offer support to those sharing similar problems.
+Group,Group,A conceptual entity referring to the classification of individuals according to certain shared characteristics.
+Professional or Occupational Group,Professional or Occupational Group,An individual or individuals classified according to their vocation.
+Population Group,Population Group,"An indivdual or individuals classified according to their sex, racial origin, religion, common place of living, financial or social status, or some other cultural or behavioral attribute."
+Family Group,Family Group,An individual or individuals classified according to their family relationships or relative position in the family unit.
+Age Group,Age Group,An individual or individuals classified according to their age.
+Patient or Disabled Group,Patient or Disabled Group,"An individual or individuals classified according to a disability, disease, condition or treatment."
+Group Attribute,Group Attribute,A conceptual entity which refers to the frequency or distribution of certain characteristics or phenomena in certain groups.
+Chemical,Chemical,"Compounds or substances of definite molecular composition. Chemicals are viewed from two distinct perspectives in the network, functionally and structurally. Almost every chemical concept is assigned at least two types, generally one from the structure hierarchy and at least one from the function hierarchy."
+Chemical Viewed Structurally,Chemical Viewed Structurally,"A chemical or chemicals viewed from the perspective of their structural characteristics. Included here are concepts which can mean either a salt, an ion, or a compound (e.g., ""Bromates"" and ""Bromides"")."
+Organic Chemical,Organic Chemical,"The general class of carbon-containing compounds, usually based on carbon chains or rings, and also containing hydrogen (hydrocarbons), with or without nitrogen, oxygen, or other elements in which the bonding between elements is generally covalent."
+"Nucleic Acid, Nucleoside, or Nucleotide","Nucleic Acid, Nucleoside, or Nucleotide","A complex compound of high molecular weight occurring in living cells. These are basically of two types, ribonucleic (RNA) and deoxyribonucleic (DNA) acids. Nucleic acids are made of nucleotides (nitrogen-containing base, a 5-carbon sugar, and one or more phosphate group) linked together by a phosphodiester bond between the 5' and 3' carbon atoms. Nucleosides are compounds composed of a purine or pyrimidine base (usually adenine, cytosine, guanine, thymine, uracil) linked to either a ribose or a deoxyribose sugar."
+"Amino Acid, Peptide, or Protein","Amino Acid, Peptide, or Protein",Amino acids and chains of amino acids connected by peptide linkages.
+Chemical Viewed Functionally,Chemical Viewed Functionally,A chemical viewed from the perspective of its functional characteristics or pharmacological activities.
+Pharmacologic Substance,Pharmacologic Substance,A substance used in the treatment or prevention of pathologic disorders. This includes substances that occur naturally in the body and are administered therapeutically.
+Biomedical or Dental Material,Biomedical or Dental Material,"A substance used in biomedicine or dentistry predominantly for its physical, as opposed to chemical, properties. Included here are biocompatible materials, tissue adhesives, bone cements, resins, toothpastes, etc."
+Biologically Active Substance,Biologically Active Substance,"A generally endogenous substance produced or required by an organism, of primary interest because of its role in the biologic functioning of the organism that produces it."
+Hormone,Hormone,"In animals, a chemical usually secreted by an endocrine gland whose products are released into the circulating fluid. Hormones act as chemical messengers and regulate various physiologic processes such as growth, reproduction, metabolism, etc. They usually fall into two broad classes, steroid hormones and peptide hormones."
+Enzyme,Enzyme,"A complex chemical, usually a protein, that is produced by living cells and which catalyzes specific biochemical reactions. There are six main types of enzymes: oxidoreductases, transferases, hydrolases, lyases, isomerases, and ligases."
+Vitamin,Vitamin,"A substance, usually an organic chemical complex, present in natural products or made synthetically, which is essential in the diet of man or other higher animals. Included here are vitamin precursors, provitamins, and vitamin supplements."
+Immunologic Factor,Immunologic Factor,A biologically active substance whose activities affect or play a role in the functioning of the immune system.
+"Indicator, Reagent, or Diagnostic Aid","Indicator, Reagent, or Diagnostic Aid","A substance primarily of interest for its use in laboratory or diagnostic tests and procedures to detect, measure, examine, or analyze other chemicals, processes, or conditions."
+Hazardous or Poisonous Substance,Hazardous or Poisonous Substance,"A substance of concern because of its potentially hazardous or toxic effects. This would include most drugs of abuse, as well as agents that require special handling because of their toxicity."
+Substance,Substance,A material with definite or fairly definite chemical composition.
+Food,Food,"Any substance generally containing nutrients, such as carbohydrates, proteins, and fats, that can be ingested by a living organism and metabolized into energy and body tissue. Some foods are naturally occurring, others are either partially or entirely made by humans."
+Functional Concept,Functional Concept,A concept which is of interest because it pertains to the carrying out of a process or activity.
+Intellectual Product,Intellectual Product,A conceptual entity resulting from human endeavor. Concepts assigned to this type generally refer to information created by humans for some purpose.
+Language,Language,The system of communication used by a particular nation or people.
+Sign or Symptom,Sign or Symptom,"An observable manifestation of a disease or condition based on clinical judgment, or a manifestation of a disease or condition which is experienced by the patient and reported as a subjective observation."
+Classification,Classification,A term or system of terms denoting an arrangement by class or category.
+Anatomical Abnormality,Anatomical Abnormality,"An abnormal structure, or one that is abnormal in size or location."
+Neoplastic Process,Neoplastic Process,A new and abnormal growth of tissue in which the growth is uncontrolled and progressive. The growths may be malignant or benign.
+Receptor,Receptor,"A specific structure or site on the cell surface or within its cytoplasm that recognizes and binds with other specific molecules. These include the proteins on the surface of an immunocompetent cell that binds with antigens, or proteins found on the surface molecules that bind with hormones or neurotransmitters and react with other molecules that respond in a specific way."
+Archaeon,Archaeon,"A member of one of the three domains of life, formerly called Archaebacteria under the taxon Bacteria, but now considered separate and distinct. Archaea are characterized by: 1) the presence of characteristic tRNAs and ribosomal RNAs; 2) the absence of peptidoglycan cell walls; 3) the presence of ether-linked lipids built from branched-chain subunits; and 4) their occurrence in unusual habitats. While archaea resemble bacteria in morphology and genomic organization, they resemble eukarya in their method of genomic replication."
+Antibiotic,Antibiotic,A pharmacologically active compound produced by growing microorganisms which kill or inhibit growth of other microorganisms.
+"Element, Ion, or Isotope","Element, Ion, or Isotope","One of the 109 presently known fundamental substances that comprise all matter at and above the atomic level. This includes elemental metals, rare gases, and most abundant naturally occurring radioactive elements, as well as the ionic counterparts of elements (NA+, Cl-), and the less abundant isotopic forms. This does not include organic ions such as iodoacetate to which the type 'Organic Chemical' is assigned."
+Inorganic Chemical,Inorganic Chemical,"Chemical elements and their compounds, excluding the hydrocarbons and their derivatives (except carbides, carbonates, cyanides, cyanates and carbon disulfide). Generally inorganic compounds contain ionic bonds. Included here are inorganic acids and salts, alloys, alkalies, and minerals."
+Clinical Drug,Clinical Drug,"A pharmaceutical preparation as produced by the manufacturer. The name usually includes the substance, its strength, and the form, but may include the substance and only one of the other two items."
+Clinical Attribute,Clinical Attribute,An observable or measurable property or state of an organism of clinical interest.
+Drug Delivery Device,Drug Delivery Device,A medical device that contains a clinical drug or drugs.
+Eukaryote,Eukaryote,"One of the three domains of life (the others being Bacteria and Archaea), also called Eukarya. These are organisms whose cells are enclosed in membranes and possess a nucleus. They comprise almost all multicellular and many unicellular organisms, and are traditionally divided into groups (sometimes called kingdoms) including Animals, Plants, Fungi, various Algae, and other taxa that were previously part of the old kingdom Protista."

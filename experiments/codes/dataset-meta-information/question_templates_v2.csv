@@ -1,0 +1,551 @@
+Question Type,Relation,Template
+neighborhood,CID,"What diseases are induced by {target}?"
+neighborhood,CID#inverse,"What chemical compounds induce {target}?"
+intersection,CID,"What diseases are induced by both {target_a} and {target_b}?"
+intersection,CID#inverse,"What chemical compounds induce both {target_a} and {target_b}?"
+twohop,CID-CID#inverse,"What chemical compounds induce the diseases that are also induced by {target}?"
+twohop,CID#inverse-CID,"What diseases are induced by the chemical compounds that also induce {target}?"
+neighborhood,P6,Who is the head of goverent of {target}?
+neighborhood,P6#inverse,"Which country, state, or municipality has {target} as its head of government?"
+neighborhood,P17,Which country is {target} located in?
+neighborhood,P17#inverse,What is located in {target}?
+neighborhood,P19,Where was {target} born?
+neighborhood,P19#inverse,Who was born in {target}?
+neighborhood,P20,Where did {target} pass away?
+neighborhood,P20#inverse,Who passed away in {target}?
+neighborhood,P22,Who is the father of {target}?
+neighborhood,P22#inverse,Who is the child of {target}?
+neighborhood,P25,Who is the mother of {target}?
+neighborhood,P25#inverse,Who is the child of {target}?
+neighborhood,P26,Who is the spouse of {target}?
+neighborhood,P26#inverse,Who is the spouse of {target}?
+neighborhood,P27,Which country recognizes {target} as its citizen?
+neighborhood,P27#inverse,Who is a citizen of {target}?
+neighborhood,P30,On which continent is {target} located?
+neighborhood,P30#inverse,What is located in {target}?
+neighborhood,P31,What type of entity is {target}?
+neighborhood,P31#inverse,What is an instance of {target}?
+neighborhood,P35,Who is the head of state of {target}?
+neighborhood,P35#inverse,Which country or state has {target} as its head of state?
+neighborhood,P36,What is the capital of {target}?
+neighborhood,P36#inverse,Which country or region has {target} as its capital?
+neighborhood,P37,What is the official language of {target}?
+neighborhood,P37#inverse,Which country or region has {target} as their official language?
+neighborhood,P39,What position does {target} hold?
+neighborhood,P39#inverse,Who holds the position of {target}?
+neighborhood,P40,Who is the child of {target}?
+neighborhood,P40#inverse,Who has {target} as their child?
+neighborhood,P50,Who is the author of {target}?
+neighborhood,P50#inverse,What did {target} write?
+neighborhood,P54,Which sports team does {target} play for?
+neighborhood,P54#inverse,Who is a member of {target}?
+neighborhood,P57,Who is the director of {target}?
+neighborhood,P57#inverse,What did {target} direct?
+neighborhood,P58,Who is the screenwriter of {target}?
+neighborhood,P58#inverse,What did {target} write the script for?
+neighborhood,P69,At which educational institution was {target} educated?
+neighborhood,P69#inverse,Who studied at {target}?
+neighborhood,P86,Who is the composer of {target}?
+neighborhood,P86#inverse,What did {target} compose?
+neighborhood,P102,Which political party is {target} affiliated with?
+neighborhood,P102#inverse,Who is a member of {target}?
+neighborhood,P108,What organization does {target} work for?
+neighborhood,P108#inverse,Who is employed by {target}?
+neighborhood,P112,Who is the founder of {target}?
+neighborhood,P112#inverse,What was founded by {target}?
+neighborhood,P118,In which league does {target} compete?
+neighborhood,P118#inverse,Which team or player competes in {target}?
+neighborhood,P123,Who or what published {target}?
+neighborhood,P123#inverse,What was published by {target}?
+neighborhood,P127,Who or what owns {target}?
+neighborhood,P127#inverse,What is owned by {target}?
+neighborhood,P131,In which administrative territorial entity is {target} located?
+neighborhood,P131#inverse,What is located in {target}?
+neighborhood,P136,What is the genre of {target}?
+neighborhood,P136#inverse,What creative work or artist belongs to the {target} genre?
+neighborhood,P137,Who or what operates {target}?
+neighborhood,P137#inverse,What is operated by {target}?
+neighborhood,P140,What is the religion of {target}?
+neighborhood,P140#inverse,Which individual or institution follows {target} as a religion?
+neighborhood,P150,What administrative division is contained within {target}?
+neighborhood,P150#inverse,Which administrative entity is {target} a part of?
+neighborhood,P155,What precedes {target}?
+neighborhood,P155#inverse,What comes after {target}?
+neighborhood,P156,What comes after {target}?
+neighborhood,P156#inverse,What precedes {target}?
+neighborhood,P159,Where is the headquarters of {target} located?
+neighborhood,P159#inverse,Which organization has its headquarters in {target}?
+neighborhood,P161,Who is a cast member of {target}?
+neighborhood,P161#inverse,In which production did {target} appear?
+neighborhood,P162,Who is the producer of {target}?
+neighborhood,P162#inverse,What did {target} produce?
+neighborhood,P166,What award did {target} receive?
+neighborhood,P166#inverse,Who received the {target} award?
+neighborhood,P170,Who is the creator of {target}?
+neighborhood,P170#inverse,What did {target} create?
+neighborhood,P171,What is the parent taxon of {target}?
+neighborhood,P171#inverse,What taxon belongs to {target}?
+neighborhood,P172,What is the ethnic group of {target}?
+neighborhood,P172#inverse,Who belongs to {target}?
+neighborhood,P175,Who performed {target}?
+neighborhood,P175#inverse,What did {target} perform?
+neighborhood,P176,What is the manufacture of {target}?
+neighborhood,P176#inverse,What was manufactured by {target}?
+neighborhood,P178,Who or what is the developer of {target}?
+neighborhood,P178#inverse,What was developed by {target}?
+neighborhood,P179,Which series does {target} belong to?
+neighborhood,P179#inverse,What is included in the {target} series?
+neighborhood,P190,What is the sister city of {target}?
+neighborhood,P190#inverse,Which city has {target} as its sister city?
+neighborhood,P194,What is the legislative body of {target}?
+neighborhood,P194#inverse,Which country or region is governed by {target}?
+neighborhood,P205,Which country borders {target}?
+neighborhood,P205#inverse,What body of water is bordered by {target}?
+neighborhood,P206,Which body of water is {target} located in or next to?
+neighborhood,P206#inverse,What is located in or next to {target}?
+neighborhood,P241,To which military branch does {target} belong?
+neighborhood,P241#inverse,"Which military unit, award, office, or person belongs to {target}?"
+neighborhood,P264,Which record label released {target}?
+neighborhood,P264#inverse,Which artist or album is signed to {target}?
+neighborhood,P272,Which production company produced {target}?
+neighborhood,P272#inverse,What was produced by {target}?
+neighborhood,P276,Where is {target} located?
+neighborhood,P276#inverse,Which notable object or event is located in {target}?
+neighborhood,P279,What is the superclass of {target}?
+neighborhood,P279#inverse,What is a subclass of {target}?
+neighborhood,P355,What is the subsidiary of {target}?
+neighborhood,P355#inverse,What subsidiary does {target} have?
+neighborhood,P361,What is {target} a part of?
+neighborhood,P361#inverse,Which entity is part of {target}?
+neighborhood,P364,What is the original language of {target}?
+neighborhood,P364#inverse,Which work is originally created in {target}?
+neighborhood,P400,On which platform was {target} released?
+neighborhood,P400#inverse,What was released on {target}?
+neighborhood,P403,Into which body of water does {target} flow?
+neighborhood,P403#inverse,Which river or stream flows into {target}?
+neighborhood,P449,What was the original network of {target}?
+neighborhood,P449#inverse,What program was originally broadcast on {target}?
+neighborhood,P463,"Which organization, club, or musical group does {target} belong to?"
+neighborhood,P463#inverse,Who is a member of {target}?
+neighborhood,P488,Who is the presiding member of {target}?
+neighborhood,P488#inverse,"Which organization, group, or body is chaired by {target}?"
+neighborhood,P495,What is the country of origin of {target}?
+neighborhood,P495#inverse,What has {target} as its country of origin?
+neighborhood,P527,What part does {target} have?
+neighborhood,P527#inverse,What is {target} a part of?
+neighborhood,P551,Where is the residence of {target}?
+neighborhood,P551#inverse,Who is or has been a resident of {target}?
+neighborhood,P569,What is the date of birth of {target}?
+neighborhood,P569#inverse,Who was born on {target}?
+neighborhood,P570,What is the date of death of {target}?
+neighborhood,P570#inverse,Who died on {target}?
+neighborhood,P571,What is the inception date of {target}?
+neighborhood,P571#inverse,Which entity was established on {target}?
+neighborhood,P576,What is the dissolution date of {target}?
+neighborhood,P576#inverse,Which organization or entity was dissolved on {target}?
+neighborhood,P577,What is the publication date of {target}?
+neighborhood,P577#inverse,Which work was published on {target}?
+neighborhood,P580,What is the start time of {target}?
+neighborhood,P580#inverse,What began on {target}?
+neighborhood,P582,What is the end time of {target}?
+neighborhood,P582#inverse,What ended on {target}?
+neighborhood,P585,What is the point in time when {target} took place?
+neighborhood,P585#inverse,What happened on {target}?
+neighborhood,P607,In which military conflict did {target} participate?
+neighborhood,P607#inverse,Who participated in {target}?
+neighborhood,P674,Which character appears in {target}?
+neighborhood,P674#inverse,In which creative work does {target} appear as a character?
+neighborhood,P676,Who is the author of the lyrics of {target}?
+neighborhood,P676#inverse,Which song has lyrics by {target}?
+neighborhood,P706,On which terrain feature is {target} located?
+neighborhood,P706#inverse,What is located on {target}?
+neighborhood,P710,"Which person, group, or organization took part in {target}?"
+neighborhood,P710#inverse,In which event did {target} participate?
+neighborhood,P737,Who or what influenced {target}?
+neighborhood,P737#inverse,Who or what was influenced by {target}?
+neighborhood,P740,What is the location of formation of {target}?
+neighborhood,P740#inverse,What was established in {target}?
+neighborhood,P749,What is the parent organization of {target}?
+neighborhood,P749#inverse,Which organizations are part of {target} as subsidiaries?
+neighborhood,P800,What is a notable work of {target}?
+neighborhood,P800#inverse,Who created {target} as a notable work?
+neighborhood,P807,From which entity was {target} separated?
+neighborhood,P807#inverse,What was separated from {target}?
+neighborhood,P840,What is the narrative location of {target}?
+neighborhood,P840#inverse,Which work has {target} as its narrative location?
+neighborhood,P937,What is the work location of {target}?
+neighborhood,P937#inverse,Who worked in {target}?
+neighborhood,P1001,To which jurisdiction does {target} apply?
+neighborhood,P1001#inverse,{target} is under the jurisdiction of which governmental body or law?
+neighborhood,P1056,What is a product or material produced by {target}?
+neighborhood,P1056#inverse,Which organization or industry produces {target}?
+neighborhood,P1198,What is the unemployment rate of {target}?
+neighborhood,P1198#inverse,Which country or region has an unemployment rate of {target}?
+neighborhood,P1336,Which administrative division or entity claims control over {target}?
+neighborhood,P1336#inverse,What territory is claimed by {target}?
+neighborhood,P1344,In which event was {target} a participant?
+neighborhood,P1344#inverse,Who or what is a participant of {target}?
+neighborhood,P1365,What did {target} replace?
+neighborhood,P1365#inverse,What replaced {target}?
+neighborhood,P1366,What is {target} replaced by?
+neighborhood,P1366#inverse,What did {target} replace?
+neighborhood,P1376,What is {target} the capital of?
+neighborhood,P1376#inverse,What is the capital of {target}?
+neighborhood,P1412,"What language is spoken, written, or signed in {target}?"
+neighborhood,P1412#inverse,Which individuals or communities use {target} as a language?
+neighborhood,P1441,In which work does {target} appear?
+neighborhood,P1441#inverse,"Which character, place, or entity appears in {target}?"
+neighborhood,P3373,Who is a sibling of {target}?
+neighborhood,P3373#inverse,Who has {target} as a sibling?
+intersection,P6,Who is the head of government of both {target_a} and {target_b}?
+intersection,P6#inverse,"Which country, state, or municipality has both {target_a} and {target_b} as its heads of government?"
+intersection,P17,Which country are both {target_a} and {target_b} located in?
+intersection,P17#inverse,What is located in both {target_a} and {target_b}?
+intersection,P19,Where were both {target_a} and {target_b} born?
+intersection,P19#inverse,Who was born in both {target_a} and {target_b}?
+intersection,P20,Where did both {target_a} and {target_b} pass away?
+intersection,P20#inverse,Who passed away in both {target_a} and {target_b}?
+intersection,P22,Who is the father of both {target_a} and {target_b}?
+intersection,P22#inverse,Who is the child of both {target_a} and {target_b}?
+intersection,P25,Who is the mother of both {target_a} and {target_b}?
+intersection,P25#inverse,Who is the child of both {target_a} and {target_b}?
+intersection,P26,Who is the spouse of both {target_a} and {target_b}?
+intersection,P26#inverse,Who is the spouse of both {target_a} and {target_b}?
+intersection,P27,Which country recognizes both {target_a} and {target_b} as its citizens?
+intersection,P27#inverse,Who is a citizen of both {target_a} and {target_b}?
+intersection,P30,On which continent are both {target_a} and {target_b} located?
+intersection,P30#inverse,What is located in both {target_a} and {target_b}?
+intersection,P31,What type of entity are both {target_a} and {target_b}?
+intersection,P31#inverse,What is an instance of both {target_a} and {target_b}?
+intersection,P35,Who is the head of state of both {target_a} and {target_b}?
+intersection,P35#inverse,Which country or state has both {target_a} and {target_b} as its heads of state?
+intersection,P36,What is the capital of both {target_a} and {target_b}?
+intersection,P36#inverse,Which country or region has both {target_a} and {target_b} as its capitals?
+intersection,P37,What is the official language of both {target_a} and {target_b}?
+intersection,P37#inverse,Which country or region has both {target_a} and {target_b} as their official languages?
+intersection,P39,What position do both {target_a} and {target_b} hold?
+intersection,P39#inverse,Who holds both the position of {target_a} and {target_b}?
+intersection,P40,Who is the child of both {target_a} and {target_b}?
+intersection,P40#inverse,Who has both {target_a} and {target_b} as their children?
+intersection,P50,Who is the author of both {target_a} and {target_b}?
+intersection,P50#inverse,What did both {target_a} and {target_b} write?
+intersection,P54,Which sports team do both {target_a} and {target_b} play for?
+intersection,P54#inverse,Who is a member of both {target_a} and {target_b}?
+intersection,P57,Who is the director of both {target_a} and {target_b}?
+intersection,P57#inverse,What did both {target_a} and {target_b} direct?
+intersection,P58,Who is the screenwriter for both {target_a} and {target_b}?
+intersection,P58#inverse,What did both {target_a} and {target_b} write the script for?
+intersection,P69,At which educational institution were both {target_a} and {target_b} educated?
+intersection,P69#inverse,Who studied at both {target_a} and {target_b}?
+intersection,P86,Who is the composer of both {target_a} and {target_b}?
+intersection,P86#inverse,What did both {target_a} and {target_b} compose?
+intersection,P102,Which political party are both {target_a} and {target_b} affiliated with?
+intersection,P102#inverse,Who is a member of both {target_a} and {target_b}?
+intersection,P108,What organization do both {target_a} and {target_b} work for?
+intersection,P108#inverse,Who is employed by both {target_a} and {target_b}?
+intersection,P112,Who is the founder of both {target_a} and {target_b}?
+intersection,P112#inverse,What was founded by both {target_a} and {target_b}?
+intersection,P118,In which league do both {target_a} and {target_b} compete?
+intersection,P118#inverse,Which team or player competes in both {target_a} and {target_b}?
+intersection,P123,Who or what published both {target_a} and {target_b}?
+intersection,P123#inverse,What was published by both {target_a} and {target_b}?
+intersection,P127,Who or what owns both {target_a} and {target_b}?
+intersection,P127#inverse,What is owned by both {target_a} and {target_b}?
+intersection,P131,In which administrative territorial entity are both {target_a} and {target_b} located?
+intersection,P131#inverse,What is located in both {target_a} and {target_b}?
+intersection,P136,What is the genre of both {target_a} and {target_b}?
+intersection,P136#inverse,What creative work or artist belongs to both the {target_a} and {target_b} genres?
+intersection,P137,Who or what operates both {target_a} and {target_b}?
+intersection,P137#inverse,What is operated by both {target_a} and {target_b}?
+intersection,P140,What is the religion of both {target_a} and {target_b}?
+intersection,P140#inverse,Which individual or institution follows both {target_a} and {target_b} as a religion?
+intersection,P150,What administrative division is contained within both {target_a} and {target_b}?
+intersection,P150#inverse,Which administrative entity are both {target_a} and {target_b} a part of?
+intersection,P155,What precedes both {target_a} and {target_b}?
+intersection,P155#inverse,What comes after both {target_a} and {target_b}?
+intersection,P156,What comes after both {target_a} and {target_b}?
+intersection,P156#inverse,What precedes both {target_a} and {target_b}?
+intersection,P159,Where is the headquarter of both {target_a} and {target_b} located?
+intersection,P159#inverse,Which organization has its headquarter in both {target_a} and {target_b}?
+intersection,P161,Who is a cast member of both {target_a} and {target_b}?
+intersection,P161#inverse,In which production did both {target_a} and {target_b} appear?
+intersection,P162,Who is the producer of both {target_a} and {target_b}?
+intersection,P162#inverse,What did both {target_a} and {target_b} produce?
+intersection,P166,What award did both {target_a} and {target_b} receive?
+intersection,P166#inverse,Who received both the {target_a} and {target_b} award?
+intersection,P170,Who is the creator of both {target_a} and {target_b}?
+intersection,P170#inverse,What did both {target_a} and {target_b} create?
+intersection,P171,What is the parent taxon of both {target_a} and {target_b}?
+intersection,P171#inverse,What taxon belongs to both {target_a} and {target_b}?
+intersection,P172,What is the ethnic group of both {target_a} and {target_b}?
+intersection,P172#inverse,Who belongs to both {target_a} and {target_b}?
+intersection,P175,Who performed both {target_a} and {target_b}?
+intersection,P175#inverse,What did both {target_a} and {target_b} perform?
+intersection,P176,What is the manufacture of both {target_a} and {target_b}?
+intersection,P176#inverse,What was manufactured by both {target_a} and {target_b}?
+intersection,P178,Who or what is the developer of both {target_a} and {target_b}?
+intersection,P178#inverse,What was developed by both {target_a} and {target_b}?
+intersection,P179,Which series do both {target_a} and {target_b} belong to?
+intersection,P179#inverse,What is included in both the {target_a} and {target_b} series?
+intersection,P190,What is the sister city of both {target_a} and {target_b}?
+intersection,P190#inverse,Which city has both {target_a} and {target_b} as its sister cities?
+intersection,P194,What is the legislative body of both {target_a} and {target_b}?
+intersection,P194#inverse,Which country or region is governed by both {target_a} and {target_b}?
+intersection,P205,Which country borders both {target_a} and {target_b}?
+intersection,P205#inverse,What body of water is bordered by both {target_a} and {target_b}?
+intersection,P206,Which body of water are both {target_a} and {target_b} located in or next to?
+intersection,P206#inverse,What is located in or next to both {target_a} and {target_b}?
+intersection,P241,To which military branch do both {target_a} and {target_b} belong?
+intersection,P241#inverse,"Which military unit, award, office, or person belongs to both {target_a} and {target_b}?"
+intersection,P264,Which record label released both {target_a} and {target_b}?
+intersection,P264#inverse,Which artist or album is signed to both {target_a} and {target_b}?
+intersection,P272,Which production company produced both {target_a} and {target_b}?
+intersection,P272#inverse,What was produced by both {target_a} and {target_b}?
+intersection,P276,Where are both {target_a} and {target_b} located?
+intersection,P276#inverse,Which notable object or event is located in both {target_a} and {target_b}?
+intersection,P279,What is the superclass of both {target_a} and {target_b}?
+intersection,P279#inverse,What is a subclass of both {target_a} and {target_b}?
+intersection,P355,What is the subsidiary of both {target_a} and {target_b}?
+intersection,P355#inverse,What subsidiary does both {target_a} and {target_b} have?
+intersection,P361,What are both {target_a} and {target_b} a part of?
+intersection,P361#inverse,Which entity is part of both {target_a} and {target_b}?
+intersection,P364,What is the original language of both {target_a} and {target_b}?
+intersection,P364#inverse,Which work is originally and created in both {target_a} and {target_b}?
+intersection,P400,On which platform were both {target_a} and {target_b} released?
+intersection,P400#inverse,What was released on both {target_a} and {target_b}?
+intersection,P403,Into which body of water do both {target_a} and {target_b} flow?
+intersection,P403#inverse,Which river or stream flow into both {target_a} and {target_b}?
+intersection,P449,What was the original network of both {target_a} and {target_b}?
+intersection,P449#inverse,What program was and originally broadcast on both {target_a} and {target_b}?
+intersection,P463,"Which organization, club, or musical group do both {target_a} and {target_b} belong to?"
+intersection,P463#inverse,Who is a member of both {target_a} and {target_b}?
+intersection,P488,Who is the presiding member of both {target_a} and {target_b}?
+intersection,P488#inverse,"Which organization, group, or body is chaired by both {target_a} and {target_b}?"
+intersection,P495,What is the country of origin of both {target_a} and {target_b}?
+intersection,P495#inverse,What has both {target_a} and {target_b} as their country of origin?
+intersection,P527,What part do both {target_a} and {target_b} have?
+intersection,P527#inverse,What are both {target_a} and {target_b} a part of?
+intersection,P551,Where is the residence of both {target_a} and {target_b}?
+intersection,P551#inverse,Who is or has been a resident of both {target_a} and {target_b}?
+intersection,P569,What is the date of birth of both {target_a} and {target_b}?
+intersection,P569#inverse,Who was born on both {target_a} and {target_b}?
+intersection,P570,What is the date of death for both {target_a} and {target_b}?
+intersection,P570#inverse,Who died on both {target_a} and {target_b}?
+intersection,P571,What is the inception date of both {target_a} and {target_b}?
+intersection,P571#inverse,Which entity was established on both {target_a} and {target_b}?
+intersection,P576,What is the dissolution date of both {target_a} and {target_b}?
+intersection,P576#inverse,Which organization or entity was dissolved on both {target_a} and {target_b}?
+intersection,P577,What is the publication date of both {target_a} and {target_b}?
+intersection,P577#inverse,Which work was published on both {target_a} and {target_b}?
+intersection,P580,What is the start time of both {target_a} and {target_b}?
+intersection,P580#inverse,What began on both {target_a} and {target_b}?
+intersection,P582,What is the end time of both {target_a} and {target_b}?
+intersection,P582#inverse,What ended on both {target_a} and {target_b}?
+intersection,P585,What is the point in time when both {target_a} and {target_b} took place?
+intersection,P585#inverse,What happened on both {target_a} and {target_b}?
+intersection,P607,In which military conflict did both {target_a} and {target_b} participate?
+intersection,P607#inverse,Who participated in both {target_a} and {target_b}?
+intersection,P674,Which character appears in both {target_a} and {target_b}?
+intersection,P674#inverse,In which creative work do both {target_a} and {target_b} appear as characters?
+intersection,P676,Who is the author of the lyrics of both {target_a} and {target_b}?
+intersection,P676#inverse,Which song has lyrics by both {target_a} and {target_b}?
+intersection,P706,On which terrain feature are both {target_a} and {target_b} located?
+intersection,P706#inverse,What is located on both {target_a} and {target_b}?
+intersection,P710,"Which person, group, or organization took part in both {target_a} and {target_b}?"
+intersection,P710#inverse,In which event did both {target_a} and {target_b} participate?
+intersection,P737,Who or what influenced both {target_a} and {target_b}?
+intersection,P737#inverse,Who or what was influenced by both {target_a} and {target_b}?
+intersection,P740,What is the location of formation for both {target_a} and {target_b}?
+intersection,P740#inverse,What was established in both {target_a} and {target_b}?
+intersection,P749,What is the parent organization of both {target_a} and {target_b}?
+intersection,P749#inverse,Which organizations are part of both {target_a} and {target_b} as subsidiaries?
+intersection,P800,What is a notable work of both {target_a} and {target_b}?
+intersection,P800#inverse,Who created both {target_a} and {target_b} as notable works?
+intersection,P807,From which entity were both {target_a} and {target_b} separated?
+intersection,P807#inverse,What was separated from both {target_a} and {target_b}?
+intersection,P840,What is the narrative location of both {target_a} and {target_b}?
+intersection,P840#inverse,Which work has both {target_a} and {target_b} as its narrative location?
+intersection,P937,What is the work location of both {target_a} and {target_b}?
+intersection,P937#inverse,Who worked in both {target_a} and {target_b}?
+intersection,P1001,To which jurisdiction do both {target_a} and {target_b} apply?
+intersection,P1001#inverse,Both {target_a} and {target_b} are under the jurisdiction of which governmental body or law?
+intersection,P1056,What is a product or material produced by both {target_a} and {target_b}?
+intersection,P1056#inverse,Which organization or industry produces both {target_a} and {target_b}?
+intersection,P1198,What is the unemployment rate of both {target_a} and {target_b}?
+intersection,P1198#inverse,Which country or region has an unemployment rate of both {target_a} and {target_b}?
+intersection,P1336,Which administrative division or entity claims control over both {target_a} and {target_b}?
+intersection,P1336#inverse,What territory is claimed by both {target_a} and {target_b}?
+intersection,P1344,In which event were both {target_a} and {target_b} participants?
+intersection,P1344#inverse,Who or what is a participant of both {target_a} and {target_b}?
+intersection,P1365,What did both {target_a} and {target_b} replace?
+intersection,P1365#inverse,What replaces both {target_a} and {target_b}?
+intersection,P1366,What are both {target_a} and {target_b} replaced by?
+intersection,P1366#inverse,What did both {target_a} and {target_b} replace?
+intersection,P1376,What are both {target_a} and {target_b} the capital of?
+intersection,P1376#inverse,What is the capital of both {target_a} and {target_b}?
+intersection,P1412,"What language is spoken, written, or signed by both {target_a} and {target_b}?"
+intersection,P1412#inverse,Which individuals or communities use both {target_a} and {target_b} as languages?
+intersection,P1441,In which work do both {target_a} and {target_b} appear?
+intersection,P1441#inverse,"Which character, place, or entity appears in both {target_a} and {target_b}?"
+intersection,P3373,Who is a sibling of both {target_a} and {target_b}?
+intersection,P3373#inverse,Who has both {target_a} and {target_b} as siblings?
+twohop,P1001-P131#inverse,What is located in the jurisdiction to which {target} applies?
+twohop,P1001-P150,What administrative division is contained within the jurisdiction to which {target} applies?
+twohop,P1001-P150#inverse,Which administrative entity is the jurisdiction to which {target} applies a part of?
+twohop,P1001-P194,What is the legislative body of the jurisdiction to which {target} applies?
+twohop,P1056#inverse-P749#inverse,Which organizations are part of the organization or industry that produces {target} as subsidiaries?
+twohop,P108-P749#inverse,Which organizations are part of the organization that {target} works for as subsidiaries?
+twohop,P112#inverse-P264#inverse,Which artist or album is signed to the entity that was founded by {target}?
+twohop,P118-P463#inverse,Who is a member of the league in which {target} competes?
+twohop,P123#inverse-P1441#inverse,"Which character, place, or entity appears in the work that was published by {target}?"
+twohop,P123#inverse-P495#inverse,What has the work that was published by {target} as its country of origin?
+twohop,P123-P108#inverse,Who is employed by the publisher of {target}?
+twohop,P127-P355,What is the subsidiary of the owner of {target}?
+twohop,P131-P150,What administrative division is contained within the administrative territorial entity in which {target} is located?
+twohop,P131-P150#inverse,Which administrative entity is the administrative territorial entity in which {target} is located a part of?
+twohop,P131-P17,Which country is the administrative territorial entity (in which {target} is located) located in?
+twohop,P131-P206,Which body of water is the administrative territorial entity in which {target} is located located in or next to?
+twohop,P131-P463,"Which organization, club, or musical group does the administrative territorial entity in which {target} is located belong to?"
+twohop,P131-P6,Who is the head of government of the administrative territorial entity in which {target} is located?
+twohop,P1366-P194,What is the legislative body of the entity that {target} is replaced by?
+twohop,P137-P17,Which country is the operator of {target} located in?
+twohop,P1412-P1001#inverse,"the language spoken, written, or signed in {target} is under the jurisdiction of which governmental body or law?"
+twohop,P1441-P161,Who is a cast member of the work in which {target} appears?
+twohop,P1441-P674,Which character appears in the work in which {target} appears?
+twohop,P150#inverse-P1001#inverse,the administrative entity of which {target} is a part is under the jurisdiction of which governmental body or law?
+twohop,P150#inverse-P131,In which administrative territorial entity is the administrative entity of which {target} is a part located?
+twohop,P150#inverse-P131#inverse,What is located in the administrative entity of which {target} is a part?
+twohop,P150#inverse-P17#inverse,What is located in the administrative entity of which {target} is a part?
+twohop,P150#inverse-P27#inverse,Who is a citizen of the administrative entity of which {target} is a part?
+twohop,P150#inverse-P495#inverse,What has the administrative entity of which {target} is a part as its country of origin?
+twohop,P150-P1001#inverse,the administrative division contained within {target} is under the jurisdiction of which governmental body or law?
+twohop,P155#inverse-P27#inverse,Who is a citizen of the event or entity that comes after {target}?
+twohop,P156-P400,On which platform was the event or entity that comes after {target} released?
+twohop,P159#inverse-P118,In which league does the organization that has its headquarters in {target} compete?
+twohop,P159-P150,What administrative division is contained within the place where the headquarters of {target} is located?
+twohop,P159-P17,Which country is the place where the headquarters of {target} is located located in?
+twohop,P159-P740#inverse,What was established in the place where the headquarters of {target} is located?
+twohop,P162#inverse-P161,Who is a cast member of the entity that {target} produced?
+twohop,P162-P3373#inverse,Who has the producer of {target} as a sibling?
+twohop,P166#inverse-P27,Which country recognizes the person who received the {target} award as its citizen?
+twohop,P17#inverse-P150#inverse,Which administrative entity is the entity that is located in {target} a part of?
+twohop,P17#inverse-P276#inverse,Which notable object or event is located in the entity that is located in {target}?
+twohop,P170-P161#inverse,In which production did the creator of {target} appear?
+twohop,P170-P58#inverse,What did the creator of {target} write the script for?
+twohop,P172#inverse-P17#inverse,What is located in the person who belongs to {target}?
+twohop,P175#inverse-P22#inverse,Who is the child of the entity that {target} performed?
+twohop,P175-P463#inverse,Who is a member of the performer of {target}?
+twohop,P175-P463#inverse,Who is a member of the performer of {target}?
+twohop,P176-P127#inverse,What is owned by the manufacturer of {target}?
+twohop,P178#inverse-P400,On which platform was the entity that was developed by {target} released?
+twohop,P178-P1056,What is a product or material produced by the developer of {target}?
+twohop,P178-P108#inverse,Who is employed by the developer of {target}?
+twohop,P179#inverse-P400,On which platform was the entity included in the {target} series released?
+twohop,P179-P1441#inverse,"Which character, place, or entity appears in the series to which {target} belongs?"
+twohop,P179-P400,On which platform was the series to which {target} belongs released?
+twohop,P179-P674,Which character appears in the series to which {target} belongs?
+twohop,P17-P1001#inverse,the country in which {target} is located is under the jurisdiction of which governmental body or law?
+twohop,P17-P131,In which administrative territorial entity is the country (in which {target} is located) located?
+twohop,P17-P131#inverse,What is located in the country in which {target} is located?
+twohop,P17-P1344,In which event was the country in which {target} is located a participant?
+twohop,P17-P1366#inverse,What did the country in which {target} is located replace?
+twohop,P17-P1412#inverse,Which individuals or communities use the country in which {target} is located as a language?
+twohop,P17-P150,What administrative division is contained within the country in which {target} is located?
+twohop,P17-P172,What is the ethnic group of the country in which {target} is located?
+twohop,P17-P194,What is the legislative body of the country in which {target} is located?
+twohop,P17-P205#inverse,What body of water is bordered by the country in which {target} is located?
+twohop,P17-P27#inverse,Who is a citizen of the country in which {target} is located?
+twohop,P17-P276#inverse,Which notable object or event is located in the country in which {target} is located?
+twohop,P17-P30,On which continent is the country (in which {target} is located) located?
+twohop,P17-P35,Who is the head of state of the country in which {target} is located?
+twohop,P17-P361,What is the country in which {target} is located a part of?
+twohop,P17-P37,What is the official language of the country in which {target} is located?
+twohop,P17-P463,"Which organization, club, or musical group does the country in which {target} is located belong to?"
+twohop,P17-P495#inverse,What has the country in which {target} is located as its country of origin?
+twohop,P17-P527#inverse,What is the country in which {target} is located a part of?
+twohop,P17-P571,What is the inception date of the country in which {target} is located?
+twohop,P17-P6,Who is the head of government of the country in which {target} is located?
+twohop,P17-P607,In which military conflict did the country in which {target} is located participate?
+twohop,P17-P710#inverse,In which event did the country in which {target} is located participate?
+twohop,P19#inverse-P108,What organization does the person who was born in {target} work for?
+twohop,P19#inverse-P570,What is the date of death of the person who was born in {target}?
+twohop,P19#inverse-P69,At which educational institution was the person who was born in {target} educated?
+twohop,P206#inverse-P131#inverse,What is located in the entity located in or next to {target}?
+twohop,P206-P276#inverse,Which notable object or event is located in the body of water in or next to which {target} is located?
+twohop,P20-P206,Which body of water is the place where {target} passed away located in or next to?
+twohop,P22#inverse-P3373,Who is a sibling of the child of {target}?
+twohop,P241#inverse-P551,"Where is the residence of the military unit, award, office, or person that belongs to {target}?"
+twohop,P26#inverse-P27,Which country recognizes the spouse of {target} as its citizen?
+twohop,P26#inverse-P40,Who is the child of the spouse of {target}?
+twohop,P276-P131#inverse,What is located in the place where {target} is located?
+twohop,P27-P1001#inverse,the country that recognizes {target} as its citizen is under the jurisdiction of which governmental body or law?
+twohop,P27-P131#inverse,What is located in the country that recognizes {target} as its citizen?
+twohop,P27-P150,What administrative division is contained within the country that recognizes {target} as its citizen?
+twohop,P27-P150#inverse,Which administrative entity is the country that recognizes {target} as its citizen a part of?
+twohop,P27-P17#inverse,What is located in the country that recognizes {target} as its citizen?
+twohop,P27-P241#inverse,"Which military unit, award, office, or person belongs to the country that recognizes {target} as its citizen?"
+twohop,P27-P361,What is the country that recognizes {target} as its citizen a part of?
+twohop,P27-P495#inverse,What has the country that recognizes {target} as its citizen as its country of origin?
+twohop,P27-P527#inverse,What is the country that recognizes {target} as its citizen a part of?
+twohop,P27-P6,Who is the head of government of the country that recognizes {target} as its citizen?
+twohop,P27-P710#inverse,In which event did the country that recognizes {target} as its citizen participate?
+twohop,P30-P527,What part does the continent on which {target} is located have?
+twohop,P3373#inverse-P26,Who is the spouse of the person who has {target} as a sibling?
+twohop,P3373#inverse-P50#inverse,What did the person who has {target} as a sibling write?
+twohop,P3373#inverse-P570,What is the date of death of the person who has {target} as a sibling?
+twohop,P361#inverse-P69#inverse,Who studied at the entity that {target} is part of?
+twohop,P361-P527,What part does the whole of which {target} is a part have?
+twohop,P361-P710,"Which person, group, or organization took part in the whole of which {target} is a part?"
+twohop,P403-P206#inverse,What is located in or next to the body of water into which {target} flows?
+twohop,P463-P175#inverse,"What did the organization, club, or musical group to which {target} belongs perform?"
+twohop,P463-P527,"What part does the organization, club, or musical group to which {target} belongs have?"
+twohop,P495-P1336,Which administrative division or entity claims control over the country of origin of {target}?
+twohop,P495-P150,What administrative division is contained within the country of origin of {target}?
+twohop,P495-P17#inverse,What is located in the country of origin of {target}?
+twohop,P495-P172,What is the ethnic group of the country of origin of {target}?
+twohop,P495-P205#inverse,What body of water is bordered by the country of origin of {target}?
+twohop,P495-P463,"Which organization, club, or musical group does the country of origin of {target} belong to?"
+twohop,P495-P6,Who is the head of government of the country of origin of {target}?
+twohop,P495-P710#inverse,In which event did the country of origin of {target} participate?
+twohop,P50-P170#inverse,What did the author of {target} create?
+twohop,P527#inverse-P175#inverse,What did the whole of which {target} is a part perform?
+twohop,P527#inverse-P175#inverse,What did the whole of which {target} is a part perform?
+twohop,P54#inverse-P569,What is the date of birth of the member of {target}?
+twohop,P54-P118,In which league does the sports team that {target} plays for compete?
+twohop,P569#inverse-P54,Which sports team does the person who was born on {target} play for?
+twohop,P569#inverse-P69,At which educational institution was the person who was born on {target} educated?
+twohop,P57#inverse-P161,Who is a cast member of the work that {target} directed?
+twohop,P570#inverse-P22,Who is the father of the person who died on {target}?
+twohop,P570#inverse-P27,Which country recognizes the person who died on {target} as its citizen?
+twohop,P570#inverse-P54,Which sports team does the person who died on {target} play for?
+twohop,P570#inverse-P69,At which educational institution was the person who died on {target} educated?
+twohop,P570#inverse-P69,At which educational institution was the person who died on {target} educated?
+twohop,P571#inverse-P118,In which league does the entity that was established on {target} compete?
+twohop,P571#inverse-P150#inverse,Which administrative entity is the entity that was established on {target} a part of?
+twohop,P571#inverse-P355#inverse,What subsidiary does the entity that was established on {target} have?
+twohop,P577#inverse-P123,Who or what published the work that was published on {target}?
+twohop,P577#inverse-P155,What precedes the work that was published on {target}?
+twohop,P577#inverse-P161,Who is a cast member of the work that was published on {target}?
+twohop,P577#inverse-P175,Who performed the work that was published on {target}?
+twohop,P577#inverse-P178,Who or what is the developer of the work that was published on {target}?
+twohop,P577#inverse-P264,Which record label released the work that was published on {target}?
+twohop,P577#inverse-P272,Which production company produced the work that was published on {target}?
+twohop,P577#inverse-P361#inverse,Which entity is part of the work that was published on {target}?
+twohop,P577#inverse-P400,On which platform was the work that was published on {target} released?
+twohop,P577#inverse-P495,What is the country of origin of the work that was published on {target}?
+twohop,P577#inverse-P86,Who is the composer of the work that was published on {target}?
+twohop,P58#inverse-P161,Who is a cast member of the work for which {target} wrote the script?
+twohop,P580#inverse-P607#inverse,Who participated in the event that began on {target}?
+twohop,P6#inverse-P131#inverse,"What is located in the country, state, or municipality that has {target} as its head of government?"
+twohop,P6#inverse-P27#inverse,"Who is a citizen of the country, state, or municipality that has {target} as its head of government?"
+twohop,P607#inverse-P355#inverse,What subsidiary does the participant of {target} have?
+twohop,P607-P276,Where is the military conflict in which {target} participated located?
+twohop,P607-P361#inverse,Which entity is part of the military conflict in which {target} participated?
+twohop,P706-P131,In which administrative territorial entity is the terrain feature on which {target} is located located?
+twohop,P706-P403,Into which body of water does the terrain feature on which {target} is located flow?
+twohop,P737#inverse-P50#inverse,What did the entity influenced by {target} write?
+twohop,P737-P86#inverse,What did the influencer of {target} compose?
+twohop,P740-P19#inverse,Who was born in the location of formation of {target}?
+twohop,P749-P17,Which country is the parent organization of {target} located in?
+twohop,P800#inverse-P27,Which country recognizes the person who created {target} as a notable work as its citizen?
+twohop,P937-P17,Which country is the work location of {target} located in?

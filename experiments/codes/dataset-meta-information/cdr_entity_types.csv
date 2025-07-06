@@ -1,0 +1,3 @@
+Entity Type,Pretty Name,Definition
+Chemical,Chemical,"Chemical substances or drugs, including specific drug names, chemical names, molecules, and chemical compounds. Chemical is defined as entities belonging to the ""Chemicals and Drugs"" category in MeSH (Medical Subject Headings). This category encompasses drugs, natural compounds, inorganic substances, organic compounds, and more."
+Disease,Disease,"Diseases, illnesses, or pathological conditions related to health. Disease is defined as entities belonging to the ""Diseases"" category in MeSH. This category includes infectious diseases, genetic disorders, chronic illnesses, tumors, syndromes, and others."

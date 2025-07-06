@@ -1,5 +1,6 @@
 from collections import OrderedDict
 import datetime
+from importlib.resources import files, as_file
 import io
 import json
 import logging
@@ -13,6 +14,16 @@ from pyhocon.converter import HOCONConverter
 
 logger = logging.getLogger(__name__)
 
+
+########
+# IO utilities
+########
+
+
+def read_lines(path, encoding="utf-8"):
+    with open(path, encoding=encoding) as f:
+        lines = [l.strip() for l in f]
+    return lines
 
 
 def read_json(path, encoding=None):
@@ -36,15 +47,17 @@ def read_json(path, encoding=None):
     return dct
 
 
-def write_json(path, dct):
+def write_json(path, dct, ensure_ascii=True):
     """
     Parameters
     ----------
     path: str
     dct: dict[Any, Any]
+    ensure_ascii: bool
+        by default True
     """
     with open(path, "w") as f:
-        json.dump(dct, f, indent=4)
+        json.dump(dct, f, ensure_ascii=ensure_ascii, indent=4)
 
 
 def read_vocab(path):
@@ -152,6 +165,61 @@ def print_list(lst, with_index=False, process=None):
             logger.info(x)
 
 
+def safe_json_loads(generated_text, fallback=None, list_type=False):
+    """
+    Parse the report into a JSON object
+    """
+    # try:
+    #     return json.loads(generated_text)
+    # except json.JSONDecodeError as e:
+    #     cleaned = (
+    #         generated_text.strip()
+    #         .removeprefix("```json").removesuffix("```")
+    #         .strip("` \n")
+    #     )
+    #     try:
+    #         return json.loads(cleaned)
+    #     except json.JSONDecodeError as e2:
+    #         print("[JSONDecodeError]", e)
+    #         print("[Raw Output]", generated_text[:300])
+    #         return fallback
+
+    if list_type:
+        begin_index = generated_text.find("[")
+        end_index = generated_text.rfind("]")
+    else:
+        begin_index = generated_text.find("{")
+        end_index = generated_text.rfind("}")
+    if begin_index < 0 or end_index < 0:
+        logger.info(f"Failed to parse the generated text into a JSON object: '{generated_text}'")
+        return fallback
+
+    json_text = generated_text[begin_index: end_index + 1]
+
+    try:
+        json_obj = json.loads(json_text)
+    except Exception as e:
+        logger.info(f"Failed to parse the generated text into a JSON object: '{json_text}'")
+        logger.info(e)
+        return fallback
+
+    if list_type:
+        if not isinstance(json_obj, list):
+            logger.info(f"The parsed JSON object is not a list: '{json_obj}'")
+            return fallback
+    else:
+        if not isinstance(json_obj, dict):
+            logger.info(f"The parsed JSON object is not a dictionary: '{json_obj}'")
+            return fallback
+
+    return json_obj
+
+            
+########
+# Data utilities
+########
+
+
 def flatten_lists(list_of_lists):
     """
     Parameters
@@ -176,6 +244,11 @@ def pretty_format_dict(dct):
     str
     """
     return "{}".format(json.dumps(dct, indent=4))
+
+
+########
+# Time utilities
+########
 
 
 def get_current_time():
@@ -228,6 +301,11 @@ class StopWatch(object):
         if minute:
             span /= 60.0
         return span
+
+
+########
+# Training utilities
+########
 
 
 class BestScoreHolder(object):
@@ -306,3 +384,76 @@ class BestScoreHolder(object):
             return False
 
 
+########
+# Task-specific utilities
+########
+
+
+def aggregate_mentions_to_entities(document, mentions):
+    entity_id_to_info = {} # dict[str, dict[str, Any]]
+    for m_i in range(len(document["mentions"])):
+        name = document["mentions"][m_i]["name"]
+        entity_type = document["mentions"][m_i]["entity_type"]
+        entity_id = mentions[m_i]["entity_id"]
+        if entity_id in entity_id_to_info:
+            entity_id_to_info[entity_id]["mention_indices"].append(m_i)
+            entity_id_to_info[entity_id]["mention_names"].append(name)
+            # TODO
+            # Confliction of entity types can appear, if EL model does not care about it.
+            # assert (
+            #     entity_id_to_info[entity_id]["entity_type"]
+            #     == entity_type
+            # )
+        else:
+            entity_id_to_info[entity_id] = {}
+            entity_id_to_info[entity_id]["mention_indices"] = [m_i]
+            entity_id_to_info[entity_id]["mention_names"] = [name]
+            # TODO
+            entity_id_to_info[entity_id]["entity_type"] = entity_type
+    entities = [] # list[Entity]
+    for entity_id in entity_id_to_info.keys():
+        mention_indices = entity_id_to_info[entity_id]["mention_indices"]
+        mention_names = entity_id_to_info[entity_id]["mention_names"]
+        entity_type = entity_id_to_info[entity_id]["entity_type"]
+        entities.append({
+            "mention_indices": mention_indices,
+            "mention_names": mention_names,
+            "entity_type": entity_type,
+            "entity_id": entity_id,
+        })
+    return entities
+
+
+def create_text_from_passage(passage, sep):
+    # if not "title" in passage:
+    #     text = passage["text"]
+    # else:
+    #     text = passage["title"] + sep + passage["text"]
+    if not "title" in passage:
+        text = passage["text"]
+    elif passage["text"].strip() == "":
+        text = passage["title"]
+    else:
+        text = passage["title"] + sep + passage["text"]
+    return text
+
+
+def read_prompt_template(prompt_template_name_or_path):
+    # List text files in "prompt_template" directory
+    prompt_template_names = [
+        x.name for x in files("kapipe.prompt_templates").iterdir()
+        if x.name.endswith(".txt") and x.is_file() and not x.name.startswith("_")
+    ]
+
+    # Load the prompt template
+    candidate_filename = prompt_template_name_or_path + ".txt"        
+    if candidate_filename in prompt_template_names:
+        template_path = files("kapipe.prompt_templates").joinpath(candidate_filename)
+        with as_file(template_path) as path:
+            with open(path, "r", encoding="utf-8") as f:
+                return f.read()
+    else:
+        assert os.path.isfile(prompt_template_name_or_path)
+        with open(prompt_template_name_or_path, "r", encoding="utf-8") as f:
+            return f.read()
+ 
