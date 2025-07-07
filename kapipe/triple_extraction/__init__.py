@@ -2,47 +2,37 @@
 # NER
 #####
 
-from .biaffinener import BiaffineNER
-from .biaffinener_trainer import BiaffineNERTrainer
+from .biaffinener import BiaffineNER, BiaffineNERTrainer
 
-from .llmner import LLMNER
-from .llmner_trainer import LLMNERTrainer
+from .llmner import LLMNER, LLMNERTrainer
 
 #####
 # ED-Retrieval
 #####
 
-from .lexicalentityretriever import LexicalEntityRetriever
-from .lexicalentityretriever_trainer import LexicalEntityRetrieverTrainer
+from .lexicalentityretriever import LexicalEntityRetriever, LexicalEntityRetrieverTrainer
 
-from .blinkbiencoder import BlinkBiEncoder
-from .blinkbiencoder_trainer import BlinkBiEncoderTrainer
+from .blinkbiencoder import BlinkBiEncoder, BlinkBiEncoderTrainer
 
 #####
 # ED-Reranking
 #####
 
-from .blinkcrossencoder import BlinkCrossEncoder
-from .blinkcrossencoder_trainer import BlinkCrossEncoderTrainer
+from .blinkcrossencoder import BlinkCrossEncoder, BlinkCrossEncoderTrainer
 
-from .llmed import LLMED
-from .llmed_trainer import LLMEDTrainer
+from .llmed import LLMED, LLMEDTrainer
 
 #####
 # DocRE
 #####
 
-from .atlop import ATLOP
-from .atlop_trainer import ATLOPTrainer
+from .atlop import ATLOP, ATLOPTrainer
 
-from .maqa import MAQA
-from .maqa_trainer import MAQATrainer
+from .maqa import MAQA, MAQATrainer
 
-from .maatlop import MAATLOP
-from .maatlop_trainer import MAATLOPTrainer
+from .maatlop import MAATLOP, MAATLOPTrainer
 
-from .llmdocre import LLMDocRE
-from .llmdocre_trainer import LLMDocRETrainer
+from .llmdocre import LLMDocRE, LLMDocRETrainer
 
 #####
 # Pipeline

@@ -67,12 +67,12 @@ def main(args):
     # Set logger
     if actiontype == "evaluate":
         shared_functions.set_logger(
-            base_output_path + "/evaluation.log",
+            os.path.join(base_output_path, "evaluation.log"),
             # overwrite=True
         )
     elif actiontype == "inference_only":
         shared_functions.set_logger(
-            base_output_path + "/inference_only.log",
+            os.path.join(base_output_path, "inference_only.log"),
             # overwrite=True
         )
 
@@ -106,16 +106,16 @@ def main(args):
     ##################
 
     if method_name == "llmqa":
-        # Initialize the Trainer (Evaluator)
+        # Initialize the trainer (evaluator)
         trainer = LLMQATrainer(base_output_path=base_output_path)
-  
-        # Get Config
+
+        # Load the configuration
         config = utils.get_hocon_config(
             config_path=config_path,
             config_name=config_name
         )
 
-        # Initialize the Answerer
+        # Initialize the answerer
         answerer = LLMQA(
             device=device,
             config=config,
@@ -127,10 +127,10 @@ def main(args):
 
     if method_name == "llmqa":
 
-        # Show prompts
         if actiontype == "check_prompt":
+            # Show prompts
             with torch.no_grad():
-                path_out = base_output_path + "/output.txt"
+                path_out = os.path.join(base_output_path, "output.txt")
                 with open(path_out, "w") as f:
                     for i, (question, contexts_for_question) in enumerate(zip(
                         dev_questions, dev_contexts
@@ -156,7 +156,7 @@ def main(args):
                             break
                 return
 
-        # Setup the datasets for evaluation
+        # Set up the datasets for evaluation
         trainer.setup_dataset(
             answerer=answerer,
             questions=dev_questions,
@@ -168,11 +168,11 @@ def main(args):
             split="test"
         )
 
-        # Save the configurations of the Answerer
+        # Save the configurations of the answerer
         trainer.save_answerer(answerer=answerer)
 
-        # Apply the Answerer on the datasets (without evaluation)
         if actiontype == "inference_only":
+            # Apply the answerer on the datasets (without evaluation)
             results = inference_only(
                 answerer=answerer,
                 questions=dev_questions,
@@ -186,8 +186,8 @@ def main(args):
                 path=trainer.paths["path_test_pred"]
             )
  
-        # Apply and evaluate the Answerer on the datasets
         if actiontype == "evaluate":
+            # Evaluate the answerer on the datasets
             trainer.evaluate(
                 answerer=answerer,
                 questions=dev_questions,

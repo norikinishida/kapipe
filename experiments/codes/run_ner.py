@@ -9,8 +9,10 @@ from tqdm import tqdm
 
 import sys
 sys.path.insert(0, "../..")
-from kapipe.triple_extraction import BiaffineNER, BiaffineNERTrainer
-from kapipe.triple_extraction import LLMNER, LLMNERTrainer
+from kapipe.triple_extraction import (
+    BiaffineNER, BiaffineNERTrainer,
+    LLMNER, LLMNERTrainer
+)
 from kapipe import utils
 from kapipe.utils import StopWatch
 
@@ -23,39 +25,43 @@ def main(args):
     sw = StopWatch()
     sw.start("main")
 
+    ##################
+    # Arguments
+    ##################
+
+    # Method
     device = torch.device(f"cuda:{args.gpu}")
-
     method_name = args.method
+    config_path = args.config_path
+    config_name = args.config_name
 
-    path_train_documents = args.train
-    path_dev_documents = args.dev
-    path_test_documents = args.test
-
+    # Input Data
+    dataset_name = args.dataset_name
+    path_train_documents = args.train_documents
+    path_dev_documents = args.dev_documents
+    path_test_documents = args.test_documents
     # path_train_demonstrations = args.train_demonstrations
     path_dev_demonstrations = args.dev_demonstrations
     path_test_demonstrations = args.test_demonstrations
 
-    dataset_name = args.dataset_name
-
+    # Output Path
     path_results_dir = args.results_dir
-
-    config_path = args.config_path
-    config_name = args.config_name
     prefix = args.prefix
-
-    actiontype = args.actiontype
-
     if prefix is None or prefix == "None":
         prefix = utils.get_current_time()
         args.prefix = prefix
+
+    # Action
+    actiontype = args.actiontype
 
     assert method_name in ["biaffinener", "llmner"]
     assert actiontype in ["train", "evaluate", "check_preprocessing", "check_prompt"]
 
     ##################
-    # Set logger
+    # Logging Setup
     ##################
 
+    # Set base output path
     base_output_path = os.path.join(
         path_results_dir,
         "ner",
@@ -65,29 +71,37 @@ def main(args):
     )
     utils.mkdir(base_output_path)
 
+    # Set logger
     if actiontype == "train":
-        shared_functions.set_logger(base_output_path + "/training.log")
+        shared_functions.set_logger(
+            os.path.join(base_output_path, "training.log"),
+            # overwrite=True
+        )
     elif actiontype == "evaluate":
-        shared_functions.set_logger(base_output_path + "/evaluation.log")
+        shared_functions.set_logger(
+            os.path.join(base_output_path, "evaluation.log"),
+            # overwrite=True
+        )
 
+    # Show arguments
     logging.info(utils.pretty_format_dict(vars(args)))
 
     ##################
-    # Get documents and vocabulary
+    # Data
     ##################
 
-    # Get documents
+    # Load documents
     train_documents = utils.read_json(path_train_documents)
     dev_documents = utils.read_json(path_dev_documents)
     test_documents = utils.read_json(path_test_documents)
 
-    # Get demonstration information
+    # Load demonstrations (for LLM and in-context learning)
     if method_name == "llmner":
         # train_demonstrations = utils.read_json(path_train_demonstrations)
         dev_demonstrations = utils.read_json(path_dev_demonstrations)
         test_demonstrations = utils.read_json(path_test_demonstrations)
 
-    # Get vocabulary
+    # Create vocabulary of entity types
     if dataset_name == "cdr":
         vocab_etype = get_vocab_etype_for_cdr(method_name=method_name)
     elif dataset_name == "conll2003":
@@ -124,6 +138,7 @@ def main(args):
             method_name=method_name
         )
 
+    # Load meta information (e.g., pretty labels and definitions) for entity types
     if method_name == "llmner":
         etype_meta_info = {
             row["Entity Type"]: {
@@ -132,7 +147,8 @@ def main(args):
             }
             for _, row in pd.read_csv(f"./dataset-meta-information/{dataset_name}_entity_types.csv").iterrows()
         }
- 
+
+    # Show statistics
     shared_functions.show_ner_documents_statistics(
         documents=train_documents,
         title="Training"
@@ -147,19 +163,18 @@ def main(args):
     )
 
     ##################
-    # Get extractor
+    # Method
     ##################
 
     if method_name == "biaffinener":
-
+        # Initialize the trainer (evaluator)
         trainer = BiaffineNERTrainer(base_output_path=base_output_path)
 
-        config = utils.get_hocon_config(
-            config_path=config_path,
-            config_name=config_name
-        )
+        # Load the configuration
+        config = utils.get_hocon_config(config_path=config_path, config_name=config_name)
 
         if actiontype == "train" or actiontype == "check_preprocessing":
+            # Initialize the extractor
             extractor = BiaffineNER(
                 device=device,
                 config=config,
@@ -167,6 +182,7 @@ def main(args):
                 path_model=None
             )
         else: 
+            # Load the extractor
             extractor = BiaffineNER(
                 device=device,
                 config=config,
@@ -175,32 +191,30 @@ def main(args):
             )
 
     elif method_name == "llmner":
-
-        trainer = LLMNERTrainer(base_output_path=base_output_path)
-
-        config = utils.get_hocon_config(
-            config_path=config_path,
-            config_name=config_name
-        )
-
         assert actiontype != "train"
 
+        # Initialize the trainer (evaluator)
+        trainer = LLMNERTrainer(base_output_path=base_output_path)
+
+        # Load the configuration
+        config = utils.get_hocon_config(config_path=config_path, config_name=config_name)
+
+        # Initialize the extractor
         extractor = LLMNER(
             device=device,
             config=config,
-            #
             vocab_etype=vocab_etype,
             etype_meta_info=etype_meta_info,
-            #
             path_demonstration_pool=path_train_documents
         )
 
     ##################
-    # Train or evaluate
+    # Training, Evaluation
     ##################
 
     if method_name == "biaffinener":
 
+        # Set up the datasets for evaluation
         trainer.setup_dataset(
             extractor=extractor,
             documents=dev_documents,
@@ -213,13 +227,15 @@ def main(args):
         )
 
         if actiontype == "train":
+            # Train the extractor
             trainer.train(
                 extractor=extractor,
                 train_documents=train_documents,
                 dev_documents=dev_documents
             )
 
-        elif actiontype == "evaluate":
+        if actiontype == "evaluate":
+            # Evaluate the extractor on the datasets
             trainer.evaluate(
                 extractor=extractor,
                 documents=dev_documents,
@@ -231,20 +247,22 @@ def main(args):
                 split="test"
             )
 
-        elif actiontype == "check_preprocessing":
+        if actiontype == "check_preprocessing":
+            # Save preprocessed data
             results = []
             for document in tqdm(dev_documents):
                 preprocessed_data = extractor.model.preprocessor.preprocess(document)
                 for key in ["matrix_valid_span_mask", "matrix_gold_entity_type_labels"]:
                     preprocessed_data[key] = preprocessed_data[key].tolist()
                 results.append(preprocessed_data)
-            utils.write_json(base_output_path + "/dev.check_preprocessing.json", results)
+            utils.write_json(os.path.join(base_output_path, "dev.check_preprocessing.json"), results)
         
     elif method_name == "llmner":
 
         if actiontype == "check_prompt":
+            # Show prompts
             with torch.no_grad():
-                path_out = base_output_path + "/output.txt"
+                path_out = os.path.join(base_output_path, "output.txt")
                 with open(path_out, "w") as f:
                     for i, (document, demos) in enumerate(
                         zip(dev_documents, dev_demonstrations)
@@ -275,6 +293,7 @@ def main(args):
                             break
                 return
 
+        # Set up the datasets for evaluation
         trainer.setup_dataset(
             extractor=extractor,
             documents=dev_documents,
@@ -286,9 +305,11 @@ def main(args):
             split="test"
         )
 
+        # Save the configurations of the extractor
         trainer.save_extractor(extractor=extractor)
 
         if actiontype == "evaluate":
+            # Evaluate the extractor on the datasets
             trainer.evaluate(
                 extractor=extractor,
                 documents=dev_documents,
@@ -375,26 +396,26 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
 
+    # Method
     parser.add_argument("--gpu", type=int, default=0)
-
     parser.add_argument("--method", type=str, required=True)
+    parser.add_argument("--config_path", type=str, required=True)
+    parser.add_argument("--config_name", type=str, required=True)
 
-    parser.add_argument("--train", type=str, required=True)
-    parser.add_argument("--dev", type=str, required=True)
-    parser.add_argument("--test", type=str, required=True)
-
+    # Input Data
+    parser.add_argument("--dataset_name", type=str, default=None)
+    parser.add_argument("--train_documents", type=str, required=True)
+    parser.add_argument("--dev_documents", type=str, required=True)
+    parser.add_argument("--test_documents", type=str, required=True)
     parser.add_argument("--train_demonstrations", type=str, default=None)
     parser.add_argument("--dev_demonstrations", type=str, default=None)
     parser.add_argument("--test_demonstrations", type=str, default=None)
 
-    parser.add_argument("--dataset_name", type=str, default=None)
-
+    # Output Path
     parser.add_argument("--results_dir", type=str, required=True)
-
-    parser.add_argument("--config_path", type=str, required=True)
-    parser.add_argument("--config_name", type=str, required=True)
     parser.add_argument("--prefix", type=str, default=None)
 
+    # Action
     parser.add_argument("--actiontype", type=str, required=True)
 
     args = parser.parse_args()

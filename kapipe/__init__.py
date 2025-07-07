@@ -36,16 +36,9 @@ from . import qa
 #####
 
 from . import models
-from . import decoders
 from . import prompt_templates
-from . import demonstration_retrievers
-
-#####
-# Evaluation and utilities
-#####
-
+from . import demonstration_retrieval
 from . import evaluation
-
 from . import utils
 
 #####

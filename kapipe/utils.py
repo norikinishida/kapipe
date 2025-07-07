@@ -257,7 +257,7 @@ def get_current_time():
     -------
     str
     """
-    return datetime.datetime.now().strftime("%b%d_%H-%M-%S")
+    return datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
 
 
 class StopWatch(object):

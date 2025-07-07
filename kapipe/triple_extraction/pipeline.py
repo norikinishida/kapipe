@@ -11,11 +11,10 @@ from . import BiaffineNER, LLMNER
 from . import BlinkBiEncoder
 from . import BlinkCrossEncoder, LLMED
 from . import ATLOP, LLMDocRE
-from ..demonstration_retrievers import DemonstrationRetriever
+from ..demonstration_retrieval import DemonstrationRetriever
 from .. import utils
 from ..datatypes import (
     Config,
-    Passage,
     Document,
     CandidateEntitiesForDocument,
     DemonstrationsForOneExample

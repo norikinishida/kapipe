@@ -10,8 +10,10 @@ from tqdm import tqdm
 
 import sys
 sys.path.insert(0, "../..")
-from kapipe.triple_extraction import BlinkBiEncoder, BlinkBiEncoderTrainer
-from kapipe.triple_extraction import LexicalEntityRetriever, LexicalEntityRetrieverTrainer
+from kapipe.triple_extraction import (
+    BlinkBiEncoder, BlinkBiEncoderTrainer,
+    LexicalEntityRetriever, LexicalEntityRetrieverTrainer
+)
 from kapipe import utils
 from kapipe.utils import StopWatch
 
@@ -24,35 +26,40 @@ def main(args):
     sw = StopWatch()
     sw.start("main")
 
+    ##################
+    # Arguments
+    ##################
+
+    # Method
     device = torch.device(f"cuda:{args.gpu}")
-    
     method_name = args.method
-
-    path_train_documents = args.train
-    path_dev_documents = args.dev
-    path_test_documents = args.test
-
-    path_entity_dict = args.entity_dict
-
-    path_results_dir = args.results_dir
-
     config_path = args.config_path
     config_name = args.config_name
+
+    # Input Data
+    path_train_documents = args.train_documents
+    path_dev_documents = args.dev_documents
+    path_test_documents = args.test_documents
+    path_entity_dict = args.entity_dict
+
+    # Output Path
+    path_results_dir = args.results_dir
     prefix = args.prefix
-
-    actiontype = args.actiontype
-
     if prefix is None or prefix == "None":
         prefix = utils.get_current_time()
         args.prefix = prefix
+
+    # Action
+    actiontype = args.actiontype
 
     assert method_name in ["blinkbiencoder", "lexicalentityretriever"]
     assert actiontype in ["train", "evaluate", "check_preprocessing"]
 
     ##################
-    # Set logger
+    # Logging Setup
     ##################
 
+    # Set base output path
     base_output_path = os.path.join(
         path_results_dir,
         "edret",
@@ -62,21 +69,31 @@ def main(args):
     )
     utils.mkdir(base_output_path)
 
+    # Set logger
     if actiontype == "train":
-        shared_functions.set_logger(base_output_path + "/training.log")
+        shared_functions.set_logger(
+            os.path.join(base_output_path, "training.log"),
+            # overwrite=True
+        )
     elif actiontype == "evaluate":
-        shared_functions.set_logger(base_output_path + "/evaluation.log")
+        shared_functions.set_logger(
+            os.path.join(base_output_path, "evaluation.log"),
+            # overwrite=True
+        )
 
+    # Show arguments
     logging.info(utils.pretty_format_dict(vars(args)))
 
     ##################
-    # Get documents
+    # Data
     ##################
 
+    # Load documents
     train_documents = utils.read_json(path_train_documents)
     dev_documents = utils.read_json(path_dev_documents)
     test_documents = utils.read_json(path_test_documents)
 
+    # Show statistics
     shared_functions.show_ed_documents_statistics(
         documents=train_documents,
         title="Training"
@@ -91,21 +108,23 @@ def main(args):
     )    
 
     ##################
-    # Get extractor
+    # Method
     ##################
 
     if method_name == "blinkbiencoder":
-
+        # Initialize the trainer (evaluator)
         trainer = BlinkBiEncoderTrainer(
             base_output_path=base_output_path
         )
 
+        # Load the configuration
         config = utils.get_hocon_config(
             config_path=config_path,
             config_name=config_name
         )
 
         if actiontype == "train" or actiontype == "check_preprocessing":
+            # Initialize the extractor
             extractor = BlinkBiEncoder(
                 device=device,
                 config=config,
@@ -113,38 +132,43 @@ def main(args):
                 path_model=None
             )
         else:
+            # Load the extractor
             extractor = BlinkBiEncoder(
                 device=device,
                 config=config,
                 path_entity_dict=path_entity_dict,
                 path_model=trainer.paths["path_snapshot"]
             )
+            # Re-build index
             extractor.make_index(use_precomputed_entity_vectors=True)
 
     elif method_name == "lexicalentityretriever":
+        assert actiontype == "evaluate"
 
+        # Initialize the trainer (evaluator)
         trainer = LexicalEntityRetrieverTrainer(
             base_output_path=base_output_path
         )
 
+        # Load the configuration
         config = utils.get_hocon_config(
             config_path=config_path,
             config_name=config_name
         )
 
-        assert actiontype == "evaluate"
-
+        # Initialize the extractor
         extractor = LexicalEntityRetriever(
             config=config,
             path_entity_dict=path_entity_dict
         )
 
     ##################
-    # Train or evaluate
+    # Training, Evaluation
     ##################
 
     if method_name == "blinkbiencoder":
 
+        # Remove out-of-KB mentions in the training dataset
         processed_train_documents = remove_out_of_kb_mentions(
             train_documents=train_documents,
             entity_dict=extractor.entity_dict
@@ -154,15 +178,17 @@ def main(args):
             title="Training after Out-of-Kb Removal"
         )
 
-        processed_train_documents = replicate_documents_with_too_many_mentions(
+        # Split the training documents that contain too many mentions by duplicating and partitioning their mentions.
+        processed_train_documents = split_documents_by_mention_limit(
             train_documents=processed_train_documents,
             n_candidate_entities=extractor.config["n_candidate_entities"]
         )
         shared_functions.show_ed_documents_statistics(
             documents=processed_train_documents,
-            title="Training after replication"
+            title="Training after duplication"
         )
 
+        # Set up the datasets for evaluation
         trainer.setup_dataset(
             extractor=extractor,
             documents=dev_documents,
@@ -175,6 +201,7 @@ def main(args):
         )
 
         if actiontype == "train":
+            # Train the extractor
             trainer.train(
                 extractor=extractor,
                 train_documents=processed_train_documents,
@@ -182,6 +209,7 @@ def main(args):
             )
 
         elif actiontype == "evaluate":
+            # Evaluate the extractor on the datasets
             trainer.evaluate(
                 extractor=extractor,
                 documents=dev_documents,
@@ -201,14 +229,16 @@ def main(args):
             )
 
         elif actiontype == "check_preprocessing":
+            # Save preprocessed data
             results = []
             for document in dev_documents:
                 preprocessed_data = extractor.model.preprocessor.preprocess(document)
                 results.append(preprocessed_data)
-            utils.write_json(base_output_path + "/dev.check_preprocessing.json", results)
+            utils.write_json(os.path.join(base_output_path, "dev.check_preprocessing.json"), results)
 
     elif method_name == "lexicalentityretriever":
 
+        # Set up the datasets for evaluation
         trainer.setup_dataset(
             extractor=extractor,
             documents=dev_documents,
@@ -220,9 +250,11 @@ def main(args):
             split="test"
         )
 
+        # Save the configurations of the extractor
         trainer.save_extractor(extractor=extractor)
 
         if actiontype == "evaluate":
+            # Evaluate the extractor on the datasets
             trainer.evaluate(
                 extractor=extractor,
                 documents=dev_documents,
@@ -301,7 +333,7 @@ def remove_out_of_kb_mentions(train_documents, entity_dict):
     return new_train_documents
 
     
-def replicate_documents_with_too_many_mentions(
+def split_documents_by_mention_limit(
     train_documents,
     n_candidate_entities
 ):
@@ -311,12 +343,12 @@ def replicate_documents_with_too_many_mentions(
 
     n_total_original_documents = 0
     # n_total_original_mentions = 0
-    n_total_replicated_documents = 0
-    # n_total_replicated_mentions = 0
+    n_total_duplicated_documents = 0
+    # n_total_duplicated_mentions = 0
 
     for doc_i in tqdm(
         range(len(train_documents)),
-        desc=f"Replicating documents with more than {n_candidate_entities}/2 mentions"
+        desc=f"Duplicating documents with more than {n_candidate_entities}/2 mentions"
     ):
         original_doc = train_documents[doc_i]
         original_mentions = original_doc["mentions"]
@@ -326,8 +358,8 @@ def replicate_documents_with_too_many_mentions(
         if len(original_mentions) <= max_num_mentions:
             doc = copy.deepcopy(original_doc)
             new_train_documents.append(doc)
-            n_total_replicated_documents += 1
-            # n_total_replicated_mentions += len(doc["mentions"])
+            n_total_duplicated_documents += 1
+            # n_total_duplicated_mentions += len(doc["mentions"])
 
         else:
             n_mentions = len(original_mentions)
@@ -346,13 +378,13 @@ def replicate_documents_with_too_many_mentions(
                     mentions=doc["mentions"]
                 )
                 new_train_documents.append(doc)
-                n_total_replicated_documents += 1
-                # n_total_replicated_mentions += len(doc["mentions"])
+                n_total_duplicated_documents += 1
+                # n_total_duplicated_mentions += len(doc["mentions"])
 
     logging.info(f"Num. original training documents: {n_total_original_documents}")
     # logging.info(f"Num. original training mentions: {n_total_original_mentions}")
-    logging.info(f"Num. replicated training documents: {n_total_replicated_documents}")
-    # logging.info(f"Num. replicated training mentions: {n_total_replicated_mentions}")
+    logging.info(f"Num. duplicated training documents: {n_total_duplicated_documents}")
+    # logging.info(f"Num. duplicated training mentions: {n_total_duplicated_mentions}")
 
     return new_train_documents
 
@@ -365,22 +397,23 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
 
+    # Method
     parser.add_argument("--gpu", type=int, default=0)
-
     parser.add_argument("--method", type=str, required=True)
-
-    parser.add_argument("--train", type=str, required=True)
-    parser.add_argument("--dev", type=str, required=True)
-    parser.add_argument("--test", type=str, required=True)
-
-    parser.add_argument("--entity_dict", type=str, required=True)
-
-    parser.add_argument("--results_dir", type=str, required=True)
-
     parser.add_argument("--config_path", type=str, required=True)
     parser.add_argument("--config_name", type=str, required=True)
+
+    # Input Data
+    parser.add_argument("--train_documents", type=str, required=True)
+    parser.add_argument("--dev_documents", type=str, required=True)
+    parser.add_argument("--test_documents", type=str, required=True)
+    parser.add_argument("--entity_dict", type=str, required=True)
+
+    # Output Data
+    parser.add_argument("--results_dir", type=str, required=True)
     parser.add_argument("--prefix", type=str, default=None)
 
+    # Action
     parser.add_argument("--actiontype", type=str, required=True)
 
     args = parser.parse_args()
