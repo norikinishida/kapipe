@@ -67,6 +67,9 @@ def _accuracy(pred_questions, gold_questions, exact_match):
 
     total_count = float(total_count)
     total_count_correct = float(total_count_correct)
-    scores["accuracy"] = total_count_correct / total_count * 100.0
+    scores["accuracy"] = (
+        total_count_correct / total_count
+        if total_count != 0 else 0.0
+    ) * 100.0
 
     return scores

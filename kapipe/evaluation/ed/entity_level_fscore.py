@@ -95,8 +95,14 @@ def _entity_level_fscore(
     total_count_pred_entities = float(total_count_pred_entities)
     total_count_gold_entities = float(total_count_gold_entities)
     total_count_correct = float(total_count_correct)
-    precision = total_count_correct / total_count_pred_entities
-    recall = total_count_correct / total_count_gold_entities
+    precision = (
+        total_count_correct / total_count_pred_entities
+        if total_count_pred_entities != 0 else 0.0
+    )
+    recall = (
+        total_count_correct / total_count_gold_entities
+        if total_count_gold_entities != 0 else 0.0
+    )
     if precision + recall == 0:
         f1 = 0.0
     else:

@@ -96,7 +96,10 @@ def _llm4eval(pred_questions, gold_questions):
 
     total_count = float(total_count)
     total_score = float(total_score)
-    scores["average_score"] = total_score / total_count
+    scores["average_score"] = (
+        total_score / total_count
+        if total_count != 0 else 0.0
+    )
 
     scores["generated_text_list"] = generated_text_list
     return scores

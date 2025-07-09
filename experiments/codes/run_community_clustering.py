@@ -54,7 +54,7 @@ def main(args):
     # Set logger
     shared_functions.set_logger(
         base_output_path + "/community_clustering.log",
-        overwrite=True
+        # overwrite=True
     )
 
     # Show arguments

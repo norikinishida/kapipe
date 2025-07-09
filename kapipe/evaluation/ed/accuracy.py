@@ -109,7 +109,10 @@ def _accuracy(pred_documents, gold_documents, inkb, normalized):
 
     total_count_mentions = float(total_count_mentions)
     total_count_correct = float(total_count_correct)
-    acc = total_count_correct / total_count_mentions
+    acc = (
+        total_count_correct / total_count_mentions
+        if total_count_mentions != 0 else 0.0
+    )
     scores["accuracy"] = acc * 100.0
 
     return scores

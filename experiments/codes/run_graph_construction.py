@@ -48,7 +48,7 @@ def main(args):
     # Set logger
     shared_functions.set_logger(
         base_output_path + "/graph_construction.log",
-        overwrite=True
+        # overwrite=True
     )
 
     # Show arguments

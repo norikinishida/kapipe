@@ -95,7 +95,10 @@ def _recall_at_k(pred_candidate_entities, gold_documents, inkb):
 
     for k in k_list:
         total_count_recall_at_k = float(scores[f"total_count_recall@{k}"])
-        scores[f"recall@{k}"] = total_count_recall_at_k / total_count_mentions * 100.0
+        scores[f"recall@{k}"] = (
+            total_count_recall_at_k / total_count_mentions
+            if total_count_mentions != 0 else 0.0
+        ) * 100.0
 
     return scores
 

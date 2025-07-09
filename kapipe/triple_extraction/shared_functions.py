@@ -2,8 +2,8 @@ from __future__ import annotations
 
 from typing import Any
 
-from torch.optim import Optimizer, Adam
-from transformers import AdamW
+from torch.optim import Optimizer, Adam, AdamW
+# from transformers import AdamW
 from transformers.optimization import get_linear_schedule_with_warmup
 from torch.optim.lr_scheduler import LambdaLR
 

@@ -57,5 +57,7 @@ def _mean_average_precision(pred_contexts, gold_contexts, passage_to_identifier)
         ap = sum_precisions / len(gold_passage_ids)
         average_precision_list.append(ap)
 
-    scores["mean_average_precision"] = sum(average_precision_list) / len(average_precision_list) * 100.0
+    sum_ = sum(average_precision_list)
+    n = len(average_precision_list)
+    scores["mean_average_precision"] = (sum_ / n if n != 0 else 0.0) * 100.0
     return scores

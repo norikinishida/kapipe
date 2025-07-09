@@ -64,6 +64,9 @@ def _ndcg_at_k(pred_contexts, gold_contexts, passage_to_identifier):
             ndcg_list[k].append(ndcg)
 
     for k in k_list:
-        scores[f"nDCG@{k}"] = sum(ndcg_list[k]) / len(ndcg_list[k]) * 100.0
+        scores[f"nDCG@{k}"] = (
+            sum(ndcg_list[k]) / len(ndcg_list[k])
+            if len(ndcg_list[k]) != 0 else 0.0
+        ) * 100.0
 
     return scores

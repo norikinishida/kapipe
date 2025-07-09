@@ -44,8 +44,6 @@ These components together form an implementation of **graph-based retrieval-augm
 
 ## 📦 Installation
 
-⚠️ Note: Installation steps will be finalized by July 9, 2025.
-
 ### Step 1: Set up a Python environment
 ```bash
 python -m venv .env
@@ -572,7 +570,7 @@ chunked_passages = chunker.split_passage_to_chunked_passages(
 ### Overview
 
 The **Passage Retrieval** module searches for the top-k most **relevant chunks** given a user query.  
-It uses lexical or dense retrievers (e.g., BM25, Contriever, ColBERTv2) to compute semantic similarity between queries and chunks using embedding-based methods.
+It uses lexical or dense retrievers (e.g., BM25, Contriever) to compute semantic similarity between queries and chunks using embedding-based methods.
 
 ### Input
 
@@ -688,6 +686,7 @@ contexts_for_question = {
     - A dual-encoder retriever trained with contrastive learning (Izacard et al., 2022). Computes similarity between query and chunk embeddings.
 - **ColBERTv2** (Santhanam et al., 2022)
     - A token-level late-interaction retriever for fine-grained semantic matching. Provides higher accuracy with increased inference cost.
+    - Note: This method is currently unavailable due to an import error in the external `ragatouille` package ([here](https://github.com/AnswerDotAI/RAGatouille/issues/272)).
 
 ## 💬 Question Answering
 

@@ -47,7 +47,10 @@ def main(args):
     utils.mkdir(base_output_path)
 
     # Set logger
-    shared_functions.set_logger(base_output_path + "/conversion.log", overwrite=True)
+    shared_functions.set_logger(
+        base_output_path + "/conversion.log",
+        # overwrite=True
+    )
 
     # Show arguments
     logging.info(utils.pretty_format_dict(vars(args)))

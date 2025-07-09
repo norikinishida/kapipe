@@ -40,6 +40,7 @@ python run_edret.py \
     --results_dir ${RESULTS_DIR} \
     --prefix ${MYPREFIX} \
     --actiontype train_and_evaluate
+
 # (BM25)
 # python run_edret.py \
 #     --method ${METHOD} \

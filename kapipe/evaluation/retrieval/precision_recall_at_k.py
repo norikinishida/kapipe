@@ -68,8 +68,14 @@ def _precision_recall_at_k(pred_contexts, gold_contexts, passage_to_identifier):
         total_count_gold = float(counter[k]["total_count_gold"])
         total_count_correct = float(counter[k]["total_count_correct"])
 
-        precision_at_k = total_count_correct / total_count_pred
-        recall_at_k = total_count_correct / total_count_gold
+        precision_at_k = (
+            total_count_correct / total_count_pred
+            if total_count_pred != 0 else 0.0
+        )
+        recall_at_k = (
+            total_count_correct / total_count_gold
+            if total_count_gold != 0 else 0.0
+        )
         # if precition + recall == 0:
         #     f1 = 0.0
         # else:

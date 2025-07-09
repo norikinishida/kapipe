@@ -7,10 +7,7 @@ from tqdm import tqdm
 
 import sys
 sys.path.insert(0, "../..")
-from kapipe.passage_retrieval import (
-    Contriever,
-    ColBERTv2Retriever
-)
+from kapipe.passage_retrieval import Contriever
 from kapipe import utils
 from kapipe.utils import StopWatch
 
@@ -141,8 +138,6 @@ def main(args):
             gpu_id=gpu_id,
             metric=metric_name
         )
-    elif method_name == "colbert":
-        retriever = ColBERTv2Retriever()
     else:
         raise ValueError(f"Invalid retrieval method name: {method_name}")
 

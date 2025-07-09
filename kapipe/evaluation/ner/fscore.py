@@ -153,13 +153,25 @@ def _fscore(pred_documents, gold_documents, span_overlap, ignore_type):
     total_count_gold = float(total_count_gold)
     if not span_overlap:
         total_count_correct = float(total_count_correct)
-        precision = total_count_correct / total_count_pred
-        recall = total_count_correct / total_count_gold
+        precision = (
+            total_count_correct / total_count_pred
+            if total_count_pred != 0 else 0.0
+        )
+        recall = (
+            total_count_correct / total_count_gold
+            if total_count_gold != 0 else 0.0
+        )
     else:
         total_count_correct_pred = float(total_count_correct_pred)
         total_count_correct_gold = float(total_count_correct_gold)
-        precision = total_count_correct_pred / total_count_pred
-        recall = total_count_correct_gold / total_count_gold
+        precision = (
+            total_count_correct_pred / total_count_pred
+            if total_count_pred != 0 else 0.0
+        )
+        recall = (
+            total_count_correct_gold / total_count_gold
+            if total_count_gold != 0 else 0.0
+        )
     if precision + recall == 0:
         f1 = 0.0
     else:

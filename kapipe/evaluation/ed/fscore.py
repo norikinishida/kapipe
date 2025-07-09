@@ -138,11 +138,16 @@ def _fscore(
     scores["total_count_correct"] = total_count_correct
 
     total_count_mentions = float(total_count_mentions)
-    total_count_mentions_with_candidates \
-        = float(total_count_mentions_with_candidates)
+    total_count_mentions_with_candidates = float(total_count_mentions_with_candidates)
     total_count_correct = float(total_count_correct)
-    precision = total_count_correct / total_count_mentions_with_candidates
-    recall = total_count_correct / total_count_mentions
+    precision = (
+        total_count_correct / total_count_mentions_with_candidates
+        if total_count_mentions_with_candidates != 0 else 0.0
+    )
+    recall = (
+        total_count_correct / total_count_mentions
+        if total_count_mentions != 0 else 0.0
+    )
     if precision + recall == 0:
         f1 = 0.0
     else:

@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "kapipe"
-version = "0.0.5"
+version = "0.0.6"
 description = "A modular pipeline for knowledge acquisition"
 readme = { file = "README.md", content-type = "text/markdown" }
 requires-python = ">=3.10"
@@ -34,25 +34,28 @@ dependencies = [
   "scipy>=1.10.1",
   "pandas>=1.5.3",
   "spacy>=3.7.1",
+  "spacy-alignments>=0.9.1",
   "scispacy",
-  "torch",
+  "torch>=2.6.0",
+  "torch-tensorrt",
+  "torchdata",
+  "torchtext",
+  "torchvision",
   "opt-einsum>=3.3.0",
+  "transformers>=4.46.0",
+  "accelerate>=1.0.1",
+  "bitsandbytes>=0.44.1",
+  "openai>=1.53.0",
+  "tenacity>=9.1.2",
   "faiss-gpu>=1.7.2",
+  "Levenshtein>=0.25.0",
+  "networkx>=3.4.2",
+  "neo4j>=5.25.0",
+  "graspologic>=3.4.1",
+  "future>=1.0.0",
   "pyhocon>=0.3.60",
   "tqdm>=4.66.1",
-  "jsonlines>=4.0.0",
-  "Levenshtein>=0.25.0",
-  "transformers",
-  "accelerate",
-  "bitsandbytes",
-  "networkx",
-  "igraph",
-  "leidenalg",
-  "neo4j",
-  "ragatouille",
-  "spacy-alignments",
-  "openai",
-  "graspologic"
+  "jsonlines>=4.0.0"
 ]
 
 [project.urls]

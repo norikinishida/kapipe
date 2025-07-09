@@ -55,5 +55,7 @@ def _mean_reciprocal_rank(pred_contexts, gold_contexts, passage_to_identifier):
                 break
         reciprocal_ranks.append(rr)
 
-    scores["mean_reciprocal_rank"] = sum(reciprocal_ranks) / len(reciprocal_ranks) * 100.0
+    sum_ = sum(reciprocal_ranks)
+    n = len(reciprocal_ranks)
+    scores["mean_reciprocal_rank"] = (sum_ / n if n != 0 else 0.0) * 100.0
     return scores
