@@ -3,6 +3,6 @@ Output Format:
 - Entity Mention 1 | Concept ID of Entity Mention 1
 - Entity Mention 2 | Concept ID of Entity Mention 2
 
-{task_prompt}
+{test_case_prompt}
 
 Provide the output in the bullet-point format specified above.

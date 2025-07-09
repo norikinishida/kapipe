@@ -74,14 +74,19 @@ class Contriever:
 
             # Pooling
             if self.pooling_method == "average":
-                sentence_embeddings = token_embeddings.sum(dim=1) / attention_mask.sum(dim=1)[..., None]
+                sentence_embeddings = (
+                    token_embeddings.sum(dim=1) / attention_mask.sum(dim=1)[..., None]
+                )
             elif self.pooling_method == "cls":
                 sentence_embeddings = token_embeddings[:, 0]
             else:
                 raise ValueError(f"Unsupported pooling method: {self.pooling_method}")
 
             if self.normalize:
-                sentence_embeddings = torch.nn.functional.normalize(sentence_embeddings, dim=-1)
+                sentence_embeddings = torch.nn.functional.normalize(
+                    sentence_embeddings,
+                    dim=-1
+                )
 
             return sentence_embeddings
 
@@ -129,7 +134,7 @@ class Contriever:
         logging.info("Time: %f min." % sw.get_time("main", minute=True))
 
          # Make index
-        logger.info(f"Making index from {len(passage_embeddings)} passage embeddings ...")
+        logger.info(f"Building index from {len(passage_embeddings)} passage embeddings ...")
         self.anns.make_index(passage_vectors=passage_embeddings)
         logger.info("Completed indexing")
 
@@ -162,10 +167,12 @@ class Contriever:
             logger.info(f"Index not found: {index_file}")
             # Load the passage embeddings
             logger.info(f"Loading passages embeddings from {index_path}") 
-            passage_embeddings = np.load(os.path.join(index_path, "passage_embeddings.npy"))
+            passage_embeddings = np.load(
+                os.path.join(index_path, "passage_embeddings.npy")
+            )
             logger.info(f"Loaded {len(passage_embeddings)} passage embeddings")
             # Make index
-            logger.info(f"Making index from {len(passage_embeddings)} passage embeddings ...")
+            logger.info(f"Building index from {len(passage_embeddings)} passage embeddings ...")
             self.anns.make_index(passage_vectors=passage_embeddings)
             logger.info("Completed indexing")
             # save the index

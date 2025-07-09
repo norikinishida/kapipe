@@ -1,21 +1,25 @@
+from __future__ import annotations
+
 from collections import defaultdict
 from collections import OrderedDict
 import logging
-from typing import NamedTuple
+from typing import Any, NamedTuple
 
 import numpy as np
 # import spacy_alignments as tokenizations
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from transformers import AutoModel
-from transformers import AutoTokenizer
+from torch.nn import Parameter
+from transformers import AutoModel, AutoTokenizer
+from transformers import PreTrainedModel, PreTrainedTokenizer
 from transformers.modeling_outputs import ModelOutput
 from opt_einsum import contract
 
 # from . import shared_functions
 from .losses import AdaptiveThresholdingLoss
 from .. import utils
+from ..datatypes import Document
 
 
 logger = logging.getLogger(__name__)
@@ -44,35 +48,18 @@ class ATLOPModel(nn.Module):
 
     def __init__(
         self,
-        device,
-        bert_pretrained_name_or_path,
-        max_seg_len,
-        token_embedding_method,
-        entity_pooling_method,
-        use_localized_context_pooling,
-        bilinear_block_size,
-        vocab_relation,
-        loss_function_name,
-        possible_head_entity_types=None,
-        possible_tail_entity_types=None
+        device: str,
+        bert_pretrained_name_or_path: str,
+        max_seg_len: int,
+        token_embedding_method: str,
+        entity_pooling_method: str,
+        use_localized_context_pooling: bool,
+        bilinear_block_size: int,
+        vocab_relation: dict[str, int],
+        loss_function_name: str,
+        possible_head_entity_types: list[str] | None = None,
+        possible_tail_entity_types: list[str] | None = None
     ):
-        """
-        Parameters
-        ----------
-        device : str
-        bert_pretrained_name_or_path : str
-        max_seg_len : int
-        token_embedding_method : str
-        entity_pooling_method : str
-        use_localized_context_pooling : bool
-        bilinear_block_size : int
-        vocab_relation : dict[str, int]
-        loss_function_name : str
-        possible_head_entity_types: list[str] | None
-            by default None
-        possible_tail_entity_types: list[str] | None
-            by default None
-        """
         super().__init__()
 
         ########################
@@ -140,16 +127,10 @@ class ATLOPModel(nn.Module):
             raise Exception(f"Invalid loss function: {self.loss_function_name}")
 
 
-    def _initialize_bert_and_tokenizer(self, pretrained_model_name_or_path):
-        """
-        Parameters
-        ----------
-        pretrained_model_name_or_path : str
-
-        Returns
-        -------
-        tuple[AutoModel, AutoTokenizer]
-        """
+    def _initialize_bert_and_tokenizer(
+        self,
+        pretrained_model_name_or_path: bool
+    ) -> tuple[PreTrainedModel, PreTrainedTokenizer]:
         bert = AutoModel.from_pretrained(
             pretrained_model_name_or_path,
             return_dict=True
@@ -164,17 +145,10 @@ class ATLOPModel(nn.Module):
     # For optimization
     ########################
 
-    def get_params(self, named=False):
-        """
-        Parameters
-        ----------
-        named : bool
-            by default False
-
-        Returns
-        -------
-        tuple[list[tuple[str, Any]], list[tuple[str, Any]]]
-        """
+    def get_params(self, named: bool = False) -> tuple[
+        list[Parameter | tuple[str, Parameter]],
+        list[Parameter | tuple[str, Parameter]]
+    ]:
         bert_based_param, task_param = [], []
         for name, param in self.named_parameters():
             if name.startswith('bert'):
@@ -189,29 +163,14 @@ class ATLOPModel(nn.Module):
     # Forward pass
     ################
 
-    def preprocess(self, document):
-        """
-        Parameters
-        ----------
-        document : Document
-
-        Returns
-        -------
-        dict[str, Any]
-        """
+    def preprocess(self, document: Document) -> dict[str, Any]:
         return self.preprocessor.preprocess(document=document)
 
-    def tensorize(self, preprocessed_data, compute_loss):
-        """
-        Parameters
-        ----------
-        preprocessed_data : dict[str, Any]
-        compute_loss : bool
-
-        Returns
-        -------
-        dict[str, Any]
-        """
+    def tensorize(
+        self,
+        preprocessed_data: dict[str, Any],
+        compute_loss: bool
+    ) -> dict[str, Any]:
         model_input = {}
 
         model_input["compute_loss"] = compute_loss
@@ -273,38 +232,25 @@ class ATLOPModel(nn.Module):
 
     def forward(
         self,
-        segments_id,
-        segments_mask,
-        mention_begin_token_indices,
-        entity_index_to_mention_indices,
-        pair_head_entity_indices,
-        pair_tail_entity_indices,
-        compute_loss,
-        pair_gold_relation_labels=None,
-    ):
+        segments_id: torch.Tensor,
+        segments_mask: torch.Tensor,
+        mention_begin_token_indices: torch.Tensor,
+        entity_index_to_mention_indices: list[torch.Tensor],
+        pair_head_entity_indices: torch.Tensor,
+        pair_tail_entity_indices: torch.Tensor,
+        compute_loss: bool,
+        pair_gold_relation_labels: torch.Tensor | None = None,
+    ) -> ModelOutput:
         """
-        Parameters
-        ----------
-        segments_id : torch.Tensor
-            shape of (n_segments, max_seg_len)
-        segments_mask : torch.Tensor
-            shape of (n_segments, max_seg_len)
-        mention_begin_token_indices : torch.Tensor
-            shape of (n_mentions,)
-        entity_index_to_mention_indices : list[torch.Tensor]
-            length of the list: n_entities
-            shape of each tensor: (n_mentions_for_each_entity,)
-        pair_head_entity_indices : torch.Tensor
-            shape of (n_entity_pairs,)
-        pair_tail_entity_indices : torch.Tensor
-            shape of (n_entity_pairs,)
-        compute_loss : bool
-        pair_gold_relation_labels : torch.Tensor | None
-            shape of (n_entity_pairs, n_relations); by default None
-
-        Returns
-        -------
-        ModelOutput
+        Shapes
+        ---------
+        segments_id : (n_segments, max_seg_len)
+        segments_mask : (n_segments, max_seg_len)
+        mention_begin_token_indices : (n_mentions,)
+        entity_index_to_mention_indices : list of length n_entities; each tensor shape: (n_mentions_for_this_entity,)
+        pair_head_entity_indices : (n_entity_pairs,)
+        pair_tail_entity_indices : (n_entity_pairs,)
+        pair_gold_relation_labels : (n_entity_pairs, n_relations)
         """
         # Encode tokens by BERT
         if self.token_embedding_method == "independent":
@@ -397,7 +343,7 @@ class ATLOPModel(nn.Module):
         acc = (
             pair_pred_relation_labels == pair_gold_relation_labels
         ).to(torch.float)
-        acc = acc.sum().item() # float
+        acc = acc.sum().item()
 
         n_valid_pairs, n_relations = pair_gold_relation_labels.shape
         n_valid_triples = n_valid_pairs * n_relations
@@ -416,22 +362,16 @@ class ATLOPModel(nn.Module):
 
     def encode_tokens_with_independent_segments(
         self,
-        segments_id,
-        segments_mask
-    ):
+        segments_id: torch.Tensor,
+        segments_mask: torch.Tensor
+    ) -> tuple[torch.Tensor, torch.Tensor]:
         """
-        Parameters
+        Shapes
         ----------
-        segments_id : torch.Tensor
-            shape of (n_segments, max_seg_len)
-        segments_mask : torch.Tensor
-            shape of (n_segments, max_seg_len)
-
-        Returns
-        -------
-        tuple[torch.Tensor, torch.Tensor]
-            1. shape of (n_tokens, hidden_dim)
-            2. shape of (n_heads, n_tokens, n_tokens)
+        segments_id : (n_segments, max_seg_len)
+        segments_mask : (n_segments, max_seg_len)
+        Output 1 : (n_tokens, hidden_dim)
+        Output 1 : (n_heads, n_tokens, n_tokens)
         """
         # Check
         n_segments, max_seg_len = segments_id.shape
@@ -510,22 +450,16 @@ class ATLOPModel(nn.Module):
 
     def encode_tokens_with_overlapping_segments(
         self,
-        segments_id,
-        segments_mask
-    ):
+        segments_id: torch.Tensor,
+        segments_mask: torch.Tensor
+    ) -> tuple[torch.Tensor, torch.Tensor]:
         """
-        Parameters
+        Shapes
         ----------
-        segments_id : torch.Tensor
-            shape of (n_segments, max_seg_len)
-        segments_mask : torch.Tensor
-            shape of (n_segments, max_seg_len)
-
-        Returns
-        -------
-        tuple[torch.Tensor, torch.Tensor]
-            1. shape of (n_tokens, hidden_dim)
-            2. shape of (n_heads, n_tokens, n_tokens)
+        segments_id : (n_segments, max_seg_len)
+        segments_mask : (n_segments, max_seg_len)
+        Output 1 : (n_tokens, hidden_dim)
+        Output 2 : (n_heads, n_tokens, n_tokens)
         """
         # Check
         n_segments, max_seg_len = segments_id.shape
@@ -566,9 +500,9 @@ class ATLOPModel(nn.Module):
         # Get real token spans
         # (n_segments,)
         n_tokens_in_each_seg = segments_mask.sum(dim=1).int().tolist()
-        n_tokens_in_each_comb_seg = [] # list[int]
-        start_in_each_comb_seg = [] # list[int]
-        end_in_each_comb_seg = [] # list[int]
+        n_tokens_in_each_comb_seg: list[int] = []
+        start_in_each_comb_seg: list[int] = []
+        end_in_each_comb_seg: list[int] = []
         offset = 0
         for i in range(0, n_segments - 1):
             n1 = n_tokens_in_each_seg[i]
@@ -649,30 +583,21 @@ class ATLOPModel(nn.Module):
 
     def combine_two_segments(
         self,
-        seg0_id,
-        seg0_mask,
-        seg1_id,
-        seg1_mask,
-        double_max_seg_len
-    ):
+        seg0_id: torch.Tensor,
+        seg0_mask: torch.Tensor,
+        seg1_id: torch.Tensor,
+        seg1_mask: torch.Tensor,
+        double_max_seg_len: int
+    ) -> tuple[torch.Tensor, torch.Tensor]:
         """
-        Parameters
+        Shapes
         ----------
-        seg0_id : torch.Tensor
-            shape of (max_seg_len,)
-        seg0_mask : torch.Tensor
-            shape of (max_seg_len,)
-        seg1_id : torch.Tensor
-            shape of (max_seg_len,)
-        seg1_mask : torch.Tensor
-            shape of (max_seg_len,)
-        double_max_seg_len : int
-
-        Returns
-        -------
-        tuple[torch.Tensor, torch.Tensor]
-            1. shape of (double_max_seg_len,)
-            2. shape of (double_max_seg_len,)
+        seg0_id : (max_seg_len,)
+        seg0_mask : (max_seg_len,)
+        seg1_id : (max_seg_len,)
+        seg1_mask : (max_seg_len,)
+        Output 1 : (double_max_seg_len,)
+        Output 2 : (double_max_seg_len,)
         """
         # Combine input IDs
         # (n_tokens_in_seg0,)
@@ -702,21 +627,15 @@ class ATLOPModel(nn.Module):
 
     def compute_mention_vectors(
         self,
-        token_vectors,
-        mention_begin_token_indices
-    ):
+        token_vectors: torch.Tensor,
+        mention_begin_token_indices: torch.Tensor
+    ) -> torch.Tensor:
         """
-        Parameters
+        Shapes
         ----------
-        token_vectors : torch.Tensor
-            shape of (n_tokens, hidden_dim)
-        mention_begin_token_indices : torch.Tensor
-            shape of (n_mentions,)
-
-        Returns
-        -------
-        torch.Tensor
-            shape of (n_mentions, hidden_dim)
+        token_vectors : (n_tokens, hidden_dim)
+        mention_begin_token_indices : (n_mentions,)
+        Output : (n_mentions, hidden_dim)
         """
         # (n_mentions, hidden_dim)
         mention_vectors = token_vectors[mention_begin_token_indices]
@@ -724,22 +643,15 @@ class ATLOPModel(nn.Module):
 
     def compute_entity_vectors(
         self,
-        mention_vectors,
-        entity_index_to_mention_indices
-    ):
+        mention_vectors: torch.Tensor,
+        entity_index_to_mention_indices: list[torch.Tensor]
+    ) -> torch.Tensor:
         """
-        Parameters
+        Shapes
         ----------
-        mention_vectors : torch.Tensor
-            shape of (n_mentions, hidden_dim)
-        entity_index_to_mention_indices : list[torch.Tensor]
-            List length: n_entities
-            Tensor shape: (n_mentions_for_each_entity,)
-
-        Returns
-        -------
-        torch.Tensor
-            shape of (n_entities, hidden_dim)
+        mention_vectors : (n_mentions, hidden_dim)
+        entity_index_to_mention_indices : list of length n_entities; each tensor shape: (n_mentions_for_this_entity,)
+        Output : (n_entities, hidden_dim)
         """
         entity_vectors = []
         for mention_indices in entity_index_to_mention_indices:
@@ -780,25 +692,18 @@ class ATLOPModel(nn.Module):
 
     def expand_entity_vectors(
         self,
-        entity_vectors,
-        pair_head_entity_indices,
-        pair_tail_entity_indices
-    ):
+        entity_vectors: torch.Tensor,
+        pair_head_entity_indices: torch.Tensor,
+        pair_tail_entity_indices: torch.Tensor
+    ) -> tuple[torch.Tensor, torch.Tensor]:
         """
-        Parameters
+        Shapes
         ----------
-        entity_vectors : torch.Tensor
-            shape of (n_entities, hidden_dim)
-        pair_head_entity_indices : torch.Tensor
-            shape of (n_entity_pairs,)
-        pair_tail_entity_indices : torch.Tensor
-            shape of (n_entity_pairs,)
-
-        Returns
-        -------
-        tuple[torch.Tensor, torch.Tensor]
-            1. shape of (n_entity_pairs, hidden_dim)
-            2. shape of (n_entity_pairs, hidden_dim)
+        entity_vectors : (n_entities, hidden_dim)
+        pair_head_entity_indices : (n_entity_pairs,)
+        pair_tail_entity_indices : (n_entity_pairs,)
+        Output 1 : (n_entity_pairs, hidden_dim)
+        Output 2 : (n_entity_pairs, hidden_dim)
         """
         # Expand the entity vectors
         # (n_entity_pairs, hidden_dim)
@@ -809,34 +714,23 @@ class ATLOPModel(nn.Module):
 
     def compute_entity_pair_context_vectors(
         self,
-        token_vectors,
-        attentions,
-        entity_index_to_mention_indices,
-        mention_begin_token_indices,
-        pair_head_entity_indices,
-        pair_tail_entity_indices
-    ):
+        token_vectors: torch.Tensor,
+        attentions: torch.Tensor,
+        entity_index_to_mention_indices: list[torch.Tensor],
+        mention_begin_token_indices: torch.Tensor,
+        pair_head_entity_indices: torch.Tensor,
+        pair_tail_entity_indices: torch.Tensor
+    ) -> torch.Tensor:
         """
-        Parameters
+        Shapes
         ----------
-        token_vectors : torch.Tensor
-            shape of (n_tokens, hidden_dim)
-        attentions : torch.Tensor
-            shape of (n_heads, n_tokens, n_tokens)
-        entity_index_to_mention_indices : list[torch.Tensor]
-            List length: n_entities
-            Tensor shape: (n_mentions_for_each_entity,)
-        mention_begin_token_indices : torch.Tensor
-            shape of (n_mentions,)
-        pair_head_entity_indices : torch.Tensor
-            shape of (n_entity_pairs,)
-        pair_tail_entity_indices : torch.Tensor
-            shape of (n_entity_pairs,)
-
-        Returns
-        -------
-        torch.Tensor
-            shape of (n_entity_pairs, hidden_dim)
+        token_vectors : (n_tokens, hidden_dim)
+        attentions : (n_heads, n_tokens, n_tokens)
+        entity_index_to_mention_indices : list of length n_entities; each tensor shape: (n_mentions_for_this_entity,)
+        mention_begin_token_indices : (n_mentions,)
+        pair_head_entity_indices : (n_entity_pairs,)
+        pair_tail_entity_indices : (n_entity_pairs,)
+        Output : (n_entity_pairs, hidden_dim)
         """
         # Pool the attentions over the heads, c.f., SAIS (Xiao et al., 2022)
         # (n_tokens, n_tokens)
@@ -883,24 +777,17 @@ class ATLOPModel(nn.Module):
 
     def compute_logits_by_block_bilinear(
         self,
-        pair_head_entity_vectors,
-        pair_tail_entity_vectors,
-        pair_context_vectors
-    ):
+        pair_head_entity_vectors: torch.Tensor,
+        pair_tail_entity_vectors: torch.Tensor,
+        pair_context_vectors: torch.Tensor
+    ) -> torch.Tensor:
         """
-        Parameters
+        Shapes
         ----------
-        pair_head_entity_vectors : torch.Tensor
-            shape of (n_entity_pairs, hidden_dim)
-        pair_tail_entity_vectors : torch.Tensor
-            shape of (n_entity_pairs, hidden_dim)
-        pair_context_vectors : torch.Tensor
-            shape of (n_entity_pairs, hidden_dim)
-
-        Returns
-        -------
-        torch.Tensor
-            shape of (n_entity_pairs, n_relations)
+        pair_head_entity_vectors : (n_entity_pairs, hidden_dim)
+        pair_tail_entity_vectors : (n_entity_pairs, hidden_dim)
+        pair_context_vectors : (n_entity_pairs, hidden_dim)
+        Output : (n_entity_pairs, n_relations)
         """
         n_entity_pairs = len(pair_head_entity_vectors)
 
@@ -935,23 +822,12 @@ class ATLOPPreprocessor:
 
     def __init__(
         self,
-        tokenizer,
-        max_seg_len,
-        vocab_relation,
-        possible_head_entity_types=None,
-        possible_tail_entity_types=None
+        tokenizer: PreTrainedTokenizer,
+        max_seg_len: int,
+        vocab_relation: dict[str, int],
+        possible_head_entity_types: list[str] | None = None,
+        possible_tail_entity_types: list[str] | None = None
     ):
-        """
-        Parameters
-        ----------
-        tokenizer : PreTrainedTokenizer
-        max_seg_len : int
-        vocab_relation: dict[str, int]
-        possible_head_entity_types: list[str] | None
-            by default None
-        possible_tail_entity_types: list[str] | None
-            by default None
-        """
         self.tokenizer = tokenizer
         self.max_seg_len = max_seg_len
         self.vocab_relation = vocab_relation
@@ -966,19 +842,7 @@ class ATLOPPreprocessor:
         self.special_mention_begin_marker = "*"
         self.special_mention_end_marker = "*"
 
-    def preprocess(
-        self,
-        document
-    ):
-        """
-        Parameters
-        ----------
-        document : Document
-
-        Returns
-        -------
-        dict[str, Any]
-        """
+    def preprocess(self, document: Document) -> dict[str, Any]:
         preprocessed_data = OrderedDict()
 
         #####
@@ -1026,10 +890,10 @@ class ATLOPPreprocessor:
         #####
 
         # Mention index to sentence index
-        token_index_to_sent_index = [] # list[int]
+        token_index_to_sent_index: list[int] = []
         for sent_i, sent in enumerate(sentences):
             token_index_to_sent_index.extend([sent_i for _ in range(len(sent))])
-        mention_index_to_sentence_index = [] # list[int]
+        mention_index_to_sentence_index: list[int] = []
         for mention in mentions:
             (begin_token_index, end_token_index) = mention.span
             sentence_index = token_index_to_sent_index[begin_token_index]
@@ -1054,7 +918,7 @@ class ATLOPPreprocessor:
         # Mention index to entity index
         # NOTE: Although a single mention may belong to multiple entities,
         #       we assign only one entity index to each mention.
-        mention_index_to_entity_index = [None] * len(mentions) # list[int]
+        mention_index_to_entity_index: list[int] = [None] * len(mentions)
         for entity_i, entity in enumerate(entities):
             for mention_i in entity.mention_indices:
                 mention_index_to_entity_index[mention_i] = entity_i
@@ -1128,10 +992,10 @@ class ATLOPPreprocessor:
             not_include_entity_pairs \
                 = [(e1,e2) for e1,e2 in epairs] + [(e2,e1) for e1,e2 in epairs]
 
-        pair_head_entity_indices = [] # list[int]
-        pair_tail_entity_indices = [] # list[int]
+        pair_head_entity_indices: list[int] = []
+        pair_tail_entity_indices: list[int] = []
         if with_supervision:
-            pair_gold_relation_labels = [] # list[list[int]]
+            pair_gold_relation_labels: list[list[int]] = []
 
         for head_entity_i in range(len(entities)):
             for tail_entity_i in range(len(entities)):
@@ -1198,18 +1062,20 @@ class ATLOPPreprocessor:
     # Subfunctions
     #####
 
-    def tokenize_and_split(self, sentences, mentions):
-        """
-        Parameters
-        ----------
-        sentences: list[list[str]]
+    def tokenize_and_split(
+        self,
+        sentences: list[list[str]],
         mentions: list[MentionTuple]
-
-        Returns
-        -------
-        tuple[list[list[str]], list[list[int]], list[list[int]],
-            list[int], list[list[int]], list[int], list[int], list[int]]
-        """
+    ) -> tuple[
+        list[list[str]],
+        list[list[int]],
+        list[list[int]],
+        list[int],
+        list[list[int]],
+        list[int],
+        list[int],
+        list[int]
+    ]:
         # subtoken分割、subtoken単位でのtoken終点、文終点、メンション始点、
         # メンション終点のindicatorsの作成
         (
@@ -1273,29 +1139,29 @@ class ATLOPPreprocessor:
             mention_end_token_indices
         )
 
-    def tokenize(self, sentences, mentions):
-        """
-        Parameters
-        ----------
-        sentences: list[list[str]]
+    def tokenize(
+        self,
+        sentences: list[list[str]],
         mentions: list[MentionTuple]
-
-        Returns
-        -------
-        tuple[list[list[str]], list[list[bool]], list[list[bool]], list[int],
-            list[list[bool]], list[list[bool]]]
-        """
+    ) -> tuple[
+        list[list[str]],
+        list[list[bool]],
+        list[list[bool]],
+        list[int],
+        list[list[bool]],
+        list[list[bool]]
+    ]:
         # subtokens
-        sents_subtoken = [] # list[list[str]]
+        sents_subtoken: list[list[str]] = []
         # subtoken-level indicators of token end point
-        sents_token_end = [] # list[list[bool]]
+        sents_token_end: list[list[bool]] = []
         # subtoken-level indicators of sentence end point
-        sents_sentence_end = [] # list[list[bool]]
-        subtoken_index_to_word_index = [] # list[int]
+        sents_sentence_end: list[list[bool]] = []
+        subtoken_index_to_word_index: list[int] = []
         # subtoken-level indicators of mention beginning point
-        sents_mention_begin = [] # list[list[bool]]
+        sents_mention_begin: list[list[bool]] = []
         # subtoken-level indicators of mention end point
-        sents_mention_end = [] # list[list[bool]]
+        sents_mention_end: list[list[bool]] = []
 
         original_mention_begin_token_indices = np.asarray(
             [m.span[0] for m in mentions] + [-1]
@@ -1307,11 +1173,11 @@ class ATLOPPreprocessor:
         word_idx = -1
         offset = 0
         for sent in sentences:
-            sent_subtoken = [] # list[str]
-            sent_token_end = [] # list[bool]
-            sent_sentence_end = [] # list[bool]
-            sent_mention_begin = [] # list[bool]
-            sent_mention_end = [] # list[bool]
+            sent_subtoken: list[str] = []
+            sent_token_end: list[bool] = []
+            sent_sentence_end: list[bool] = []
+            sent_mention_begin: list[bool] = []
+            sent_mention_end: list[bool] = []
             for token_i, token in enumerate(sent):
                 word_idx += 1
                 # もしこのトークン (token_i) がメンションの開始位置ならば、
@@ -1408,32 +1274,24 @@ class ATLOPPreprocessor:
 
     def split(
         self,
-        doc_subtoken,
-        doc_sentence_end,
-        doc_token_end,
-        subtoken_index_to_word_index,
-        doc_mention_begin,
-        doc_mention_end
-    ):
-        """
-        Parameters
-        ----------
-        doc_subtoken: list[str]
-        doc_sentence_end: list[bool]
-        doc_token_end: list[bool]
-        subtoken_index_to_word_index: list[int]
-        doc_mention_begin: list[bool]
+        doc_subtoken: list[str],
+        doc_sentence_end: list[bool],
+        doc_token_end: list[bool],
+        subtoken_index_to_word_index: list[int],
+        doc_mention_begin: list[bool],
         doc_mention_end: list[bool]
-
-        Returns
-        -------
-        tuple[list[list[str]], list[int], list[list[int]], list[int],
-            list[int], list[int]]
-        """
-        segments = [] # list[list[str]]
-        segments_subtoken_map = [] # list[list[int]]
-        segments_mention_begin = [] # list[list[bool]]
-        segments_mention_end = [] # list[list[bool]]
+    ) -> tuple[
+        list[list[str]],
+        list[int],
+        list[list[int]],
+        list[int],
+        list[int],
+        list[int] 
+    ]:
+        segments: list[list[str]] = []
+        segments_subtoken_map: list[list[int]] = []
+        segments_mention_begin: list[list[bool]] = []
+        segments_mention_end: list[list[bool]] = []
 
         n_subtokens = len(doc_subtoken)
         curr_idx = 0 # Index for subtokens
@@ -1450,15 +1308,13 @@ class ATLOPPreprocessor:
                     curr_idx + self.max_seg_len - 1 - 2,
                     n_subtokens - 1
                 )
-                seg_before \
-                    = "\"" + " ".join(doc_subtoken[curr_idx:end_idx+1]) + "\""
+                seg_before = "\"" + " ".join(doc_subtoken[curr_idx:end_idx+1]) + "\""
                 while end_idx >= curr_idx and not doc_token_end[end_idx]:
                     end_idx -= 1
                 if end_idx < curr_idx:
                     logger.warning("Cannot split valid segment: no sentence end or token end")
                     raise Exception
-                seg_after \
-                    = "\"" + " ".join(doc_subtoken[curr_idx:end_idx+1]) + "\""
+                seg_after = "\"" + " ".join(doc_subtoken[curr_idx:end_idx+1]) + "\""
                 logger.warning("------")
                 logger.warning("Segment where no sentence-ending position was found:")
                 logger.warning(seg_before)
@@ -1468,8 +1324,7 @@ class ATLOPPreprocessor:
                 logger.warning("------")
 
             segment = doc_subtoken[curr_idx: end_idx + 1]
-            segment_subtoken_map \
-                = subtoken_index_to_word_index[curr_idx: end_idx + 1]
+            segment_subtoken_map = subtoken_index_to_word_index[curr_idx: end_idx + 1]
             segment_mention_begin = doc_mention_begin[curr_idx: end_idx + 1]
             segment_mention_end = doc_mention_end[curr_idx: end_idx + 1]
             segment = [self.cls_token] + segment + [self.sep_token]
@@ -1539,17 +1394,8 @@ class ATLOPPreprocessor:
 
     def get_word_index_to_subtoken_indices(
         self,
-        segments_subtoken_map
-    ):
-        """
-        Parameters
-        ----------
-        segments_subtoken_map : list[list[int]]
-
-        Returns
-        -------
-        list[list[int]]
-        """
+        segments_subtoken_map: list[list[int]]
+    ) -> list[list[int]]:
         word_index_to_subtoken_indices = defaultdict(list)
         offset = 0
         for segment_subtoken_map in segments_subtoken_map:
@@ -1560,17 +1406,11 @@ class ATLOPPreprocessor:
             offset += len(segment_subtoken_map)
         return word_index_to_subtoken_indices
 
-    def get_subtoken_index_to_sentence_index(self, segments, doc_sentence_end):
-        """
-        Parameters
-        ----------
-        segments : list[list[str]]
-        doc_sentence_end : list[bool]
-
-        Returns
-        -------
-        list[int]
-        """
+    def get_subtoken_index_to_sentence_index(
+        self,
+        segments: list[list[str]],
+        doc_sentence_end: list[bool]
+    ) -> list[int]:
         assert len(doc_sentence_end) == sum([len(seg) - 2 for seg in segments])
         sent_map = []
         sent_idx, subtok_idx = 0, 0
@@ -1585,18 +1425,12 @@ class ATLOPPreprocessor:
             sent_map.append(sent_idx - 1)
         return sent_map
 
-    def convert_to_token_ids_with_padding(self, segments):
-        """
-        Parameters
-        ----------
+    def convert_to_token_ids_with_padding(
+        self,
         segments: list[list[str]]
-
-        Returns
-        -------
-        tuple[list[list[int]], list[list[int]]]
-        """
-        segments_id = [] # list[list[int]]
-        segments_mask = [] # list[list[int]]
+    ) -> tuple[list[list[int]], list[list[int]]]:
+        segments_id: list[list[int]] = []
+        segments_mask: list[list[int]] = []
         n_subtokens = sum([len(s) for s in segments])
         for segment in segments:
             segment_id = self.tokenizer.convert_tokens_to_ids(segment)
@@ -1609,18 +1443,12 @@ class ATLOPPreprocessor:
         assert np.sum(np.asarray(segments_mask)) == n_subtokens
         return (segments_id, segments_mask)
 
-    def find_relations(self, arg1, arg2, relations):
-        """
-        Parameters
-        ----------
-        arg1 : int
-        arg2 : int
-        relations : list[TripleTuple]
-
-        Returns
-        -------
-        list[str]
-        """
+    def find_relations(
+        self,
+        arg1: int,
+        arg2: int,
+        relations: list[TripleTuple]
+    ) -> list[str]:
         rels = [] # list[str]
         for triple in relations:
             if triple.arg1 == arg1 and triple.arg2 == arg2:

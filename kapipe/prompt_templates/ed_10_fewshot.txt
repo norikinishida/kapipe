@@ -1,0 +1,40 @@
+### Task
+
+You are given a piece of text and a list of **entity mentions** that appear in it.  
+For each entity mention, you are also given a list of **candidate concepts** from the {knowledge_base_name_prompt} knowledge base.
+
+Your task is to:
+
+1. **Disambiguate each entity mention** by selecting the most appropriate Concept ID from the provided candidates, based on the **context of the text**.
+2. If none of the candidates are appropriate, assign "NA" to that mention.
+
+### Guidelines
+
+- Use the **full document context** to make your decision — not just the mention in isolation.
+- Choose **only one** Concept ID for each mention.
+- If **none of the candidates** fits the meaning of the mention in context, assign "NA".
+- Do **not modify** the mention text. Use the exact form as given.
+
+### Output Format
+
+For each entity mention, output a line in this format:
+
+- Mention Text | Concept ID
+
+Use bullet points (`-`) for each line. Example:
+
+- Aspirin | C0004057  
+- Stage II breast cancer | C0278488  
+- light therapy | NA
+
+### Examples
+
+{demonstrations_prompt}
+
+### Test Case
+
+Now, assign the most appropriate Concept ID to each entity mention in the following text, using the context of the document.
+
+{test_case_prompt}
+
+Provide the output in the bullet-point format specified above.

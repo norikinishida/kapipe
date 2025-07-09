@@ -1,29 +1,24 @@
 import random
 
 from .. import utils
+from ..datatypes import (
+    Document,
+    DemonstrationsForOneExample
+)
 
 
 class DemonstrationRetriever:
-    """A demonstration (i.e., a few-shot examplers) retriever for LLM-based in-context learning methods. This retriever returns the few-shot examplers for a given document.
+    """
+    A demonstration (i.e., a few-shot examplers) retriever for LLM-based in-context learning methods. This retriever returns the few-shot examplers for a given document.
     """
 
     def __init__(
         self,
-        path_demonstration_pool,
-        method,
-        task,
-        path_entity_dict=None
+        path_demonstration_pool: str,
+        method: str,
+        task: str,
+        path_entity_dict: str | None = None
     ):
-        """
-        Parameters
-        ----------
-        path_demonstration_pool : str
-        method : str
-        task : str
-            by default "docre"
-        path_entity_dict : str | None
-            by default None
-        """
         assert method in ["first", "random", "count"]
         assert task in ["ner", "ed", "docre"]
 
@@ -63,24 +58,17 @@ class DemonstrationRetriever:
         sorted_doc_keys = list(doc_key_to_count.items())
         self.sorted_doc_keys = sorted(sorted_doc_keys, key=lambda x: -x[1])
 
-    def search(self, document, top_k, doc_keys=None):
-        """
-        Parameters
-        ----------
-        document : Document
-        top_k : int
-        doc_keys : list[str] | None, optional
-            by default None
-
-        Returns
-        -------
-        dict[str, str | list[dict[str, str | float]]]
-        """
+    def search(
+        self,
+        document: Document,
+        top_k: int,
+        doc_keys: list[str] | None = None
+    ) -> DemonstrationsForOneExample:
         # `doc_keys` can be used for retrieval on limited candidates
         if doc_keys is None:
             doc_keys = self.doc_keys
 
-        # list[dict[str, str | float]]
+        # Get demonstrations for the document
         if self.method == "first":
             demonstrations_for_doc = doc_keys[:top_k]
             demonstrations_for_doc = [
@@ -110,7 +98,7 @@ class DemonstrationRetriever:
         else:
             raise Exception(f"Invalid method: {self.method}")
 
-        # dict[str, str | list[dict[str, str | float]]]
+        # Create a DemonstrationsForOneExample object
         demonstrations_for_doc = {
             "doc_key": document["doc_key"],
             "demonstrations": demonstrations_for_doc,

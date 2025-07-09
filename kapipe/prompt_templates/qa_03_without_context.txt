@@ -1,0 +1,36 @@
+### Task
+
+You are given a factual or commonsense question.
+
+Your task is to:
+
+1. **Answer the question** to the best of your knowledge.
+2. Provide a **confidence score** between 0.0 and 1.0, indicating how certain you are about your answer.
+
+### Guidelines
+
+- Base your answer on general knowledge or your own reasoning.
+- Provide a **single-sentence answer** (no line breaks).
+- The score should reflect your confidence in the correctness of your answer:
+  - **1.0** = absolutely certain  
+  - **0.0** = no idea  
+
+### Output Format
+
+Provide the output in the following format:
+
+Answer: [your answer]  
+Score: [score between 0.0 and 1.0]
+
+Example:
+
+Answer: Aspirin is used to treat pain, fever, and inflammation.  
+Score: 0.95
+
+### Test Case
+
+Now, answer the following question and provide a confidence score.
+
+{test_case_prompt}
+
+Provide the output in the format specified above.

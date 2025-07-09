@@ -114,22 +114,22 @@ def main(args):
 
         # Evaluate the prediction results
         logging.info("Evaluating the prediction results ...")
-        ner_scores = kapipe.evaluation.ner.fscore(
+        ner_scores = evaluation.ner.fscore(
             pred_path=path_output_documents,
             gold_path=path_input_documents_list[0]
         )
-        ed_scores = kapipe.evaluation.ed.fscore(
+        ed_scores = evaluation.ed.fscore(
             pred_path=path_output_documents,
             gold_path=path_input_documents_list[0],
             inkb=False,
             skip_normalization=True,
             on_predicted_spans=True
         )
-        ed_scores2 = kapipe.evaluation.ed.entity_level_fscore(
+        ed_scores2 = evaluation.ed.entity_level_fscore(
             pred_path=path_output_documents,
             gold_path=path_input_documents_list[0]
         )
-        docre_scores = kapipe.evaluation.docre.fscore(
+        docre_scores = evaluation.docre.fscore(
             pred_path=path_output_documents,
             gold_path=path_input_documents_list[0],
             skip_intra_inter=True,

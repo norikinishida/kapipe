@@ -44,7 +44,7 @@ class ColBERTv2Retriever:
         ]
 
         # Make index
-        logger.info("Making index ...")
+        logger.info("Building index ...")
         self.rag.index(
             index_name=index_name,
             collection=passage_texts,

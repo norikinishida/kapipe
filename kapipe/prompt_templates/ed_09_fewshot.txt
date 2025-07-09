@@ -9,10 +9,10 @@ Output Format:
 
 {demonstrations_prompt}
 
-### Test
+### Test Case
 
 Now, assign the most appropriate Concept ID to each entity mention in the following text.
 
-{task_prompt}
+{test_case_prompt}
 
 Provide the output in the bullet-point format specified above.

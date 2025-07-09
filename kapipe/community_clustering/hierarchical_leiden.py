@@ -47,7 +47,10 @@ class HierarchicalLeiden:
             # Get attributes of each node
             node_id = str(partition.node)
             community_id = str(partition.cluster)
-            parent_id = str(partition.parent_cluster) if partition.parent_cluster is not None else "ROOT"
+            parent_id = (
+                str(partition.parent_cluster)
+                if partition.parent_cluster is not None else "ROOT"
+            )
             level = int(partition.level)
 
             # Add a new community record

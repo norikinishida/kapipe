@@ -99,7 +99,10 @@ class TemplateBasedReportGenerator:
                         content_text += f"- {head_name} | {relation} | {tail_name}\n"
 
                 # Finalize the report
-                report = {"title": content_title, "text": content_text.strip()} | community
+                report = {
+                    "title": content_title,
+                    "text": content_text.strip()
+                } | community
 
                 # Save the report
                 json_str = json.dumps(report)           

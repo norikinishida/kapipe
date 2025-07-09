@@ -9,9 +9,10 @@ STORAGE_RESULTS=${STORAGE}/results
 # Method
 METHOD=llmqa
 CONFIG_PATH=./config/llmqa.conf
-CONFIG_NAME=openai_gpt4o_cdrqa_prompt02_with_context
+CONFIG_NAME=openai_gpt4o_cdrqa_prompt03_with_context
 
 # Input Data
+# (In practice, use separate files for training, validation, and test data.)
 DEV_QUESTIONS=${STORAGE_DATA}/examples/questions.json
 TEST_QUESTIONS=${STORAGE_DATA}/examples/questions.json
 DEV_CONTEXTS=${STORAGE_DATA}/examples/questions.contexts.json

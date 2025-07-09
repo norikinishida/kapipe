@@ -117,27 +117,22 @@ def main(args):
             base_output_path=base_output_path
         )
 
-        # Load the configuration
-        config = utils.get_hocon_config(
-            config_path=config_path,
-            config_name=config_name
-        )
-
         if actiontype == "train" or actiontype == "check_preprocessing":
             # Initialize the extractor
+            config = utils.get_hocon_config(
+                config_path=config_path,
+                config_name=config_name
+            )
             extractor = BlinkBiEncoder(
                 device=device,
                 config=config,
-                path_entity_dict=path_entity_dict,
-                path_model=None
+                path_entity_dict=path_entity_dict
             )
         else:
             # Load the extractor
             extractor = BlinkBiEncoder(
                 device=device,
-                config=config,
-                path_entity_dict=path_entity_dict,
-                path_model=trainer.paths["path_snapshot"]
+                path_snapshot=trainer.paths["path_snapshot"]
             )
             # Re-build index
             extractor.make_index(use_precomputed_entity_vectors=True)
@@ -150,13 +145,11 @@ def main(args):
             base_output_path=base_output_path
         )
 
-        # Load the configuration
+        # Initialize the extractor
         config = utils.get_hocon_config(
             config_path=config_path,
             config_name=config_name
         )
-
-        # Initialize the extractor
         extractor = LexicalEntityRetriever(
             config=config,
             path_entity_dict=path_entity_dict

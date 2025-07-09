@@ -42,7 +42,9 @@ class ApproximateNearestNeighborSearch:
             store_n = 128 # neighbors to store per node
             ef_search = 128 # search depth
             # ef_construction = 200 # construction time search depth
-            self.anns_index = faiss.IndexHNSWFlat(dim, store_n, faiss.METRIC_INNER_PRODUCT)
+            self.anns_index = faiss.IndexHNSWFlat(
+                dim, store_n, faiss.METRIC_INNER_PRODUCT
+            )
             self.anns_index.hnsw.efSearch = ef_search
             # self.anns_index.hnsw.efConstruction = ef_construction
         else:
@@ -54,7 +56,9 @@ class ApproximateNearestNeighborSearch:
             res = faiss.StandardGpuResources()
             co = faiss.GpuClonerOptions()
             co.useFloat16 = True
-            self.anns_index = faiss.index_cpu_to_gpu(res, self.gpu_id, self.anns_index, co)
+            self.anns_index = faiss.index_cpu_to_gpu(
+                res, self.gpu_id, self.anns_index, co
+            )
         else:
             logger.info("Using CPU index mode")
 
@@ -64,9 +68,7 @@ class ApproximateNearestNeighborSearch:
         n_iterations = math.ceil(len(passage_vectors) / INDEXING_BATCH_SIZE)
         it = 1
         for i in range(0, len(passage_vectors), INDEXING_BATCH_SIZE):
-            logger.info(
-                f"Iteration [{it}/{n_iterations}]: Indexing {i}-{min(i+INDEXING_BATCH_SIZE, len(passage_vectors))-1} passage embeddings"
-            )
+            logger.info(f"Iteration [{it}/{n_iterations}]: Indexing {i}-{min(i+INDEXING_BATCH_SIZE, len(passage_vectors))-1} passage embeddings")
             self.anns_index.add(passage_vectors[i:i+INDEXING_BATCH_SIZE])
             it += 1
 

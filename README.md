@@ -108,7 +108,7 @@ This module takes as input:
     ]
 }
 ```
-(See `experiments/data/examples/documents_without_triples.json`)
+(See `experiments/data/examples/documents_without_triples.json` for more details.)
 
 Each subtask takes a ***Document*** object as input, augments it with new fields, and returns it.  
 This allows custom metadata to persist throughout the pipeline.
@@ -164,7 +164,7 @@ The output is also the same-format dictionary (***Document***), augmented with e
     ]
 }
 ```
-(See `experiments/data/examples/documents_with_triples.json`)
+(See `experiments/data/examples/documents_with_triples.json` for more details.)
 
 ### How to Use
 
@@ -186,6 +186,7 @@ document = pipe.text_to_document(doc_key=your_doc_key, text=your_text, title=you
 # Apply the pipeline to your input document
 document = pipe(document)
 ```
+(See `experiments/codes/run_triple_extraction.py` for specific examples.)
 
 <!-- The `identifier` determines the specific models used for each subtask.  
 For example, `"biaffinener_blink_blink_atlop_cdr"` uses:
@@ -256,7 +257,7 @@ This module takes as input:
     ...
 ]
 ```
-(See `experiments/data/examples/additional_triples.json`)
+(See `experiments/data/examples/additional_triples.json` for more details.)
 
 
 3. ***Entity Dictionary***, or a list of dictionaries, each containing:
@@ -294,7 +295,7 @@ This module takes as input:
     ...
 ]
 ```
-(See `experiments/data/examples/entity_dict.json`)
+(See `experiments/data/examples/entity_dict.json` for more details.)
 
 ### Output
 
@@ -315,7 +316,7 @@ Each edge has the following attributes:
 - `relation` (str): Type of semantic relation
 - `doc_key_list` (list[str]): List of document IDs supporting this relation
 
-(See `experiments/data/examples/graph.graphml`)
+(See `experiments/data/examples/graph.graphml` for more details.)
 
 ### How to Use
 
@@ -336,6 +337,7 @@ graph = constructor.construct_knowledge_graph(
     path_entity_dict=PATH_TO_ENTITY_DICT
 )
 ```
+(See `experiments/codes/run_graph_construction.py` for specific examples.)
 
 ## 🧱 Community Clustering
 
@@ -396,7 +398,7 @@ The output is a list of hierarchical community records (dictionaries), each cont
     ...
 ]
 ```
-(See `experiments/data/examples/communities.json`)
+(See `experiments/data/examples/communities.json` for more details.)
 
 This hierarchical structure enables multi-level organization of knowledge, particularly useful for coarse-to-fine report generation and scalable retrieval.
 
@@ -417,6 +419,7 @@ clusterer = HierarchicalLeiden()
 # Apply the community clusterer to the graph
 communities = clusterer.cluster_communities(graph)
 ```
+(See `experiments/codes/run_community_clustering.py` for specific examples.)
 
 ### Supported Methods
 
@@ -453,7 +456,7 @@ The output is a `.jsonl` file, where each line corresponds to one ***Passage***,
 {"title": "Ammonia and Valproic Acid in Disorders of Excessive Somnolence", "text": "This report examines the relationship between ammonia and valproic acid, ..."}
 ...
 ```
-(See `experiments/data/examples/reports.jsonl`)
+(See `experiments/data/examples/reports.jsonl` for more details.)
 
 ✅ The output format is fully compatible with the **Chunking** module, which accepts any dictionary containing a `title` and `text` field.  
 Thus, each community report can also be treated as a generic ***Passage***.
@@ -479,6 +482,7 @@ generator.generate_community_reports(
     path_output=PATH_TO_REPORTS
 )
 ```
+(See `experiments/codes/run_report_generation.py` for specific examples.)
 
 ### Supported Methods
 
@@ -542,7 +546,7 @@ The output is a list of ***Passage*** objects, each containing:
     ...
 ]
 ```
-(See `experiments/data/examples/reports.chunked_w100.jsonl`)
+(See `experiments/data/examples/reports.chunked_w100.jsonl` for more details.)
 
 ### How to Use
 
@@ -561,6 +565,7 @@ chunked_passages = chunker.split_passage_to_chunked_passages(
     window_size=WINDOW_SIZE
 )
 ```
+(See `experiments/codes/run_chunking.py` for specific examples.)
 
 ## 🔍 Passage Retrieval
 
@@ -591,7 +596,7 @@ During the search phase, this module takes as input:
     "question": "What does lithium carbonate induce?"
 }
 ```
-(See `experiments/data/examples/questions.json`)
+(See `experiments/data/examples/questions.json` for more details.)
 
 ### Output
 
@@ -631,7 +636,7 @@ The search result for each question is represented as a dictionary containing:
     ]
 }
 ```
-(See `experiments/data/examples/questions.contexts.json`)
+(See `experiments/data/examples/questions.contexts.json` for more details.)
 
 ### How to Use
 
@@ -659,6 +664,7 @@ retriever.make_index(
     index_name=INDEX_NAME
 )
 ```
+(See `experiments/codes/run_passage_retrieval.py` for specific examples.)
 
 **(2) Search**:
 
@@ -698,13 +704,13 @@ This module takes as input:
     - `question_key`: Unique identifier for the question
     - `question`: Natural language question string
 
-(See `experiments/data/examples/questions.json`)
+(See `experiments/data/examples/questions.json` for more details.)
 
 2. A dictionary containing:
     - `question_key`: The same identifier with the ***Question***
     - `contexts`: List of ***Passage*** objects
 
-(See `experiments/data/examples/questions.contexts.json`)
+(See `experiments/data/examples/questions.contexts.json` for more details.)
 
 ### Output
 
@@ -723,7 +729,7 @@ The answer is a dictionary containing:
     "helpfulness_score": 1.0
 }
 ```
-(See `experiments/data/examples/answers.json`)
+(See `experiments/data/examples/answers.json` for more details.)
 
 ### How to Use
 
@@ -732,10 +738,7 @@ from kapipe.qa import LLMQA
 from kapipe import utils
 
 # Initialize the QA module
-config = utils.get_hocon_config(
-    config_path="./kapipe/results/qa/llmqa/openai_gpt4o/config"
-)
-answerer = LLMQA(config=config)
+answerer = LLMQA(path_snapshot="./kapipe/results/qa/llmqa/openai_gpt4o")
 
 # Generate answer
 answer = answerer.run(
@@ -743,3 +746,4 @@ answer = answerer.run(
     contexts_for_question=contexts_for_question
 )
 ```
+(See `experiments/codes/run_qa.py` for specific examples.)

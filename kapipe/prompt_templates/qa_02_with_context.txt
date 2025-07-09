@@ -9,10 +9,10 @@ Score: [Score between 0.0 and 1.0]
 
 {contexts_prompt}
 
-### Test
+### Test Case
 
 Now, based on the context, answer the following question and provide a score.
 
-{task_prompt}
+{test_case_prompt}
 
 Provide the output in the format specified above.

@@ -3,6 +3,6 @@ Output Format:
 Answer: [Your answer here, a single line without line breaks]
 Score: [Score between 0.0 and 1.0]
 
-{task_prompt}
+{test_case_prompt}
 
 Provide the output in the format specified above.

@@ -2,13 +2,13 @@
     {
         "question_key": "question#123",
         "question": "What does lithium carbonate induce?",
-        "output_answer": "Lithium carbonate can induce depressive disorder, cyanosis, and cardiac arrhythmias.",
-        "helpfulness_score": 1.0
+        "output_answer": "Lithium carbonate induces depressive disorder, cyanosis, and cardiac arrhythmias.",
+        "helpfulness_score": 0.95
     },
     {
         "question_key": "question#456",
         "question": "What chemical compounds induce dyskinesia?",
-        "output_answer": "Phenobarbital, a barbituric acid derivative, is a chemical compound that can induce dyskinesia.",
-        "helpfulness_score": 0.9
+        "output_answer": "Phenobarbital, a barbituric acid derivative, is a chemical compound that induces dyskinesia.",
+        "helpfulness_score": 0.95
     }
 ]

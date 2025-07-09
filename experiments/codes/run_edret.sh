@@ -1,6 +1,7 @@
 #!/usr/bin/env sh
 
-STORAGE=/home/nishida/storage/projects/kapipe/experiments
+# STORAGE=/home/nishida/storage/projects/kapipe/experiments
+STORAGE=/home/nishida/projects/kapipe/experiments
 
 STORAGE_DATA=${STORAGE}/data
 STORAGE_RESULTS=${STORAGE}/results
@@ -16,10 +17,12 @@ CONFIG_NAME=blinkbiencodermodel_scibertuncased_cdr
 # CONFIG_NAME=bm25_cdr
 
 # Input Data
-TRAIN_DOCS=${STORAGE_DATA}/ed/cdr/train.json
-DEV_DOCS=${STORAGE_DATA}/ed/cdr/dev.json
-TEST_DOCS=${STORAGE_DATA}/ed/cdr/test.json
-ENTITY_DICT=${STORAGE_DATA}/kb/mesh/mesh2015.entity_dict.json
+# (In practice, use separate files for training, validation, and test data.
+# This example checks whether the model can achieve near 100% accuracy (i.e., overfit) on the training data.)
+TRAIN_DOCS=${STORAGE_DATA}/examples/documents_with_triples.json
+DEV_DOCS=${STORAGE_DATA}/examples/documents_with_triples.json
+TEST_DOCS=${STORAGE_DATA}/examples/documents_with_triples.json
+ENTITY_DICT=${STORAGE_DATA}/examples/entity_dict.json
 
 # Output Path
 RESULTS_DIR=${STORAGE_RESULTS}

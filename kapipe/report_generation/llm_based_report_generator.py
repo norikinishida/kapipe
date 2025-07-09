@@ -98,7 +98,9 @@ class LLMBasedReportGenerator:
 
         # Collect nodes that belong to this community directly
         nodes_of_children = utils.flatten_lists([c["nodes"] for c in child_reports])
-        direct_nodes = [node for node in community["nodes"] if node not in nodes_of_children]
+        direct_nodes = [
+            node for node in community["nodes"] if node not in nodes_of_children
+        ]
 
         # Generate this community's report
         report = report_generator.generate_community_report(

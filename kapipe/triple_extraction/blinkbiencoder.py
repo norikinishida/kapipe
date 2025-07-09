@@ -1,8 +1,11 @@
+from __future__ import annotations
+
 import copy
 import logging
 import os
 import random
 import time
+from typing import Any
 
 import numpy as np
 import torch
@@ -15,84 +18,65 @@ from ..passage_retrieval import ApproximateNearestNeighborSearch
 from .. import evaluation
 from .. import utils
 from ..utils import BestScoreHolder
+from ..datatypes import (
+    Config,
+    Document,
+    Mention,
+    Entity,
+    EntityPassage,
+    CandEntKeyInfo,
+    CandidateEntitiesForDocument
+)
 
 
 logger = logging.getLogger(__name__)
 
 
 class BlinkBiEncoder:
-    """Bi-Encoder in BLINK (Wu et al., 2020).
+    """
+    BLINK Bi-Encoder (Wu et al., 2020).
     """
 
     def __init__(
         self,
-        # General
-        device,
-        config,
-        # Task specific
-        path_entity_dict,
-        # Misc.
-        path_model=None,
-        verbose=True
+        device: str,
+        # Initialization
+        config: Config | str | None = None,
+        path_entity_dict: str | None = None,
+        # Loading
+        path_snapshot: str | None = None
     ):
-        """
-        Parameters
-        ----------
-        device: str
-        config: ConfigTree | str
-        path_entity_dict : str
-        path_model: str | None
-            by default None
-        verbose: bool
-            by default True
-        """
-        self.verbose = verbose
-        if self.verbose:
-            logger.info(">>>>>>>>>> BlinkBiEncoder Initialization >>>>>>>>>>")
+        logger.info("########## BlinkBiEncoder Initialization Starts ##########")
+
         self.device = device
+        self.path_snapshot = path_snapshot
 
-        ######
-        # Config
-        ######
+        if path_snapshot is not None:
+            assert config is None
+            assert path_entity_dict is None
+            config = path_snapshot + "/config"
+            path_entity_dict = path_snapshot + "/entity_dict.json"
+            path_model = path_snapshot + "/model"
+            path_entity_vectors = path_snapshot + "/entity_vectors.npy"
 
+        # Load the configuration
         if isinstance(config, str):
-            tmp = config
-            config = utils.get_hocon_config(
-                config_path=config,
-                config_name=None
-            )
-            if self.verbose:
-                logger.info(f"Loaded configuration from {tmp}")
+            config_path = config
+            config = utils.get_hocon_config(config_path=config_path)
+            logger.info(f"Loaded configuration from {config_path}")
         self.config = config
-        if self.verbose:
-            logger.info(utils.pretty_format_dict(self.config))
+        logger.info(utils.pretty_format_dict(self.config))
 
-        ######
-        # Approximate Nearest Neighbor Search
-        ######
-
-        # TODO: Allow GPU-ID selection
-        # NOTE: The GPU ID for indexing should NOT be the same with the GPU ID of the BLINK model to avoid OOM error
-        #       Here, we assume that GPU-0 is set for the BLINK model.
-        self.anns = ApproximateNearestNeighborSearch(gpu_id=1)
-
-        ######
-        # Model
-        ######
-
-        self.model_name = config["model_name"]
-
-        # self.special_entity_sep_marker = ":"
-
-        if self.verbose:
-            logger.info(f"Loading entity dictionary from {path_entity_dict}")
+       # Load the entity dictionary
+        logger.info(f"Loading entity dictionary from {path_entity_dict}")
         self.entity_dict = {
             epage["entity_id"]: epage
             for epage in utils.read_json(path_entity_dict)
         }
-        if self.verbose:
-            logger.info(f"Completed loading of entity dictionary with {len(self.entity_dict)} entities from {path_entity_dict}")
+        logger.info(f"Completed loading of entity dictionary with {len(self.entity_dict)} entities from {path_entity_dict}")
 
+        # Initialize the model
+        self.model_name = config["model_name"]
         if self.model_name == "blinkbiencodermodel":
             self.model = BlinkBiEncoderModel(
                 device=device,
@@ -108,57 +92,42 @@ class BlinkBiEncoder:
         # for name, param in self.model.named_parameters():
         #     logger.info(f"{name}: {tuple(param.shape)}")
 
-        # Load trained model parameters
-        if path_model is not None:
-            self.load_model(path=path_model)
-            if self.verbose:
-                logger.info(f"Loaded model parameters from {path_model}")
+        # Load trained model parameters and entity vectors
+        if path_snapshot is not None:
+            self.model.load_state_dict(
+                torch.load(path_model, map_location=torch.device("cpu")),
+                strict=False
+            )
+            logger.info(f"Loaded model parameters from {path_model}")
+
+            self.precomputed_entity_vectors = np.load(path_entity_vectors)
+            logger.info(f"Loaded entity vectors from {path_entity_vectors}")
 
         self.model.to(self.model.device)
 
-        if self.verbose:
-            logger.info("<<<<<<<<<< BlinkBiEncoder Initialization <<<<<<<<<<")
+        # Initialize the module for Approximate Nearest Neighbor Search
+        # The GPU ID for indexing should NOT be the same with the GPU ID of the BLINK model to avoid OOM error
+        # Here, we assume that GPU-0 is set for the BLINK model.
+        self.anns = ApproximateNearestNeighborSearch(gpu_id=1) # TODO: Allow GPU-ID selection
 
-    def load_model(self, path):
-        """
-        Parameters
-        ----------
-        path : str
-        """
-        self.model.load_state_dict(
-            torch.load(path, map_location=torch.device("cpu")),
-            strict=False
-        )
-        self.precomputed_entity_vectors = np.load(path.replace("/model", "/entity_vectors.npy"))
+        logger.info("########## BlinkBiEncoder Initialization Ends ##########")
 
-    def save_model(self, path):
-        """
-        Parameters
-        ----------
-        path : str
-        """
-        torch.save(self.model.state_dict(), path)
-        np.save(path.replace("/model", "/entity_vectors.npy"), self.precomputed_entity_vectors)
-
-    #####
-    # For training
-    #####
+    def save(self, path_snapshot: str, model_only: bool = False) -> None:
+        path_config = path_snapshot + "/config"
+        path_entity_dict = path_snapshot + "/entity_dict.json"
+        path_model = path_snapshot + "/model"
+        path_entity_vectors = path_snapshot + "/entity_vectors.npy"
+        if not model_only:
+            utils.write_json(path_config, self.config)
+            utils.write_json(path_entity_dict, list(self.entity_dict.values()))
+        torch.save(self.model.state_dict(), path_model)
+        np.save(path_entity_vectors, self.precomputed_entity_vectors)
 
     def compute_loss(
         self,
-        document,
-        flatten_candidate_entities_for_doc,
-    ):
-        """
-        Parameters
-        ----------
-        document : Document
-        flatten_candidate_entities_for_doc : dict[str, list[CandEntKeyInfo]]
-
-        Returns
-        -------
-        tuple[torch.Tensor, int]
-        """
+        document: Document,
+        flatten_candidate_entities_for_doc: dict[str, list[CandEntKeyInfo]],
+    ) -> tuple[torch.Tensor, int]:
         # Switch to training mode
         self.model.train()
 
@@ -166,22 +135,17 @@ class BlinkBiEncoder:
         # Entity Encoding
         ###############
 
-        # Generate entity passages
-        candidate_entity_passages = []
+        # Create entity passages
+        candidate_entity_passages: list[EntityPassage] = []
         for cand in flatten_candidate_entities_for_doc["flatten_candidate_entities"]:
             entity_id = cand["entity_id"]
             epage = self.entity_dict[entity_id]
             canonical_name = epage["canonical_name"]
             # synonyms = epage["synonyms"]
             description = epage["description"]
-            entity_passage = {
+            entity_passage: EntityPassage = {
                 "id": entity_id,
                 "title": canonical_name,
-                # "text": " ".join([
-                #     canonical_name,
-                #     self.special_entity_sep_marker,
-                #     description
-                # ])
                 "text": description,
             }
             candidate_entity_passages.append(entity_passage)
@@ -206,9 +170,7 @@ class BlinkBiEncoder:
         ###############
 
         # Preprocess mentions
-        preprocessed_data_m = self.model.preprocess_mentions(
-            document=document,
-        )
+        preprocessed_data_m = self.model.preprocess_mentions(document=document)
 
         # Tensorize mentions
         model_input_m = self.model.tensorize_mentions(
@@ -248,19 +210,14 @@ class BlinkBiEncoder:
             model_output.n_mentions
         )
 
-    #####
-    # For inference
-    #####
-
-    def make_index(self, use_precomputed_entity_vectors=False):
+    def make_index(self, use_precomputed_entity_vectors: bool = False) -> None:
         with torch.no_grad():
             # Switch to inference mode
             self.model.eval()
             start_time = time.time()
 
-            # Generate entity passages
-            if self.verbose:
-                logger.info(f"Building passages for {len(self.entity_dict)} entities ...")
+            # Create entity passages
+            logger.info(f"Building passages for {len(self.entity_dict)} entities ...")
             entity_passages = []
             for entity_id, epage in self.entity_dict.items():
                 canonical_name = epage["canonical_name"]
@@ -269,11 +226,6 @@ class BlinkBiEncoder:
                 entity_passage = {
                     "id": entity_id,
                     "title": canonical_name,
-                    # "text": " ".join([
-                    #     canonical_name,
-                    #     self.special_entity_sep_marker,
-                    #     description
-                    # ])
                     "text": description,
                 }
                 entity_passages.append(entity_passage)
@@ -282,17 +234,14 @@ class BlinkBiEncoder:
             if use_precomputed_entity_vectors:
                 entity_vectors = self.precomputed_entity_vectors
             else:
-                if self.verbose:
-                    logger.info(f"Encoding {len(entity_passages)} entities ...")
-                # entity_vectors = np.random.random((len(entity_passages), 768)).astype(np.float32)
+                logger.info(f"Encoding {len(entity_passages)} entities ...")
                 pool = self.model.start_multi_process_pool()
                 entity_vectors = self.model.encode_multi_process(entity_passages, pool)
                 self.model.stop_multi_process_pool(pool)
                 self.model.to(self.device)
 
             # Make ANNS index
-            if self.verbose:
-                logger.info(f"Indexing {len(entity_vectors)} entities ...")
+            logger.info(f"Indexing {len(entity_vectors)} entities ...")
             self.anns.make_index(
                 passage_vectors=entity_vectors,
                 passage_ids=[p["id"] for p in entity_passages],
@@ -301,29 +250,20 @@ class BlinkBiEncoder:
 
             self.precomputed_entity_vectors = entity_vectors
 
-            if self.verbose:
-                end_time = time.time()
-                span_time = end_time - start_time
-                span_time /= 60.0
-                logger.info("Completed indexing")
-                logger.info(f"Time: {span_time} min.")
+            end_time = time.time()
+            span_time = end_time - start_time
+            span_time /= 60.0
+            logger.info("Completed indexing")
+            logger.info(f"Time: {span_time} min.")
 
-    def extract(self, document, retrieval_size=1):
-        """
-        Parameters
-        ----------
-        document : Document
-        retrieval_size: int
-            by default 1
-
-        Returns
-        -------
-        tuple[Document, dict[str, str | list[list[CandEntKeyInfo]]]]
-        """
+    def extract(self, document: Document, retrieval_size: int = 1) -> tuple[
+        Document, CandidateEntitiesForDocument
+    ]:
         with torch.no_grad():
             # Switch to inference mode
             self.model.eval()
 
+            # Skip prediction if no mention appears
             if len(document["mentions"]) == 0:
                 result_document = copy.deepcopy(document)
                 result_document["entities"] = []
@@ -334,9 +274,7 @@ class BlinkBiEncoder:
                 return result_document, candidate_entities_for_doc
 
             # Preprocess mentions
-            preprocessed_data_m = self.model.preprocess_mentions(
-                document=document,
-            )
+            preprocessed_data_m = self.model.preprocess_mentions(document=document)
 
             # Tensorize mentions
             model_input_m = self.model.tensorize_mentions(
@@ -348,7 +286,7 @@ class BlinkBiEncoder:
             # (n_mentions, hidden_dim)
             mention_vectors = self.model.encode_mentions(**model_input_m)
 
-            # Approximate Nearest Neighbor Search
+            # Apply Approximate Nearest Neighbor Search
             #   (n_mentions, retrieval_size),
             #   (n_mentions, retrieval_size),
             #   (n_mentions, retrieval_size),
@@ -369,27 +307,25 @@ class BlinkBiEncoder:
 
             # Structurize (1)
             # Transform to mention-level entity IDs
-            mentions = [] # list[Mention]
+            mentions: list[Mention] = []
             for m_i in range(len(preprocessed_data_m["mentions"])):
-                mentions.append({
-                    "entity_id": mention_pred_entity_ids[m_i][0],
-                })
+                mentions.append({"entity_id": mention_pred_entity_ids[m_i][0]})
 
             # Structurize (2)
             # Transform to entity-level entity IDs
             # i.e., aggregate mentions based on the entity IDs
-            entities = utils.aggregate_mentions_to_entities(
+            entities: list[Entity] = utils.aggregate_mentions_to_entities(
                 document=document,
                 mentions=mentions
             )
 
             # Structuriaze (3)
             # Transform to candidate entities for each mention
-            candidate_entities_for_mentions = [] # list[list[CandEntKeyInfo]]
+            candidate_entities_for_mentions: list[list[CandEntKeyInfo]] = []
             n_mentions = len(mention_pred_entity_ids)
             assert len(mention_pred_entity_ids[0]) == retrieval_size
             for m_i in range(n_mentions):
-                lst_cand_ent = [] # list[CandEntKeyInfo]
+                lst_cand_ent: list[CandEntKeyInfo] = []
                 for c_i in range(retrieval_size):
                     cand_ent = {
                         "entity_id": mention_pred_entity_ids[m_i][c_i],
@@ -410,163 +346,69 @@ class BlinkBiEncoder:
             }
             return result_document, candidate_entities_for_doc
 
-    def batch_extract(self, documents, retrieval_size=1):
-        """
-        Parameters
-        ----------
-        documents : list[Document]
-        retrieval_size : int
-            by default 1
-
-        Returns
-        -------
-        tuple[list[Document], list[dict[str, str | list[list[CandEntKeyInfo]]]]]
-        """
-        result_documents = []
-        candidate_entities = []
+    def batch_extract(
+        self,
+        documents: list[Document],
+        retrieval_size: int = 1
+    ) -> tuple[list[Document], list[CandidateEntitiesForDocument]]:
+        result_documents: list[Document] = []
+        candidate_entities: list[CandidateEntitiesForDocument] = []
         for document in tqdm(documents, desc="extraction steps"):
-            result_document, candidate_entities_for_doc \
-                = self.extract(
-                    document=document,
-                    retrieval_size=retrieval_size
-                )
+            result_document, candidate_entities_for_doc = self.extract(
+                document=document,
+                retrieval_size=retrieval_size
+            )
             result_documents.append(result_document)
             candidate_entities.append(candidate_entities_for_doc)
         return result_documents, candidate_entities
 
-    #####
-    # Subfunctions
-    #####
-
-    # def encode_entities_with_multi_processing(
-    #     self,
-    #     entity_passages,
-    # ):
-    #     """
-    #     Parameters
-    #     ----------
-    #     entity_passages: list[EntityPassage]
-
-    #     Returns
-    #     -------
-    #     numpy.ndarray
-    #         shape of (n_candidates, hidden_dim)
-    #     """
-    #     # if compute_loss:
-    #     #     BATCH_SIZE = 4
-    #     # else:
-    #     #     BATCH_SIZE = 512
-
-    #     # candidate_entity_vectors = []
-
-    #     # if compute_loss:
-    #     #     generator = range(0, len(candidate_entity_passages), BATCH_SIZE)
-    #     # else:
-    #     #     generator = tqdm(
-    #     #         range(0, len(candidate_entity_passages), BATCH_SIZE),
-    #     #         desc="entity encoding"
-    #     #     )
-
-    #     # for e_i in generator:
-    #     #     # Generate batch entity passages
-    #     #     batch_entity_passages \
-    #     #         = candidate_entity_passages[e_i : e_i + BATCH_SIZE]
-    #     #     # Preprocess entities
-    #     #     preprocessed_data_e = self.model.preprocess_entities(
-    #     #         candidate_entity_passages=batch_entity_passages
-    #     #     )
-    #     #     # Tensorize entities
-    #     #     model_input_e = self.model.tensorize_entities(
-    #     #         preprocessed_data=preprocessed_data_e,
-    #     #         compute_loss=compute_loss
-    #     #     )
-    #     #     # Encode entities
-    #     #     # (BATCH_SIZE, hidden_dim)
-    #     #     batch_entity_vectors = self.model.encode_entities(**model_input_e)
-    #     #     if not compute_loss:
-    #     #         # batch_entity_vectors = batch_entity_vectors.cpu().numpy()
-    #     #         batch_entity_vectors = batch_entity_vectors.cpu()
-    #     #     candidate_entity_vectors.append(batch_entity_vectors)
-    #     # # (n_candidates, hidden_dim)
-    #     # if compute_loss:
-    #     #     candidate_entity_vectors = torch.cat(candidate_entity_vectors, dim=0)
-    #     # else:
-    #     #     # candidate_entity_vectors = np.concatenate(candidate_entity_vectors, axis=0)
-    #     #     candidate_entity_vectors = torch.cat(candidate_entity_vectors, dim=0).numpy()
-    #     # return candidate_entity_vectors
-
-    #     pool = self.model.start_multi_process_pool()
-
-    #     entity_vectors = self.model.encode_multi_process(entity_passages, pool)
-
-    #     self.model.stop_multi_process_pool(pool)
-    #     self.model.to(self.device)
-
-    #     return entity_vectors
-
 
 class BlinkBiEncoderTrainer:
-
-    def __init__(self, base_output_path):
-        """
-        Parameters
-        ----------
-        base_output_path : str
-        """
+    """
+    Trainer class for Blink Bi-Encoder extractor.
+    Handles training loop, evaluation, model saving, and early stopping.
+    """
+    def __init__(self, base_output_path: str):
         self.base_output_path = base_output_path
         self.paths = self.get_paths()
 
-    def get_paths(self):
-        """
-        Returns
-        -------
-        dict[str, str]
-        """
-        paths = {}
+    def get_paths(self) -> dict[str, str]:
+        return {
+            # configurations
+            "path_snapshot": self.base_output_path,
+            # training outputs
+            "path_train_losses": f"{self.base_output_path}/train.losses.jsonl",
+            "path_dev_evals": f"{self.base_output_path}/dev.eval.jsonl",
+            # evaluation outputs
+            "path_dev_gold": f"{self.base_output_path}/dev.gold.json",
+            "path_dev_pred": f"{self.base_output_path}/dev.pred.json",
+            "path_dev_pred_retrieval": f"{self.base_output_path}/dev.pred_candidate_entities.json",
+            "path_dev_eval": f"{self.base_output_path}/dev.eval.json",
+            "path_test_gold": f"{self.base_output_path}/test.gold.json",
+            "path_test_pred": f"{self.base_output_path}/test.pred.json",
+            "path_test_pred_retrieval": f"{self.base_output_path}/test.pred_candidate_entities.json",
+            "path_test_eval": f"{self.base_output_path}/test.eval.json",
+            # For the reranking-model training in the later stage, we need to annotate candidate entities also for the training set
+            "path_train_pred": f"{self.base_output_path}/train.pred.json",
+            "path_train_pred_retrieval": f"{self.base_output_path}/train.pred_candidate_entities.json",
+        }
 
-        # Path to config file
-        paths["path_config"] = self.base_output_path + "/config"
-        # Path to model snapshot
-        paths["path_snapshot"] = self.base_output_path + "/model"
-
-        # Paths to training-losses and validation-scores files
-        paths["path_train_losses"] = self.base_output_path + "/train.losses.jsonl"
-        paths["path_dev_evals"] = self.base_output_path + "/dev.eval.jsonl"
-
-        # Paths to validation outputs and scores
-        paths["path_dev_gold"] = self.base_output_path + "/dev.gold.json"
-        paths["path_dev_pred"] = self.base_output_path + "/dev.pred.json"
-        paths["path_dev_pred_retrieval"] = self.base_output_path + "/dev.pred_candidate_entities.json"
-        paths["path_dev_eval"] = self.base_output_path + "/dev.eval.json"
-
-        # Paths to evaluation outputs and scores
-        paths["path_test_gold"] = self.base_output_path + "/test.gold.json"
-        paths["path_test_pred"] = self.base_output_path + "/test.pred.json"
-        paths["path_test_pred_retrieval"] = self.base_output_path + "/test.pred_candidate_entities.json"
-        paths["path_test_eval"] = self.base_output_path + "/test.eval.json"
-
-        # For the reranking-model training in the later stage,
-        #   we need to annotate candidate entities also for the training set
-        paths["path_train_pred"] = self.base_output_path + "/train.pred.json"
-        paths["path_train_pred_retrieval"] = self.base_output_path + "/train.pred_candidate_entities.json"
-
-        return paths
-
-    def setup_dataset(self, extractor, documents, split):
-        """
-        Parameters
-        ----------
-        extractor : BlinkBiEncoder
-        documents : list[Document]
-        split : str
-        """
+    def setup_dataset(
+        self,
+        extractor: BlinkBiEncoder,
+        documents: list[Document],
+        split: str
+    ) -> None:
+        # Cache the gold annotations for evaluation
         path_gold = self.paths[f"path_{split}_gold"]
         if not os.path.exists(path_gold):
+            # Extract all concepts from the entity dictionary
             kb_entity_ids = set(list(extractor.entity_dict.keys()))
             gold_documents = []
             for document in tqdm(documents, desc="dataset setup"):
                 gold_doc = copy.deepcopy(document)
                 for m_i, mention in enumerate(document["mentions"]):
+                    # Mark whether the gold entity is included in the entity dictionary (KB)
                     in_kb = mention["entity_id"] in kb_entity_ids
                     gold_doc["mentions"][m_i]["in_kb"] = in_kb
                 gold_documents.append(gold_doc)
@@ -575,30 +417,21 @@ class BlinkBiEncoderTrainer:
 
     def train(
         self,
-        extractor,
-        train_documents,
-        dev_documents,
-    ):
-        """
-        Parameters
-        ----------
-        extractor : BlinkBiEncoder
-        train_documents : list[Document]
-        dev_documents : list[Document]
-        """
-        train_doc_indices = np.arange(len(train_documents))
+        extractor: BlinkBiEncoder,
+        train_documents: list[Document],
+        dev_documents: list[Document],
+    ) -> None:
+        ##################
+        # Setup
+        ##################
 
-        ##################
-        # Get optimizer and scheduler
-        ##################
+        train_doc_indices = np.arange(len(train_documents))
 
         n_train = len(train_doc_indices)
         max_epoch = extractor.config["max_epoch"]
         batch_size = extractor.config["batch_size"]
-        gradient_accumulation_steps \
-            = extractor.config["gradient_accumulation_steps"]
-        total_update_steps \
-            = n_train * max_epoch // (batch_size * gradient_accumulation_steps)
+        gradient_accumulation_steps = extractor.config["gradient_accumulation_steps"]
+        total_update_steps = n_train * max_epoch // (batch_size * gradient_accumulation_steps)
         warmup_steps = int(total_update_steps * extractor.config["warmup_ratio"])
 
         logger.info("Number of training documents: %d" % n_train)
@@ -612,21 +445,11 @@ class BlinkBiEncoderTrainer:
             model=extractor.model,
             config=extractor.config
         )
-        # extractor.model, optimizer = amp.initialize(
-        #     extractor.model,
-        #     optimizer,
-        #     opt_level="O1",
-        #     verbosity=0
-        # )
         scheduler = shared_functions.get_scheduler2(
             optimizer=optimizer,
             total_update_steps=total_update_steps,
             warmup_steps=warmup_steps
         )
-
-        ##################
-        # Get reporter and best score holder
-        ##################
 
         writer_train = jsonlines.Writer(
             open(self.paths["path_train_losses"], "w"),
@@ -636,16 +459,18 @@ class BlinkBiEncoderTrainer:
             open(self.paths["path_dev_evals"], "w"),
             flush=True
         )
+
         bestscore_holder = BestScoreHolder(scale=1.0)
         bestscore_holder.init()
 
         ##################
-        # Evaluate
+        # Initial Validation
         ##################
 
-        # Perform indexing before evaluation
+        # Build index
         extractor.make_index()
 
+        # Evaluate the extractor
         scores = self.evaluate(
             extractor=extractor,
             documents=dev_documents,
@@ -653,28 +478,19 @@ class BlinkBiEncoderTrainer:
             #
             get_scores_only=True
         )
-        scores["epoch"] = 0
-        scores["step"] = 0
+        scores.update({"epoch": 0, "step": 0})
         writer_dev.write(scores)
         logger.info(utils.pretty_format_dict(scores))
 
+        # Set the best validation score
         bestscore_holder.compare_scores(scores["inkb_accuracy"]["accuracy"], 0)
 
-        ##################
         # Save
-        ##################
-
-        # Save the config (only once)
-        # utils.dump_hocon_config(self.paths["path_config"], extractor.config)
-        utils.write_json(self.paths["path_config"], extractor.config)
-        logger.info("Saved config file to %s" % self.paths["path_config"])
-
-        # Save the model
-        extractor.save_model(path=self.paths["path_snapshot"])
-        logger.info("Saved model to %s" % self.paths["path_snapshot"])
+        extractor.save(path_snapshot=self.paths["path_snapshot"])
+        logger.info(f"Saved config, entity dictionary, model, and entity vectors to {self.paths['path_snapshot']}")
 
         ##################
-        # Training-and-validation loops
+        # Training Loop
         ##################
 
         bert_param, task_param = extractor.model.get_params()
@@ -687,6 +503,7 @@ class BlinkBiEncoderTrainer:
         accum_count = 0
 
         progress_bar = tqdm(total=total_update_steps, desc="training steps")
+
         for epoch in range(1, max_epoch + 1):
 
             perm = np.random.permutation(n_train)
@@ -715,14 +532,13 @@ class BlinkBiEncoderTrainer:
                 actual_batchsize = 0
                 actual_total_mentions = 0
 
-                for doc_i in train_doc_indices[
-                    perm[instance_i: instance_i + batch_size]
-                ]:
+                for doc_i in train_doc_indices[perm[instance_i: instance_i + batch_size]]:
                     # Forward and compute loss
                     one_loss, n_valid_mentions = extractor.compute_loss(
                         document=train_documents[doc_i],
                         flatten_candidate_entities_for_doc=flatten_candidate_entities[doc_i]
                     )
+
                     # Accumulate the loss
                     batch_loss = batch_loss + one_loss
                     actual_batchsize += 1
@@ -731,8 +547,7 @@ class BlinkBiEncoderTrainer:
                 # Average the loss
                 actual_batchsize = float(actual_batchsize)
                 actual_total_mentions = float(actual_total_mentions)
-                # loss per mention
-                batch_loss = batch_loss / actual_total_mentions
+                batch_loss = batch_loss / actual_total_mentions # loss per mention
 
                 ##################
                 # Backward
@@ -740,8 +555,6 @@ class BlinkBiEncoderTrainer:
 
                 batch_loss = batch_loss / gradient_accumulation_steps
                 batch_loss.backward()
-                # with amp.scale_loss(batch_loss, optimizer) as scaled_loss:
-                #     scaled_loss.backward()
 
                 # Accumulate for reporting
                 loss_accum += float(batch_loss.cpu())
@@ -762,14 +575,12 @@ class BlinkBiEncoderTrainer:
                             task_param,
                             extractor.config["max_grad_norm"]
                         )
-                        # torch.nn.utils.clip_grad_norm_(
-                        #     amp.master_params(optimizer),
-                        #     extractor.config["max_grad_norm"]
-                        # )
+
                     optimizer.step()
                     scheduler.step()
 
                     extractor.model.zero_grad()
+
                     step += 1
                     progress_bar.update()
                     progress_bar.refresh()
@@ -788,25 +599,19 @@ class BlinkBiEncoderTrainer:
                     # Report
                     ##################
 
-                    out = {
+                    report = {
                         "step": step,
                         "epoch": epoch,
                         "step_progress": "%d/%d" % (step, total_update_steps),
-                        "step_progress(ratio)": \
-                            float(step) / total_update_steps * 100.0,
-                        "one_epoch_progress": \
-                            "%d/%d" % (instance_i + actual_batchsize, n_train),
-                        "one_epoch_progress(ratio)": (
-                            float(instance_i + actual_batchsize)
-                            / n_train
-                            * 100.0
-                        ),
+                        "step_progress(ratio)": float(step) / total_update_steps * 100.0,
+                        "one_epoch_progress": "%d/%d" % (instance_i + actual_batchsize, n_train),
+                        "one_epoch_progress(ratio)": float(instance_i + actual_batchsize) / n_train * 100.0,
                         "loss": loss_accum / accum_count,
                         "max_valid_inkb_acc": bestscore_holder.best_score,
                         "patience": bestscore_holder.patience
                     }
-                    writer_train.write(out)
-                    logger.info(utils.pretty_format_dict(out))
+                    writer_train.write(report)
+                    logger.info(utils.pretty_format_dict(report))
                     loss_accum = 0.0
                     accum_count = 0
 
@@ -823,12 +628,13 @@ class BlinkBiEncoderTrainer:
                 ):
 
                     ##################
-                    # Evaluate
+                    # Validation
                     ##################
 
-                    # Perform indexing before evaluation
+                    # Build index
                     extractor.make_index()
 
+                    # Evaluate the extractor
                     scores = self.evaluate(
                         extractor=extractor,
                         documents=dev_documents,
@@ -836,29 +642,30 @@ class BlinkBiEncoderTrainer:
                         #
                         get_scores_only=True
                     )
-                    scores["epoch"] = epoch
-                    scores["step"] = step
+                    scores.update({"epoch": epoch, "step": step})
                     writer_dev.write(scores)
                     logger.info(utils.pretty_format_dict(scores))
 
+                    # Update the best validation score
                     did_update = bestscore_holder.compare_scores(
                         scores["inkb_accuracy"]["accuracy"],
                         epoch
                     )
                     logger.info("[Step %d] Max validation InKB accuracy: %f" % (step, bestscore_holder.best_score))
 
-                    ##################
-                    # Save
-                    ##################
-
+                    # Save the model
                     if did_update:
-                        extractor.save_model(path=self.paths["path_snapshot"])
-                        logger.info("Saved model to %s" % self.paths["path_snapshot"])
+                        extractor.save(
+                            path_snapshot=self.paths["path_snapshot"],
+                            model_only=True
+                        )
+                        logger.info(f"Saved model and entity vectors to {self.paths['path_snapshot']}")
 
-                    if (
-                        bestscore_holder.patience
-                        >= extractor.config["max_patience"]
-                    ):
+                    ##################
+                    # Termination Check
+                    ##################
+
+                    if bestscore_holder.patience >= extractor.config["max_patience"]:
                         writer_train.close()
                         writer_dev.close()
                         progress_bar.close()
@@ -870,29 +677,14 @@ class BlinkBiEncoderTrainer:
 
     def evaluate(
         self,
-        extractor,
-        documents,
-        split,
+        extractor: BlinkBiEncoder,
+        documents: list[Document],
+        split: str,
         #
-        prediction_only=False,
-        get_scores_only=False,
-    ):
-        """
-        Parameters
-        ----------
-        extractor : BlinkBiEncoder
-        documents : list[Document]
-        split : str
-        prediction_only : bool
-            by default False
-        get_scores_only : bool
-            by default False
-
-        Returns
-        -------
-        dict[str, Any] | None
-        """
-        # (documents, entity_dict) -> path_pred
+        prediction_only: bool = False,
+        get_scores_only: bool = False,
+    ) -> dict[str, Any] | None:
+        # Apply the extractor
         result_documents, candidate_entities = extractor.batch_extract(
             documents=documents,
             retrieval_size=extractor.config["retrieval_size"]
@@ -902,9 +694,11 @@ class BlinkBiEncoderTrainer:
             self.paths[f"path_{split}_pred_retrieval"],
             candidate_entities
         )
+
         if prediction_only:
             return
-        # (path_pred, path_gold) -> scores
+
+        # Calculate the evaluation scores
         scores = evaluation.ed.accuracy(
             pred_path=self.paths[f"path_{split}_pred"],
             gold_path=self.paths[f"path_{split}_gold"],
@@ -922,30 +716,26 @@ class BlinkBiEncoderTrainer:
             gold_path=self.paths[f"path_{split}_gold"],
             inkb=True
         ))
+
         if get_scores_only:
             return scores
-        # scores -> path_eval
+
+        # Save the evaluation scores
         utils.write_json(self.paths[f"path_{split}_eval"], scores)
         logger.info(utils.pretty_format_dict(scores))
         return scores
 
-    def _generate_flatten_candidate_entities(self, extractor, documents):
-        """
-        Parameters
-        ----------
-        extractor : BlinkBiEncoder
-        documents : list[Document]
-
-        Returns
-        -------
-        list[dict[str, list[CandEntKeyInfo]]]
-        """
-        RETRIEVAL_SIZE = 10 # the number of retrieved entities for each mention
-
+    def _generate_flatten_candidate_entities(
+        self,
+        extractor: BlinkBiEncoder,
+        documents: list[Document]
+    ) -> list[dict[str, list[CandEntKeyInfo]]]:
         logger.info("Generating candidate entities for training ...")
         start_time = time.time()
 
-        flatten_candidate_entities = [] # list[dict[str, list[CandEntKeyInfo]]]
+        RETRIEVAL_SIZE = 10 # the number of retrieved entities for each mention
+
+        flatten_candidate_entities: list[dict[str, list[CandEntKeyInfo]]] = []
 
         # Predict candidate entities for each mention in each document
         _, candidate_entities = extractor.batch_extract(
@@ -964,14 +754,8 @@ class BlinkBiEncoderTrainer:
             total=len(documents),
             desc="candidate generation"
         ):
-            #############
-            # Gold entities
-            #############
-
             # Aggregate gold entities for the mentions in the document
-            gold_entity_ids = list(set([
-                m["entity_id"] for m in document["mentions"]
-            ])) # list[str]
+            gold_entity_ids = list(set([m["entity_id"] for m in document["mentions"]]))
             assert len(gold_entity_ids) <= extractor.config["n_candidate_entities"]
 
             tuples = [(eid, 0, float("inf")) for eid in gold_entity_ids]
@@ -980,12 +764,8 @@ class BlinkBiEncoderTrainer:
             n_total_mentions += n_mentions
             n_inbatch_negatives += (len(gold_entity_ids) - 1) * n_mentions
 
-            #############
-            # Hard-negative and non-hard-negative entities
-            # Hard Negatives: entities whose scores are greater than the retrieval score for the gold entity
-            #############
-
             # Aggregate hard-negative and non-hard-negative entities for the mentions in the document
+            # Hard Negatives = entities whose scores are greater than the retrieval score for the gold entity
             for mention, candidate_entities_for_mention in zip(
                 document["mentions"],
                 candidate_entities_for_doc["candidate_entities"]
@@ -1017,11 +797,9 @@ class BlinkBiEncoderTrainer:
 
                 tuples.extend(hard_negative_tuples + non_hard_negative_tuples)
 
-            #############
-            # Combine and select candidate entities from the gold, hard-negative, and non-hard-negative entities
-            #############
+            # Now, `tuples` contains the gold, hard-negative, and non-hard-negative entities
 
-            # Sort the entities based on the types (gold/hard-negative/non-hard-negative) and then scores
+            # Sort the entities based on the types and then scores
             tuples = sorted(tuples, key=lambda x: (x[1], -x[2]))
 
             # Remove duplicate entities
@@ -1031,15 +809,12 @@ class BlinkBiEncoderTrainer:
                     id_to_score[eid] = score
             tuples = list(id_to_score.items())
 
+            # Select top-k entities
             tuples = tuples[:extractor.config["n_candidate_entities"]]
 
-            #############
             # Sample entities randomly if the number of candidates is less than the specified number
-            #############
-
             N = extractor.config["n_candidate_entities"]
             M = len(tuples)
-
             if N - M > 0:
                 # Identify entities that are not contained in the current candidates
                 possible_entity_ids = list(
@@ -1054,23 +829,16 @@ class BlinkBiEncoderTrainer:
 
                 tuples.extend(additional_tuples)
 
-            #############
-            # Formatting
-            #############
-
-            flatten_candidate_entities_for_doc = [
-                {
-                    "entity_id": eid,
-                    "score": score
-                }
-                for (eid, score) in tuples
-            ]
-
-            # dict[str, list[CandEntKeyInfo]]
+            # Create an output object
             flatten_candidate_entities_for_doc = {
-                "flatten_candidate_entities": flatten_candidate_entities_for_doc
+                "flatten_candidate_entities": [
+                    {
+                        "entity_id": eid,
+                        "score": score
+                    }
+                    for (eid, score) in tuples
+                ]
             }
-
             flatten_candidate_entities.append(flatten_candidate_entities_for_doc)
 
         end_time = time.time()

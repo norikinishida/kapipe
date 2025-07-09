@@ -134,11 +134,12 @@ def main(args):
         # Initialize the trainer (evaluator)
         trainer = BlinkCrossEncoderTrainer(base_output_path=base_output_path)
 
-        # Load the configuration
-        config = utils.get_hocon_config(config_path=config_path, config_name=config_name)
-
         if actiontype == "train" or actiontype == "check_preprocessing":
             # Initialize the extractor
+            config = utils.get_hocon_config(
+                config_path=config_path,
+                config_name=config_name
+            )
             extractor = BlinkCrossEncoder(
                 device=device,
                 config=config,
@@ -148,19 +149,18 @@ def main(args):
             # Load the extractor
             extractor = BlinkCrossEncoder(
                 device=device,
-                config=config,
-                path_entity_dict=path_entity_dict,
-                path_model=trainer.paths["path_snapshot"]
+                path_snapshot=trainer.paths["path_snapshot"]
             )
 
     elif method_name == "llmed":
         # Initialize the extractor
         trainer = LLMEDTrainer(base_output_path=base_output_path)
 
-        # Load the configuration
-        config = utils.get_hocon_config(config_path=config_path, config_name=config_name)
-
         # Initialize the extractor
+        config = utils.get_hocon_config(
+            config_path=config_path,
+            config_name=config_name
+        )
         extractor = LLMED(
             device=device,
             config=config,

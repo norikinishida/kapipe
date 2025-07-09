@@ -6,9 +6,7 @@ import networkx as nx
 from tqdm import tqdm
 
 from .. import utils
-from ..datatypes import (
-    EntityPage
-)
+from ..datatypes import EntityPage
 
 
 logger = logging.getLogger(__name__)
@@ -87,9 +85,13 @@ class GraphConstructor:
 
         # Final deduplication and doc_key_list consolidation
         for node, prop in graph.nodes(data=True):
-            graph.nodes[node]["doc_key_list"] = "|".join(sorted(list(set(prop["doc_key_list"]))))
+            graph.nodes[node]["doc_key_list"] = "|".join(
+                sorted(list(set(prop["doc_key_list"])))
+            )
         for h, t, k, prop in graph.edges(keys=True, data=True):
-            graph.edges[h, t, k]["doc_key_list"] = "|".join(sorted(list(set(prop["doc_key_list"]))))
+            graph.edges[h, t, k]["doc_key_list"] = "|".join(
+                sorted(list(set(prop["doc_key_list"])))
+            )
 
         logger.info(f"The number of nodes: {graph.number_of_nodes()}") 
         logger.info(f"The number of edges: {graph.number_of_edges()}") 

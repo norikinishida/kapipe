@@ -4,11 +4,11 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "kapipe"
-version = "0.0.4"
+version = "0.0.5"
 description = "A modular pipeline for knowledge acquisition"
 readme = { file = "README.md", content-type = "text/markdown" }
 requires-python = ">=3.10"
-license = { text = "Apache-2.0" }
+license = { text = "LICENSE" }
 authors = [
   { name = "Noriki Nishida", email = "norikinishida@gmail.com" }
 ]
@@ -65,6 +65,3 @@ zip-safe = false
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["kapipe*"]
-
-[tool.setuptools.package-data]
-"" = ["LICENSE"]

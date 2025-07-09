@@ -27,38 +27,40 @@ class LLMQA:
 
     def __init__(
         self,
-        # General
-        config: Config | str,
-        device: int = 0,
-        # Optional: few-shot setting
+        device: str | int = 0,
+        # Initialization
+        config: Config | str | None = None,
         path_demonstration_pool: str | None = None,
+        # Loading
+        path_snapshot: str | None = None,
         # Misc.
-        model: LLM | OpenAILLM | None = None,
-        verbose: bool = True
+        model: LLM | OpenAILLM | None = None
     ):
-        self.verbose = verbose
-        if self.verbose:
-            logger.info(">>>>>>>>>> LLMQA Initialization >>>>>>>>>>")
+        logger.info("########## LLMQA Initialization Starts ##########")
+
+        if isinstance(device, int):
+            self.device = f"cuda:{0}"
 
         self.device = device
+        self.path_snapshot = path_snapshot
 
-        ######
-        # Config
-        ######
+        if path_snapshot is not None:
+            assert config is None
+            assert path_demonstration_pool is None
+            config = path_snapshot + "/config"
+            path_demonstration_pool = path_snapshot + "/demonstration_pool.json"
+            if not os.path.exists(path_demonstration_pool):
+                path_demonstration_pool = None
 
+        # Load the configuration
         if isinstance(config, str):
             tmp = config
             config = utils.get_hocon_config(config_path=config, config_name=None)
-            if self.verbose:
-                logger.info(f"Loaded configuration from {tmp}")
+            logger.info(f"Loaded configuration from {tmp}")
         self.config = config
-        if self.verbose:
-            logger.info(utils.pretty_format_dict(self.config))
+        logger.info(utils.pretty_format_dict(self.config))
 
-        ######
-        # Prompt Processor
-        ######
-
+        # Initialize the prompt processor
         self.prompt_processor = PromptProcessor(
             prompt_template_name_or_path=config["prompt_template_name_or_path"],
             n_contexts=config["n_contexts"],
@@ -66,17 +68,13 @@ class LLMQA:
             n_demonstrations=config["n_demonstrations"]
         )
 
-        ######
-        # Model
-        ######
-
+        # Initialize the model
         self.model_name = config["model_name"]
-        assert self.model_name in ["llm", "openai"]
-
+        assert self.model_name in ["hf", "openai"]
         if model is not None:
             self.model = model
             logger.info("LLM is provided")
-        elif self.model_name == "llm":
+        elif self.model_name == "hf":
             self.model = LLM(
                 device=device,
                 # Model
@@ -93,9 +91,7 @@ class LLMQA:
             )
         else:
             self.model = OpenAILLM(
-                # Model
                 openai_model_name=config["openai_model_name"],
-                # Generation
                 max_new_tokens=config["max_new_tokens"]
             )
         # self.model.llm.to(self.model.device)
@@ -104,8 +100,17 @@ class LLMQA:
         if self.map_reduce_generation:
             self.n_intermediate_answers = config["n_intermediate_answers"]
 
-        if self.verbose:
-            logger.info("<<<<<<<<<< LLMQA Initialization <<<<<<<<<<")
+        logger.info("########## LLMQA Initialization Ends ##########")
+
+    def save(self, path_snapshot: str) -> None:
+        path_config = path_snapshot + "/config"
+        path_demonstration_pool = path_snapshot + "/demonstration_pool.json"
+        utils.write_json(path_config, self.config)
+        if self.prompt_processor.path_demonstration_pool is not None:
+            utils.write_json(
+                path_demonstration_pool,
+                self.prompt_processor.demonstration_pool
+            )
 
     def run(
         self,
@@ -116,7 +121,7 @@ class LLMQA:
         contexts_for_question: ContextsForOneExample | None = None
     ) -> Question:
         with torch.no_grad():
-            if self.model_name == "llm":
+            if self.model_name == "hf":
                 # Switch to inference mode
                 self.model.llm.eval()
 
@@ -141,7 +146,7 @@ class LLMQA:
                         contexts_for_question=new_contexts_for_question
                     )
 
-                    if self.model_name == "llm":
+                    if self.model_name == "hf":
                         # Preprocess
                         preprocessed_data = self.model.preprocess(prompt=prompt)
 
@@ -152,14 +157,14 @@ class LLMQA:
                         )
 
                         # Forward
-                        generated_text = self.model.generate(**model_input)[0] # str
+                        generated_text = self.model.generate(**model_input)[0]
                         generated_text = self.model.remove_prompt_from_generated_text(
                             generated_text=generated_text
                         )
                     else:
-                        generated_text = self.model.generate(prompt) # str
+                        generated_text = self.model.generate(prompt)
 
-                    # Structurize (post-processing)
+                    # Structurize
                     answer, helpfulness_score = self.structurize(
                         question=question,
                         generated_text=generated_text
@@ -178,7 +183,9 @@ class LLMQA:
                     intermediate_answers,
                     key=lambda x: -x["helpfulness_score"]
                 )
-                intermediate_answers = intermediate_answers[:self.n_intermediate_answers]
+                intermediate_answers = intermediate_answers[
+                    :self.n_intermediate_answers
+                ]
 
                 # Prepare a new-formed context
                 new_contexts_for_question: ContextsForOneExample = {
@@ -196,7 +203,7 @@ class LLMQA:
                     contexts_for_question=new_contexts_for_question
                 )
 
-                if self.model_name == "llm":
+                if self.model_name == "hf":
                     # Preprocess
                     preprocessed_data = self.model.preprocess(prompt=prompt)
 
@@ -207,14 +214,14 @@ class LLMQA:
                     )
 
                     # Forward
-                    generated_text = self.model.generate(**model_input)[0] # str
+                    generated_text = self.model.generate(**model_input)[0]
                     generated_text = self.model.remove_prompt_from_generated_text(
                         generated_text=generated_text
                     )
                 else:
-                    generated_text = self.model.generate(prompt) # str
+                    generated_text = self.model.generate(prompt)
 
-                # Structurize (post-processing)
+                # Structurize
                 answer, helpfulness_score = self.structurize(
                     question=question,
                     generated_text=generated_text
@@ -227,7 +234,7 @@ class LLMQA:
                     contexts_for_question=contexts_for_question
                 )
 
-                if self.model_name == "llm":
+                if self.model_name == "hf":
                     # Preprocess
                     preprocessed_data = self.model.preprocess(prompt=prompt)
 
@@ -238,14 +245,14 @@ class LLMQA:
                     )
 
                     # Forward
-                    generated_text = self.model.generate(**model_input)[0] # str
+                    generated_text = self.model.generate(**model_input)[0]
                     generated_text = self.model.remove_prompt_from_generated_text(
                         generated_text=generated_text
                     )
                 else:
-                    generated_text = self.model.generate(prompt) # str
+                    generated_text = self.model.generate(prompt)
 
-                # Structurize (post-processing)
+                # Structurize
                 answer, helpfulness_score = self.structurize(
                     question=question,
                     generated_text=generated_text
@@ -256,22 +263,27 @@ class LLMQA:
             result_question["output_answer"] = answer
             result_question["helpfulness_score"] = helpfulness_score
             result_question["qa_prompt"] = (
-                preprocessed_data["prompt"] if self.model_name == "llm" else prompt
+                preprocessed_data["prompt"] if self.model_name == "hf" else prompt
             )
             result_question["qa_generated_text"] = generated_text
             if self.map_reduce_generation:
                 result_question["intermediate_answers"] = intermediate_answers
             return result_question
 
-    def structurize(self, question: Question, generated_text: str) -> tuple[str, float]:
+    def structurize(
+        self,
+        question: Question,
+        generated_text: str
+    ) -> tuple[str, float]:
         question_key = question["question_key"]
 
         # Parse each generated line
-        generated_lines = generated_text.split("\n")
         answer = generated_text
         score = 0.0
-        for generated_line in generated_lines:
+        for generated_line in generated_text.split("\n"):
             generated_text = generated_line.strip()
+
+            # Skip the empty line
             if generated_line == "":
                 continue
             
@@ -350,12 +362,14 @@ class PromptProcessor:
         # Prompt template
         #####
 
-        self.prompt_template = utils.read_prompt_template(prompt_template_name_or_path=self.prompt_template_name_or_path)
+        self.prompt_template = utils.read_prompt_template(
+            prompt_template_name_or_path=self.prompt_template_name_or_path
+        )
 
         # Check requirements
         if self.path_demonstration_pool is not None:
             assert "{demonstrations_prompt}" in self.prompt_template
-        assert "{task_prompt}" in self.prompt_template
+        assert "{test_case_prompt}" in self.prompt_template
 
         #####
         # Demonstration pool
@@ -379,7 +393,9 @@ class PromptProcessor:
             # Prepare demonstrations
             demonstration_questions = [
                 self.demonstration_pool[demo_key_info["question_key"]]
-                for demo_key_info in demonstrations_for_question["demonstrations"][:self.n_demonstrations]
+                for demo_key_info in demonstrations_for_question["demonstrations"][
+                    :self.n_demonstrations
+                ]
             ]
             # Get prompt part for demonstrations
             demonstrations_prompt = self.generate_demonstrations_prompt(
@@ -406,18 +422,21 @@ class PromptProcessor:
         else:
             contexts_prompt = ""
 
-        # Get prompt part for task
-        task_prompt = self.generate_task_prompt(question=question)
+        # Get prompt part for test case
+        test_case_prompt = self.generate_test_case_prompt(question=question)
 
         # Combine the prompt parts
         prompt = self.prompt_template.format(
             demonstrations_prompt=demonstrations_prompt,
             contexts_prompt=contexts_prompt,
-            task_prompt=task_prompt
+            test_case_prompt=test_case_prompt
         )
         return prompt
 
-    def generate_demonstrations_prompt(self, demonstration_questions: list[Question]) -> str:
+    def generate_demonstrations_prompt(
+        self,
+        demonstration_questions: list[Question]
+    ) -> str:
         prompt = ""
         n_demos = len(demonstration_questions)
         for demo_i, demo in enumerate(demonstration_questions):
@@ -441,7 +460,7 @@ class PromptProcessor:
                 prompt += "\n"
         return prompt.rstrip()
 
-    def generate_task_prompt(self, question: Question) -> str:
+    def generate_test_case_prompt(self, question: Question) -> str:
         return f"Question: {self.generate_input_question_prompt(question)}".rstrip()
                    
     def generate_input_question_prompt(self, question: Question) -> str:
@@ -465,22 +484,25 @@ class LLMQATrainer:
     def get_paths(self) -> dict[str,str]:
         paths = {}
 
-        # Path to config file
-        paths["path_config"] = os.path.join(self.base_output_path, "config")
+        # configurations
+        paths["path_snapshot"] = self.base_output_path
 
-        # Paths to validation outputs and scores
+        # evaluation outputs
         paths["path_dev_gold"] = os.path.join(self.base_output_path, "dev.gold.json")
         paths["path_dev_pred"] = os.path.join(self.base_output_path, "dev.pred.json")
         paths["path_dev_eval"] = os.path.join(self.base_output_path, "dev.eval.json")
-
-        # Paths to evaluation outputs and scores
         paths["path_test_gold"] = os.path.join(self.base_output_path, "test.gold.json")
         paths["path_test_pred"] = os.path.join(self.base_output_path, "test.pred.json")
         paths["path_test_eval"] = os.path.join(self.base_output_path, "test.eval.json")
 
         return paths
 
-    def setup_dataset(self, answerer: LLMQA, questions: list[Question], split: str) -> None:
+    def setup_dataset(
+        self,
+        answerer: LLMQA,
+        questions: list[Question],
+        split: str
+    ) -> None:
         # Cache the gold annotations for evaluation
         path_gold = self.paths[f"path_{split}_gold"]
         if not os.path.exists(path_gold):
@@ -492,11 +514,7 @@ class LLMQATrainer:
             logger.info(f"Saved the gold annotations for evaluation in {path_gold}")
 
     def save_answerer(self, answerer: LLMQA) -> None:
-        # Since we do not finetune the model, we save the configuration
-        # Save the config (only once)
-        # utils.dump_hocon_config(self.paths["path_config"], answerer.config)
-        utils.write_json(self.paths["path_config"], answerer.config)
-        logger.info("Saved config file to %s" % self.paths["path_config"])
+        answerer.save(path_snapshot=self.paths["path_snapshot"])
 
     def evaluate(
         self,
@@ -507,8 +525,9 @@ class LLMQATrainer:
         split: str,
         #
         metric: str = "accuracy",
+        prediction_only: bool = False,
         get_scores_only: bool = False
-    ) -> dict[str, Any]:
+    ) -> dict[str, Any] | None:
         # Predict answers for the given questions,
         # optionally based on the demonstrations and contexts
         result_questions = answerer.batch_run(
@@ -529,6 +548,9 @@ class LLMQATrainer:
                 f.write(prompt + "\n\n")
                 f.write(generated_text + "\n\n")
                 f.flush()
+
+        if prediction_only:
+            return
 
         # Evaluate the predicted answers
         if metric == "recall":

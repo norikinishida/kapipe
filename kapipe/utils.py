@@ -6,10 +6,14 @@ import json
 import logging
 import os
 import time
+from typing import Any, Callable
 
 import numpy as np
 import pyhocon
 from pyhocon.converter import HOCONConverter
+from pyhocon import ConfigTree
+
+from .datatypes import Document, Mention, Entity, Passage
 
 
 logger = logging.getLogger(__name__)
@@ -20,23 +24,13 @@ logger = logging.getLogger(__name__)
 ########
 
 
-def read_lines(path, encoding="utf-8"):
+def read_lines(path: str, encoding: str = "utf-8") -> list[str]:
     with open(path, encoding=encoding) as f:
         lines = [l.strip() for l in f]
     return lines
 
 
-def read_json(path, encoding=None):
-    """
-    Parameters
-    ----------
-    path: str
-    encoding: str or None, default None
-
-    Returns
-    -------
-    dict[Any, Any]
-    """
+def read_json(path: str, encoding: str | None = None) -> dict[Any, Any]:
     if encoding is None:
         with open(path) as f:
             dct = json.load(f)
@@ -47,29 +41,12 @@ def read_json(path, encoding=None):
     return dct
 
 
-def write_json(path, dct, ensure_ascii=True):
-    """
-    Parameters
-    ----------
-    path: str
-    dct: dict[Any, Any]
-    ensure_ascii: bool
-        by default True
-    """
+def write_json(path: str, dct: dict[Any, Any], ensure_ascii: bool = True) -> None:
     with open(path, "w") as f:
         json.dump(dct, f, ensure_ascii=ensure_ascii, indent=4)
 
 
-def read_vocab(path):
-    """
-    Parameters
-    ----------
-    path: str
-
-    Returns
-    -------
-    dict[str, int]
-    """
+def read_vocab(path: str) -> dict[str, int]:
     # begin_time = time.time()
     # logger.info("Loading a vocabulary from %s" % path)
     vocab = OrderedDict()
@@ -88,14 +65,11 @@ def read_vocab(path):
     return vocab
 
 
-def write_vocab(path, data, write_frequency=True):
-    """
-    Parameters
-    ----------
-    path: str
-    data: list[(str, int)] or list[str]
-    write_frequency: bool, default True
-    """
+def write_vocab(
+    path: str,
+    data: list[tuple[str, int]] | list[str],
+    write_frequency: bool = True
+) -> None:
     with open(path, "w") as f:
         if write_frequency:
             for word_id, (word, freq) in enumerate(data):
@@ -105,19 +79,7 @@ def write_vocab(path, data, write_frequency=True):
                 f.write("%s\t%d\n" % (word, word_id))
 
 
-def get_hocon_config(config_path, config_name=None):
-    """
-    Generate a configuration dictionary.
-
-    Parameters
-    ----------
-    config_path : str
-    config_name : str, default None
-
-    Returns
-    -------
-    ConfigTree
-    """
+def get_hocon_config(config_path: str, config_name: str | None = None) -> ConfigTree:
     config = pyhocon.ConfigFactory.parse_file(config_path)
     if config_name is not None:
         config = config[config_name]
@@ -127,18 +89,12 @@ def get_hocon_config(config_path, config_name=None):
     return config
 
 
-def dump_hocon_config(path_out, config):
+def dump_hocon_config(path_out: str, config: ConfigTree) -> None:
     with open(path_out, "w") as f:
         f.write(HOCONConverter.to_hocon(config) + "\n")
 
 
-def mkdir(path, newdir=None):
-    """
-    Parameters
-    ----------
-    path: str
-    newdir: str or None, default None
-    """
+def mkdir(path: str, newdir: str | None = None) -> None:
     if newdir is None:
         target = path
     else:
@@ -148,14 +104,11 @@ def mkdir(path, newdir=None):
         logger.info("Created a new directory: %s" % target)
 
 
-def print_list(lst, with_index=False, process=None):
-    """
-    Parameters
-    ----------
-    lst: list[Any]
-    with_index: bool, default False
-    process: function: Any -> Any
-    """
+def print_list(
+    lst: list[Any],
+    with_index: bool = False,
+    process: Callable[[Any], Any] | None = None
+) -> None:
     for i, x in enumerate(lst):
         if process is not None:
             x = process(x)
@@ -165,25 +118,14 @@ def print_list(lst, with_index=False, process=None):
             logger.info(x)
 
 
-def safe_json_loads(generated_text, fallback=None, list_type=False):
+def safe_json_loads(
+    generated_text: str,
+    fallback: Any = None,
+    list_type: bool = False
+) -> Any:
     """
     Parse the report into a JSON object
     """
-    # try:
-    #     return json.loads(generated_text)
-    # except json.JSONDecodeError as e:
-    #     cleaned = (
-    #         generated_text.strip()
-    #         .removeprefix("```json").removesuffix("```")
-    #         .strip("` \n")
-    #     )
-    #     try:
-    #         return json.loads(cleaned)
-    #     except json.JSONDecodeError as e2:
-    #         print("[JSONDecodeError]", e)
-    #         print("[Raw Output]", generated_text[:300])
-    #         return fallback
-
     if list_type:
         begin_index = generated_text.find("[")
         end_index = generated_text.rfind("]")
@@ -220,29 +162,11 @@ def safe_json_loads(generated_text, fallback=None, list_type=False):
 ########
 
 
-def flatten_lists(list_of_lists):
-    """
-    Parameters
-    ----------
-    list_of_lists: list[list[Any]]
-
-    Returns
-    -------
-    list[Any]
-    """
+def flatten_lists(list_of_lists: list[list[Any]]) -> list[Any]:
     return [elem for lst in list_of_lists for elem in lst]
 
 
-def pretty_format_dict(dct):
-    """
-    Parameters
-    ----------
-    dct: dict[Any, Any]
-
-    Returns
-    -------
-    str
-    """
+def pretty_format_dict(dct: dict[Any, Any]) -> str:
     return "{}".format(json.dumps(dct, indent=4))
 
 
@@ -251,50 +175,25 @@ def pretty_format_dict(dct):
 ########
 
 
-def get_current_time():
-    """
-    Returns
-    -------
-    str
-    """
+def get_current_time() -> str:
     return datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
 
 
 class StopWatch(object):
 
     def __init__(self):
-        self.dictionary = {}
+        self.dictionary: dict[str | None, dict[str, float]] = {}
 
-    def start(self, name=None):
-        """
-        Parameters
-        ----------
-        name: str or None, default None
-        """
+    def start(self, name: str | None = None):
         start_time = time.time()
         self.dictionary[name] = {}
         self.dictionary[name]["start"] = start_time
 
-    def stop(self, name=None):
-        """
-        Parameters
-        ----------
-        name: str or None, default None
-        """
+    def stop(self, name: str | None = None):
         stop_time = time.time()
         self.dictionary[name]["stop"] = stop_time
 
-    def get_time(self, name=None, minute=False):
-        """
-        Parameters
-        ----------
-        name: str or None, default None
-        minute: bool, default False
-
-        Returns
-        -------
-        float
-        """
+    def get_time(self, name: str | None = None, minute: bool = False) -> float:
         start_time = self.dictionary[name]["start"]
         stop_time = self.dictionary[name]["stop"]
         span = stop_time - start_time
@@ -310,13 +209,7 @@ class StopWatch(object):
 
 class BestScoreHolder(object):
 
-    def __init__(self, scale=1.0, higher_is_better=True):
-        """
-        Parameters
-        ----------
-        scale: float, default 1.0
-        higher_is_better: bool, default True
-        """
+    def __init__(self, scale: float = 1.0, higher_is_better: bool = True):
         self.scale = scale
         self.higher_is_better = higher_is_better
 
@@ -332,7 +225,7 @@ class BestScoreHolder(object):
         self.best_step = 0
         self.patience = 0
 
-    def init(self):
+    def init(self) -> None:
         if self.higher_is_better:
             self.best_score = -np.inf
         else:
@@ -340,17 +233,7 @@ class BestScoreHolder(object):
         self.best_step = 0
         self.patience = 0
 
-    def compare_scores(self, score, step):
-        """
-        Parameters
-        ----------
-        score: float
-        step: int
-
-        Returns
-        -------
-        bool
-        """
+    def compare_scores(self, score: float, step: int) -> bool:
         if self.comparison_function(self.best_score, score):
             # Update the score
             logger.info("(best_score = %.02f, best_step = %d, patience = %d) -> (%.02f, %d, %d)" % \
@@ -368,16 +251,7 @@ class BestScoreHolder(object):
             self.patience += 1
             return False
 
-    def ask_finishing(self, max_patience):
-        """
-        Parameters
-        ----------
-        max_patience: int
-
-        Returns
-        -------
-        bool
-        """
+    def ask_finishing(self, max_patience: int) -> bool:
         if self.patience >= max_patience:
             return True
         else:
@@ -389,8 +263,8 @@ class BestScoreHolder(object):
 ########
 
 
-def aggregate_mentions_to_entities(document, mentions):
-    entity_id_to_info = {} # dict[str, dict[str, Any]]
+def aggregate_mentions_to_entities(document: Document, mentions: list[Mention]):
+    entity_id_to_info: dict[str, dict[str, Any]] = {}
     for m_i in range(len(document["mentions"])):
         name = document["mentions"][m_i]["name"]
         entity_type = document["mentions"][m_i]["entity_type"]
@@ -410,7 +284,7 @@ def aggregate_mentions_to_entities(document, mentions):
             entity_id_to_info[entity_id]["mention_names"] = [name]
             # TODO
             entity_id_to_info[entity_id]["entity_type"] = entity_type
-    entities = [] # list[Entity]
+    entities: list[Entity] = []
     for entity_id in entity_id_to_info.keys():
         mention_indices = entity_id_to_info[entity_id]["mention_indices"]
         mention_names = entity_id_to_info[entity_id]["mention_names"]
@@ -424,11 +298,7 @@ def aggregate_mentions_to_entities(document, mentions):
     return entities
 
 
-def create_text_from_passage(passage, sep):
-    # if not "title" in passage:
-    #     text = passage["text"]
-    # else:
-    #     text = passage["title"] + sep + passage["text"]
+def create_text_from_passage(passage: Passage, sep: str) -> str:
     if not "title" in passage:
         text = passage["text"]
     elif passage["text"].strip() == "":
@@ -438,7 +308,7 @@ def create_text_from_passage(passage, sep):
     return text
 
 
-def read_prompt_template(prompt_template_name_or_path):
+def read_prompt_template(prompt_template_name_or_path: str) -> str:
     # List text files in "prompt_template" directory
     prompt_template_names = [
         x.name for x in files("kapipe.prompt_templates").iterdir()

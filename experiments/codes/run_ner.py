@@ -170,24 +170,22 @@ def main(args):
         # Initialize the trainer (evaluator)
         trainer = BiaffineNERTrainer(base_output_path=base_output_path)
 
-        # Load the configuration
-        config = utils.get_hocon_config(config_path=config_path, config_name=config_name)
-
         if actiontype == "train" or actiontype == "check_preprocessing":
             # Initialize the extractor
+            config = utils.get_hocon_config(
+                config_path=config_path,
+                config_name=config_name
+            )
             extractor = BiaffineNER(
                 device=device,
                 config=config,
-                vocab_etype=vocab_etype,
-                path_model=None
+                vocab_etype=vocab_etype
             )
         else: 
             # Load the extractor
             extractor = BiaffineNER(
                 device=device,
-                config=config,
-                vocab_etype=trainer.paths["path_vocab_etype"],
-                path_model=trainer.paths["path_snapshot"]
+                path_snapshot=trainer.paths["path_snapshot"]
             )
 
     elif method_name == "llmner":

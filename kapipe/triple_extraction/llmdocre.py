@@ -1,8 +1,11 @@
+from __future__ import annotations
+
 import copy
 # import json
 import logging
 import os
 import re
+from typing import Any
 
 # import numpy as np
 import torch
@@ -13,6 +16,14 @@ from ..models import LLM
 from ..models import OpenAILLM
 from .. import evaluation
 from .. import utils
+from ..datatypes import (
+    Config,
+    Document,
+    Triple,
+    EntityPage,
+    DemonstrationsForOneExample,
+    ContextsForOneExample
+)
 
 
 logger = logging.getLogger(__name__)
@@ -22,103 +33,88 @@ class LLMDocRE:
 
     def __init__(
         self,
-        # General
-        device,
-        config,
-        # Task specific
-        vocab_relation,
-        rel_meta_info,
-        # Method specific
-        path_entity_dict,
-        # Optional: few-shot setting
-        path_demonstration_pool=None,
+        device: str,
+        # Initialization
+        config: Config | str | None = None,
+        vocab_relation: dict[str, int] | str | None = None,
+        rel_meta_info: dict[str, dict[str, str]] | str | None = None,
+        path_entity_dict: str | None = None,
+        path_demonstration_pool: str | None = None,
+        # Loading
+        path_snapshot: str | None = None,
         # Misc.
-        model=None,
-        verbose=True
+        model: LLM | OpenAILLM | None = None
     ):
-        """
-        Parameters
-        ----------
-        device: str
-        config: ConfigTree | str
-        vocab_relation: dict[str, int] | str
-        rel_meta_info: dict[str, dict[str, str]] | str
-        path_entity_dict: str
-        path_demonstration_pool: str | None
-            by default None
-        model : LLM | None
-            by default None
-        verbose: bool
-            by default True
-        """
-        self.verbose = verbose
-        if self.verbose:
-            logger.info(">>>>>>>>>> LLMDocRE Initialization >>>>>>>>>>")
+        logger.info("########## LLMDocRE Initialization Starts ##########")
+
         self.device = device
+        self.path_snapshot = path_snapshot
 
-        ######
-        # Config
-        ######
+        if path_snapshot is not None:
+            assert config is None
+            assert vocab_relation is None
+            assert rel_meta_info is None
+            assert path_entity_dict is None
+            assert path_demonstration_pool is None
+            config = path_snapshot + "/config"
+            vocab_relation = path_snapshot + "/relations.vocab.txt"
+            rel_meta_info = path_snapshot + "/rel_meta_info.json"
+            path_entity_dict = path_snapshot + "/entity_dict.json"
+            path_demonstration_pool = path_snapshot + "/demonstration_pool.json"
+            if not os.path.exists(path_demonstration_pool):
+                path_demonstration_pool = None
 
+        # Load the configuration
         if isinstance(config, str):
-            tmp = config
-            config = utils.get_hocon_config(
-                config_path=config,
-                config_name=None
-            )
-            if self.verbose:
-                logger.info(f"Loaded configuration from {tmp}")
+            config_path = config
+            config = utils.get_hocon_config(config_path=config_path)
+            logger.info(f"Loaded configuration from {config_path}")
         self.config = config
-        if self.verbose:
-            logger.info(utils.pretty_format_dict(self.config))
+        logger.info(utils.pretty_format_dict(self.config))
 
-        ######
-        # Vocabulary (relations)
-        ######
-
+        # Load the relation vocabulary
         if isinstance(vocab_relation, str):
-            tmp = vocab_relation
-            vocab_relation = utils.read_vocab(vocab_relation)
-            if self.verbose:
-                logger.info(f"Loaded relation type vocabulary from {tmp}")
+            vocab_path = vocab_relation
+            vocab_relation = utils.read_vocab(vocab_path)
+            logger.info(f"Loaded relation type vocabulary from {vocab_path}")
         self.vocab_relation = vocab_relation
         self.ivocab_relation = {i:l for l, i in self.vocab_relation.items()}
 
+        # Load the relation meta information
         if isinstance(rel_meta_info, str):
-            tmp = rel_meta_info
-            rel_meta_info = utils.read_json(rel_meta_info)
-            if self.verbose:
-                logger.info(f"Loaded relation meta-information from {tmp}")
+            meta_path = rel_meta_info
+            rel_meta_info = utils.read_json(meta_path)
+            logger.info(f"Loaded relation meta-information from {meta_path}")
         self.rel_meta_info = rel_meta_info
 
-        ######
-        # Prompt Processor
-        ######
+        # Load the entity dictionary
+        logger.info(f"Loading entity dictionary from {path_entity_dict}")
+        self.entity_dict = {
+            epage["entity_id"]: epage
+            for epage in utils.read_json(path_entity_dict)
+        }
+        logger.info(f"Completed loading of entity dictionary with {len(self.entity_dict)} entities from {path_entity_dict}")
 
+        # Initialize the prompt processor
         self.prompt_processor = PromptProcessor(
-            prompt_template_name_or_path=\
-                config["prompt_template_name_or_path"],
-            path_entity_dict=path_entity_dict,
+            prompt_template_name_or_path=config["prompt_template_name_or_path"],
+            knowledge_base_name_prompt=config["knowledge_base_name"],
             vocab_relation=self.vocab_relation,
             rel_meta_info=self.rel_meta_info,
-            knowledge_base_name_prompt=config["knowledge_base_name"],
+            entity_dict=self.entity_dict,
             mention_style=config["mention_style"],
             path_demonstration_pool=path_demonstration_pool,
             n_demonstrations=config["n_demonstrations"] ,
             with_span_annotation=config["with_span_annotation"]
         )
 
-        ######
-        # Model
-        ######
-
+        # Initialize the model
         self.model_name = config["model_name"]
-        assert self.model_name in ["llm", "openai"]
-
+        assert self.model_name in ["hf", "openai"]
         if model is not None:
             self.model = model
-            logger.info("LLM is provided")
-        elif self.model_name == "llm":
+            logger.info("LLM is provided by an argument")
+        elif self.model_name == "hf":
             self.model = LLM(
                 device=device,
                 # Model
@@ -135,18 +131,12 @@ class LLMDocRE:
             )
         else:
             self.model = OpenAILLM(
-                # Model
                 openai_model_name=config["openai_model_name"],
-                # Generation
                 max_new_tokens=config["max_new_tokens"]
             )
         # self.model.llm.to(self.model.device)
 
-        ######
-        # Generated text parsing
-        ######
-
-        # Output format
+        # Define regular expression for output parsing
         # self.re_comp = re.compile(
         #     "(.+?)\s*\(\s*(.+?)\s*,\s*(.+?)\s*,\s*(.+?)\s*\)$"
         # )
@@ -155,40 +145,42 @@ class LLMDocRE:
         #     "(.+?)\s*(.+?)\s*->\s*(.+?)\s*->\s*(.+?)$"
         # )
         # <bullet> <head entity ID> | <relation> | <tail entity ID>
-        self.re_comp = re.compile(
-            "(.+?)\s*(.+?)\s*\|\s*(.+?)\s*\|\s*(.+?)$"
-        )
+        self.re_comp = re.compile("(.+?)\s*(.+?)\s*\|\s*(.+?)\s*\|\s*(.+?)$")
 
+        # Create relation label mapping (normalized pretty name -> canonical name)
         # e.g., "chemical-induce-disease" -> "CID"
         self.normalized_to_canonical = {}
         for rel in self.vocab_relation.keys():
             pretty_name = self.rel_meta_info[rel]["Pretty Name"]
             self.normalized_to_canonical[pretty_name.lower()] = rel
 
-        if self.verbose:
-            logger.info("<<<<<<<<<< LLMDocRE Initialization <<<<<<<<<<")
+        logger.info("########## LLMDocRE Initialization Ends ##########")
+
+    def save(self, path_snapshot: str) -> None:
+        path_config = path_snapshot + "/config"
+        path_vocab = path_snapshot + "/relations.vocab.txt"
+        path_meta_info = path_snapshot + "/rel_meta_info.json"
+        path_entity_dict = path_snapshot + "/entity_dict.json"
+        path_demonstration_pool = path_snapshot + "/demonstration_pool.json"
+        utils.write_json(path_config, self.config)
+        utils.write_vocab(path_vocab, self.vocab_relation, write_frequency=False)
+        utils.write_json(path_meta_info, self.rel_meta_info)
+        utils.write_json(path_entity_dict, list(self.entity_dict.values()))
+        if self.prompt_processor.path_demonstration_pool is not None:
+            utils.write_json(
+                path_demonstration_pool,
+                self.prompt_processor.demonstration_pool
+            )
 
     def extract(
         self,
-        document,
+        document: Document,
         # optional: few-shot setting
-        demonstrations_for_doc=None,
+        demonstrations_for_doc: DemonstrationsForOneExample | None = None,
         # optional: context augmentation
-        contexts_for_doc=None
-    ):
-        """
-        Parameters
-        ----------
-        document : Document
-        demonstrations_for_doc : dict[str, str | list[DemoKeyInfo]] | None
-            by default None
-        contexts_for_doc : dict[str, str | list[str]] | None
-            by default None
-
-        Returns
-        -------
-        Document | list[Document]
-        """
+        contexts_for_doc: ContextsForOneExample | None = None
+    ) -> Document:
+        # Skip relation extraction if there are 1 or fewer entities
         if len(document["entities"]) <= 1:
             result_document = copy.deepcopy(document)
             result_document["relations"] = []
@@ -197,7 +189,7 @@ class LLMDocRE:
             return result_document
 
         with torch.no_grad():
-            if self.model_name == "llm":
+            if self.model_name == "hf":
                 # Switch to inference mode
                 self.model.llm.eval()
 
@@ -208,7 +200,7 @@ class LLMDocRE:
                 contexts_for_doc=contexts_for_doc
             )
    
-            if self.model_name == "llm": 
+            if self.model_name == "hf": 
                 # Preprocesss
                 preprocessed_data = self.model.preprocess(prompt=prompt)
 
@@ -219,16 +211,15 @@ class LLMDocRE:
                 )
 
                 # Forward
-                generated_text = self.model.generate(**model_input)[0] # str
+                generated_text = self.model.generate(**model_input)[0]
                 generated_text = self.model.remove_prompt_from_generated_text(
                     generated_text=generated_text
                 )
             else:
-                generated_text = self.model.generate(prompt) # str
+                generated_text = self.model.generate(prompt)
 
             # Structurize
-            # list[Triple]
-            triples = self.structurize(
+            triples: list[Triple] = self.structurize(
                 document=document,
                 generated_text=generated_text
             )
@@ -236,37 +227,26 @@ class LLMDocRE:
             # Integrate
             result_document = copy.deepcopy(document)
             result_document["relations"] = triples
-            if self.model_name == "llm":
+            if self.model_name == "hf":
                 result_document["docre_prompt"] = preprocessed_data["prompt"]
             else:
                 result_document["docre_prompt"] = prompt
             result_document["docre_generated_text"] = generated_text
             return result_document
 
-    def structurize(self, document, generated_text):
-        """
-        Parameters
-        ----------
-        document : Document
-        generated_text : str
-
-        Returns
-        -------
-        list[Triple]
-        """
+    def structurize(self, document: Document, generated_text: str) -> list[Triple]:
         doc_key = document["doc_key"]
 
         # Get mapping from entity ID to entity index
         entity_id_to_index = {}
         for e_i, e in enumerate(document["entities"]):
-            # entity_id_to_index[e["entity_id"]] = e_i
             entity_id_to_index[f"Entity{e_i}"] = e_i
             
-        # Parse each generated line
-        generated_lines = generated_text.split("\n")
-        tuples = [] # list[tuple[int, str, int]]
-        for generated_line in generated_lines:
+        tuples: list[tuple[int, str, int]] = []
+        for generated_line in generated_text.split("\n"):
             generated_line = generated_line.strip()
+
+            # Skip the empty line
             if generated_line == "":
                 continue
 
@@ -288,156 +268,57 @@ class LLMDocRE:
                 logger.info(f"[{doc_key}] Skipped a generated line with invalid entity pair: '{generated_line}'")
                 continue
 
-            # Check whether the relation can be found in the possible set
-            normalized_relation = relation.lower() # e.g., "Chemical-Induce-Disease" -> "chemical-induce-relation"
+            # Check whether the normalized relation label can be found in the possible set
+            normalized_relation = relation.lower()
             if not normalized_relation in self.normalized_to_canonical:
                 logger.info(f"[{doc_key}] A generated line contains invalid relation: '{generated_line}'")
                 # continue
-            # canonical_relation \
-            #     = self.normalized_to_canonical[normalized_relation] # e.g., "CID"
-            canonical_relation = self.normalized_to_canonical.get(normalized_relation, relation)
+
+            # Transform the normalized relation to canonical label
+            canonical_relation = self.normalized_to_canonical.get(
+                normalized_relation,
+                relation
+            )
 
             # Get entity index
             head_idx = entity_id_to_index[head_id]
             tail_idx = entity_id_to_index[tail_id]
 
-            # Add new tuples
+            # Add a new tuple
             tuple_ = (head_idx, canonical_relation, tail_idx)
             if not tuple_ in tuples:
                 tuples.append(tuple_)
 
-        # Convert tuples to triple dicts
-        triples = [] # list[Triple]
-        for tuple_ in tuples:
-            arg1, rel, arg2 = tuple_
+        # Convert tuples
+        triples: list[Triple] = []
+        for (arg1, rel, arg2) in tuples:
             triples.append({
                 "arg1": arg1,
                 "relation": rel,
                 "arg2": arg2
             })
-
         triples = sorted(
             triples,
             key=lambda x: (x["arg1"], x["arg2"], x["relation"])
         )
         return triples
 
-    # def structurize(self, document, generated_text):
-    #     """
-    #     Parameters
-    #     ----------
-    #     document : Document
-    #     generated_text : str
-
-    #     Returns
-    #     -------
-    #     list[Triple]
-    #     """
-    #     # Get mapping from entity ID to entity index
-    #     entity_id_to_index = {}
-    #     for e_i, e in enumerate(document["entities"]):
-    #         entity_id_to_index[e["entity_id"]] = e_i
-
-    #     # Parse the generated text into a JSON object
-    #     begin_index = generated_text.find("{")
-    #     end_index = generated_text.rfind("}")
-    #     if begin_index < 0 or end_index < 0:
-    #         logger.info(f"Skipped extraction because we could not parse the generated text into a JSON object: '{generated_text}'")
-    #         return []
-    #     json_text = generated_text[begin_index: end_index + 1]
-    #     try:
-    #         json_obj = json.loads(json_text)
-    #     except Exception as e:
-    #         logger.info(f"Skipped extraction because we could not parse the generated text into a JSON object: '{generated_text}'")
-    #         logger.info(e)
-    #         return []
-    #     if not isinstance(json_obj, dict):
-    #         logger.info(f"Skipped extraction because the parsed JSON object is not a dictionary: '{json_obj}'")
-    #         return []
-    #     if not "triples" in json_obj:
-    #         logger.info(f"Skipped extraction because the parsed JSON object does not contain `triples' key: '{json_obj}'")
-    #         return []
-
-    #     # We process each entry in the list
-    #     tuples = []
-    #     for entry in json_obj["triples"]:
-    #         if (not "subject" in entry) or (not "relation" in entry) or (not "object" in entry):
-    #             logger.info(f"Skipped a parsed JSON entry of invalid formatting: '{entry}'")
-    #             continue
-    #         head_id = entry["subject"]
-    #         relation = entry["relation"]
-    #         tail_id = entry["object"]
-            
-    #         # Check whether the head/tail IDs can be found in the possible list
-    #         if (
-    #             (not head_id in entity_id_to_index)
-    #             or
-    #             (not tail_id in entity_id_to_index)
-    #             or
-    #             head_id == tail_id
-    #         ):
-    #             logger.info(f"Skipped a parsed JSON entry with invalid entity pair: '{entry}'")
-    #             continue
-
-    #         # Check whether the relation can be found in the possible set
-    #         normalized_relation = relation.lower() # e.g., "Chemical-Induce-Disease" -> "chemical-induce-relation"
-    #         if not normalized_relation in self.normalized_to_canonical:
-    #             logger.info(f"Skipped a parsed JSON entry with invalid relation: '{entry}'")
-    #             continue
-    #         canonical_relation \
-    #             = self.normalized_to_canonical[normalized_relation] # e.g., "CID"
-
-    #         # Get entity index
-    #         head_idx = entity_id_to_index[head_id]
-    #         tail_idx = entity_id_to_index[tail_id]
-
-    #         # Add new tuples
-    #         tuple_ = (head_idx, canonical_relation, tail_idx)
-    #         if not tuple_ in tuples:
-    #             tuples.append(tuple_)
-
-    #     # Convert tuples to triple dicts
-    #     triples = [] # list[Triple]
-    #     for tuple_ in tuples:
-    #         arg1, rel, arg2 = tuple_
-    #         triples.append({
-    #             "arg1": arg1,
-    #             "relation": rel,
-    #             "arg2": arg2
-    #         })
-
-    #     triples = sorted(
-    #         triples,
-    #         key=lambda x: (x["arg1"], x["arg2"], x["relation"])
-    #     )
-    #     return triples
-
     def batch_extract(
         self,
-        documents,
+        documents: list[Document],
         # optional: few-shot setting
-        demonstrations=None,
+        demonstrations: list[DemonstrationsForOneExample] | None = None,
         # optional: context augmentation
-        contexts=None
-    ):
-        """
-        Parameters
-        ----------
-        documents : list[Document]
-        demonstrations : list[dict[str, str | list[DemoKeyInfo]]] | None
-            by default None
-        contexts : list[dict[str, str | list[str]]] | None
-            by default None
-
-        Returns
-        -------
-        list[Document]
-        """
+        contexts: list[ContextsForOneExample] | None = None
+    ) -> list[Document]:
         result_documents = []
+
         if demonstrations is None:
             demonstrations = [None] * len(documents)
+
         if contexts is None:
             contexts = [None] * len(documents)
+
         for document, demonstrations_for_doc, contexts_for_doc in tqdm(
             zip(documents, demonstrations, contexts),
             total=len(documents),
@@ -456,90 +337,53 @@ class PromptProcessor:
 
     def __init__(
         self,
-        prompt_template_name_or_path,
-        path_entity_dict,
-        vocab_relation,
-        rel_meta_info,
-        knowledge_base_name_prompt,
-        mention_style,
+        prompt_template_name_or_path: str,
+        knowledge_base_name_prompt: str,
+        vocab_relation: dict[str, int],
+        rel_meta_info: dict[str, dict[str, str]],
+        entity_dict: dict[str, EntityPage],
+        mention_style: str,
         # optional: few-shot setting
-        path_demonstration_pool=None,
-        n_demonstrations=None,
+        path_demonstration_pool: str | None = None,
+        n_demonstrations: int | None = None,
         # misc.
-        with_span_annotation=True
+        with_span_annotation: bool = True
     ):
-        """
-        Parameters
-        ----------
-        prompt_template_name : str
-        path_entity_dict : str
-        vocab_relation: dict[str, int]
-        rel_meta_info: dict[str, dict[str, str]]
-        knowledge_base_name_prompt: str
-        mention_style: str
-        path_demonstration_pool: str | None
-            by default None
-        n_demonstrations: int | None
-            by default None
-        with_span_annotation : bool
-            by default True
-        """
         self.prompt_template_name_or_path = prompt_template_name_or_path
-        self.path_entity_dict = path_entity_dict
+        self.knowledge_base_name_prompt = knowledge_base_name_prompt
         self.vocab_relation = vocab_relation
         self.rel_meta_info = rel_meta_info
-        self.knowledge_base_name_prompt = knowledge_base_name_prompt
+        self.entity_dict = entity_dict
         self.mention_style = mention_style
         self.path_demonstration_pool = path_demonstration_pool
         self.n_demonstrations = n_demonstrations
         self.with_span_annotation = with_span_annotation
 
-        assert self.mention_style in ["canonical_name", "first_mention", "all_mentions"]
+        assert self.mention_style in [
+            "canonical_name", "first_mention", "all_mentions"
+        ]
 
+        # If demonstration pool is provided, `n_demonstration` should also be set
         if self.path_demonstration_pool is not None:
             assert self.n_demonstrations is not None
-
         if self.n_demonstrations == 0:
             self.path_demonstration_pool = None
 
-        #####
-        # Load prompt template
-        #####
+        # Load the prompt template
+        self.prompt_template = utils.read_prompt_template(
+            prompt_template_name_or_path=self.prompt_template_name_or_path
+        )
 
-        self.prompt_template = utils.read_prompt_template(prompt_template_name_or_path=self.prompt_template_name_or_path)
-
-        # Check requirements
-        assert "{relations_prompt}" in self.prompt_template # XXX
-        if self.path_demonstration_pool is not None:
-            assert "{demonstrations_prompt}" in self.prompt_template
-        # assert "{contexts_prompt}" in self.prompt_template
-        assert "{task_prompt}" in self.prompt_template
-
+        # Generate the prompt part for relation labels
         self.relations_prompt = ""
-        # for k, v in rel_name_to_pretty_rel_name.items():
-        #     self.relations_prompt += f"- {v}\n"
         for rel in vocab_relation.keys():
             pretty_name = self.rel_meta_info[rel]["Pretty Name"]
             definition = self.rel_meta_info[rel]["Definition"]
             self.relations_prompt += f"- {pretty_name}: {definition}\n"
         self.relations_prompt = self.relations_prompt.rstrip()
 
-       #####
-        # Load entity dictionary
-        #####
-
-        # dict[str, EntityPage]
-        self.entity_dict = {
-            epage["entity_id"]: epage
-            for epage in utils.read_json(path_entity_dict)
-        }
-
-        #####
-        # Load demonstration pool
-        #####
-
+        # Load the demonstration pool
         if self.path_demonstration_pool is not None:
-            # dict[DocKey, Document]
             self.demonstration_pool = {
                 demo_doc["doc_key"]: demo_doc
                 for demo_doc in utils.read_json(path_demonstration_pool)
@@ -547,189 +391,129 @@ class PromptProcessor:
 
     def generate(
         self,
-        document,
+        document: Document,
         # optional: few-shot setting
-        demonstrations_for_doc=None,
+        demonstrations_for_doc: DemonstrationsForOneExample | None = None,
         # optional: context augmentation
-        contexts_for_doc=None
-    ):
-        """
-        Parameters
-        ----------
-        document : Document
-        demonstrations_for_doc : dict[str, str | list[DemoKeyInfo]] | None
-            by default None
-        contexts_for_doc : dict[str, str | list[Passage]] | None
-            by default None
+        contexts_for_doc: ContextsForOneExample | None = None
+    ) -> str:
+        ##########
+        # Demonstrations Prompt
+        ##########
 
-        Returns
-        -------
-        str
-        """
         if demonstrations_for_doc is not None:
-            # Prepare demonstrations
-            demonstration_documents = [] # list[Document]
+            # Create demonstration documents
+            demonstration_documents: list[Document] = []
             for demo_key_dict in (
                 demonstrations_for_doc["demonstrations"][:self.n_demonstrations]
             ):
                 demo_doc = self.demonstration_pool[demo_key_dict["doc_key"]]
                 demonstration_documents.append(demo_doc)
-            # Get prompt part for demonstrations
+            # Generate prompt part for demonstrations
             demonstrations_prompt = self.generate_demonstrations_prompt(
                 demonstration_documents=demonstration_documents
             )
         else:
             demonstrations_prompt = ""
 
+        ##########
+        # Contexts Prompt
+        ##########
+
         if contexts_for_doc is not None:
-            # Prepare contexts
-            context_texts = [] # list[str]
+            # Create contexts
+            context_texts: list[str] = []
             for passage in contexts_for_doc["contexts"]:
                 text = utils.create_text_from_passage(passage=passage, sep=" : ")
                 context_texts.append(text)
-            # Get prompt part for contexts
+            # Generate prompt part for contexts
             contexts_prompt = self.generate_contexts_prompt(
                 context_texts=context_texts
             )
         else:
             contexts_prompt = ""
 
-        # Get prompt part for task
-        task_prompt = self.generate_task_prompt(
+        ##########
+        # Test Case Prompt
+        ##########
+
+        # Generate prompt part for test case
+        test_case_prompt = self.generate_test_case_prompt(
             document=document,
         )
 
+        ##########
+        # Final Prompt
+        ##########
+ 
         # Combine the prompt parts
         prompt = self.prompt_template.format(
             knowledge_base_name_prompt=self.knowledge_base_name_prompt,
-            relations_prompt=self.relations_prompt, # XXX
+            relations_prompt=self.relations_prompt,
             demonstrations_prompt=demonstrations_prompt,
             contexts_prompt=contexts_prompt,
-            task_prompt=task_prompt
+            test_case_prompt=test_case_prompt
         )
         return prompt
 
-    #####
-
-    def generate_demonstrations_prompt(self, demonstration_documents):
-        """
-        Parameters
-        ----------
+    def generate_demonstrations_prompt(
+        self,
         demonstration_documents: list[Document]
-
-        Returns
-        -------
-        str
-        """
-        text = ""
+    ) -> str:
+        prompt = ""
         n_demos = len(demonstration_documents)
         for demo_i, demo_doc in enumerate(demonstration_documents):
-            # Title
-            text += f"Example {demo_i+1}:\n"
-            # Input
-            text += (
-                "Text: "
-                + self.generate_input_text_prompt(document=demo_doc)
-                + "\n"
-            )
-            text += (
-                "Entities:\n"
-                + self.generate_input_entities_prompt(document=demo_doc)
-                + "\n"
-            )
-            # Output
-            text += (
-                "Output:\n"
-                + self.generate_relations_prompt(
-                    document=demo_doc
-                )
-                + "\n"
-            )
+            prompt += f"Example {demo_i+1}:\n"
+            prompt += f"Text: {self.generate_input_text_prompt(document=demo_doc)}\n"
+            prompt += "Entities:\n"
+            prompt += f"{self.generate_input_entities_prompt(document=demo_doc)}\n"
+            prompt += "Output:\n"
+            prompt += f"{self.generate_relations_prompt(document=demo_doc)}\n"
             if demo_i < n_demos - 1:
-                text += "\n"
-        return text.rstrip()
+                prompt += "\n"
+        return prompt.rstrip()
 
-    def generate_contexts_prompt(self, context_texts):
-        """
-        Parameters
-        ----------
-        context_texts : list[str]
-
-        Returns
-        -------
-        str
-        """
+    def generate_contexts_prompt(self, context_texts: list[str]) -> str:
         n_contexts = len(context_texts)
         if n_contexts == 0:
             return ""
         else:
-            text = ""
+            prompt = ""
             for context_i, content in enumerate(context_texts):
-                text += f"[{context_i+1}] {content.strip()} \n"
+                prompt += f"[{context_i+1}] {content.strip()} \n"
                 if context_i < n_contexts - 1:
-                    text += "\n"
-            return text.rstrip()
+                    prompt += "\n"
+            return prompt.rstrip()
 
-    def generate_task_prompt(self, document):
-        """
-        Parameters
-        ----------
-        document : Document
+    def generate_test_case_prompt(self, document: Document) -> str:
+        prompt = ""
+        prompt += f"Text: {self.generate_input_text_prompt(document=document)}\n"
+        prompt += "Entities:\n"
+        prompt += f"{self.generate_input_entities_prompt(document=document)}\n"
+        return prompt.rstrip()
 
-        Returns
-        -------
-        str
-        """
-        text = ""
-        # Input
-        text += (
-            "Text: "
-            + self.generate_input_text_prompt(document=document)
-            + "\n"
-        )
-        text += (
-            "Entities:\n"
-            + self.generate_input_entities_prompt(document=document)
-            + "\n"
-        )
-        return text.rstrip()
+    def generate_input_text_prompt(self, document: Document) -> str:
+        prompt = " ".join(document["sentences"]) + "\n"
+        return prompt.rstrip()
 
-    #####
+    def generate_input_entities_prompt(self, document: Document) -> str:
+        prompt = ""
 
-    def generate_input_text_prompt(self, document):
-        """
-        Parameters
-        ----------
-        document : Document
-
-        Returns
-        -------
-        str
-        """
-        text = " ".join(document["sentences"]) + "\n"
-        return text.rstrip()
-
-    def generate_input_entities_prompt(self, document):
-        """
-        Parameters
-        ----------
-        document : Document
-
-        Returns
-        -------
-        str
-        """
-        text = ""
         words = " ".join(document["sentences"]).split()
+
         mentions = document["mentions"]
         entities = document["entities"]
+
         for e_i, entity in enumerate(entities):
             entity_id = entity["entity_id"]
             entity_type = entity["entity_type"]
+
             if self.mention_style == "all_mentions":
+                # Get mention names
                 mention_indices = entity["mention_indices"]
                 names = []
                 for m_i in mention_indices:
+                    # Get mention name
                     mention = mentions[m_i]
                     if not self.with_span_annotation:
                         name = mention["name"]
@@ -741,10 +525,11 @@ class PromptProcessor:
                     if name in names:
                         continue
                     names.append(name)
+                # Add the entity to prompt
                 names = ", ".join([f"\"{n}\"" for n in names])
-                # text += f"- {entity_id}: {names}\n"
-                text += f"- Entity{e_i}: {names} ({entity_type})\n"
+                prompt += f"- Entity{e_i}: {names} ({entity_type})\n"
             elif self.mention_style == "first_mention":
+                # Get the first mention name
                 mention_indices = entity["mention_indices"]
                 mention = mentions[mention_indices[0]]
                 if self.with_span_annotation:
@@ -752,134 +537,61 @@ class PromptProcessor:
                     name = " ".join(words[begin_i: end_i + 1])
                 else:
                     name = mention["name"]
-                # text += f"- {entity_id}: \"{name}\"\n"
-                text += f"- Entity{e_i}: \"{name}\" ({entity_type})\n"
+                # Add the entity to prompt
+                prompt += f"- Entity{e_i}: \"{name}\" ({entity_type})\n"
             elif self.mention_style == "canonical_name":
+                # Get entity canonical name
                 epage = self.entity_dict[entity_id]
                 name = epage["canonical_name"]
-                # text += f"- {entity_id}: {name}\n"
-                text += f"- Entity{e_i}: {name} ({entity_type})\n"
+                # Add the entity to prompt
+                prompt += f"- Entity{e_i}: {name} ({entity_type})\n"
             else:
                 raise Exception(f"Invalid mention_style: {self.mention_style}")
-        return text.rstrip()
+        return prompt.rstrip()
 
-    def generate_relations_prompt(self, document):
-        """
-        Parameters
-        ----------
-        document : Document
-
-        Returns
-        -------
-        str
-        """
-        # text = ""
-        # # words = " ".join(document["sentences"]).split()
-        # # pretty_rel_name = self.rel_name_to_pretty_rel_name[relation_type]
-        # entities = document["entities"]
-        # for triple in document["relations"]:
-        #     head_idx = triple["arg1"]
-        #     tail_idx = triple["arg2"]
-        #     rel = triple["relation"]
-        #     head_id = entities[head_idx]["entity_id"]
-        #     tail_id = entities[tail_idx]["entity_id"]
-        #     pretty_rel = self.rel_name_to_pretty_rel_name[rel]
-        #     text += f"- {head_id} -> {pretty_rel} -> {tail_id}\n"
-        # return text.rstrip()
-
-        # output_json = {
-        #     "triples": []
-        # }
-        # entities = document["entities"]
-        # for triple in document["relations"]:
-        #     head_idx = triple["arg1"]
-        #     tail_idx = triple["arg2"]
-        #     rel = triple["relation"]
-        #     head_id = entities[head_idx]["entity_id"]
-        #     tail_id = entities[tail_idx]["entity_id"]
-        #     pretty_rel = self.rel_name_to_pretty_rel_name[rel]
-        #     output_json["triples"].append(
-        #         {
-        #             "subject": head_id,
-        #             "relation":  pretty_rel,
-        #             "object": tail_id
-        #         }
-        #     )
-        # # return json.dumps(output_json)
-        # text = ""
-        # for triple in output_json["triples"]:
-        #     h = triple["subject"]
-        #     r = triple["relation"]
-        #     t = triple["object"]
-        #     text += f"- {h} | {r} | {t}\n"
-        # return text.rstrip()
-
-        text = ""
+    def generate_relations_prompt(self, document: Document) -> str:
+        prompt = ""
         for triple in document["relations"]:
             head_idx = triple["arg1"]
             tail_idx = triple["arg2"]
             rel = triple["relation"]
             pretty_name = self.rel_meta_info[rel]["Pretty Name"]
-            text += f"- Entity{head_idx} | {pretty_name} | Entity{tail_idx}\n"
-        return text.rstrip()
+            prompt += f"- Entity{head_idx} | {pretty_name} | Entity{tail_idx}\n"
+        return prompt.rstrip()
  
 
 class LLMDocRETrainer:
 
-    def __init__(self, base_output_path):
-        """
-        Parameters
-        ----------
-        base_output_path : str
-        """
+    def __init__(self, base_output_path: str):
         self.base_output_path = base_output_path
         self.paths = self.get_paths()
 
-    def get_paths(self):
-        """
-        Returns
-        -------
-        dict[str, str]
-        """
+    def get_paths(self) -> dict[str, str]:
         paths = {}
 
-        # Path to config file
-        paths["path_config"] = self.base_output_path + "/config"
-        # Path to vocabulary
-        paths["path_vocab_relation"] = self.base_output_path + "/relations.vocab.txt"
-        paths["path_rel_meta_info"] = self.base_output_path + "/rel_meta_info.json"
-
-        # Path to gold training triples for Ign evaluation
-        paths["path_gold_train_triples"] = self.base_output_path + "/gold_train_triples.json"
-
-        # Paths to validation outputs and scores
+        # configurations
+        paths["path_snapshot"] = self.base_output_path
+ 
+        # evaluation outputs
         paths["path_dev_gold"] = self.base_output_path + "/dev.gold.json"
         paths["path_dev_pred"] = self.base_output_path + "/dev.pred.json"
         paths["path_dev_eval"] = self.base_output_path + "/dev.eval.json"
-
-        # Paths to evaluation outputs and scores
         paths["path_test_gold"] = self.base_output_path + "/test.gold.json"
         paths["path_test_pred"] = self.base_output_path + "/test.pred.json"
         paths["path_test_eval"] = self.base_output_path + "/test.eval.json"
+
+        # required for Ign evaluation
+        paths["path_gold_train_triples"] = self.base_output_path + "/gold_train_triples.json"
 
         return paths
 
     def setup_dataset(
         self,
-        extractor,
-        documents,
-        split,
-        with_gold_annotations=True
-    ):
-        """
-        Parameters
-        ----------
-        extractor : LLMDocRE
-        documents : list[Document]
-        split : str
-        with_gold_annotations : bool
-            by default True
-        """
+        extractor: LLMDocRE,
+        documents: list[Document],
+        split: str,
+        with_gold_annotations: bool = True
+    ) -> None:
         # Cache the gold training triples for Ign evaluation
         if split == "train":
             if not os.path.exists(self.paths["path_gold_train_triples"]):
@@ -927,77 +639,31 @@ class LLMDocRETrainer:
                 utils.write_json(path_gold, gold_documents)
                 logger.info(f"Saved the gold annotations for evaluation in {path_gold}")
 
-    def save_extractor(self, extractor):
-        """
-        Parameters
-        ----------
-        extractor : LLMDocREextractor
-        """
-        # Since we do not finetune the model, we save the configuration
-        #   and the relation type vocabulary by this function.
-
-        # Save the config (only once)
-        # utils.dump_hocon_config(self.paths["path_config"], extractor.config)
-        utils.write_json(self.paths["path_config"], extractor.config)
-        logger.info("Saved config file to %s" % self.paths["path_config"])
-
-        # Save the vocabulary (only once)
-        utils.write_vocab(
-            self.paths["path_vocab_relation"],
-            extractor.vocab_relation,
-            write_frequency=False
-        )
-        logger.info("Saved relation type vocabulary to %s" % self.paths["path_vocab_relation"])
-
-        utils.write_json(
-            self.paths["path_rel_meta_info"],
-            extractor.rel_meta_info,
-        )
-        logger.info("Saved relation meta-information to %s" % self.paths["path_rel_meta_info"])
+    def save_extractor(self, extractor: LLMDocRE):
+        extractor.save(path_snapshot=self.paths["path_snapshot"])
 
     def evaluate(
         self,
-        extractor,
-        documents,
-        demonstrations,
-        contexts,
-        split,
-        supplemental_info,
+        extractor: LLMDocRE,
+        documents: list[Document],
+        demonstrations: list[DemonstrationsForOneExample],
+        contexts: list[ContextsForOneExample],
+        split: str,
+        supplemental_info: dict[str, Any],
         #
-        skip_intra_inter=False,
-        skip_ign=False,
-        prediction_only=False,
-        get_scores_only=False
-    ):
-        """
-        Parameters
-        ----------
-        extractor : LLMDocRE
-        documents : list[Document]
-        demonstrations : list[dict[str, str | list[DemoKeyInfo]]] | None
-        contexts : list[dict[str, str | list[Passage]]] | None
-        split : str
-        supplemental_info : dict[str, Any]
-        skip_intra_inter : bool
-            by default False
-        skip_ign : bool
-            by default False
-        prediction_only : bool
-            by default False
-        get_scores_only : bool
-            by default False
-
-        Returns
-        -------
-        dict[str, Any]
-        """
-        # (documents, demonstrations, contexts) -> path_pred
+        skip_intra_inter: bool = False,
+        skip_ign: bool = False,
+        prediction_only: bool = False,
+        get_scores_only: bool = False
+    ) -> dict[str, Any] | None:
+        # Apply the extractor
         result_documents = extractor.batch_extract(
             documents=documents,
             demonstrations=demonstrations,
             contexts=contexts
         )
         utils.write_json(self.paths[f"path_{split}_pred"], result_documents)
+
         with open(
             self.paths[f"path_{split}_pred"].replace(".json", ".txt"), "w"
         ) as f:
@@ -1010,9 +676,11 @@ class LLMDocRETrainer:
                 f.write(generated_text + "\n\n")
                 f.write("------\n\n")
                 f.flush()
+
         if prediction_only:
             return
-        # (path_pred, path_gold) -> scores
+
+        # Calculate the evaluation scores
         scores = evaluation.docre.fscore(
             pred_path=self.paths[f"path_{split}_pred"],
             gold_path=self.paths[f"path_{split}_gold"],
@@ -1020,51 +688,35 @@ class LLMDocRETrainer:
             skip_ign=skip_ign,
             gold_train_triples_path=self.paths["path_gold_train_triples"]
         )
+
         if get_scores_only:
             return scores
-        # scores -> path_eval
+
+        # Save the evaluation scores
         utils.write_json(self.paths[f"path_{split}_eval"], scores)
         logger.info(utils.pretty_format_dict(scores))
         return scores
 
     def official_evaluate(
         self,
-        extractor,
-        documents,
-        demonstrations,
-        contexts,
-        split,
-        supplemental_info,
+        extractor: LLMDocRE,
+        documents: list[Document],
+        demonstrations: list[DemonstrationsForOneExample],
+        contexts: list[ContextsForOneExample],
+        split: str,
+        supplemental_info: dict[str, Any],
         #
-        prediction_only=False,
-        get_scores_only=False
-    ):
-        """
-        Parameters
-        ----------
-        extractor : LLMDocRE
-        documents : list[Document]
-        demonstrations : list[dict[str, str | list[DemoKeyInfo]]] | None
-        contexts : list[dict[str, str | list[str]]] | None
-        split : str
-        supplemental_info : dict[str, Any]
-        prediction_only : bool
-            by default False
-        get_scores_only : bool
-            by default False
-
-        Returns
-        -------
-        str[str, Any]
-        """
-        # NOTE: prediction_only is assumed to be used for the DocRED test set
-        # (documents, demonstrations, contexts) -> path_pred
+        prediction_only: bool = False,
+        get_scores_only: bool = False
+    ) -> dict[str, Any] | None:
+        # Apply the extractor
         result_documents = extractor.batch_extract(
             documents=documents,
             demonstrations=demonstrations,
             contexts=contexts
         )
         utils.write_json(self.paths[f"path_{split}_pred"], result_documents)
+
         with open(
             self.paths[f"path_{split}_pred"].replace(".json", ".txt"), "w"
         ) as f:
@@ -1077,28 +729,31 @@ class LLMDocRETrainer:
                 f.write(generated_text + "\n\n")
                 f.write("------\n\n")
                 f.flush()
-        # path_pred -> triples (path_pred variant)
+
         triples = evaluation.docre.to_official(
             path_input=self.paths[f"path_{split}_pred"],
             path_output=
             self.paths[f"path_{split}_pred"].replace(".json", ".official.json")
         )
+
         if prediction_only:
             return
-        # gold info
+
+        # Calculate the evaluation scores
         original_data_dir = supplemental_info["original_data_dir"]
         train_file_name = supplemental_info["train_file_name"]
         dev_file_name = supplemental_info[f"{split}_file_name"]
-        # (triples, gold info) -> scores
         scores = evaluation.docre.official_evaluate(
             triples=triples,
             original_data_dir=original_data_dir,
             train_file_name=train_file_name,
             dev_file_name=dev_file_name
         )
+
         if get_scores_only:
             return scores
-        # scores -> path_eval
+
+        # Save the evaluation scores
         utils.write_json(self.paths[f"path_{split}_eval"], scores)
         logger.info(utils.pretty_format_dict(scores))
         return scores

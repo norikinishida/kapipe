@@ -173,19 +173,37 @@ def main(args):
 
         if actiontype == "inference_only":
             # Apply the answerer on the datasets (without evaluation)
-            results = inference_only(
+            # results = inference_only(
+            #     answerer=answerer,
+            #     questions=dev_questions,
+            #     contexts=dev_contexts,
+            #     path=trainer.paths["path_dev_pred"]
+            # )
+            # results = inference_only(
+            #     answerer=answerer,
+            #     questions=test_questions,
+            #     contexts=test_contexts,
+            #     path=trainer.paths["path_test_pred"]
+            # )
+            trainer.evaluate(
                 answerer=answerer,
                 questions=dev_questions,
+                demonstrations=None,
                 contexts=dev_contexts,
-                path=trainer.paths["path_dev_pred"]
+                split="dev",
+                metric="recall",
+                prediction_only=True
             )
-            results = inference_only(
+            trainer.evaluate(
                 answerer=answerer,
                 questions=test_questions,
+                demonstrations=None,
                 contexts=test_contexts,
-                path=trainer.paths["path_test_pred"]
+                split="test",
+                metric="recall",
+                prediction_only=True
             )
- 
+
         if actiontype == "evaluate":
             # Evaluate the answerer on the datasets
             trainer.evaluate(

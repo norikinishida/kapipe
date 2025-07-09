@@ -1,6 +1,9 @@
+from __future__ import annotations
+
 import copy
 import logging
 import os
+from typing import Any
 
 from spacy.lang.en import English
 from tqdm import tqdm
@@ -8,6 +11,15 @@ from tqdm import tqdm
 from ..passage_retrieval import BM25, TextSimilarityBasedRetriever
 from .. import evaluation
 from .. import utils
+from ..datatypes import (
+    Config,
+    Document,
+    Mention,
+    Entity,
+    EntityPassage,
+    CandEntKeyInfo,
+    CandidateEntitiesForDocument
+)
 
 
 logger = logging.getLogger(__name__)
@@ -18,7 +30,7 @@ class Tokenizer:
     def __init__(self):
         self.nlp = English()
 
-    def __call__(self, sentence):
+    def __call__(self, sentence: str) -> list[str]:
         doc = self.nlp(sentence)
         return [token.text.lower() for token in doc]
 
@@ -27,47 +39,38 @@ class LexicalEntityRetriever:
 
     def __init__(
         self,
-        # General
-        config,
-        # Task specific
-        path_entity_dict,
-        # Misc.
-        verbose=True
+        config: Config | str | None = None,
+        path_entity_dict: str | None = None,
+        path_snapshot: str | None = None
     ):
-        """
-        Parameters
-        ----------
-        config : ConfigTree | str
-        path_entity_dict : str
-        verbose : bool
-            by default True
-        """
-        self.verbose = verbose
-        if self.verbose:
-            logger.info(">>>>>>>>>> LexicalEntityRetriever Initialization >>>>>>>>>>")
+        logger.info("########## LexicalEntityRetriever Initialization Starts ##########")
 
-        ######
-        # Config
-        ######
+        if path_snapshot is not None:
+            assert config is None
+            assert path_entity_dict is None
+            config = path_snapshot + "/config"
+            path_entity_dict = path_snapshot + "/entity_dict.json"
 
+        # Load the configuration
         if isinstance(config, str):
-            tmp = config
-            config = utils.get_hocon_config(
-                config_path=config,
-                config_name=None
-            )
-            if self.verbose:
-                logger.info(f"Loaded configuration from {tmp}")
+            config_path = config
+            config = utils.get_hocon_config(config_path=config_path)
+            logger.info(f"Loaded configuration from {config_path}")
         self.config = config
-        if self.verbose:
-            logger.info(utils.pretty_format_dict(self.config))
+        logger.info(utils.pretty_format_dict(self.config))
 
-        ######
-        # Retriever
-        ######
-
+        # Load the entity dictionary
+        logger.info(f"Loading entity dictionary from {path_entity_dict}")
+        self.entity_dict = {
+            epage["entity_id"]: epage
+            for epage in utils.read_json(path_entity_dict)
+        }
+        logger.info(f"Completed loading of entity dictionary with {len(self.entity_dict)} entities from {path_entity_dict}")
+ 
+        # Initialize the tokenizer
         self.tokenizer = Tokenizer()
 
+        # Initialize the retriever
         if self.config["retriever_name"] == "bm25":
             self.retriever = BM25(
                 tokenizer=self.tokenizer,
@@ -82,64 +85,42 @@ class LexicalEntityRetriever:
         else:
             raise Exception(f"Invalid retriever_name: {self.config['retriever_name']}")
 
-        self.entity_dict = {
-            epage["entity_id"]: epage
-            for epage in utils.read_json(path_entity_dict)
-        }
-        if self.verbose:
-            logger.info(f"Loaded entity dictionary from {path_entity_dict}")
-
-        # Make index
-        logger.info("Making index ...")
-
-        # def get_text(name, description):
-        #     text = []
-        #     if "canonical_name" in self.config["features"]:
-        #         text.append(name)
-        #     if "description" in self.config["features"]:
-        #         text.append(description)
-        #     return " ".join(text)
-                
-        # Generate entity passages
+        # Create entity passages
         # We expand the entities using synonyms
         # Thus, the number of entity passages >= the number of entities
-        entity_passages = [] # list[EntityPassage]      
+        entity_passages: list[EntityPassage] = []
         use_desc = "description" in self.config["features"]
         for eid, epage in self.entity_dict.items():
-            # desc = epage["description"]
             names = [epage["canonical_name"]] + epage["synonyms"]
             description = epage["description"]
             for name in names:
-                entity_passage = {
+                entity_passage: EntityPassage = {
                     "id": eid,
                     "title": name,
-                    # "text": get_text(name, epage["description"]),
                     "text": description if use_desc else ""
                 }
                 entity_passages.append(entity_passage)
         logger.info(f"Number of entities: {len(self.entity_dict)}")
         logger.info(f"Number of entity passages (after synonym expansion): {len(entity_passages)}")
 
+        # Build index
+        logger.info("Building index ...")
         self.retriever.make_index(passages=entity_passages)
-        logger.info("Made index")
+        logger.info("Completed indexing")
 
-        if self.verbose:
-            logger.info("<<<<<<<<<< LexicalEntityRetriever Initialization <<<<<<<<<<")
+        logger.info("########## LexicalEntityRetriever Initialization Ends ##########")
 
-    # ---
+    def save(self, path_snapshot: str) -> None:
+        path_config = path_snapshot + "/config"
+        path_entity_dict = path_snapshot + "/entity_dict.json"
+        utils.write_json(path_config, self.config)
+        utils.write_json(path_entity_dict, self.entity_dict)
 
-    def extract(self, document, retrieval_size=1):
-        """
-        Parameters
-        ----------
-        document : Document
-        retrieval_size : int
-            by default 1
-
-        Returns
-        -------
-        tuple[Document, dict[str, list[list[CandEntKeyInfo]]]]
-        """
+    def extract(
+        self,
+        document: Document,
+        retrieval_size: int = 1
+    ) -> tuple[Document, CandidateEntitiesForDocument]:
         words = " ".join(document["sentences"]).split()
         mention_pred_entity_ids = [] # (n_mentions, retrieval_size)
         mention_pred_entity_names = [] # (n_mentions, retrieval_size)
@@ -149,21 +130,29 @@ class LexicalEntityRetriever:
             begin_i, end_i = mention["span"]
             query = " ".join(words[begin_i : end_i + 1])
             # Retrieval
-            # pred_entity_ids, pred_entity_names, scores =
-            entity_passages = self.retriever.search(
+            entity_passages: list[EntityPassage] = self.retriever.search(
                 query=query,
                 top_k=self.config["retrieval_size"]
-            ) # list[Passage]
+            )
             pred_entity_ids = [p["id"] for p in entity_passages]
             pred_entity_names = [p["title"] for p in entity_passages]
             scores = [p["score"] for p in entity_passages]
+
+            if len(pred_entity_ids) < retrieval_size:
+                last_id = pred_entity_ids[-1]
+                last_name = pred_entity_names[-1]
+                last_score = scores[-1]
+                pred_entity_ids = pred_entity_ids + [last_id] * (retrieval_size - len(pred_entity_ids))
+                pred_entity_names = pred_entity_names + [last_name] * (retrieval_size - len(pred_entity_names))
+                scores = scores + [last_score] * (retrieval_size - len(scores))
+
             mention_pred_entity_ids.append(pred_entity_ids)
             mention_pred_entity_names.append(pred_entity_names)
             retrieval_scores.append(scores)
 
         # Structurize (1)
         # Get outputs (mention-level)
-        mentions = [] # list[Mention]
+        mentions: list[Mention] = []
         for m_i in range(len(document["mentions"])):
             mentions.append({
                 "entity_id": mention_pred_entity_ids[m_i][0],
@@ -172,18 +161,18 @@ class LexicalEntityRetriever:
         # Structurize (2)
         # Get outputs (entity-level)
         # i.e., aggregate mentions based on the entity IDs
-        entities = utils.aggregate_mentions_to_entities(
+        entities: list[Entity] = utils.aggregate_mentions_to_entities(
             document=document,
             mentions=mentions
         )
 
         # Structurize (3)
         # Get outputs (candidate entities for each mention)
-        candidate_entities_for_mentions = [] # list[list[CandEntKeyInfo]]
+        candidate_entities_for_mentions: list[list[CandEntKeyInfo]] = []
         n_mentions = len(mention_pred_entity_ids)
         assert len(mention_pred_entity_ids[0]) == self.config["retrieval_size"]
         for m_i in range(n_mentions):
-            lst_cand_ent = [] # list[CandEntKeyInfo]
+            lst_cand_ent: list[CandEntKeyInfo] = []
             for c_i in range(self.config["retrieval_size"]):
                 cand_ent = {
                     "entity_id": mention_pred_entity_ids[m_i][c_i],
@@ -198,32 +187,24 @@ class LexicalEntityRetriever:
         for m_i in range(len(document["mentions"])):
             document["mentions"][m_i].update(mentions[m_i])
         document["entities"] = entities
-        candidate_entities_for_doc = {
+        candidate_entities_for_doc: CandidateEntitiesForDocument = {
             "doc_key": document["doc_key"],
             "candidate_entities": candidate_entities_for_mentions
         }
         return document, candidate_entities_for_doc
 
-    def batch_extract(self, documents, retrieval_size=1):
-        """
-        Parameters
-        ----------
-        documents : list[Document]
-        retrieval_size : int
-            by default 1
-
-        Returns
-        -------
-        tuple[list[Document], list[dict[str, list[list[CandEntKeyInfo]]]]]
-        """
+    def batch_extract(
+        self,
+        documents: list[Document],
+        retrieval_size: int = 1
+    ) -> tuple[list[Document], list[CandidateEntitiesForDocument]]:
         result_documents = []
         candidate_entities = []
         for document in tqdm(documents, desc="extraction steps"):
-            document, candidate_entities_for_doc \
-                = self.extract(
-                    document=document,
-                    retrieval_size=retrieval_size
-                )
+            document, candidate_entities_for_doc = self.extract(
+                document=document,
+                retrieval_size=retrieval_size
+            )
             result_documents.append(document)
             candidate_entities.append(candidate_entities_for_doc)
         return result_documents, candidate_entities
@@ -231,51 +212,36 @@ class LexicalEntityRetriever:
 
 class LexicalEntityRetrieverTrainer:
 
-    def __init__(self, base_output_path):
-        """
-        Parameters
-        ----------
-        base_output_path : str
-        """
+    def __init__(self, base_output_path: str):
         self.base_output_path = base_output_path
         self.paths = self.get_paths()
 
-    def get_paths(self):
-        """
-        Returns
-        -------
-        dict[str, str]
-        """
+    def get_paths(self) -> dict[str, Any]:
         paths = {}
 
-        # Path to config file
-        paths["path_config"] = self.base_output_path + "/config"
+        # configurations
+        paths["path_snapshot"] = self.base_output_path
 
-        # Paths to validation outputs and scores
+        # evaluation outputs
         paths["path_dev_gold"] = self.base_output_path + "/dev.gold.json"
         paths["path_dev_pred"] = self.base_output_path + "/dev.pred.json"
         paths["path_dev_pred_retrieval"] = self.base_output_path + "/dev.pred_candidate_entities.json"
         paths["path_dev_eval"] = self.base_output_path + "/dev.eval.json"
-
-        # Paths to evaluation outputs and scores
         paths["path_test_gold"] = self.base_output_path + "/test.gold.json"
         paths["path_test_pred"] = self.base_output_path + "/test.pred.json"
         paths["path_test_pred_retrieval"] = self.base_output_path + "/test.pred_candidate_entities.json"
         paths["path_test_eval"] = self.base_output_path + "/test.eval.json"
-
         paths["path_train_pred"] = self.base_output_path + "/train.pred.json"
         paths["path_train_pred_retrieval"] = self.base_output_path + "/train.pred_candidate_entities.json"
 
         return paths
 
-    def setup_dataset(self, extractor, documents, split):
-        """
-        Parameters
-        ----------
-        extractor : LexicalEntityRetriever
-        documents : list[Document]
-        split : str
-        """
+    def setup_dataset(
+        self,
+        extractor: LexicalEntityRetriever,
+        documents: list[Document],
+        split: str
+    ) -> None:
         path_gold = self.paths[f"path_{split}_gold"]
         if not os.path.exists(path_gold):
             kb_entity_ids = set(list(extractor.entity_dict.keys()))
@@ -289,41 +255,20 @@ class LexicalEntityRetrieverTrainer:
             utils.write_json(path_gold, gold_documents)
             logger.info(f"Saved the gold annotations for evaluation in {path_gold}")
 
-    def save_extractor(self, extractor):
-        """
-        Parameters
-        ----------
-        extractor : LexicalizedEntityRetriever
-        """
-        # utils.dump_hocon_config(self.paths["path_config"], extractor.config)
-        utils.write_json(self.paths["path_config"], extractor.config)
-        logger.info("Saved config file to %s" % self.paths["path_config"])
+    def save_extractor(self, extractor: LexicalEntityRetriever) -> None:
+        extractor.save(path_snapshot=self.paths["path_snapshot"])
+        logger.info(f"Saved config and entity dictionary to {self.paths['path_snapshot']}")
 
     def evaluate(
         self,
-        extractor,
-        documents,
-        split,
+        extractor: LexicalEntityRetriever,
+        documents: list[Document],
+        split: str,
         #
-        prediction_only=False,
-        get_scores_only=False
-    ):
-        """
-        Parameters
-        ----------
-        extractor : LexicalEntityRetriever
-        documents : list[Document]
-        split : str
-        prediction_only : bool
-            by default False
-        get_scores_only : bool
-            by default False
-
-        Returns
-        -------
-        dict[str, Any] | None
-        """
-        # (documents, entity_dict) -> path_pred
+        prediction_only: bool = False,
+        get_scores_only: bool = False
+    ) -> dict[str, Any] | None:
+        # Apply the extractor
         result_documents, candidate_entities = extractor.batch_extract(
             documents=documents,
             retrieval_size=extractor.config["retrieval_size"]
@@ -333,9 +278,11 @@ class LexicalEntityRetrieverTrainer:
             self.paths[f"path_{split}_pred_retrieval"],
             candidate_entities
         )
+
         if prediction_only:
             return
-        # (path_pred, path_gold) -> scores
+
+        # Calculate the evaluation scores
         scores = evaluation.ed.accuracy(
             pred_path=self.paths[f"path_{split}_pred"],
             gold_path=self.paths[f"path_{split}_gold"],
@@ -353,9 +300,11 @@ class LexicalEntityRetrieverTrainer:
             gold_path=self.paths[f"path_{split}_gold"],
             inkb=True
         ))
+
         if get_scores_only:
             return scores
-        # scores -> path_eval
+
+        # Save the evaluation scores
         utils.write_json(self.paths[f"path_{split}_eval"], scores)
         logger.info(utils.pretty_format_dict(scores))
         return scores

@@ -5,6 +5,6 @@ Output Format:
 - Subject Entity | Relationship Label | Object Entity
 - Subject Entity | Relationship Label | Object Entity
 
-{task_prompt}
+{test_case_prompt}
 
 Provide the output in the bullet-point format specified above.

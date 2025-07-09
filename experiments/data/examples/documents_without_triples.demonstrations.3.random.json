@@ -1,0 +1,172 @@
+[
+    {
+        "doc_key": "6794356",
+        "demonstrations": [
+            {
+                "doc_key": "2917114",
+                "score": 1.0
+            },
+            {
+                "doc_key": "6436733",
+                "score": 1.0
+            },
+            {
+                "doc_key": "6504332",
+                "score": 1.0
+            }
+        ]
+    },
+    {
+        "doc_key": "6504332",
+        "demonstrations": [
+            {
+                "doc_key": "6794356",
+                "score": 1.0
+            },
+            {
+                "doc_key": "2917114",
+                "score": 1.0
+            },
+            {
+                "doc_key": "3115150",
+                "score": 1.0
+            }
+        ]
+    },
+    {
+        "doc_key": "6436733",
+        "demonstrations": [
+            {
+                "doc_key": "2339463",
+                "score": 1.0
+            },
+            {
+                "doc_key": "6504332",
+                "score": 1.0
+            },
+            {
+                "doc_key": "6794356",
+                "score": 1.0
+            }
+        ]
+    },
+    {
+        "doc_key": "6293644",
+        "demonstrations": [
+            {
+                "doc_key": "3115150",
+                "score": 1.0
+            },
+            {
+                "doc_key": "2564649",
+                "score": 1.0
+            },
+            {
+                "doc_key": "2339463",
+                "score": 1.0
+            }
+        ]
+    },
+    {
+        "doc_key": "6203632",
+        "demonstrations": [
+            {
+                "doc_key": "2339463",
+                "score": 1.0
+            },
+            {
+                "doc_key": "6504332",
+                "score": 1.0
+            },
+            {
+                "doc_key": "3115150",
+                "score": 1.0
+            }
+        ]
+    },
+    {
+        "doc_key": "3131282",
+        "demonstrations": [
+            {
+                "doc_key": "3131282",
+                "score": 1.0
+            },
+            {
+                "doc_key": "6504332",
+                "score": 1.0
+            },
+            {
+                "doc_key": "6794356",
+                "score": 1.0
+            }
+        ]
+    },
+    {
+        "doc_key": "3115150",
+        "demonstrations": [
+            {
+                "doc_key": "6794356",
+                "score": 1.0
+            },
+            {
+                "doc_key": "6436733",
+                "score": 1.0
+            },
+            {
+                "doc_key": "2917114",
+                "score": 1.0
+            }
+        ]
+    },
+    {
+        "doc_key": "2917114",
+        "demonstrations": [
+            {
+                "doc_key": "3131282",
+                "score": 1.0
+            },
+            {
+                "doc_key": "2917114",
+                "score": 1.0
+            },
+            {
+                "doc_key": "2564649",
+                "score": 1.0
+            }
+        ]
+    },
+    {
+        "doc_key": "2564649",
+        "demonstrations": [
+            {
+                "doc_key": "2917114",
+                "score": 1.0
+            },
+            {
+                "doc_key": "6203632",
+                "score": 1.0
+            },
+            {
+                "doc_key": "2564649",
+                "score": 1.0
+            }
+        ]
+    },
+    {
+        "doc_key": "2339463",
+        "demonstrations": [
+            {
+                "doc_key": "2339463",
+                "score": 1.0
+            },
+            {
+                "doc_key": "3131282",
+                "score": 1.0
+            },
+            {
+                "doc_key": "6293644",
+                "score": 1.0
+            }
+        ]
+    }
+]

@@ -27,9 +27,8 @@ logger = logging.getLogger(__name__)
 def load(
     identifier: str,
     gpu_map: dict[str,int] | None = None,
-    verbose: bool = True
 ) -> Pipeline:
-    return Pipeline(identifier=identifier, gpu_map=gpu_map, verbose=verbose)
+    return Pipeline(identifier=identifier, gpu_map=gpu_map)
 
 
 class Pipeline:
@@ -38,13 +37,16 @@ class Pipeline:
         self,
         identifier: str,
         gpu_map: dict[str,int] | None = None,
-        verbose: bool = True
     ):
         self.identifier = identifier
-        self.gpu_map = gpu_map or {"ner": 0, "ed_retrieval": 0, "ed_reranking": 0, "docre": 0}
+        self.gpu_map = gpu_map or {
+            "ner": 0, "ed_retrieval": 0, "ed_reranking": 0, "docre": 0
+        }
 
         # Load the pipeline Config 
-        self.root_config: Config = utils.get_hocon_config(os.path.join(expanduser("~"), ".kapipe", "config"))
+        self.root_config: Config = utils.get_hocon_config(
+            os.path.join(expanduser("~"), ".kapipe", "config")
+        )
         self.pipe_config: Config = self.root_config[self.identifier]
 
         # Initialize the Chunker
@@ -54,15 +56,16 @@ class Pipeline:
         self.ner = NER(
             task_config=self.pipe_config["ner"],
             gpu=self.gpu_map["ner"],
-            verbose=verbose
         )
-        llm_model = getattr(self.ner.extractor, "model", None) if self.pipe_config["ner"]["task_method"] == "llmner" else None
+        llm_model = (
+            getattr(self.ner.extractor, "model", None)
+            if self.pipe_config["ner"]["task_method"] == "llmner" else None
+        )
 
         # Initialize the ED-Retrieval wrapper
         self.ed_ret = EDRetrieval(
             task_config=self.pipe_config["ed_retrieval"],
             gpu=self.gpu_map["ed_retrieval"],
-            verbose=verbose
         )
 
         # Initialize the ED-Reranking wrapper
@@ -70,16 +73,17 @@ class Pipeline:
             task_config=self.pipe_config["ed_reranking"],
             gpu=self.gpu_map["ed_reranking"],
             llm_model=llm_model,
-            verbose=verbose
         )
-        llm_model = getattr(self.ed_rank.extractor, "model", None) if self.pipe_config["ed_reranking"]["task_method"] == "llmed" else None
+        llm_model = (
+            getattr(self.ed_rank.extractor, "model", None)
+            if self.pipe_config["ed_reranking"]["task_method"] == "llmed" else None
+        )
 
         # Initialize the DocRE wrapper
         self.docre = DocRE(
             task_config=self.pipe_config["docre"],
             gpu=self.gpu_map["docre"],
             llm_model=llm_model,
-            verbose=verbose
         )
 
     def text_to_document(
@@ -126,48 +130,24 @@ class Pipeline:
 
 class NER:
 
-    def __init__(self, task_config: Config, gpu: int = 0, verbose: bool = True):
+    def __init__(self, task_config: Config, gpu: int = 0):
         self.task_config = task_config
         self.gpu = gpu
-        self.verbose= verbose
 
         # Initialize the NER extractor
         if self.task_config["task_method"] == "biaffinener":
-            device = f"cuda:{self.gpu}"
-            path_config = os.path.join(self.task_config["basepath"], "config")
-            path_vocab_etype = os.path.join(self.task_config["basepath"], "entity_types.vocab.txt")
-            path_model = os.path.join(self.task_config["basepath"], "model")
             self.extractor = BiaffineNER(
-                # General
-                device=device,
-                config=path_config,
-                # Task specific
-                vocab_etype=path_vocab_etype,
-                # Misc.
-                path_model=path_model,
-                verbose=verbose
+                device=f"cuda:{self.gpu}",
+                path_snapshot=self.task_config["snapshot"]
             )
         elif self.task_config["task_method"] == "llmner":
-            device = f"cuda:{self.gpu}"
-            path_config = os.path.join(self.task_config["basepath"], "config")
-            path_vocab_etype = os.path.join(self.task_config["basepath"], "entity_types.vocab.txt")
-            path_etype_meta_info = os.path.join(self.task_config["basepath"], "etype_meta_info.json")
-            path_demonstration_pool = os.path.join(self.task_config["basepath"], "demonstration_pool.json")
             self.extractor = LLMNER(
-                # General
-                device=device,
-                config=path_config,
-                # Task specific
-                vocab_etype=path_vocab_etype,
-                etype_meta_info=path_etype_meta_info,
-                # Optional
-                path_demonstration_pool=path_demonstration_pool,
-                # Misc.
+                device=f"cuda:{self.gpu}",
+                path_snapshot=self.task_config["snapshot"],
                 model=None,
-                verbose=verbose
             )
             self.demonstration_retriever = DemonstrationRetriever(
-                path_demonstration_pool=path_demonstration_pool,
+                path_demonstration_pool=self.extractor.path_demonstration_pool,
                 method="count",
                 task="ner"
             )
@@ -177,9 +157,11 @@ class NER:
     def __call__(self, document: Document) -> Document:
         if self.task_config["task_method"] == "llmner":
             # Get demonstrations for this document
-            demonstrations_for_doc: DemonstrationsForOneExample = self.demonstration_retriever.search(
-                document=document,
-                top_k=5
+            demonstrations_for_doc: DemonstrationsForOneExample = (
+                self.demonstration_retriever.search(
+                    document=document,
+                    top_k=5
+                )
             )
             # Apply the extractor to the document
             return self.extractor.extract(
@@ -193,26 +175,15 @@ class NER:
 
 class EDRetrieval:
     
-    def __init__(self, task_config: Config, gpu : int = 0, verbose: bool = True):
+    def __init__(self, task_config: Config, gpu : int = 0):
         self.task_config = task_config
         self.gpu = gpu
-        self.verbose = verbose
        
         # Initialize the ED-Retrieval extractor 
         if self.task_config["task_method"] == "blink": 
-            device = f"cuda:{self.gpu}"
-            path_config = os.path.join(self.task_config["basepath"], "config")
-            path_model = os.path.join(self.task_config["basepath"], "model")
-            path_entity_dict = os.path.join(self.task_config["basepath"], "entity_dict.json")
             self.extractor = BlinkBiEncoder(
-                # General
-                device=device,
-                config=path_config,
-                # Task specific
-                path_entity_dict=path_entity_dict,
-                # Misc.
-                path_model=path_model,
-                verbose=verbose
+                device=f"cuda:{self.gpu}",
+                path_snapshot=self.task_config["snapshot"]
             )
             # Build the index based on the pre-computed embeddings
             self.extractor.make_index(use_precomputed_entity_vectors=True)
@@ -233,58 +204,38 @@ class EDRetrieval:
  
 class EDReranking:
     
-    def __init__(self, task_config: Config, gpu: int = 0, llm_model: Any = None, verbose: bool = True):
+    def __init__(self, task_config: Config, gpu: int = 0, llm_model: Any = None):
         self.task_config = task_config
         self.gpu = gpu
-        self.verbose = verbose
        
         # Initialize the ED-Reranking extractor 
         if self.task_config["task_method"] == "none":
             self.extractor = None
         elif self.task_config["task_method"] == "blink":
-            device = f"cuda:{self.gpu}"
-            path_config = os.path.join(self.task_config["basepath"], "config")
-            path_model = os.path.join(self.task_config["basepath"], "model")
-            path_entity_dict = os.path.join(self.task_config["basepath"], "entity_dict.json")
             self.extractor = BlinkCrossEncoder(
-                # General
-                device=device,
-                config=path_config,
-                # Task specific
-                path_entity_dict=path_entity_dict,
-                # Misc.
-                path_model=path_model,
-                verbose=verbose
+                device=f"cuda:{self.gpu}",
+                path_snapshot=self.task_config["snapshot"]
             )
         elif self.task_config["task_method"] == "llmed":
-            device = f"cuda:{self.gpu}"
-            path_config = os.path.join(self.task_config["basepath"], "config")
-            path_entity_dict = os.path.join(self.task_config["basepath"], "entity_dict.json")
-            path_demonstration_pool = os.path.join(self.task_config["basepath"], "demonstration_pool.json")
-            path_candidate_entities_pool = os.path.join(self.task_config["basepath"], "candidate_entities_pool.json")
             self.extractor = LLMED(
-                # General
-                device=device,
-                config=path_config,
-                # Task specific
-                path_entity_dict=path_entity_dict,
-                # Optional
-                path_demonstration_pool=path_demonstration_pool,
-                path_candidate_entities_pool=path_candidate_entities_pool,
-                # Misc.
+                device=f"cuda:{self.gpu}",
+                path_snapshot=self.task_config["snapshot"],
                 model=llm_model,
-                verbose=verbose
             )
             # Initialize the demonstration retriever
             self.demonstration_retriever = DemonstrationRetriever(
-                path_demonstration_pool=path_demonstration_pool,
+                path_demonstration_pool=self.extractor.path_demonstration_pool,
                 method="count",
                 task="ed"
             )
         else:
             raise Exception(f"Invalid task_method: {self.task_config['task_method']}")
 
-    def __call__(self, document: Document, candidate_entities: CandidateEntitiesForDocument) -> Document:
+    def __call__(
+        self,
+        document: Document,
+        candidate_entities: CandidateEntitiesForDocument
+    ) -> Document:
         # Skip the reranking
         if self.extractor is None:
             return document
@@ -298,52 +249,25 @@ class EDReranking:
 
 class DocRE:
 
-    def __init__(self, task_config: Config, gpu: int = 0, llm_model: Any = None, verbose: bool = True):
+    def __init__(self, task_config: Config, gpu: int = 0, llm_model: Any = None):
         self.task_config = task_config
         self.gpu = gpu
-        self.verbose = verbose
 
         # Initialize the DocRE extractor
         if self.task_config["task_method"] == "atlop":
-            device = f"cuda:{self.gpu}"
-            path_config = os.path.join(self.task_config["basepath"], "config")
-            path_vocab_relation = os.path.join(self.task_config["basepath"], "relations.vocab.txt")
-            path_model = os.path.join(self.task_config["basepath"], "model")
             self.extractor = ATLOP(
-                # General
-                device=device,
-                config=path_config,
-                # Task specific
-                vocab_relation=path_vocab_relation,
-                # Misc.
-                path_model=path_model,
-                verbose=verbose
+                device=f"cuda:{self.gpu}",
+                path_snapshot=self.task_config["snapshot"]
             )
         elif self.task_config["task_method"] == "llmdocre":
-            device = f"cuda:{self.gpu}"
-            path_config = os.path.join(self.task_config["basepath"], "config")
-            path_vocab_relation = os.path.join(self.task_config["basepath"], "relations.vocab.txt")
-            path_rel_meta_info = os.path.join(self.task_config["basepath"], "rel_meta_info.json")
-            path_entity_dict = os.path.join(self.task_config["basepath"], "entity_dict.json")
-            path_demonstration_pool = os.path.join(self.task_config["basepath"], "demonstration_pool.json")
             self.extractor = LLMDocRE(
-                # General
-                device=device,
-                config=path_config,
-                # Task specific
-                vocab_relation=path_vocab_relation,
-                rel_meta_info=path_rel_meta_info,
-                # Method specific
-                path_entity_dict=path_entity_dict,
-                # Optional: few-shot setting
-                path_demonstration_pool=path_demonstration_pool,
-                # Misc.
+                device=f"cuda:{self.gpu}",
+                path_snapshot=self.task_config["snapshot"],
                 model=llm_model,
-                verbose=verbose
             )
             # Initialize the demonstration retriever
             self.demonstration_retriever = DemonstrationRetriever(
-                path_demonstration_pool=path_demonstration_pool,
+                path_demonstration_pool=self.extractor.path_demonstration_pool,
                 method="count",
                 task="docre"
             )
@@ -353,9 +277,11 @@ class DocRE:
     def __call__(self, document: Document) -> Document:
         if self.task_config["task_method"] == "llmdocre":
             # Get demonstrations for this document
-            demonstrations_for_doc: DemonstrationsForOneExample = self.demonstration_retriever.search(
-                document=document,
-                top_k=5
+            demonstrations_for_doc: DemonstrationsForOneExample = (
+                self.demonstration_retriever.search(
+                    document=document,
+                    top_k=5
+                )
             )
             # Apply the extractor to the document
             return self.extractor.extract(

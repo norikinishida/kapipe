@@ -1,6 +1,9 @@
+from __future__ import annotations
+
 import copy
 import logging
 import os
+from typing import Any
 
 import numpy as np
 import torch
@@ -12,90 +15,71 @@ from ..models import BiaffineNERModel
 from .. import evaluation
 from .. import utils
 from ..utils import BestScoreHolder
+from ..datatypes import Config, Document, Mention
 
 
 logger = logging.getLogger(__name__)
 
 
 class BiaffineNER:
-    """ Biaffine-NER (Yu et al., 2020).
+    """
+    Biaffine Named Entity Recognizer (Yu et al., 2020).
     """
 
     def __init__(
         self,
-        # General
-        device,
-        config,
-        # Task specific
-        vocab_etype,
-        # Misc.
-        path_model=None,
-        verbose=True
+        device: str,
+        # Initialization
+        config: Config | str | None = None,
+        vocab_etype: dict[str, int] | str | None = None,
+        # Loading
+        path_snapshot: str | None = None
     ):
-        """
-        Parameters
-        ----------
-        device: str
-        config: ConfigTree | str
-        vocab_etype: dict[str, int] | str
-        path_model: str | None
-            by default None
-        verbose: bool
-            by default True
-        """
-        self.verbose = verbose
-        if self.verbose:
-            logger.info(">>>>>>>>>> BiaffineNER Initialization >>>>>>>>>>")
+        logger.info("########## BiaffineNER Initialization Starts ##########")
+
         self.device = device
+        self.path_snapshot = path_snapshot
 
-        ######
-        # Config
-        ######
+        if path_snapshot is not None:
+            assert config is None
+            assert vocab_etype is None
+            config = path_snapshot + "/config"
+            vocab_etype = path_snapshot + "/entity_types.vocab.txt"
+            path_model = path_snapshot + "/model"
 
+        # Load the configuration
         if isinstance(config, str):
-            tmp = config
-            config = utils.get_hocon_config(
-                config_path=config,
-                config_name=None
-            )
-            if self.verbose:
-                logger.info(f"Loaded configuration from {tmp}")
+            config_path = config
+            config = utils.get_hocon_config(config_path=config_path)
+            logger.info(f"Loaded configuration from {config_path}")
         self.config = config
-        if self.verbose:
-            logger.info(utils.pretty_format_dict(self.config))
+        logger.info(utils.pretty_format_dict(self.config))
 
-        ######
-        # Vocabulary (entity types)
-        ######
-
+        # Load the entity type vocabulary
         if isinstance(vocab_etype, str):
-            tmp = vocab_etype
-            vocab_etype = utils.read_vocab(vocab_etype)
-            if self.verbose:
-                logger.info(f"Loaded entity type vocabulary from {tmp}")
+            vocab_path = vocab_etype
+            vocab_etype = utils.read_vocab(vocab_path)
+            logger.info(f"Loaded entity type vocabulary from {vocab_path}")
         self.vocab_etype = vocab_etype
-        self.ivocab_etype = {i:l for l, i in self.vocab_etype.items()}
+        self.ivocab_etype = {i: l for l, i in self.vocab_etype.items()}
 
-        ######
-        # Model
-        ######
-
+        # Initialize the model
         self.model_name = self.config["model_name"]
         if self.model_name == "biaffinenermodel":
             self.model = BiaffineNERModel(
                 device=device,
-                bert_pretrained_name_or_path=config[
-                    "bert_pretrained_name_or_path"
-                ],
+                bert_pretrained_name_or_path=config["bert_pretrained_name_or_path"],
                 max_seg_len=config["max_seg_len"],
                 dropout_rate=config["dropout_rate"],
                 vocab_etype=self.vocab_etype,
                 loss_function_name=config["loss_function"],
-                focal_loss_gamma=config["focal_loss_gamma"] \
+                focal_loss_gamma=(
+                    config["focal_loss_gamma"]
                     if config["loss_function"] == "focal_loss" else None
+                )
             )
         else:
-            raise Exception(f"Invalid model_name: {self.model_name}")
+            raise ValueError(f"Invalid model_name: {self.model_name}")
 
         # Show parameter shapes
         # logger.info("Model parameters:")
@@ -103,55 +87,32 @@ class BiaffineNER:
         #     logger.info(f"{name}: {tuple(param.shape)}")
 
         # Load trained model parameters
-        if path_model is not None:
-            self.load_model(path=path_model)
-            if self.verbose:
-                logger.info(f"Loaded model parameters from {path_model}")
+        if path_snapshot is not None:
+            self.model.load_state_dict(
+                torch.load(path_model, map_location=torch.device("cpu")),
+                strict=False
+            )
+            logger.info(f"Loaded model parameters from {path_model}")
 
         self.model.to(self.model.device)
 
-        ######
-        # Decoder
-        ######
-
+        # Initialize the span-based decoder
         self.decoder = SpanBasedDecoder(
             allow_nested_entities=self.config["allow_nested_entities"]
         )
 
-        if self.verbose:
-            logger.info("<<<<<<<<<< BiaffineNER Initialization <<<<<<<<<<")
+        logger.info("########## BiaffineNER Initialization Ends ##########")
 
-    def load_model(self, path):
-        """
-        Parameters
-        ----------
-        path : str
-        """
-        self.model.load_state_dict(
-            torch.load(path, map_location=torch.device("cpu")),
-            strict=False
-        )
+    def save(self, path_snapshot: str, model_only: bool = False) -> None:
+        path_config = path_snapshot + "/config"
+        path_vocab = path_snapshot + "/entity_types.vocab.txt"
+        path_model = path_snapshot + "/model"
+        if not model_only:
+            utils.write_json(path_config, self.config)
+            utils.write_vocab(path_vocab, self.vocab_etype, write_frequency=False)
+        torch.save(self.model.state_dict(), path_model)
 
-    def save_model(self, path):
-        """
-        Parameters
-        ----------
-        path : str
-        """
-        torch.save(self.model.state_dict(), path)
-
-    # ---
-
-    def compute_loss(self, document):
-        """
-        Parameters
-        ----------
-        document : Document
-
-        Returns
-        -------
-        tuple[torch.Tensor, torch.Tensor, int]
-        """
+    def compute_loss(self, document: Document) -> tuple[torch.Tensor, torch.Tensor, int]:
         # Switch to training mode
         self.model.train()
 
@@ -173,16 +134,7 @@ class BiaffineNER:
             model_output.n_valid_spans
         )
 
-    def extract(self, document):
-        """
-        Parameters
-        ----------
-        document : Document
-
-        Returns
-        -------
-        Document
-        """
+    def extract(self, document: Document) -> Document:
         with torch.no_grad():
             # Switch to inference mode
             self.model.eval()
@@ -198,17 +150,14 @@ class BiaffineNER:
 
             # Forward
             model_output = self.model.forward(**model_input)
-            # (n_tokens, n_tokens, n_etypes)
-            logits = model_output.logits
+            logits = model_output.logits # (n_tokens, n_tokens, n_etypes)
 
             # Structurize
             mentions = self.structurize(
                 document=document,
                 logits=logits,
-                matrix_valid_span_mask=\
-                    preprocessed_data["matrix_valid_span_mask"],
-                subtoken_index_to_word_index=\
-                    preprocessed_data["bert_input"]["subtoken_index_to_word_index"]
+                matrix_valid_span_mask=preprocessed_data["matrix_valid_span_mask"],
+                subtoken_index_to_word_index=preprocessed_data["bert_input"]["subtoken_index_to_word_index"]
             )
 
             # Integrate
@@ -218,32 +167,27 @@ class BiaffineNER:
 
     def structurize(
         self,
-        document,
-        logits,
-        matrix_valid_span_mask,
-        subtoken_index_to_word_index
-    ):
-        # Transform logits to prediction scores and labels
-        #   for each token-token pair.
+        document: Document,
+        logits: torch.Tensor,
+        matrix_valid_span_mask: np.ndarray,
+        subtoken_index_to_word_index: list[int]
+    ) -> list[Mention]:
+        # Transform logits to prediction scores and labels for each token-token pair
         # (n_tokens, n_tokens), (n_tokens, n_tokens)
-        matrix_pred_entity_type_scores, matrix_pred_entity_type_labels \
-            = logits.max(dim=-1)
-        matrix_pred_entity_type_scores \
-            = matrix_pred_entity_type_scores.cpu().numpy()
-        matrix_pred_entity_type_labels \
-            = matrix_pred_entity_type_labels.cpu().numpy()
+        matrix_pred_entity_type_scores, matrix_pred_entity_type_labels = logits.max(dim=-1)
+        matrix_pred_entity_type_scores= matrix_pred_entity_type_scores.cpu().numpy()
+        matrix_pred_entity_type_labels = matrix_pred_entity_type_labels.cpu().numpy()
 
         # Apply mask to invalid token-token pairs
         # NOTE: The "NON-ENTITY" class corresponds to the 0th label
         # (n_tokens, n_tokens)
-        matrix_pred_entity_type_labels = (
-            matrix_pred_entity_type_labels * matrix_valid_span_mask
-        )
+        matrix_pred_entity_type_labels = matrix_pred_entity_type_labels * matrix_valid_span_mask
 
         # Get spans that have non-zero entity type label
         # (n_spans,), (n_spans,)
-        span_begin_token_indices, span_end_token_indices \
-            = np.nonzero(matrix_pred_entity_type_labels)
+        span_begin_token_indices, span_end_token_indices = np.nonzero(
+            matrix_pred_entity_type_labels
+        )
         # (n_spans,)
         span_entity_type_scores = matrix_pred_entity_type_scores[
             span_begin_token_indices, span_end_token_indices
@@ -253,10 +197,7 @@ class BiaffineNER:
             span_begin_token_indices, span_end_token_indices
         ].tolist()
         # (n_spans,)
-        span_entity_types = [
-            self.ivocab_etype[etype_i]
-            for etype_i in span_entity_type_labels
-        ]
+        span_entity_types = [self.ivocab_etype[etype_i] for etype_i in span_entity_type_labels]
 
         # Transform the subtoken-level spans to word-level spans
         # (n_spans,)
@@ -279,72 +220,46 @@ class BiaffineNER:
         ))
         # Remove too-long spans (possibly predicted spans)
         spans = [(b,e,t,s) for b,e,t,s in spans if (e - b) <= 10]
-        mentions = self.decoder.decode(
-            spans=spans,
-            # words=utils.flatten_lists(preprocessed_data["sentences"])
-            words=" ".join(document["sentences"]).split()
-        )
+
+        # Decode into mention format
+        words = " ".join(document["sentences"]).split()
+        mentions = self.decoder.decode(spans=spans, words=words)
 
         return mentions
 
-    def batch_extract(self, documents):
-        """
-        Parameters
-        ----------
-        documents : list[Document]
-
-        Returns
-        -------
-        list[Document]
-        """
+    def batch_extract(self, documents: list[Document]) -> list[Document]:
         result_documents = []
         for document in tqdm(documents, desc="extraction steps"):
-            result_document = self.extract(
-                document=document
-            )
+            result_document = self.extract(document=document)
             result_documents.append(result_document)
         return result_documents
 
 
 class SpanBasedDecoder:
-    """A span-based decoder for NER. This decoder applies constraints (for either Flat NER or Nested NER) to given scored spans and outputs a list of mentions.
+    """
+    A span-based decoder for Named Entity Recognition.
+
+    It selects valid spans from model predictions and decodes them into mention objects.
+    Supports both Flat and Nested NER based on configuration.
     """
 
-    def __init__(
-        self,
-        allow_nested_entities
-    ):
-        """
-        Parameters
-        ----------
-        allow_nested_entities : bool
-        """
+    def __init__(self, allow_nested_entities: bool):
         self.allow_nested_entities = allow_nested_entities
 
     def decode(
         self,
-        spans,
-        words
-    ):
-        """
-        Parameters
-        ----------
-        spans : list[tuple[int, int, str, float]]
-        words : list[str]
+        spans: list[tuple[int, int, str, float]],
+        words: list[str]
+    ) -> list[Mention]:
+        mentions: list[Mention] = []
 
-        Results
-        -------
-        list[Mention]
-        """
-        mentions = [] # list[Mention]
-
-        # Sort the candidate spans based on their scores
+        # Sort the candidate spans by scores (descending)
         spans = sorted(spans, key=lambda x: -x[-1])
 
         # Select spans
         n_words = len(words)
         self.check_matrix = np.zeros((n_words, n_words)) # Used in Flat NER
-        self.check_set = set() # Uased in Nested NER
+        self.check_set = set() # Used in Nested NER
         for span in spans:
             begin_token_index, end_token_index, etype, _ = span
             name = " ".join(words[begin_token_index: end_token_index + 1])
@@ -361,126 +276,88 @@ class SpanBasedDecoder:
             self.check_matrix[begin_token_index: end_token_index + 1] = 1
             self.check_set.add((begin_token_index, end_token_index))
 
-        # Sort mentions based on the positions
+        # Sort mentions by span position
         mentions = sorted(mentions, key=lambda m: m["span"])
 
         return mentions
 
-    def is_violation(self, begin_token_index, end_token_index):
-        """
-        Parameters
-        ----------
-        begin_token_index : int
-        end_token_index : int
-
-        Returns
-        -------
-        bool
-        """
+    def is_violation(self, begin_token_index: int, end_token_index: int) -> bool:
         if not self.allow_nested_entities:
             # Flat NER
-            if (
-                self.check_matrix[begin_token_index: end_token_index + 1].sum()
-                > 0
-            ):
+            if self.check_matrix[begin_token_index: end_token_index + 1].sum() > 0:
                 return True
-            else:
-                return False
+            return False
         else:
             # Nested NER
             for begin_token_j, end_token_j in self.check_set:
                 if (
-                    (begin_token_index < begin_token_j
-                     <= end_token_index < end_token_j)
+                    (begin_token_index < begin_token_j <= end_token_index < end_token_j)
                     or
-                    (begin_token_j < begin_token_index
-                     <= end_token_j < end_token_index)
+                    (begin_token_j < begin_token_index <= end_token_j < end_token_index)
                 ):
                     return True
             return False
 
 
 class BiaffineNERTrainer:
+    """
+    Trainer class for BiaffineNER extractor.
+    Handles training loop, evaluation, model saving, and early stopping.
+    """
 
-    def __init__(self, base_output_path):
-        """
-        Parameters
-        ----------
-        base_output_path : str
-        """
+    def __init__(self, base_output_path: str):
         self.base_output_path = base_output_path
         self.paths = self.get_paths()
 
-    def get_paths(self):
-        """
-        Returns
-        -------
-        dict[str, str]
-        """
-        paths = {}
+    def get_paths(self) -> dict[str, str]:
+        return {
+            # configurations
+            "path_snapshot": self.base_output_path,
+            # training outputs
+            "path_train_losses": f"{self.base_output_path}/train.losses.jsonl",
+            "path_dev_evals": f"{self.base_output_path}/dev.eval.jsonl",
+            # evaluation outputs
+            "path_dev_gold": f"{self.base_output_path}/dev.gold.json",
+            "path_dev_pred": f"{self.base_output_path}/dev.pred.json",
+            "path_dev_eval": f"{self.base_output_path}/dev.eval.json",
+            "path_test_gold": f"{self.base_output_path}/test.gold.json",
+            "path_test_pred": f"{self.base_output_path}/test.pred.json",
+            "path_test_eval": f"{self.base_output_path}/test.eval.json"
+        }
 
-        # Path to config file
-        paths["path_config"] = self.base_output_path + "/config"
-        # Path to vocabulary
-        paths["path_vocab_etype"] = self.base_output_path + "/entity_types.vocab.txt"
-        # Path to model snapshot
-        paths["path_snapshot"] = self.base_output_path + "/model"
-
-        # Paths to training-losses and validation-scores files
-        paths["path_train_losses"] = self.base_output_path + "/train.losses.jsonl"
-        paths["path_dev_evals"] = self.base_output_path + "/dev.eval.jsonl"
-
-        # Paths to validation outputs and scores
-        paths["path_dev_gold"] = self.base_output_path + "/dev.gold.json"
-        paths["path_dev_pred"] = self.base_output_path + "/dev.pred.json"
-        paths["path_dev_eval"] = self.base_output_path + "/dev.eval.json"
-
-        # Paths to evaluation outputs and scores
-        paths["path_test_gold"] = self.base_output_path + "/test.gold.json"
-        paths["path_test_pred"] = self.base_output_path + "/test.pred.json"
-        paths["path_test_eval"] = self.base_output_path + "/test.eval.json"
-
-        return paths
-
-    def setup_dataset(self, extractor, documents, split):
-        """
-        Parameters
-        ----------
-        extractor : BiaffineNER
-        documents : list[Document]
-        split : str
-        """
+    def setup_dataset(
+        self,
+        extractor: BiaffineNER,
+        documents: list[Document],
+        split: str
+    ) -> None:
         # Cache the gold annotations for evaluation
         path_gold = self.paths[f"path_{split}_gold"]
         if not os.path.exists(path_gold):
-            gold_documents = []
-            for document in tqdm(documents, desc="dataset setup"):
-                gold_doc = copy.deepcopy(document)
-                gold_documents.append(gold_doc)
+            gold_documents = [
+                copy.deepcopy(doc)
+                for doc in tqdm(documents, desc="dataset setup")
+            ]
             utils.write_json(path_gold, gold_documents)
             logger.info(f"Saved the gold annotations for evaluation in {path_gold}")
 
-    def train(self, extractor, train_documents, dev_documents):
-        """
-        Parameters
-        ----------
-        extractor : BiaffineNER
-        train_documents : list[Document]
-        dev_documents : list[Document]
-        """
-        train_doc_indices = np.arange(len(train_documents))
+    def train(
+        self,
+        extractor: BiaffineNER,
+        train_documents: list[Document],
+        dev_documents: list[Document]
+    ) -> None:
+        ##################
+        # Setup
+        ##################
 
-        ##################
-        # Get optimizer and scheduler
-        ##################
+        train_doc_indices = np.arange(len(train_documents))
 
         n_train = len(train_doc_indices)
         max_epoch = extractor.config["max_epoch"]
         batch_size = extractor.config["batch_size"]
-        gradient_accumulation_steps \
-            = extractor.config["gradient_accumulation_steps"]
-        total_update_steps \
-            = n_train * max_epoch // (batch_size * gradient_accumulation_steps)
+        gradient_accumulation_steps = extractor.config["gradient_accumulation_steps"]
+        total_update_steps = n_train * max_epoch // (batch_size * gradient_accumulation_steps)
         warmup_steps = int(total_update_steps * extractor.config["warmup_ratio"])
 
         logger.info("Number of training documents: %d" % n_train)
@@ -494,21 +371,11 @@ class BiaffineNERTrainer:
             model=extractor.model,
             config=extractor.config
         )
-        # extractor.model, optimizer = amp.initialize(
-        #     extractor.model,
-        #     optimizer,
-        #     opt_level="O1",
-        #     verbosity=0
-        # )
         scheduler = shared_functions.get_scheduler2(
             optimizer=optimizer,
             total_update_steps=total_update_steps,
             warmup_steps=warmup_steps
         )
-
-        ##################
-        # Get reporter and best score holder
-        ##################
 
         writer_train = jsonlines.Writer(
             open(self.paths["path_train_losses"], "w"),
@@ -518,13 +385,15 @@ class BiaffineNERTrainer:
             open(self.paths["path_dev_evals"], "w"),
             flush=True
         )
+
         bestscore_holder = BestScoreHolder(scale=1.0)
         bestscore_holder.init()
 
         ##################
-        # Evaluate
+        # Initial Validation
         ##################
 
+        # Evaluate the extractor
         scores = self.evaluate(
             extractor=extractor,
             documents=dev_documents,
@@ -532,36 +401,19 @@ class BiaffineNERTrainer:
             #
             get_scores_only=True
         )
-        scores["epoch"] = 0
-        scores["step"] = 0
+        scores.update({"epoch": 0, "step": 0})
         writer_dev.write(scores)
         logger.info(utils.pretty_format_dict(scores))
 
+        # Set the best validation score
         bestscore_holder.compare_scores(scores["span_and_type"]["f1"], 0)
 
-        ##################
         # Save
-        ##################
-
-        # Save the model
-        extractor.save_model(path=self.paths["path_snapshot"])
-        logger.info("Saved model to %s" % self.paths["path_snapshot"])
-
-        # Save the config (only once)
-        # utils.dump_hocon_config(self.paths["path_config"], extractor.config)
-        utils.write_json(self.paths["path_config"], extractor.config)
-        logger.info("Saved config file to %s" % self.paths["path_config"])
-
-        # Save the vocabulary (only once)
-        utils.write_vocab(
-            self.paths["path_vocab_etype"],
-            extractor.vocab_etype,
-            write_frequency=False
-        )
-        logger.info("Saved entity type vocabulary to %s" % self.paths["path_vocab_etype"])
+        extractor.save(path_snapshot=self.paths["path_snapshot"])
+        logger.info(f"Saved config, vocab, and model to {self.paths['path_snapshot']}")
 
         ##################
-        # Training-and-validation loops
+        # Training Loop
         ##################
 
         bert_param, task_param = extractor.model.get_params()
@@ -575,6 +427,7 @@ class BiaffineNERTrainer:
         accum_count = 0
 
         progress_bar = tqdm(total=total_update_steps, desc="training steps")
+
         for epoch in range(1, max_epoch + 1):
 
             perm = np.random.permutation(n_train)
@@ -593,16 +446,15 @@ class BiaffineNERTrainer:
                 actual_batchsize = 0
                 actual_total_spans = 0
 
-                for doc_i in train_doc_indices[
-                    perm[instance_i: instance_i + batch_size]
-                ]:
-
+                for doc_i in train_doc_indices[perm[instance_i: instance_i + batch_size]]:
                     # Forward and compute loss
                     (
                         one_loss,
                         one_acc,
                         n_valid_spans
-                    ) = extractor.compute_loss(document=train_documents[doc_i])
+                    ) = extractor.compute_loss(
+                        document=train_documents[doc_i]
+                    )
 
                     # Accumulate the loss
                     batch_loss = batch_loss + one_loss
@@ -622,8 +474,6 @@ class BiaffineNERTrainer:
 
                 batch_loss = batch_loss / gradient_accumulation_steps
                 batch_loss.backward()
-                # with amp.scale_loss(batch_loss, optimizer) as scaled_loss:
-                #     scaled_loss.backward()
 
                 # Accumulate for reporting
                 loss_accum += float(batch_loss.cpu())
@@ -645,14 +495,12 @@ class BiaffineNERTrainer:
                             task_param,
                             extractor.config["max_grad_norm"]
                         )
-                        # torch.nn.utils.clip_grad_norm_(
-                        #     amp.master_params(optimizer),
-                        #     extractor.config["max_grad_norm"]
-                        # )
+
                     optimizer.step()
                     scheduler.step()
 
                     extractor.model.zero_grad()
+
                     step += 1
                     progress_bar.update()
                     progress_bar.refresh()
@@ -666,30 +514,24 @@ class BiaffineNERTrainer:
                         (step % extractor.config["n_steps_for_monitoring"] == 0)
                     )
                 ):
-
                     ##################
                     # Report
                     ##################
 
-                    out = {
+                    report = {
                         "step": step,
                         "epoch": epoch,
-                        "step_progress": "%d/%d" % (step, total_update_steps),
-                        "step_progress(ratio)": \
-                            float(step) / total_update_steps * 100.0,
-                        "one_epoch_progress": \
-                            "%d/%d" % (instance_i + actual_batchsize, n_train),
-                        "one_epoch_progress(ratio)": (
-                            float(instance_i + actual_batchsize)
-                            / n_train
-                            * 100.0
-                        ),
+                        "step_progress": f"{step}/{total_update_steps}",
+                        "step_progress(ratio)": 100.0 * step / total_update_steps,
+                        "one_epoch_progress": f"{instance_i + batch_size}/{n_train}",
+                        "one_epoch_progress(ratio)": 100.0 * (instance_i + batch_size) / n_train,
                         "loss": loss_accum / accum_count,
                         "accuracy": 100.0 * acc_accum / accum_count,
                         "max_valid_f1": bestscore_holder.best_score,
-                        "patience": bestscore_holder.patience}
-                    writer_train.write(out)
-                    logger.info(utils.pretty_format_dict(out))
+                        "patience": bestscore_holder.patience
+                    }
+                    writer_train.write(report)
+                    logger.info(utils.pretty_format_dict(report))
                     loss_accum = 0.0
                     acc_accum = 0.0
                     accum_count = 0
@@ -705,11 +547,11 @@ class BiaffineNERTrainer:
                         (step % extractor.config["n_steps_for_validation"] == 0)
                     )
                 ):
-
                     ##################
-                    # Evaluate
+                    # Validation
                     ##################
 
+                    # Evaluate the extractor
                     scores = self.evaluate(
                         extractor=extractor,
                         documents=dev_documents,
@@ -717,28 +559,29 @@ class BiaffineNERTrainer:
                         #
                         get_scores_only=True
                     )
-                    scores["epoch"] = epoch
-                    scores["step"] = step
+                    scores.update({"epoch": epoch, "step": step})
                     writer_dev.write(scores)
                     logger.info(utils.pretty_format_dict(scores))
 
+                    # Update the best validation score
                     did_update = bestscore_holder.compare_scores(
                         scores["span_and_type"]["f1"],
                         epoch
                     )
 
-                    ##################
-                    # Save
-                    ##################
-
+                    # Save the model
                     if did_update:
-                        extractor.save_model(path=self.paths["path_snapshot"])
-                        logger.info("Saved model to %s" % self.paths["path_snapshot"])
+                        extractor.save(
+                            path_snapshot=self.paths["path_snapshot"],
+                            model_only=True
+                        )
+                        logger.info(f"Saved model to {self.paths['path_snapshot']}")
 
-                    if (
-                        bestscore_holder.patience
-                        >= extractor.config["max_patience"]
-                    ):
+                    ##################
+                    # Termination Check
+                    ##################
+
+                    if bestscore_holder.patience >= extractor.config["max_patience"]:
                         writer_train.close()
                         writer_dev.close()
                         progress_bar.close()
@@ -750,36 +593,29 @@ class BiaffineNERTrainer:
 
     def evaluate(
         self,
-        extractor,
-        documents,
-        split,
+        extractor: BiaffineNER,
+        documents: list[Document],
+        split: str,
         #
-        get_scores_only=False
-    ):
-        """
-        Parameters
-        ----------
-        extractor : BiaffineNER
-        documents : list[Document]
-        split : str
-        get_scores_only : bool
-            by default False
-
-        Returns
-        -------
-        dict[str, Any]
-        """
-        # documents -> path_pred
+        prediction_only: bool = False,
+        get_scores_only: bool = False
+    ) -> dict[str, Any] | None:
+        # Apply the extractor
         result_documents = extractor.batch_extract(documents=documents)
         utils.write_json(self.paths[f"path_{split}_pred"], result_documents)
-        # (path_pred, path_gold) -> scores
+
+        if prediction_only:
+            return
+
+        # Calculate the evaluation scores
         scores = evaluation.ner.fscore(
             pred_path=self.paths[f"path_{split}_pred"],
             gold_path=self.paths[f"path_{split}_gold"]
         )
         if get_scores_only:
             return scores
-        # scores -> path_eval
+
+        # Save the evaluation scores
         utils.write_json(self.paths[f"path_{split}_eval"], scores)
         logger.info(utils.pretty_format_dict(scores))
         return scores

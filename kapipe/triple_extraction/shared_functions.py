@@ -1,7 +1,13 @@
-from torch.optim import Adam
+from __future__ import annotations
+
+from typing import Any
+
+from torch.optim import Optimizer, Adam
 from transformers import AdamW
 from transformers.optimization import get_linear_schedule_with_warmup
 from torch.optim.lr_scheduler import LambdaLR
+
+from ..datatypes import Config, Document
 
 
 ###################################
@@ -9,17 +15,7 @@ from torch.optim.lr_scheduler import LambdaLR
 ###################################
 
 
-def get_optimizer(model, config):
-    """
-    Parameters
-    ----------
-    model: Model
-    config: ConfigTree
-
-    Returns
-    -------
-    tuple[AdamW, Adam]
-    """
+def get_optimizer(model: Any, config: Config) -> list[Optimizer]:
     no_decay = ["bias", "LayerNorm.weight"]
     bert_param, task_param = model.get_params(named=True)
     grouped_bert_param = [
@@ -56,17 +52,7 @@ def get_optimizer(model, config):
     return optimizers
 
 
-def get_optimizer2(model, config):
-    """
-    Parameters
-    ----------
-    model: Model
-    config: ConfigTree
-
-    Returns
-    -------
-    AdamW
-    """
+def get_optimizer2(model: Any, config: Config) -> Optimizer:
     bert_param, task_param = model.get_params()
     grouped_param = [
         {
@@ -90,18 +76,11 @@ def get_optimizer2(model, config):
 ###################################
 
 
-def get_scheduler(optimizers, total_update_steps, warmup_steps):
-    """
-    Parameters
-    ----------
-    optimizers: tuple[AdamW, Adam]
-    total_update_steps: int
+def get_scheduler(
+    optimizers: list[Optimizer],
+    total_update_steps: int,
     warmup_steps: int
-
-    Returns
-    -------
-    list[LambdaLR]
-    """
+) -> list[LambdaLR]:
     def lr_lambda_bert(current_step):
         if current_step < warmup_steps:
             return float(current_step) / float(max(1, warmup_steps))
@@ -129,18 +108,11 @@ def get_scheduler(optimizers, total_update_steps, warmup_steps):
     return schedulers
 
 
-def get_scheduler2(optimizer, total_update_steps, warmup_steps):
-    """
-    Parameters
-    ----------
-    optimizers: AdamW
-    total_update_steps: int
+def get_scheduler2(
+    optimizer: Optimizer,
+    total_update_steps: int,
     warmup_steps: int
-
-    Returns
-    -------
-    LambdaLR
-    """
+) -> LambdaLR:
     return get_linear_schedule_with_warmup(
         optimizer,
         num_warmup_steps=warmup_steps,
@@ -153,7 +125,7 @@ def get_scheduler2(optimizer, total_update_steps, warmup_steps):
 ###################################
 
 
-def create_intra_inter_map(document):
+def create_intra_inter_map(document: Document) -> dict[str, str]:
     intra_inter_map = {}
 
     # We first create token-index-to-sentence-index mapping
@@ -197,7 +169,10 @@ def create_intra_inter_map(document):
     return intra_inter_map
 
 
-def create_seen_unseen_map(document, seen_pairs):
+def create_seen_unseen_map(
+    document: Document,
+    seen_pairs: set[tuple[str, str]]
+) -> dict[str, str]:
     seen_unseen_map = {}
     entities = document["entities"]
     for u_entity_i in range(len(entities)):

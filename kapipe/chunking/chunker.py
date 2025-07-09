@@ -53,7 +53,9 @@ class Chunker:
 
     def split_text_to_tokenized_sentences(self, text: str) -> list[list[str]]:
         doc = self.nlp(text)
-        return [[tok.text for tok in sent] for sent in doc.sents if len(sent) > 0]
+        return [
+            [tok.text for tok in sent] for sent in doc.sents if len(sent) > 0
+        ]
 
     def split_text_to_chunks(self, text: str, window_size: int) -> list[str]:
         chunks = [] # list[str]
@@ -88,9 +90,16 @@ class Chunker:
     # Mapping from Passage to list[Passage] or Document
     ###########
 
-    def split_passage_to_chunked_passages(self, passage: Passage, window_size: int) -> list[Passage]:
+    def split_passage_to_chunked_passages(
+        self,
+        passage: Passage,
+        window_size: int
+    ) -> list[Passage]:
         # Split the Passage content
-        chunks = self.split_text_to_chunks(text=passage["text"], window_size=window_size)
+        chunks = self.split_text_to_chunks(
+            text=passage["text"],
+            window_size=window_size
+        )
         # Extract meta data (neigher "title" nor "text")
         meta = {k: v for k, v in passage.items() if k not in {"title", "text"}}
         # Prepend "title"

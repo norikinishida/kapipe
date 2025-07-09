@@ -74,7 +74,7 @@ EntityPage : TypeAlias = dict[str, Any]
 CandidateEntitiesForDocument : TypeAlias = dict[str, Any]
 # {
 #     "doc_key": str,
-#     "candidate_entities": list[CandEntKeyInfo]
+#     "candidate_entities": list[list[CandEntKeyInfo]]
 # }
 
 CandEntKeyInfo : TypeAlias = dict[str, Any]
