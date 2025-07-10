@@ -71,6 +71,8 @@ cd ~/.kapipe
 tar -zxvf release.YYYYMMDD.tar.gz
 ```
 
+If the extraction is successful, you should see a directory `~/.kapipe/download/`, which contains model resources.
+
 ## 🧩 Triple Extraction
 
 ### Overview
@@ -733,16 +735,18 @@ The answer is a dictionary containing:
 ### How to Use
 
 ```python
+from os.path import expanduser
 from kapipe.qa import LLMQA
 from kapipe import utils
 
 # Initialize the QA module
-answerer = LLMQA(path_snapshot="./kapipe/results/qa/llmqa/openai_gpt4o")
+answerer = LLMQA(path_snapshot=expanduser("~/.kapipe/download/results/qa/llmqa/openai_gpt4o"))
 
 # Generate answer
 answer = answerer.run(
     question=question,
     contexts_for_question=contexts_for_question
 )
+
 ```
 (See `experiments/codes/run_qa.py` for specific examples.)

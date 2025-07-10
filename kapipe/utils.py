@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from collections import OrderedDict
 import datetime
 from importlib.resources import files, as_file
@@ -5,8 +7,10 @@ import io
 import json
 import logging
 import os
+import requests
 import time
 from typing import Any, Callable
+import zipfile
 
 import numpy as np
 import pyhocon
@@ -156,7 +160,57 @@ def safe_json_loads(
 
     return json_obj
 
-            
+
+# def download_folder_if_needed(dest: str, url: str, chunk_size: int = 8192) -> None:
+#     # Skip, if destination (folter) exists and is non-empty
+#     if os.path.exists(dest) and os.path.isdir(dest) and os.listdir(dest):
+#         return
+
+#     # Prepare download location
+#     parent_dir = os.path.dirname(dest)
+#     mkdir(parent_dir)
+
+#     # Define zip path as "<parent_dir>/<basename(dest)>.zip"
+#     zip_filename = os.path.basename(dest) + ".zip"
+#     zip_path = os.path.join(parent_dir, zip_filename)
+
+#     try:
+#         # Download the zip
+#         with requests.get(url, stream=True, timeout=10) as response:
+#             response.raise_for_status()  # Raise an error for bad status codes
+
+#             total_size = int(response.headers.get("content-length", 0))
+#             progress_bar = tqdm(
+#                 total=total_size,
+#                 unit='B',
+#                 unit_scale=True,
+#                 desc=f"Downloading {os.path.basename(zip_filename)}"
+#             )
+
+#             with open(zip_path, "wb") as f:
+#                 for chunk in response.iter_content(chunk_size=chunk_size):
+#                     if chunk:
+#                         f.write(chunk)
+#                         progress_bar.update(len(chunk))
+
+#             progress_bar.close()
+
+#         # Extract zip to dest
+#         with zipfile.ZipFile(zip_path, "r") as zip_ref:
+#             zip_ref.extractall(dest)
+
+#     except Exception as e:
+#         # Clean up on failure
+#         if os.path.exists(zip_path):
+#             os.remove(zip_path)
+#         raise RuntimeError(f"Failed to download or extract {url} → {dest}: {e}")
+
+#     finally:
+#         # Clean up zip file
+#         if os.path.exists(zip_path):
+#             os.remove(zip_path)
+
+
 ########
 # Data utilities
 ########

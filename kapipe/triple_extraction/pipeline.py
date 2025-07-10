@@ -45,7 +45,7 @@ class Pipeline:
 
         # Load the pipeline Config 
         self.root_config: Config = utils.get_hocon_config(
-            os.path.join(expanduser("~"), ".kapipe", "config")
+            os.path.join(expanduser("~"), ".kapipe", "download", "config")
         )
         self.pipe_config: Config = self.root_config[self.identifier]
 
@@ -134,6 +134,12 @@ class NER:
         self.task_config = task_config
         self.gpu = gpu
 
+        # # Download the configurations
+        # utils.download_folder_if_needed(
+        #     dest=self.task_config["snapshot"],
+        #     url=self.task_config["url"]
+        # )
+
         # Initialize the NER extractor
         if self.task_config["task_method"] == "biaffinener":
             self.extractor = BiaffineNER(
@@ -178,6 +184,12 @@ class EDRetrieval:
     def __init__(self, task_config: Config, gpu : int = 0):
         self.task_config = task_config
         self.gpu = gpu
+
+        # # Download the configurations
+        # utils.download_folder_if_needed(
+        #     dest=self.task_config["snapshot"],
+        #     url=self.task_config["url"]
+        # )
        
         # Initialize the ED-Retrieval extractor 
         if self.task_config["task_method"] == "blink": 
@@ -207,7 +219,13 @@ class EDReranking:
     def __init__(self, task_config: Config, gpu: int = 0, llm_model: Any = None):
         self.task_config = task_config
         self.gpu = gpu
-       
+
+        # # Download the configurations
+        # utils.download_folder_if_needed(
+        #     dest=self.task_config["snapshot"],
+        #     url=self.task_config["url"]
+        # )
+ 
         # Initialize the ED-Reranking extractor 
         if self.task_config["task_method"] == "none":
             self.extractor = None
@@ -252,6 +270,12 @@ class DocRE:
     def __init__(self, task_config: Config, gpu: int = 0, llm_model: Any = None):
         self.task_config = task_config
         self.gpu = gpu
+
+        # # Download the configurations
+        # utils.download_folder_if_needed(
+        #     dest=self.task_config["snapshot"],
+        #     url=self.task_config["url"]
+        # )
 
         # Initialize the DocRE extractor
         if self.task_config["task_method"] == "atlop":
