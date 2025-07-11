@@ -144,9 +144,9 @@ class BlinkBiEncoder:
             # synonyms = epage["synonyms"]
             description = epage["description"]
             entity_passage: EntityPassage = {
-                "id": entity_id,
                 "title": canonical_name,
                 "text": description,
+                "entity_id": entity_id,
             }
             candidate_entity_passages.append(entity_passage)
 
@@ -224,9 +224,9 @@ class BlinkBiEncoder:
                 # synonyms = epage["synonyms"]
                 description = epage["description"]
                 entity_passage = {
-                    "id": entity_id,
                     "title": canonical_name,
                     "text": description,
+                    "entity_id": entity_id,
                 }
                 entity_passages.append(entity_passage)
 
@@ -244,8 +244,14 @@ class BlinkBiEncoder:
             logger.info(f"Indexing {len(entity_vectors)} entities ...")
             self.anns.make_index(
                 passage_vectors=entity_vectors,
-                passage_ids=[p["id"] for p in entity_passages],
-                passage_metadatas=[{"title": p["title"]} for p in entity_passages]
+                passage_ids=[p["entity_id"] for p in entity_passages],
+                passage_metadatas=[
+                    {
+                        "title": p["title"],
+                        "entity_id": p["entity_id"]
+                    }
+                    for p in entity_passages
+                ]
             )
 
             self.precomputed_entity_vectors = entity_vectors
@@ -289,11 +295,9 @@ class BlinkBiEncoder:
             # Apply Approximate Nearest Neighbor Search
             #   (n_mentions, retrieval_size),
             #   (n_mentions, retrieval_size),
-            #   (n_mentions, retrieval_size),
             #   (n_mentions, retrieval_size)
             (
                 _,
-                mention_pred_entity_ids,
                 mention_pred_entity_metadatas,
                 retrieval_scores
             ) = self.anns.search(
@@ -302,6 +306,10 @@ class BlinkBiEncoder:
             )
             mention_pred_entity_names = [
                 [y["title"] for y in ys]
+                for ys in mention_pred_entity_metadatas
+            ]
+            mention_pred_entity_ids = [
+                [y["entity_id"] for y in ys]
                 for ys in mention_pred_entity_metadatas
             ]
 

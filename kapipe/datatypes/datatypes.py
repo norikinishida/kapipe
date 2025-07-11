@@ -85,9 +85,9 @@ CandEntKeyInfo : TypeAlias = dict[str, Any]
 
 EntityPassage : TypeAlias = dict[str, Any]
 # {
-#     "id": str,
 #     "title": str,
-#     "text": str
+#     "text": str,
+#     "entity_id": str
 # }
 
 ##########

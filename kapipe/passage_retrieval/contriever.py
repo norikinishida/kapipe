@@ -189,7 +189,7 @@ class Contriever:
         # Encode the queries
         query_embeddings = self.encode(queries).cpu().numpy().astype(np.float32)
         # Search top-k passages for each query
-        batch_indices, _, _, batch_scores = self.anns.search(
+        batch_indices, _, batch_scores = self.anns.search(
             query_vectors=query_embeddings,
             top_k=top_k
         )

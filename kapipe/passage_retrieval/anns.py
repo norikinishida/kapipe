@@ -20,13 +20,11 @@ class ApproximateNearestNeighborSearch:
         self.gpu_id = gpu_id
 
         self.anns_index: faiss.Index | None = None
-        self.passage_ids: list[str] | None = None
         self.passage_metadatas: list[dict] | None = None
 
     def make_index(
         self,
         passage_vectors: np.ndarray,
-        passage_ids: list[str] | None = None,
         passage_metadatas: list[dict] | None = None,
     ):
         """
@@ -73,7 +71,6 @@ class ApproximateNearestNeighborSearch:
             it += 1
 
         # Save ID and metadata mappings
-        self.passage_ids = passage_ids
         self.passage_metadatas = passage_metadatas
 
     def search(
@@ -82,7 +79,6 @@ class ApproximateNearestNeighborSearch:
         top_k: int = 1
     ) -> tuple[
         list[list[int]],
-        list[list[str]] | None,
         list[list[dict]] | None,
         list[list[float]]
     ]:
@@ -100,19 +96,14 @@ class ApproximateNearestNeighborSearch:
         batch_indices = batch_indices.tolist()
         batch_scores = batch_scores.tolist()
 
-        # Map indices to IDs if available
-        batch_ids = (
-            [[self.passage_ids[i] for i in indices] for indices in batch_indices]
-            if self.passage_ids is not None else None
-        )   
-
         # Map indices to metadata if available
         batch_metadatas = (
             [[self.passage_metadatas[i] for i in indices] for indices in batch_indices]
             if self.passage_metadatas is not None else None
         )
 
-        return batch_indices, batch_ids, batch_metadatas, batch_scores
+        # return batch_indices, batch_ids, batch_metadatas, batch_scores
+        return batch_indices, batch_metadatas, batch_scores
 
     def save(self, path: str) -> None:
         """

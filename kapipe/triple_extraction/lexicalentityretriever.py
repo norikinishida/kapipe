@@ -95,9 +95,9 @@ class LexicalEntityRetriever:
             description = epage["description"]
             for name in names:
                 entity_passage: EntityPassage = {
-                    "id": eid,
                     "title": name,
-                    "text": description if use_desc else ""
+                    "text": description if use_desc else "",
+                    "entity_id": eid,
                 }
                 entity_passages.append(entity_passage)
         logger.info(f"Number of entities: {len(self.entity_dict)}")
@@ -134,7 +134,7 @@ class LexicalEntityRetriever:
                 query=query,
                 top_k=self.config["retrieval_size"]
             )
-            pred_entity_ids = [p["id"] for p in entity_passages]
+            pred_entity_ids = [p["entity_id"] for p in entity_passages]
             pred_entity_names = [p["title"] for p in entity_passages]
             scores = [p["score"] for p in entity_passages]
 

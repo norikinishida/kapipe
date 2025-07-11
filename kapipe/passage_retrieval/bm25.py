@@ -105,30 +105,28 @@ class BM25:
     def search(self, query: str, top_k: int = 1) -> list[Passage]:
         scores = self.get_scores(query) # (n_passages,)
 
-        # Since there can be passages with the same ID in the list,
-        #   we need to filter out passages that have the same ID
-        #   with the higher-ranked passages.
+        # In the context of Entity Disambiguation (or Entity Linking),
+        # each entity may have multiple passages (e.g., corresponding to different synonyms),
+        # all sharing the same entity_id.
+        # To avoid redundant matches for the same entity in the top-k results,
+        # we filter out lower-ranked passages that have an entity_id already seen.
+        # This ensures that the final top-k results do not contain duplicate entity_ids.
         sorted_indices = np.argsort(scores)[::-1]
         top_k_indices = []
         seen_ids = set()
         for index in sorted_indices:
             index = int(index)
             passage = self.passages[index]
-            passage_id = passage.get("id", index)
-            if not passage_id in seen_ids:
+            entity_id = passage.get("entity_id", index)
+            if not entity_id in seen_ids:
                 top_k_indices.append(index)
-                seen_ids.add(passage_id)
+                seen_ids.add(entity_id)
             if len(seen_ids) >= top_k:
                 break
         top_k_indices = np.asarray(top_k_indices)
 
-        # return (
-        #     [self.passages[i]["id"] for i in top_k_indices],
-        #     [self.passages[i]["title"] for i in top_k_indices],
-        #     scores[top_k_indices]
-        # )
-        passages = [self.passages[i] for i in top_k_indices] # list[Passage]
-        scores = scores[top_k_indices] # list[float]
+        passages: list[Passage] = [self.passages[i] for i in top_k_indices]
+        scores: list[float] = scores[top_k_indices]
         return [
             p | {"score": s, "rank": r+1}
             for r, (p, s) in enumerate(zip(passages, scores))

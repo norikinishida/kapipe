@@ -879,7 +879,7 @@ class BlinkBiEncoderPreprocessor:
         #     # Candidate entities should be determined beforehand for each document
         #     # list[str]; (n_candidates,)
         #     candidate_entity_ids = [
-        #         p["id"] for p in candidate_entity_passages
+        #         p["entity_id"] for p in candidate_entity_passages
         #     ]
         #     preprocessed_data["candidate_entity_ids"] = candidate_entity_ids
 
@@ -916,7 +916,7 @@ class BlinkBiEncoderPreprocessor:
         # Candidate entities should be determined beforehand for each document
         # list[str]; (n_candidates,)
         candidate_entity_ids = [
-            p["id"] for p in candidate_entity_passages
+            p["entity_id"] for p in candidate_entity_passages
         ]
         preprocessed_data["candidate_entity_ids"] = candidate_entity_ids
 
