@@ -244,7 +244,6 @@ class BlinkBiEncoder:
             logger.info(f"Indexing {len(entity_vectors)} entities ...")
             self.anns.make_index(
                 passage_vectors=entity_vectors,
-                passage_ids=[p["entity_id"] for p in entity_passages],
                 passage_metadatas=[
                     {
                         "title": p["title"],

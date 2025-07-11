@@ -1,7 +1,9 @@
+import math
+
 from ... import utils
 
 
-def mean_average_precision(
+def ndcg_at_k(
     pred_path,
     gold_path,
     passage_to_identifier=None
@@ -9,7 +11,7 @@ def mean_average_precision(
     scores = {}
 
     if passage_to_identifier is None:
-        passage_to_identifier = lambda p: p["passage_id"]
+        passage_to_identifier = lambda p: p["text"]
 
     # Load
     if isinstance(pred_path, str):
@@ -30,7 +32,7 @@ def mean_average_precision(
         assert pred_contexts_for_doc["question_key"] == gold_contexts_for_doc["question_key"]
 
     # Evaluate
-    scores["mean_average_precision"] = _mean_average_precision(
+    scores["ndcg_at_k"] = _ndcg_at_k(
         pred_contexts=pred_contexts,
         gold_contexts=gold_contexts,
         passage_to_identifier=passage_to_identifier
@@ -38,26 +40,33 @@ def mean_average_precision(
     return scores
 
 
-def _mean_average_precision(pred_contexts, gold_contexts, passage_to_identifier):
+def _ndcg_at_k(pred_contexts, gold_contexts, passage_to_identifier):
     scores = {}
 
-    average_precision_list = []
+    k_list = [1, 2, 4, 5, 8, 10, 16, 20, 30, 32, 50, 64, 100, 128]
+
+    ndcg_list = {k: [] for k in k_list}
 
     for pred_contexts_for_doc, gold_contexts_for_doc in zip(pred_contexts, gold_contexts):
         pred_passage_ids = [passage_to_identifier(p) for p in pred_contexts_for_doc["contexts"]]
         gold_passage_ids = [passage_to_identifier(p) for p in gold_contexts_for_doc["contexts"]]
         gold_passage_ids = set(gold_passage_ids)
 
-        hits = 0
-        sum_precisions = 0.0
-        for rank, pid in enumerate(pred_passage_ids, 1):
-            if pid in gold_passage_ids:
-                hits += 1
-                sum_precisions += hits / rank
-        ap = sum_precisions / len(gold_passage_ids)
-        average_precision_list.append(ap)
+        relevance_labels = [1 if pid in gold_passage_ids else 0 for pid in pred_passage_ids]
 
-    sum_ = sum(average_precision_list)
-    n = len(average_precision_list)
-    scores["mean_average_precision"] = (sum_ / n if n != 0 else 0.0) * 100.0
+        for k in k_list:
+            dcg = sum(rel / math.log2(i + 2) for i, rel in enumerate(relevance_labels[:k]))
+            # ideal_relevance_labels = sorted(relevance_labels, reverse=True)
+            # idcg = sum(rel / math.log2(i + 2) for i, rel in enumerate(ideal_relecance_labels[:k]))
+            ideal_relevance_labels = [1] * min(k, len(gold_passage_ids))
+            idcg = sum(rel / math.log2(i + 2) for i, rel in enumerate(ideal_relevance_labels))
+            ndcg = dcg / idcg if idcg > 0 else 0.0
+            ndcg_list[k].append(ndcg)
+
+    for k in k_list:
+        scores[f"nDCG@{k}"] = (
+            sum(ndcg_list[k]) / len(ndcg_list[k])
+            if len(ndcg_list[k]) != 0 else 0.0
+        ) * 100.0
+
     return scores

@@ -9,7 +9,7 @@ def precision_recall_at_k(
     scores = {}
 
     if passage_to_identifier is None:
-        passage_to_identifier = lambda p: p["passage_id"]
+        passage_to_identifier = lambda p: p["text"]
 
     # Load
     if isinstance(pred_path, str):

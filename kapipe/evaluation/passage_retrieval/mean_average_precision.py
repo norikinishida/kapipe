@@ -1,7 +1,7 @@
 from ... import utils
 
 
-def mean_reciprocal_rank(
+def mean_average_precision(
     pred_path,
     gold_path,
     passage_to_identifier=None
@@ -9,7 +9,7 @@ def mean_reciprocal_rank(
     scores = {}
 
     if passage_to_identifier is None:
-        passage_to_identifier = lambda p: p["passage_id"]
+        passage_to_identifier = lambda p: p["text"]
 
     # Load
     if isinstance(pred_path, str):
@@ -30,7 +30,7 @@ def mean_reciprocal_rank(
         assert pred_contexts_for_doc["question_key"] == gold_contexts_for_doc["question_key"]
 
     # Evaluate
-    scores["mean_reciprocal_rank"] = _mean_reciprocal_rank(
+    scores["mean_average_precision"] = _mean_average_precision(
         pred_contexts=pred_contexts,
         gold_contexts=gold_contexts,
         passage_to_identifier=passage_to_identifier
@@ -38,24 +38,26 @@ def mean_reciprocal_rank(
     return scores
 
 
-def _mean_reciprocal_rank(pred_contexts, gold_contexts, passage_to_identifier):
+def _mean_average_precision(pred_contexts, gold_contexts, passage_to_identifier):
     scores = {}
 
-    reciprocal_ranks = []
+    average_precision_list = []
 
     for pred_contexts_for_doc, gold_contexts_for_doc in zip(pred_contexts, gold_contexts):
         pred_passage_ids = [passage_to_identifier(p) for p in pred_contexts_for_doc["contexts"]]
         gold_passage_ids = [passage_to_identifier(p) for p in gold_contexts_for_doc["contexts"]]
         gold_passage_ids = set(gold_passage_ids)
 
-        rr = 0.0
+        hits = 0
+        sum_precisions = 0.0
         for rank, pid in enumerate(pred_passage_ids, 1):
             if pid in gold_passage_ids:
-                rr = 1.0 / rank
-                break
-        reciprocal_ranks.append(rr)
+                hits += 1
+                sum_precisions += hits / rank
+        ap = sum_precisions / len(gold_passage_ids)
+        average_precision_list.append(ap)
 
-    sum_ = sum(reciprocal_ranks)
-    n = len(reciprocal_ranks)
-    scores["mean_reciprocal_rank"] = (sum_ / n if n != 0 else 0.0) * 100.0
+    sum_ = sum(average_precision_list)
+    n = len(average_precision_list)
+    scores["mean_average_precision"] = (sum_ / n if n != 0 else 0.0) * 100.0
     return scores
