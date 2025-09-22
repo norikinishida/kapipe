@@ -9,6 +9,7 @@ STORAGE_RESULTS=${STORAGE}/results
 # Method
 METHOD=hierarchical_leiden
 # METHOD=neighborhood_aggregation
+# METHOD=triple_level_factorization
 
 # Input Data
 INPUT_GRAPH=${STORAGE_DATA}/examples/graph.graphml
