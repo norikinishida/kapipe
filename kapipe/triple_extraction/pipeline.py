@@ -153,7 +153,7 @@ class NER:
                 model=None,
             )
             self.demonstration_retriever = DemonstrationRetriever(
-                path_demonstration_pool=self.extractor.path_demonstration_pool,
+                path_demonstration_pool=self.extractor.prompt_processor.path_demonstration_pool,
                 method="count",
                 task="ner"
             )
@@ -242,7 +242,7 @@ class EDReranking:
             )
             # Initialize the demonstration retriever
             self.demonstration_retriever = DemonstrationRetriever(
-                path_demonstration_pool=self.extractor.path_demonstration_pool,
+                path_demonstration_pool=self.extractor.prompt_processor.path_demonstration_pool,
                 method="count",
                 task="ed"
             )
@@ -291,7 +291,7 @@ class DocRE:
             )
             # Initialize the demonstration retriever
             self.demonstration_retriever = DemonstrationRetriever(
-                path_demonstration_pool=self.extractor.path_demonstration_pool,
+                path_demonstration_pool=self.extractor.prompt_processor.path_demonstration_pool,
                 method="count",
                 task="docre"
             )
