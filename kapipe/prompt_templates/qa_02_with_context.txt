@@ -1,6 +1,7 @@
 ### Instruction
 
 Answer a given question based on the provided context. Additionally, provide a score between 0.0 and 1.0, indicating how well your answer addresses the question. Provide the output in the following format.
+
 Output Format:
 Answer: [Your answer here, a single line without line breaks]
 Score: [Score between 0.0 and 1.0]

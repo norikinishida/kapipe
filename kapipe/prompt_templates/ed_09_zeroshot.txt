@@ -1,4 +1,5 @@
 Given the text of a document, a list of entity mentions (extracted through Named Entity Recognition), and candidate {knowledge_base_name_prompt} concepts, assign the most appropriate Concept ID from the provided candidates to each entity mention based on the context of the document. If none of the candidates is appropriate for a mention, simply assign "NA" for it. Provide the output in bullet-point format, with each line containing the entity mention and its corresponding concept ID, separated by a pipe (`|`) symbol.
+
 Output Format:
 - Entity Mention 1 | Concept ID of Entity Mention 1
 - Entity Mention 2 | Concept ID of Entity Mention 2
