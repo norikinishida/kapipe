@@ -86,7 +86,22 @@ def main(args):
     ##################
 
     if reporting_method == "llm":
-        generator = LLMBasedReportGenerator()
+        generator = LLMBasedReportGenerator(
+            llm_backend="openai",
+            llm_kwargs={
+                "openai_model_name": "gpt-4o-mini",
+                "max_new_tokens": 2048
+            }
+        )
+        # OR
+        # generator = LLMBasedReportGenerator(
+        #     llm_backend="huggingface",
+        #     llm_kwargs={
+        #         "llm_name_or_path": "Qwen/Qwen2.5-7B-Instruct",
+        #         "max_new_tokens": 2048,
+        #         "quantization_bits": -1,
+        #     }
+        # )
     elif reporting_method == "template":
         generator = TemplateBasedReportGenerator()
     else:

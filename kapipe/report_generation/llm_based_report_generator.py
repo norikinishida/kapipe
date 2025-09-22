@@ -5,7 +5,7 @@ import logging
 
 import networkx as nx
 
-from ..models import OpenAILLM
+from ..models import HuggingFaceLLM, OpenAILLM
 from .. import utils
 from ..datatypes import (
     CommunityRecord,
@@ -18,8 +18,48 @@ logger = logging.getLogger(__name__)
 
 class LLMBasedReportGenerator:
     
-    def __init__(self):
-        pass
+    def __init__(
+        self,
+        prompt_template_name_or_path: str | None = None,
+        llm_backend: str = "openai", # "openai" or "huggingface"
+        llm_kwargs: dict | None = None
+    ):
+        if prompt_template_name_or_path is None:
+            self.prompt_template_name_or_path = "report_generation_01_zeroshot"
+        else:
+            self.prompt_template_name_or_path = prompt_template_name_or_path
+
+        self.llm_backend = llm_backend.lower()
+        self.llm_kwargs = llm_kwargs if llm_kwargs is not None else {}
+
+        # Load prompt template for report generation
+        self.prompt_template = utils.read_prompt_template(
+            prompt_template_name_or_path=self.prompt_template_name_or_path
+        )
+
+        # Initialize the LLM model
+        if self.llm_backend == "openai":
+            openai_model_name = self.llm_kwargs.get("openai_model_name", "gpt-4o-mini")
+            max_new_tokens = self.llm_kwargs.get("max_new_tokens", 2048)
+            self.model = OpenAILLM(
+                openai_model_name=openai_model_name,
+                max_new_tokens=max_new_tokens
+            )
+        elif self.llm_backend == "huggingface":
+            llm_name_or_path = self.llm_kwargs.get("llm_name_or_path", "Qwen/Qwen2.5-7B-Instruct")
+            max_new_tokens = self.llm_kwargs.get("max_new_tokens", 2048)
+            quantization_bits = self.llm_kwargs.get("quantization_bits", -1)
+            self.model = HuggingFaceLLM(
+                device="cuda",
+                # Model
+                llm_name_or_path=llm_name_or_path,
+                # Generation
+                max_new_tokens=max_new_tokens,
+                quantization_bits=quantization_bits
+            )
+        else:
+            raise ValueError(f"Unsupported llm_backend: {self.llm_backend}")
+
 
     def generate_community_reports(
         self,
@@ -40,23 +80,12 @@ class LLMBasedReportGenerator:
         if parse_generated_text_fn is None:
             parse_generated_text_fn = parse_generated_text
 
-        # Load prompt template for report generation
-        prompt_template = utils.read_prompt_template(
-            prompt_template_name_or_path="report_generation_01_zeroshot"
-        )
-
-        # Initialize the LLM model
-        model = OpenAILLM(openai_model_name="gpt-4o-mini", max_new_tokens=1024)
-
-        # Instantiate the report generator
-        report_generator = ReportGenerator(
-            prompt_template=prompt_template,
-            model=model,
-            graph=graph,
-            relation_map=relation_map,
-            parse_generated_text_fn=parse_generated_text_fn,
-            n_total=len(communities)-1 # Exclude ROOT
-        )
+        # Save the context for later use
+        self.graph = graph
+        self.relation_map = relation_map
+        self.parse_generated_text_fn = parse_generated_text_fn
+        self.n_total = len(communities) - 1 # Exclude ROOT
+        self.count = 0
 
         # Convert list of communities to dictionary for quick access
         communities_dict = {c["community_id"]: c for c in communities}
@@ -66,7 +95,6 @@ class LLMBasedReportGenerator:
             self._recursive(
                 community=communities_dict["ROOT"],
                 communities_dict=communities_dict,
-                report_generator=report_generator,
                 fout=fout
             )
 
@@ -74,7 +102,6 @@ class LLMBasedReportGenerator:
         self,
         community: CommunityRecord,
         communities_dict: dict[str, CommunityRecord],
-        report_generator: ReportGenerator,
         fout
     ) -> Passage | None:
         """Recursively generate reports in bottom-up fashion."""
@@ -87,7 +114,6 @@ class LLMBasedReportGenerator:
                 child_report = self._recursive(
                     community=child_community,
                     communities_dict=communities_dict,
-                    report_generator=report_generator,
                     fout=fout
                 )
                 child_reports.append(child_report)
@@ -96,14 +122,14 @@ class LLMBasedReportGenerator:
         if community["community_id"] == "ROOT":
             return None
 
-        # Collect nodes that belong to this community directly
+        # Collect direct nodes (excluding those covered by child reports)
         nodes_of_children = utils.flatten_lists([c["nodes"] for c in child_reports])
         direct_nodes = [
             node for node in community["nodes"] if node not in nodes_of_children
         ]
 
         # Generate this community's report
-        report = report_generator.generate_community_report(
+        report = self._generate_community_report(
             community=community,
             direct_nodes=direct_nodes,
             child_reports=child_reports
@@ -114,27 +140,7 @@ class LLMBasedReportGenerator:
         fout.write(json_str + "\n")
         return report           
 
-    
-class ReportGenerator:
-    
-    def __init__(
-        self,
-        prompt_template: str,
-        model: OpenAILLM,
-        graph: nx.MultiDiGraph,
-        relation_map: dict[str,str],
-        parse_generated_text_fn,
-        n_total: int
-    ) -> None:
-        self.prompt_template = prompt_template
-        self.model = model
-        self.graph = graph
-        self.relation_map = relation_map
-        self.parse_generated_text_fn = parse_generated_text_fn
-        self.n_total = n_total
-        self.count = 0
-
-    def generate_community_report(
+    def _generate_community_report(
         self,
         community: CommunityRecord,
         direct_nodes: list[str],
@@ -148,20 +154,20 @@ class ReportGenerator:
         logger.info(f"[{self.count}/{self.n_total}] Generating a report for community (ID:{community['community_id']}) with {len(direct_nodes)} direct nodes and {len(child_reports)} sub communities (IDs:{[c['community_id'] for c in child_reports]})...")
 
         # Generate a prompt
-        prompt = self.generate_prompt(
+        prompt = self._generate_prompt(
             direct_nodes=direct_nodes,
             child_reports=child_reports,
         )
 
-        # Generate a report based on the prompt
+        # Generate a plain-text report based on the prompt
         generated_text = self.model.generate(prompt)
 
-        # Process the generated report
+        # Parse the generated report
         processed_title, processed_text = self.parse_generated_text_fn(generated_text)
 
         return {"title": processed_title, "text": processed_text} | community
 
-    def generate_prompt(
+    def _generate_prompt(
         self,
         direct_nodes: list[str],
         child_reports: list[Passage]
@@ -227,9 +233,7 @@ class ReportGenerator:
                     content_prompt += "\n"
 
         # Finalize the prompt
-        prompt = self.prompt_template.format(
-            content_prompt=content_prompt.strip()
-        )
+        prompt = self.prompt_template.format(content_prompt=content_prompt.strip())
 
         return prompt
 
