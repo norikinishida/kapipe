@@ -12,8 +12,7 @@ from typing import Any
 import torch
 from tqdm import tqdm
 
-from ..models import LLM
-from ..models import OpenAILLM
+from ..models import HuggingFaceLLM, OpenAILLM
 from .. import evaluation
 from .. import utils
 from ..datatypes import (
@@ -47,7 +46,7 @@ class LLMED:
         # Loading
         path_snapshot: str | None = None,
         # Misc.
-        model: LLM | OpenAILLM | None = None,
+        model: HuggingFaceLLM | OpenAILLM | None = None,
     ):
         logger.info("########## LLMED Initialization Starts ##########")
 
@@ -101,19 +100,13 @@ class LLMED:
             self.model = model
             logger.info("LLM is provided by an argument")
         elif self.model_name == "hf":
-            self.model = LLM(
+            self.model = HuggingFaceLLM(
                 device=device,
                 # Model
                 llm_name_or_path=config["llm_name_or_path"],
-                max_seg_len=config["max_seg_len"],
-                quantization_bits=config["quantization_bits"],
                 # Generation
                 max_new_tokens=config["max_new_tokens"],
-                beam_size=config["beam_size"],
-                do_sample=config["do_sample"],
-                num_return_sequences=config["num_return_sequences"],
-                stop_list=config["stop_list"],
-                clean_up_tokenization_spaces=config["clean_up_tokenization_spaces"],
+                quantization_bits=config["quantization_bits"],
             )
         else:
             self.model = OpenAILLM(
@@ -142,11 +135,11 @@ class LLMED:
         if self.prompt_processor.path_demonstration_pool is not None:
             utils.write_json(
                 path_demonstration_pool,
-                self.prompt_processor.demonstration_pool
+                list(self.prompt_processor.demonstration_pool.values())
             )
             utils.write_json(
                 path_candidate_entities_pool,
-                self.prompt_processor.candidate_entities_pool
+                list(self.prompt_processor.candidate_entities_pool.values())
             )
 
     def extract(
@@ -180,31 +173,10 @@ class LLMED:
                     demonstrations_for_doc=demonstrations_for_doc,
                     contexts_for_doc=contexts_for_doc
                 )
+                prompt_list.append(prompt)
 
-                if self.model_name == "hf":
-                    # Preprocess
-                    preprocessed_data = self.model.preprocess(prompt=prompt)
-                    prompt_list.append(preprocessed_data["prompt"])
-
-                    if preprocessed_data["skip"]:
-                        logger.info(f"Skipped generation because the text length ({sum([len(seg) for seg in preprocessed_data['llm_input']['segments_id']])}) is too long.")
-                        generated_text = "SKIPPED BECAUSE THE TEXT IS TOO LONG"
-                    else:
-                        # Tensorize
-                        model_input = self.model.tensorize(
-                            preprocessed_data=preprocessed_data,
-                            compute_loss=False
-                        )
-
-                        # Forward
-                        generated_text = self.model.generate(**model_input)[0]
-                        generated_text = self.model.remove_prompt_from_generated_text(
-                            generated_text=generated_text
-                        )
-                else:
-                    prompt_list.append(prompt)
-                    generated_text = self.model.generate(prompt)
-                
+                # Generate a response
+                generated_text = self.model.generate(prompt)
                 generated_text_list.append(generated_text)
 
                 # Structurize (1)
@@ -292,7 +264,7 @@ class LLMED:
             names.append(name)
             entity_ids.append(entity_id)
 
-        if len(names) == len(entity_ids) == len(document["mentions"]):
+        if len(names) == len(entity_ids) == len(target_mention_indices):
             # The number of entities (i.e., len(names), len(entity_ids)) is the same with that of all mentions in the document
             if len(document["mentions"]) == 0:
                 assert len(target_mention_indices) == 0

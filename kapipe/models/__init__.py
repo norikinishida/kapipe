@@ -11,5 +11,5 @@ from .maqa_model import MAQAModel
 from .maatlop_model import MAATLOPModel
 
 # General LLM
-from .llm import LLM
+from .hf_llm import HuggingFaceLLM
 from .openai_llm import OpenAILLM

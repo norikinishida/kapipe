@@ -9,7 +9,7 @@ from typing import Any
 import torch
 from tqdm import tqdm
 
-from ..models import LLM, OpenAILLM
+from ..models import HuggingFaceLLM, OpenAILLM
 from .. import evaluation
 from .. import utils
 from ..datatypes import (
@@ -34,7 +34,7 @@ class LLMQA:
         # Loading
         path_snapshot: str | None = None,
         # Misc.
-        model: LLM | OpenAILLM | None = None
+        model: HuggingFaceLLM | OpenAILLM | None = None
     ):
         logger.info("########## LLMQA Initialization Starts ##########")
 
@@ -75,19 +75,13 @@ class LLMQA:
             self.model = model
             logger.info("LLM is provided")
         elif self.model_name == "hf":
-            self.model = LLM(
+            self.model = HuggingFaceLLM(
                 device=device,
                 # Model
                 llm_name_or_path=config["llm_name_or_path"],
-                max_seg_len=config["max_seg_len"],
-                quantization_bits=config["quantization_bits"],
                 # Generation
                 max_new_tokens=config["max_new_tokens"],
-                beam_size=config["beam_size"],
-                do_sample=config["do_sample"],
-                num_return_sequences=config["num_return_sequences"],
-                stop_list=config["stop_list"],
-                clean_up_tokenization_spaces=config["clean_up_tokenization_spaces"],
+                quantization_bits=config["quantization_bits"],
             )
         else:
             self.model = OpenAILLM(
@@ -146,23 +140,8 @@ class LLMQA:
                         contexts_for_question=new_contexts_for_question
                     )
 
-                    if self.model_name == "hf":
-                        # Preprocess
-                        preprocessed_data = self.model.preprocess(prompt=prompt)
-
-                        # Tensorize
-                        model_input = self.model.tensorize(
-                            preprocessed_data=preprocessed_data,
-                            compute_loss=False
-                        )
-
-                        # Forward
-                        generated_text = self.model.generate(**model_input)[0]
-                        generated_text = self.model.remove_prompt_from_generated_text(
-                            generated_text=generated_text
-                        )
-                    else:
-                        generated_text = self.model.generate(prompt)
+                    # Generate a response
+                    generated_text = self.model.generate(prompt)
 
                     # Structurize
                     answer, helpfulness_score = self.structurize(
@@ -203,23 +182,8 @@ class LLMQA:
                     contexts_for_question=new_contexts_for_question
                 )
 
-                if self.model_name == "hf":
-                    # Preprocess
-                    preprocessed_data = self.model.preprocess(prompt=prompt)
-
-                    # Tensorize
-                    model_input = self.model.tensorize(
-                        preprocessed_data=preprocessed_data,
-                        compute_loss=False
-                    )
-
-                    # Forward
-                    generated_text = self.model.generate(**model_input)[0]
-                    generated_text = self.model.remove_prompt_from_generated_text(
-                        generated_text=generated_text
-                    )
-                else:
-                    generated_text = self.model.generate(prompt)
+                # Generate a response
+                generated_text = self.model.generate(prompt)
 
                 # Structurize
                 answer, helpfulness_score = self.structurize(
@@ -234,23 +198,8 @@ class LLMQA:
                     contexts_for_question=contexts_for_question
                 )
 
-                if self.model_name == "hf":
-                    # Preprocess
-                    preprocessed_data = self.model.preprocess(prompt=prompt)
-
-                    # Tensorize
-                    model_input = self.model.tensorize(
-                        preprocessed_data=preprocessed_data,
-                        compute_loss=False
-                    )
-
-                    # Forward
-                    generated_text = self.model.generate(**model_input)[0]
-                    generated_text = self.model.remove_prompt_from_generated_text(
-                        generated_text=generated_text
-                    )
-                else:
-                    generated_text = self.model.generate(prompt)
+                # Generate a response
+                generated_text = self.model.generate(prompt)
 
                 # Structurize
                 answer, helpfulness_score = self.structurize(
@@ -262,9 +211,7 @@ class LLMQA:
             result_question = copy.deepcopy(question)
             result_question["output_answer"] = answer
             result_question["helpfulness_score"] = helpfulness_score
-            result_question["qa_prompt"] = (
-                preprocessed_data["prompt"] if self.model_name == "hf" else prompt
-            )
+            result_question["qa_prompt"] = prompt
             result_question["qa_generated_text"] = generated_text
             if self.map_reduce_generation:
                 result_question["intermediate_answers"] = intermediate_answers
@@ -345,8 +292,9 @@ class PromptProcessor:
     def __init__(
         self,
         prompt_template_name_or_path: str,
+        # optional: context
+        n_contexts: int = -1,
         # optional: few-shot setting
-        n_contexts: int | None = None,
         path_demonstration_pool: str | None = None,
         n_demonstrations: int | None = None
     ): 
@@ -406,7 +354,7 @@ class PromptProcessor:
 
         if contexts_for_question is not None:
             # Prepare contexts
-            if self.n_contexts is not None:
+            if self.n_contexts >= 0:
                 context_texts = [
                     utils.create_text_from_passage(passage=p, sep=" : ")
                     for p in contexts_for_question["contexts"][:self.n_contexts]

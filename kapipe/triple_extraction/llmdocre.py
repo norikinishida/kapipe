@@ -12,8 +12,7 @@ import torch
 # import torch.nn as nn
 from tqdm import tqdm
 
-from ..models import LLM
-from ..models import OpenAILLM
+from ..models import HuggingFaceLLM, OpenAILLM
 from .. import evaluation
 from .. import utils
 from ..datatypes import (
@@ -115,19 +114,13 @@ class LLMDocRE:
             self.model = model
             logger.info("LLM is provided by an argument")
         elif self.model_name == "hf":
-            self.model = LLM(
+            self.model = HuggingFaceLLM(
                 device=device,
                 # Model
                 llm_name_or_path=config["llm_name_or_path"],
-                max_seg_len=config["max_seg_len"],
-                quantization_bits=config["quantization_bits"],
                 # Generation
                 max_new_tokens=config["max_new_tokens"],
-                beam_size=config["beam_size"],
-                do_sample=config["do_sample"],
-                num_return_sequences=config["num_return_sequences"],
-                stop_list=config["stop_list"],
-                clean_up_tokenization_spaces=config["clean_up_tokenization_spaces"],
+                quantization_bits=config["quantization_bits"],
             )
         else:
             self.model = OpenAILLM(
@@ -169,7 +162,7 @@ class LLMDocRE:
         if self.prompt_processor.path_demonstration_pool is not None:
             utils.write_json(
                 path_demonstration_pool,
-                self.prompt_processor.demonstration_pool
+                list(self.prompt_processor.demonstration_pool.values())
             )
 
     def extract(
@@ -199,24 +192,9 @@ class LLMDocRE:
                 demonstrations_for_doc=demonstrations_for_doc,
                 contexts_for_doc=contexts_for_doc
             )
-   
-            if self.model_name == "hf": 
-                # Preprocesss
-                preprocessed_data = self.model.preprocess(prompt=prompt)
-
-                # Tensorize
-                model_input = self.model.tensorize(
-                    preprocessed_data=preprocessed_data,
-                    compute_loss=False
-                )
-
-                # Forward
-                generated_text = self.model.generate(**model_input)[0]
-                generated_text = self.model.remove_prompt_from_generated_text(
-                    generated_text=generated_text
-                )
-            else:
-                generated_text = self.model.generate(prompt)
+  
+            # Generate a reponse
+            generated_text = self.model.generate(prompt)
 
             # Structurize
             triples: list[Triple] = self.structurize(
@@ -227,10 +205,7 @@ class LLMDocRE:
             # Integrate
             result_document = copy.deepcopy(document)
             result_document["relations"] = triples
-            if self.model_name == "hf":
-                result_document["docre_prompt"] = preprocessed_data["prompt"]
-            else:
-                result_document["docre_prompt"] = prompt
+            result_document["docre_prompt"] = prompt
             result_document["docre_generated_text"] = generated_text
             return result_document
 

@@ -10,6 +10,9 @@ STORAGE_RESULTS=${STORAGE}/results
 METHOD=llmqa
 CONFIG_PATH=./config/llmqa.conf
 CONFIG_NAME=openai_gpt4o_cdrqa_prompt03_with_context
+# CONFIG_NAME=hf_llama3_1_8b_cdrqa_prompt03_with_context
+# CONFIG_NAME=hf_llama3_1_70b_cdrqa_prompt03_with_context
+# CONFIG_NAME=hf_qwen2_5_7b_cdrqa_prompt03_with_context
 
 # Input Data
 # (In practice, use separate files for training, validation, and test data.)

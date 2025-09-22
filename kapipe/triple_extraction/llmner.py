@@ -13,7 +13,7 @@ import torch
 # import torch.nn as nn
 from tqdm import tqdm
 
-from ..models import LLM, OpenAILLM
+from ..models import HuggingFaceLLM, OpenAILLM
 from .. import evaluation
 from .. import utils
 from ..datatypes import (
@@ -41,7 +41,7 @@ class LLMNER:
         # Loading
         path_snapshot: str | None = None,
         # Misc
-        model: LLM | OpenAILLM | None = None,
+        model: HuggingFaceLLM | OpenAILLM | None = None,
     ):
         logger.info("########## LLMNER Initialization Starts ##########")
 
@@ -99,19 +99,13 @@ class LLMNER:
             self.model = model
             logger.info("LLM is provided by an argument")
         elif self.model_name == "hf":
-            self.model = LLM(
+            self.model = HuggingFaceLLM(
                 device=device,
                 # Model
                 llm_name_or_path=config["llm_name_or_path"],
-                max_seg_len=config["max_seg_len"],
-                quantization_bits=config["quantization_bits"],
                 # Generation
                 max_new_tokens=config["max_new_tokens"],
-                beam_size=config["beam_size"],
-                do_sample=config["do_sample"],
-                num_return_sequences=config["num_return_sequences"],
-                stop_list=config["stop_list"],
-                clean_up_tokenization_spaces=config["clean_up_tokenization_spaces"],
+                quantization_bits=config["quantization_bits"],
             )
         else:
             self.model = OpenAILLM(
@@ -171,23 +165,8 @@ class LLMNER:
                 contexts_for_doc=contexts_for_doc
             )
 
-            if self.model_name == "hf":
-                # Preprocess
-                preprocessed_data = self.model.preprocess(prompt=prompt)
-
-                # Tensorize
-                model_input = self.model.tensorize(
-                    preprocessed_data=preprocessed_data,
-                    compute_loss=False
-                )
-
-                # Forward
-                generated_text = self.model.generate(**model_input)[0]
-                generated_text = self.model.remove_prompt_from_generated_text(
-                    generated_text=generated_text
-                )
-            else:
-                generated_text = self.model.generate(prompt)
+            # Generate a response
+            generated_text = self.model.generate(prompt)
 
             # Structurize
             mentions = self.structurize(
@@ -198,10 +177,7 @@ class LLMNER:
             # Integrate
             result_document = copy.deepcopy(document)
             result_document["mentions"] = mentions
-            if self.model_name == "hf":
-                result_document["ner_prompt"] = preprocessed_data["prompt"]
-            else:
-                result_document["ner_prompt"] = prompt
+            result_document["ner_prompt"] = prompt
             result_document["ner_generated_text"] = generated_text
             return result_document
 

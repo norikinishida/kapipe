@@ -42,7 +42,13 @@ class OpenAILLM:
 
         self.client = OpenAI()
 
-    def generate(self, prompt=None, system_prompt=None, user_prompt=None, temperature=0.0):
+    def generate(
+        self,
+        prompt: str | None = None,
+        system_prompt: str | None = None,
+        user_prompt: str | None = None,
+        temperature: float = 0.0
+    ) -> str:
         if prompt is not None:
             if user_prompt is not None:
                 raise ValueError("Specify either `prompt` or `user_prompt`, not both.")
