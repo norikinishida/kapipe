@@ -76,34 +76,67 @@ class ApproximateNearestNeighborSearch:
     def search(
         self,
         query_vectors: np.ndarray,
-        top_k: int = 1
+        top_k: int = 1,
+        batch_size: int = 1024
     ) -> tuple[
         list[list[int]],
         list[list[dict]] | None,
         list[list[float]]
     ]:
         """
-        Perform ANN search for the given queries.
+        Perform ANN search for the given queries with batching.
         """
 
-        # (query_size, top_k), (query_size, top_k)
-        batch_scores, batch_indices = self.anns_index.search(query_vectors, top_k)
+        # # (query_size, top_k), (query_size, top_k)
+        # batch_scores, batch_indices = self.anns_index.search(query_vectors, top_k)
 
-        if self.metric not in {"inner-product", "hnsw-inner-product"}:
-            batch_scores = 1.0 / (batch_scores + 1.0)
+        # if self.metric not in {"inner-product", "hnsw-inner-product"}:
+        #     batch_scores = 1.0 / (batch_scores + 1.0)
 
-        # Convert numpy results to Python lists
-        batch_indices = batch_indices.tolist()
-        batch_scores = batch_scores.tolist()
+        # # Convert numpy results to Python lists
+        # batch_indices = batch_indices.tolist()
+        # batch_scores = batch_scores.tolist()
 
-        # Map indices to metadata if available
-        batch_metadatas = (
-            [[self.passage_metadatas[i] for i in indices] for indices in batch_indices]
-            if self.passage_metadatas is not None else None
-        )
+        # # Map indices to metadata if available
+        # batch_metadatas = (
+        #     [[self.passage_metadatas[i] for i in indices] for indices in batch_indices]
+        #     if self.passage_metadatas is not None else None
+        # )
 
-        # return batch_indices, batch_ids, batch_metadatas, batch_scores
-        return batch_indices, batch_metadatas, batch_scores
+        # # return batch_indices, batch_ids, batch_metadatas, batch_scores
+        # return batch_indices, batch_metadatas, batch_scores
+
+        n_queries = len(query_vectors)
+        all_indices = []
+        all_metadatas = [] if self.passage_metadatas is not None else None
+        all_scores = []
+
+        for begin_i in range(0, n_queries, batch_size):
+            end_i = min(begin_i + batch_size, n_queries)
+            batch_vectors = query_vectors[begin_i: end_i]
+
+            # (batch_size, top_k), (batch_size, top_k)
+            batch_scores, batch_indices = self.anns_index.search(batch_vectors, top_k)
+
+            if self.metric not in {"inner-product", "hnsw-inner-product"}:
+                batch_scores = 1.0 / (batch_scores + 1.0)
+
+            # Convert numpy results to Python lists
+            batch_indices = batch_indices.tolist()
+            batch_scores = batch_scores.tolist()
+
+            all_indices.extend(batch_indices)
+            all_scores.extend(batch_scores)
+
+            # Map indices to metadata if available
+            if self.passage_metadatas is not None:
+                batch_metadatas = [
+                    [self.passage_metadatas[i] for i in indices]
+                    for indices in batch_indices
+                ]
+                all_metadatas.extend(batch_metadatas)
+
+        return all_indices, all_metadatas, all_scores
 
     def save(self, path: str) -> None:
         """
