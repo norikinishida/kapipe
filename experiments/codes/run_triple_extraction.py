@@ -33,7 +33,7 @@ def main(args):
     identifier = args.identifier
 
     # Input Data
-    path_input_documents_list = args.input_documents_list
+    path_input_documents = args.input_documents
 
     # Output Path
     path_results_dir = args.results_dir
@@ -70,16 +70,13 @@ def main(args):
     ##################
 
     # Load documents
-    documents = []
-    for path_input_documents in path_input_documents_list:
-        docs = utils.read_json(path_input_documents)
-        documents.extend(docs)
+    documents = utils.read_json(path_input_documents)
 
     ##################
     # Method
     ##################
 
-    pipe = triple_extraction.load(
+    triple_extractor = triple_extraction.load(
         identifier=identifier,
         gpu_map={"ner": 0, "ed_retrieval": 0, "ed_reranking": 2, "docre": 3}
     )
@@ -89,14 +86,14 @@ def main(args):
     ##################
 
     # Create the full output path
-    filename = os.path.splitext(os.path.basename(path_input_documents_list[0]))[0]
+    filename = os.path.splitext(os.path.basename(path_input_documents))[0]
     path_output_documents = os.path.join(base_output_path, f"{filename}.pred.json")
 
-    # Apply the pipeline to the documents
-    logging.info(f"Applying the pipeline to {len(documents)} documents in {path_input_documents_list} ...")
+    # Apply the triple extractor to the documents
+    logging.info(f"Applying the triple extractor to {len(documents)} documents in {path_input_documents} ...")
     preds = []
     for document in tqdm(documents):
-        document = pipe(document)
+        document = triple_extractor(document)
         preds.append(document)
         if len(preds) % 500 == 0:
             utils.write_json(path_output_documents.replace(".pred.json", f".pred_until_{len(preds)}.json"), preds)
@@ -110,28 +107,26 @@ def main(args):
     ##################
 
     if do_evaluation:
-        assert len(path_input_documents_list) == 1
-
         # Evaluate the prediction results
         logging.info("Evaluating the prediction results ...")
         ner_scores = evaluation.ner.fscore(
             pred_path=path_output_documents,
-            gold_path=path_input_documents_list[0]
+            gold_path=path_input_documents
         )
         ed_scores = evaluation.ed.fscore(
             pred_path=path_output_documents,
-            gold_path=path_input_documents_list[0],
+            gold_path=path_input_documents,
             inkb=False,
             skip_normalization=True,
             on_predicted_spans=True
         )
         ed_scores2 = evaluation.ed.entity_level_fscore(
             pred_path=path_output_documents,
-            gold_path=path_input_documents_list[0]
+            gold_path=path_input_documents
         )
         docre_scores = evaluation.docre.fscore(
             pred_path=path_output_documents,
-            gold_path=path_input_documents_list[0],
+            gold_path=path_input_documents,
             skip_intra_inter=True,
             skip_ign=True
         )
@@ -169,7 +164,7 @@ if __name__ == "__main__":
     parser.add_argument("--identifier", type=str, required=True)
 
     # Input Data
-    parser.add_argument("--input_documents_list", nargs="+")
+    parser.add_argument("--input_documents", dtype=str, required=True)
 
     # Output Path
     parser.add_argument("--results_dir", type=str, required=True)
