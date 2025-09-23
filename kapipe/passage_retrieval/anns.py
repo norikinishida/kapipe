@@ -50,7 +50,7 @@ class ApproximateNearestNeighborSearch:
 
         # Convert to GPU index if needed
         if self.gpu_id >= 0:
-            logger.info("Converting CPU index to GPU index ...")
+            logger.info(f"Converting CPU index to GPU index (GPU ID: {self.gpu_id}) ...")
             res = faiss.StandardGpuResources()
             co = faiss.GpuClonerOptions()
             co.useFloat16 = True
