@@ -111,7 +111,7 @@ This module takes as input:
 (See `experiments/data/examples/documents_without_triples.json` for more details.)
 
 Each subtask takes a ***Document*** object as input, augments it with new fields, and returns it.  
-This allows custom metadata to persist throughout the pipeline.
+This allows custom metadata to persist throughout the triple extractor.
 
 ### Output
 
@@ -173,18 +173,18 @@ import kapipe.triple_extraction
 
 IDENTIFIER = "biaffinener_blink_blink_atlop_cdr"
 
-# Load the Triple Extraction pipeline
-pipe = kapipe.triple_extraction.load(
+# Load the triple extractor
+triple_extractor = kapipe.triple_extraction.load(
     identifier=IDENTIFIER,
     gpu_map={"ner": 0, "ed_retrieval": 0, "ed_reranking": 2, "docre": 3}
 )
 
 # We provide a utility for converting text (string) to Document format
 # `title` is optional
-document = pipe.text_to_document(doc_key=your_doc_key, text=your_text, title=your_title)
+document = triple_extractor.text_to_document(doc_key=your_doc_key, text=your_text, title=your_title)
 
-# Apply the pipeline to your input document
-document = pipe(document)
+# Apply the triple extractor to your input document
+document = triple_extractor(document)
 ```
 (See `experiments/codes/run_triple_extraction.py` for specific examples.)
 
@@ -217,9 +217,9 @@ For example, `"biaffinener_blink_blink_atlop_cdr"` uses:
 - **MA-QA** (Oumaima & Nishida, 2024): Question-answering style DocRE model
 - **LLM-DocRE**: A proprietary/open-source LLM using a DocRE-specific prompt template and few-shot examples
 
-### Available Pipeline Identifiers
+### Available Triple Extractor Identifiers
 
-The following pipeline configurations are currently available:
+The following triple extractor configurations are currently available:
 
 | identifier | NER (Entity Types) | ED-Retrieval (Knowledge Base) | ED-Reranking (Knowledge Base) | DocRE (Relations) |
 | --- | --- | --- | --- | --- |
@@ -472,7 +472,21 @@ from kapipe.report_generation import (
 PATH_TO_REPORTS = "./experiments/data/examples/reports.jsonl"
 
 # Initialize the report generator
-generator = LLMBasedReportGenerator()
+generator = LLMBasedReportGenerator(
+    llm_backend="openai",
+    llm_kwargs={
+        "openai_model_name": "gpt-4o-mini",
+        "max_new_tokens": 2048,
+    }
+)
+# generator = LLMBasedReportGenerator(
+#     llm_backend="huggingface",
+#     llm_kwargs={
+#         "llm_name_or_path": "Qwen/Qwen2.5-7B-Instruct",
+#         "max_new_tokens": 2048,
+#         "quantization_bits": -1,
+#     }
+# )
 # generator = TemplateBasedReportGenerator()
  
 # Generate community reports
