@@ -21,7 +21,7 @@ MYPREFIX=example
 
 python run_triple_extraction.py \
     --identifier ${IDENTIFIER} \
-    --input_documents_list ${DOCUMENTS} \
+    --input_documents ${DOCUMENTS} \
     --results_dir ${RESULTS_DIR} \
     --prefix ${MYPREFIX}
 
