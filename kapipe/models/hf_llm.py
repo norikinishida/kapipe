@@ -55,6 +55,8 @@ class HuggingFaceLLM:
         self,
         llm_name_or_path: str
     ) -> tuple[AutoModelForCausalLM, AutoTokenizer]:
+        logger.info(f"Loading a large language model: {llm_name_or_path}")
+
         llm = AutoModelForCausalLM.from_pretrained(
             llm_name_or_path,
             torch_dtype=torch.bfloat16,
