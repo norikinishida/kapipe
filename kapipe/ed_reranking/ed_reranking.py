@@ -69,10 +69,25 @@ class EDReranking:
         # Skip the reranking
         if self.reranker is None:
             return document
-
-        # Apply the reranker to the candidate entities
-        return self.reranker.rerank(
-            document=document,
-            candidate_entities_for_doc=candidate_entities_for_doc
-        )
+        if self.module_config["method"] == "llmed":
+            # Get demonstrations for this document
+            demonstrations_for_doc: DemonstrationsForOneExample = (
+                self.demonstration_retriever.search(
+                    document=document,
+                    top_k=5
+                )
+            )
+            # Apply the reranker to the candidate entities
+            return self.reranker.rerank(
+                document=document,
+                candidate_entities_for_doc=candidate_entities_for_doc,
+                demonstrations_for_doc=demonstrations_for_doc
+            )
+        else:
+            # Apply the reranker to the candidate entities
+            return self.reranker.rerank(
+                document=document,
+                candidate_entities_for_doc=candidate_entities_for_doc
+            )
+            
 

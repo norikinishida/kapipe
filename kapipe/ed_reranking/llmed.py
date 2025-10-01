@@ -751,8 +751,11 @@ class LLMEDTrainer:
             demonstrations=demonstrations,
             contexts=contexts
         )
+
+        # Save the prediction results
         utils.write_json(self.paths[f"path_{split}_pred"], result_documents)
 
+        # Save the prompt-response pairs in plain text
         with open(
             self.paths[f"path_{split}_pred"].replace(".json", ".txt"), "w"
         ) as f:
@@ -760,8 +763,11 @@ class LLMEDTrainer:
                 doc_key = result_doc["doc_key"]
                 prompt = result_doc["ed_prompt"]
                 generated_text = result_doc["ed_generated_text"]
-                f.write(f"--- DOC_KEY ({doc_key}) ---\n\n")
+                f.write("-------------------------------------\n\n")
+                f.write(f"DOC_KEY: {doc_key}\n\n")
+                f.write("PROMPT:\n")
                 f.write(prompt + "\n\n")
+                f.write("GENERATED TEXT:\n")
                 f.write(generated_text + "\n\n")
                 f.flush()
 

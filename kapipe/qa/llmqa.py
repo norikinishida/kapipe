@@ -476,7 +476,7 @@ class LLMQATrainer:
         prediction_only: bool = False,
         get_scores_only: bool = False
     ) -> dict[str, Any] | None:
-        # Predict answers for the given questions,
+        # Apply the answerer to the given questions,
         # optionally based on the demonstrations and contexts
         result_questions = answerer.batch_answer(
             questions=questions,
@@ -484,16 +484,20 @@ class LLMQATrainer:
             contexts=contexts
         )
 
-        # Save the predicted answers
+        # Save the prediction results
         utils.write_json(self.paths[f"path_{split}_pred"], result_questions)
 
+        # Save the prompt-response pairs in plain text
         with open(self.paths[f"path_{split}_pred"].replace(".json", ".txt"), "w") as f:
             for result_question in result_questions:
                 question_key = result_question["question_key"]
                 prompt = result_question["qa_prompt"]
                 generated_text = result_question["qa_generated_text"]
-                f.write(f"--- QUESTION_KEY ({question_key}) ---\n\n")
+                f.write("-------------------------------------\n\n")
+                f.write(f"QUESTION_KEY: {question_key}\n\n")
+                f.write("PROMPT:\n")
                 f.write(prompt + "\n\n")
+                f.write("GENERATED TEXT:\n")
                 f.write(generated_text + "\n\n")
                 f.flush()
 

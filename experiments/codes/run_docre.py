@@ -98,6 +98,22 @@ def main(args):
     utils.write_json(path_output_documents, result_documents)
     logging.info(f"Saved the prediction results to {path_output_documents}")
 
+    # Save the prompt-response pairs visually in plain text
+    if "docre_prompt" in result_documents[0] and "docre_generated_text" in result_documents[0]:
+        path_output_text = os.path.join(base_output_path, "prompt_and_response.txt")
+        with open(path_output_text, "w") as f:
+            for doc in result_documents:
+                doc_key = doc["doc_key"]
+                prompt = doc["docre_prompt"]
+                generated_text = doc["docre_generated_text"]
+                f.write("-------------------------------------\n\n")
+                f.write(f"DOC_KEY: {doc_key}\n\n")
+                f.write("PROMPT:\n")
+                f.write(prompt + "\n\n")
+                f.write("GENERATED TEXT:\n")
+                f.write(generated_text + "\n\n")
+                f.flush()
+
     ##################
     # Closing
     ##################

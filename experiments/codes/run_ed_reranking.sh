@@ -7,8 +7,8 @@ STORAGE_DATA=${STORAGE}/data
 STORAGE_RESULTS=${STORAGE}/results
 
 # Method
-IDENTIFIER=blinkcrossencoder_cdr
-# IDENTIFIER=gpt4omini_cdr
+# IDENTIFIER=blinkcrossencoder_cdr
+IDENTIFIER=gpt4omini_cdr
 # IDENTIFIER=qwen2_5_7b_cdr
 
 # Input Data

@@ -109,6 +109,22 @@ def main(args):
     utils.write_json(path_output_questions, result_questions)
     logging.info(f"Saved the prediction results to {path_output_questions}")
 
+    # Save the prompt-response pairs in plain text
+    if "qa_prompt" in result_questions[0] and "qa_generated_text" in result_questions[0]:
+        path_output_text = os.path.join(base_output_path, "prompt_and_response.txt")
+        with open(path_output_text, "w") as f:
+            for q in result_questions:
+                question_key = q["question_key"]
+                prompt = q["qa_prompt"]
+                generated_text = q["qa_generated_text"]
+                f.write("-------------------------------------\n\n")
+                f.write(f"QUESTION_KEY: {question_key}\n\n")
+                f.write("PROMPT:\n")
+                f.write(prompt + "\n\n")
+                f.write("GENERATED TEXT:\n")
+                f.write(generated_text + "\n\n")
+                f.flush()
+
     ##################
     # Closing
     ##################
