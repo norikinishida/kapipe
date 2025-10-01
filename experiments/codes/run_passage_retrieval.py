@@ -145,7 +145,10 @@ def main(args):
     # Indexing, Search
     ##################
 
+
     if actiontype == "indexing":
+        logging.info(f"Applying the Passage Retrieval module (indexing) to passages in {path_input_file} ...")
+
         # Build index
         retriever.make_index(
             passages=passages,
@@ -154,6 +157,8 @@ def main(args):
         )
 
     if actiontype == "search":
+        logging.info(f"Applying the Passage Retrieval module (search) to questions in {path_input_file} ...")
+
         # Load the index
         retriever.load_index(index_root=index_root, index_name=index_name)
 
@@ -175,7 +180,7 @@ def main(args):
                     "contexts": passages
                 }
                 contexts.append(contexts_for_question)
-
+ 
         search_output = os.path.join(
             index_root,
             method_name,
@@ -183,8 +188,8 @@ def main(args):
             index_name,
             os.path.splitext(os.path.basename(path_input_file))[0] + ".contexts.json"
         )
- 
         utils.write_json(search_output, contexts)
+        logging.info(f"Saved the retrieval results to {search_output}")
 
     ##################
     # Closing

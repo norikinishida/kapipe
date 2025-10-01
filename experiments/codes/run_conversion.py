@@ -59,12 +59,14 @@ def main(args):
     # Method
     ##################
 
-    # Initialize the Chunker
+    # Initialize the chunker
     chunker = Chunker(model_name=spacy_model_name)
 
     ##################
     # Conversion from Passage to Document
     ##################
+
+    logging.info(f"Applying the Chunking module to passages in {path_input_passages} ...")
 
     documents = []
     prev_number = 0
@@ -79,7 +81,7 @@ def main(args):
                 do_tokenize=True
             )
             documents.append(document)
-            # Save the Documents
+            # Save the documents
             if len(documents) >= group_size:
                 path_output_documents = os.path.join(
                     base_output_path,

@@ -47,7 +47,7 @@ def main(args):
 
     # Set logger
     shared_functions.set_logger(
-        base_output_path + "/graph_construction.log",
+        os.path.join(base_output_path, "graph_construction.log"),
         # overwrite=True
     )
 
@@ -58,13 +58,16 @@ def main(args):
     # Method
     ##################
 
+    # Initialize the graph constructor
     constructor = GraphConstructor()
 
     ##################
     # Knowledge Graph Construction
     ##################
+    
+    logging.info(f"Applying the Graph Construction module to extracted triples ({path_documents_list}) and additional triples ({path_additional_triples}) ...")
 
-    # Apply the knowledge graph construction to the documents with extracted triples and additional triples (optional)
+    # Apply the graph constructor to extracted triples and additional triples (optional)
     # The entity dictionary is used to label canonical names, synonyms, entity types, and definitions to each node as their attributes
     graph = constructor.construct_knowledge_graph(
         path_documents_list=path_documents_list,
@@ -73,7 +76,9 @@ def main(args):
     )
 
     # Save the `networkx.MultiDiGraph` in GraphML format
-    nx.write_graphml(graph, os.path.join(base_output_path, "graph.graphml"))
+    path_output_graph = os.path.join(base_output_path, "graph.graphml")
+    nx.write_graphml(graph, path_output_graph)
+    logging.info(f"Saved graph to {path_output_graph}")
 
     ##################
     # Closing

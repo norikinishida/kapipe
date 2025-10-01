@@ -50,7 +50,7 @@ def main(args):
 
     # Set logger
     shared_functions.set_logger(
-        base_output_path + "/chunking.log",
+        os.path.join(base_output_path, "chunking.log"),
         # overwrite=True
     )
 
@@ -61,16 +61,22 @@ def main(args):
     # Method
     ##################
 
+    # Initialize the chunker
     chunker = Chunker(model_name=spacy_model_name)
 
     ##################
     # Chunking
     ##################
 
-    filename = os.path.splitext(os.path.basename(path_input_passages))[0]
-    filename = f"{filename}.chunked_w{window_size}.jsonl"
     with open(path_input_passages) as fin:
         n_lines = sum(1 for _ in fin)
+    logging.info(f"Applying the Chunking module to {n_lines} passages in {path_input_passages} ...")
+
+    # Create the full output path
+    filename = os.path.splitext(os.path.basename(path_input_passages))[0]
+    filename = f"{filename}.chunked_w{window_size}.jsonl"
+
+    # Apply the chunker to the passages
     count_before = 0
     count_after = 0
     with open(os.path.join(base_output_path, filename), "w") as fout:
@@ -89,7 +95,8 @@ def main(args):
                     fout.write(json_str + "\n")
                 count_before += 1
                 count_after += len(chunked_passages)
-    logging.info(f"Splitting {count_before} passages to {count_after} chunked passages")
+
+    logging.info(f"Split {count_before} passages into {count_after} chunked passages")
 
     ##################
     # Closing

@@ -7,8 +7,8 @@ STORAGE_DATA=${STORAGE}/data
 STORAGE_RESULTS=${STORAGE}/results
 
 # Method
-METHOD=hierarchical_leiden
-# METHOD=neighborhood_aggregation
+# METHOD=hierarchical_leiden
+METHOD=neighborhood_aggregation
 # METHOD=triple_level_factorization
 
 # Input Data

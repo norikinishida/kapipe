@@ -53,7 +53,7 @@ def main(args):
 
     # Set logger
     shared_functions.set_logger(
-        base_output_path + "/community_clustering.log",
+        os.path.join(base_output_path, "community_clustering.log"),
         # overwrite=True
     )
 
@@ -64,6 +64,7 @@ def main(args):
     # Data
     ##################
 
+    # Load knowledge graph
     logging.info("Loading knowledge graph ...")
     graph = nx.read_graphml(path_input_graph)
 
@@ -85,17 +86,19 @@ def main(args):
     # Community Clustering
     ##################
 
+    logging.info(f"Applying the Community Clustering module to knowledge graph in {path_input_graph} ...")
+
     # Apply the community clustering object to the graph
-    logging.info("Clustering communities ...")
     if clustering_method == "hierarchical_leiden":
         communities = clusterer.cluster_communities(graph=graph, max_cluster_size=10, use_lcc=False)
         # communities = clusterer.cluster_communities(graph=graph, max_cluster_size=10, use_lcc=True)
     else:
         communities = clusterer.cluster_communities(graph=graph)
 
-    # Save the communities
-    utils.write_json(os.path.join(base_output_path, "communities.json"), communities)
-    logging.info(f"Saved communities to {os.path.join(base_output_path, 'communities.json')}")
+    # Save the results
+    path_output_communities = os.path.join(base_output_path, "communities.json")
+    utils.write_json(path_output_communities, communities)
+    logging.info(f"Saved communities to {path_output_communities}")
 
     # Show statistics
     cluster_size_list = []

@@ -138,6 +138,7 @@ class LLMBasedReportGenerator:
         # Save the report
         json_str = json.dumps(report)
         fout.write(json_str + "\n")
+        fout.flush()
         return report           
 
     def _generate_community_report(

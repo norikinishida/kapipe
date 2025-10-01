@@ -1,0 +1,129 @@
+[
+    {
+        "question_key": "question#123",
+        "question": "What does lithium carbonate induce?",
+        "answers": [
+            {
+                "answer": "Nephrogenic diabetes insipidus",
+                "answer_type": "list",
+                "answer_index": 0
+            },
+            {
+                "answer": "Chronic kidney disease",
+                "answer_type": "list",
+                "answer_index": 1
+            },
+            {
+                "answer": "Hypothyroidism",
+                "answer_type": "list",
+                "answer_index": 2
+            },
+            {
+                "answer": "Goiter",
+                "answer_type": "list",
+                "answer_index": 3
+            },
+            {
+                "answer": "Hypercalcemia",
+                "answer_type": "list",
+                "answer_index": 4
+            },
+            {
+                "answer": "Hyperparathyroidism",
+                "answer_type": "list",
+                "answer_index": 4
+            },
+            {
+                "answer": "Tremor",
+                "answer_type": "list",
+                "answer_index": 5
+            },
+            {
+                "answer": "Cognitive impairment",
+                "answer_type": "list",
+                "answer_index": 6
+            },
+            {
+                "answer": "concentration difficulties",
+                "answer_type": "list",
+                "answer_index": 6
+            },
+            {
+                "answer": "Delirium or seizures",
+                "answer_type": "list",
+                "answer_index": 7
+            },
+            {
+                "answer": "Nausea, vomiting, diarrhea",
+                "answer_type": "list",
+                "answer_index": 8
+            },
+            {
+                "answer": "Weight gain",
+                "answer_type": "list",
+                "answer_index": 9
+            },
+            {
+                "answer": "Skin problems",
+                "answer_type": "list",
+                "answer_index": 10
+            }
+        ]
+    },
+    {
+        "question_key": "question#456",
+        "question": "What chemical compounds induce dyskinesia?",
+        "answers": [
+            {
+                "answer": "Levodopa",
+                "answer_type": "list",
+                "answer_index": 0
+            },
+            {
+                "answer": "bromocriptine",
+                "answer_type": "list",
+                "answer_index": 1
+            },
+            {
+                "answer": "pramipexole",
+                "answer_type": "list",
+                "answer_index": 1
+            },
+            {
+                "answer": "ropinirole",
+                "answer_type": "list",
+                "answer_index": 1
+            },
+            {
+                "answer": "haloperidol",
+                "answer_type": "list",
+                "answer_index": 2
+            },
+            {
+                "answer": "chlorpromazine",
+                "answer_type": "list",
+                "answer_index": 2
+            },
+            {
+                "answer": "Metoclopramide",
+                "answer_type": "list",
+                "answer_index": 3
+            },
+            {
+                "answer": "Reserpine",
+                "answer_type": "list",
+                "answer_index": 4
+            },
+            {
+                "answer": "Tetrabenazine",
+                "answer_type": "list",
+                "answer_index": 5
+            },
+            {
+                "answer": "Lithium carbonate",
+                "answer_type": "list",
+                "answer_index": 6
+            }
+        ]
+    }
+]

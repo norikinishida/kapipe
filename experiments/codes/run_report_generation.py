@@ -62,7 +62,7 @@ def main(args):
 
     # Set logger
     shared_functions.set_logger(
-        base_output_path + "/report_generation.log",
+        os.path.join(base_output_path, "report_generation.log"),
         # overwrite=True
     )
 
@@ -85,6 +85,7 @@ def main(args):
     # Method
     ##################
 
+    # Initialize the report generator
     if reporting_method == "llm":
         generator = LLMBasedReportGenerator(
             llm_backend="openai",
@@ -111,8 +112,9 @@ def main(args):
     # Report Generation
     ##################
 
-    logging.info(f"Generating reports for {len(communities)} communities ...")
+    logging.info(f"Applying the Report Generation module to {len(communities)} communities in {path_input_communities} ...")
 
+    # Apply the report generator to the communities
     generator.generate_community_reports(
         # Input
         graph=graph,
@@ -140,9 +142,14 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
 
+    # Method
     parser.add_argument("--method", type=str, required=True)
+
+    # Input Data
     parser.add_argument("--input_graph", type=str, required=True)
     parser.add_argument("--input_communities", type=str, required=True)
+
+    # Output Path
     parser.add_argument("--results_dir", type=str, required=True)
     parser.add_argument("--prefix", type=str, default=None)
 
