@@ -106,7 +106,7 @@ class LLMQA:
                 self.prompt_processor.demonstration_pool
             )
 
-    def run(
+    def answer(
         self,
         question: Question,
         # optional: few-shot setting
@@ -257,7 +257,7 @@ class LLMQA:
                 logger.info(f"[{question_key}] Skipped a generated line of invalid formatting: '{generated_line}'")
         return answer, score
  
-    def batch_run(
+    def batch_answer(
         self,
         questions: list[Question],
         # optional: few-shot setting
@@ -278,7 +278,7 @@ class LLMQA:
             total=len(questions),
             desc="answering steps"
         ):
-            result_question = self.run(
+            result_question = self.answer(
                 question=question,
                 demonstrations_for_question=demos_for_q,
                 contexts_for_question=contexts_for_q
@@ -478,7 +478,7 @@ class LLMQATrainer:
     ) -> dict[str, Any] | None:
         # Predict answers for the given questions,
         # optionally based on the demonstrations and contexts
-        result_questions = answerer.batch_run(
+        result_questions = answerer.batch_answer(
             questions=questions,
             demonstrations=demonstrations,
             contexts=contexts

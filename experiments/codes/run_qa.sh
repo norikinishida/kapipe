@@ -7,35 +7,19 @@ STORAGE_DATA=${STORAGE}/data
 STORAGE_RESULTS=${STORAGE}/results
 
 # Method
-METHOD=llmqa
-CONFIG_PATH=./config/llmqa.conf
-CONFIG_NAME=openai_gpt4o_cdrqa_prompt03_with_context
-# CONFIG_NAME=hf_llama3_1_8b_cdrqa_prompt03_with_context
-# CONFIG_NAME=hf_llama3_1_70b_cdrqa_prompt03_with_context
-# CONFIG_NAME=hf_qwen2_5_7b_cdrqa_prompt03_with_context
+IDENTIFIER=gpt4o_with_context
 
 # Input Data
-# (In practice, use separate files for training, validation, and test data.)
-DEV_QUESTIONS=${STORAGE_DATA}/examples/questions.json
-TEST_QUESTIONS=${STORAGE_DATA}/examples/questions.json
-DEV_CONTEXTS=${STORAGE_DATA}/examples/questions.contexts.json
-TEST_CONTEXTS=${STORAGE_DATA}/examples/questions.contexts.json
+QUESTIONS=${STORAGE_DATA}/examples/questions.json
+CONTEXTS=${STORAGE_DATA}/examples/questions.contexts.json
 
 # Output Path
 RESULTS_DIR=${STORAGE_RESULTS}
 MYPREFIX=example
 
 python run_qa.py \
-    --method ${METHOD} \
-    --config_path ${CONFIG_PATH} \
-    --config_name ${CONFIG_NAME} \
-    --dev_questions ${DEV_QUESTIONS} \
-    --test_questions ${TEST_QUESTIONS} \
-    --dev_contexts ${DEV_CONTEXTS} \
-    --test_contexts ${TEST_CONTEXTS} \
+    --identifier ${IDENTIFIER} \
+    --input_questions ${QUESTIONS} \
+    --input_contexts ${CONTEXTS} \
     --results_dir ${RESULTS_DIR} \
-    --prefix ${MYPREFIX} \
-    --actiontype inference_only
-
-    # --actiontype evaluate
-
+    --prefix ${MYPREFIX}

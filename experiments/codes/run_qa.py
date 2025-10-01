@@ -2,15 +2,14 @@ import argparse
 import logging
 import os
 
-import torch
 import transformers
+from tqdm import tqdm
 
 import sys
 sys.path.insert(0, "../..")
-from kapipe.qa import LLMQA, LLMQATrainer
+from kapipe.qa import QA
 from kapipe import utils
 from kapipe.utils import StopWatch
-from kapipe.datatypes import Question, ContextsForOneExample
 
 import shared_functions
 
@@ -26,16 +25,12 @@ def main(args):
     ##################
 
     # Method
-    device = torch.device(f"cuda:{args.gpu}")
-    method_name = args.method
-    config_path = args.config_path
-    config_name = args.config_name
+    identifier = args.identifier
+    gpu = args.gpu
 
     # Input Data
-    path_dev_questions = args.dev_questions
-    path_test_questions = args.test_questions
-    path_dev_contexts = args.dev_contexts
-    path_test_contexts = args.test_contexts
+    path_input_questions = args.input_questions
+    path_input_contexts = args.input_contexts
 
     # Output Path
     path_results_dir = args.results_dir
@@ -43,12 +38,6 @@ def main(args):
     if prefix is None or prefix == "None":
         prefix = utils.get_current_time()
         args.prefix = prefix
-
-    # Action
-    actiontype = args.actiontype
-
-    assert method_name in ["llmqa"]
-    assert actiontype in ["evaluate", "check_prompt", "inference_only"]
 
     ##################
     # Logging Setup
@@ -58,23 +47,19 @@ def main(args):
     base_output_path = os.path.join(
         path_results_dir,
         "qa",
-        "llmqa",
-        config_name,
+        "qa",
+        identifier,
         prefix
     )
     utils.mkdir(base_output_path)
 
+    base_filename = os.path.splitext(os.path.basename(path_input_questions))[0]
+
     # Set logger
-    if actiontype == "evaluate":
-        shared_functions.set_logger(
-            os.path.join(base_output_path, "evaluation.log"),
-            # overwrite=True
-        )
-    elif actiontype == "inference_only":
-        shared_functions.set_logger(
-            os.path.join(base_output_path, "inference_only.log"),
-            # overwrite=True
-        )
+    shared_functions.set_logger(
+        os.path.join(base_output_path, f"{base_filename}.answering.log"),
+        # overwrite=True
+    )
 
     # Show arguments
     logging.info(utils.pretty_format_dict(vars(args)))
@@ -84,144 +69,45 @@ def main(args):
     ##################
 
     # Load questions
-    dev_questions = utils.read_json(path_dev_questions)
-    test_questions = utils.read_json(path_test_questions)
+    questions = utils.read_json(path_input_questions)
 
     # Load contexts
-    if path_dev_contexts is not None:
-        dev_contexts = utils.read_json(path_dev_contexts)
+    if path_input_contexts is not None:
+        contexts = utils.read_json(path_input_contexts)
     else:
-        dev_contexts = None
-    if path_test_contexts is not None:
-        test_contexts = utils.read_json(path_test_contexts)
-    else:
-        test_contexts = None
-
-    # Show statistics
-    shared_functions.show_questions_statistics(dev_questions, "Development")
-    shared_functions.show_questions_statistics(test_questions, "Test")
+        contexts = None
 
     ##################
     # Method
     ##################
 
-    if method_name == "llmqa":
-        # Initialize the trainer (evaluator)
-        trainer = LLMQATrainer(base_output_path=base_output_path)
-
-        # Load the configuration
-        config = utils.get_hocon_config(
-            config_path=config_path,
-            config_name=config_name
-        )
-
-        # Initialize the answerer
-        answerer = LLMQA(
-            device=device,
-            config=config,
-        )
+    # Initialilze the question answerer
+    answerer = QA(identifier=identifier, gpu=gpu)
 
     ##################
-    # Training, Evaluation
+    # QA
     ##################
 
-    if method_name == "llmqa":
+    logging.info(f"Applying the QA module to {len(questions)} questions (+ contexts) in {path_input_questions} ({path_input_contexts}) ...")
 
-        if actiontype == "check_prompt":
-            # Show prompts
-            with torch.no_grad():
-                path_out = os.path.join(base_output_path, "output.txt")
-                with open(path_out, "w") as f:
-                    for i, (question, contexts_for_question) in enumerate(zip(
-                        dev_questions, dev_contexts
-                    )):
-                        question_key = question["question_key"]
-                        logging.info(f"Processing {question_key}")
-                        question = answerer.run(
-                            question=question,
-                            contexts_for_question=contexts_for_question
-                        )
-                        f.write(f"--- QUESTION_KEY ({question_key}) ---\n\n")
-                        f.write("Prompt:\n")
-                        f.write(question["qa_prompt"] + "\n\n")
-                        f.write("-----\n")
-                        f.write("Generated Text:\n")
-                        f.write(question["qa_generated_text"] + "\n\n")
-                        f.write("-----\n")
-                        f.write("Output:\n")
-                        f.write(f"{question['answer']}\n")
-                        f.write("-----\n")
-                        f.flush()
-                        if i > 5:
-                            break
-                return
+    # Create the full output path
+    path_output_questions = os.path.join(base_output_path, f"{base_filename}.pred.json")
 
-        # Set up the datasets for evaluation
-        trainer.setup_dataset(
-            answerer=answerer,
-            questions=dev_questions,
-            split="dev"
+    # Apply the question answerer to the questions
+    result_questions = []
+    for question, contexts_for_q in tqdm(
+        zip(questions, contexts),
+        total=len(questions)
+    ):
+        result_question = answerer.answer(
+            question=question,
+            contexts_for_question=contexts_for_q
         )
-        trainer.setup_dataset(
-            answerer=answerer,
-            questions=test_questions,
-            split="test"
-        )
+        result_questions.append(result_question)
 
-        # Save the configurations of the answerer
-        trainer.save_answerer(answerer=answerer)
-
-        if actiontype == "inference_only":
-            # Apply the answerer on the datasets (without evaluation)
-            # results = inference_only(
-            #     answerer=answerer,
-            #     questions=dev_questions,
-            #     contexts=dev_contexts,
-            #     path=trainer.paths["path_dev_pred"]
-            # )
-            # results = inference_only(
-            #     answerer=answerer,
-            #     questions=test_questions,
-            #     contexts=test_contexts,
-            #     path=trainer.paths["path_test_pred"]
-            # )
-            trainer.evaluate(
-                answerer=answerer,
-                questions=dev_questions,
-                demonstrations=None,
-                contexts=dev_contexts,
-                split="dev",
-                metric="recall",
-                prediction_only=True
-            )
-            trainer.evaluate(
-                answerer=answerer,
-                questions=test_questions,
-                demonstrations=None,
-                contexts=test_contexts,
-                split="test",
-                metric="recall",
-                prediction_only=True
-            )
-
-        if actiontype == "evaluate":
-            # Evaluate the answerer on the datasets
-            trainer.evaluate(
-                answerer=answerer,
-                questions=dev_questions,
-                demonstrations=None,
-                contexts=dev_contexts,
-                split="dev",
-                metric="recall"
-            )
-            trainer.evaluate(
-                answerer=answerer,
-                questions=test_questions,
-                demonstrations=None,
-                contexts=test_contexts,
-                split="test",
-                metric="recall"
-            )
+    # Save the results
+    utils.write_json(path_output_questions, result_questions)
+    logging.info(f"Saved the prediction results to {path_output_questions}")
 
     ##################
     # Closing
@@ -234,20 +120,6 @@ def main(args):
     return prefix
 
 
-def inference_only(
-    answerer: LLMQA,
-    questions: list[Question],
-    contexts: list[ContextsForOneExample],
-    path: str
-) -> None:
-    result_questions = answerer.batch_run(
-        questions=questions,
-        demonstrations=None,
-        contexts=contexts
-    )
-    utils.write_json(path, result_questions)
-
-
 if __name__ == "__main__":
     logging.basicConfig(
         format="%(asctime)s - %(levelname)s - %(name)s - %(message)s",
@@ -257,23 +129,16 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
     # Method
+    parser.add_argument("--identifier", type=str, required=True)
     parser.add_argument("--gpu", type=int, default=0)
-    parser.add_argument("--method", type=str, required=True)
-    parser.add_argument("--config_path", type=str, required=True)
-    parser.add_argument("--config_name", type=str, required=True)
 
     # Input Data
-    parser.add_argument("--dev_questions", type=str, required=True)
-    parser.add_argument("--test_questions", type=str, required=True)
-    parser.add_argument("--dev_contexts", type=str, default=None)
-    parser.add_argument("--test_contexts", type=str, default=None)
+    parser.add_argument("--input_questions", type=str, required=True)
+    parser.add_argument("--input_contexts", type=str, default=None)
 
     # Output Path
     parser.add_argument("--results_dir", type=str, required=True)
     parser.add_argument("--prefix", type=str, default=None)
-
-    # Action
-    parser.add_argument("--actiontype", type=str, required=True)
 
     args = parser.parse_args()
 
