@@ -141,6 +141,30 @@ class Chunker:
         }
         return document
 
+    def convert_text_to_document(
+        self,
+        doc_key: str,
+        text: str,
+        title: str | None = None
+    ) -> Document:
+        # Split the text to (tokenized) sentences
+        sentences = self.split_text_to_tokenized_sentences(text=text)
+        sentences = [" ".join(s) for s in sentences]
+        # Prepend the title as the first (tokenized) sentence
+        if title:
+            title = self.split_text_to_tokens(text=title)
+            title = " ".join(title)
+            sentences = [title] + sentences
+        # Clean up the sentences
+        sentences = self.remove_line_breaks(sentences=sentences)
+        # Create a Document object
+        document = {
+            "doc_key": doc_key,
+            "source_text": text,
+            "sentences": sentences
+        }
+        return document
+
     def remove_line_breaks(self, sentences: list[str]) -> list[str]:
         return [" ".join(s.split()) for s in sentences]
 
