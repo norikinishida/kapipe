@@ -29,7 +29,7 @@ RESULTS_DIR=${STORAGE_RESULTS}
 MYPREFIX=example
 
 # (BLINK Bi-Encoder)
-python run_edret.py \
+python run_ed_retrieval_train_eval.py \
     --method ${METHOD} \
     --config_path ${CONFIG_PATH} \
     --config_name ${CONFIG_NAME} \
@@ -42,7 +42,7 @@ python run_edret.py \
     --actiontype train_and_evaluate
 
 # (BM25)
-# python run_edret.py \
+# python run_ed_retrieval_train_eval.py \
 #     --method ${METHOD} \
 #     --config_path ${CONFIG_PATH} \
 #     --config_name ${CONFIG_NAME} \

@@ -6,12 +6,12 @@ import os
 
 import numpy as np
 import torch
+# import torch.nn as nn
 from tqdm import tqdm
 import jsonlines
 from typing import Any
 
-from . import shared_functions
-from ..models import MAQAModel
+from ..models import MAATLOPModel, shared_functions
 from .. import evaluation
 from .. import utils
 from ..utils import BestScoreHolder
@@ -21,9 +21,9 @@ from ..datatypes import Config, Document, Triple
 logger = logging.getLogger(__name__)
 
 
-class MAQA:
+class MAATLOP:
     """
-    Mention-Agnostic QA-based DocRE Extractor (Oumaima and Nishida et al., 2024)
+    Mention-Agnostic ATLOP (Oumaima and Nishida et al., 2024)
     """
 
     def __init__(
@@ -31,22 +31,22 @@ class MAQA:
         device: str,
         # Initialization
         config: Config | str | None = None,
-        vocab_answer: dict[str, int] | str | None = None,
+        vocab_relation: dict[str, int] | str | None = None,
         path_entity_dict: str | None = None,
         # Loading
-        path_snapshot: str | None = None,
+        path_snapshot: str | None = None
     ):
-        logger.info("########## MAQA Initialization Starts ##########")
+        logger.info("########## MAATLOP Initialization Starts ##########")
 
         self.device = device
         self.path_snapshot = path_snapshot
 
         if path_snapshot is not None:
             assert config is None
-            assert vocab_answer is None
+            assert vocab_relation is None
             assert path_entity_dict is None
             config = path_snapshot + "/config"
-            vocab_answer = path_snapshot + "/answers.vocab.txt"
+            vocab_relation = path_snapshot + "/relations.vocab.txt"
             path_entity_dict = path_snapshot + "/entity_dict.json"
             path_model = path_snapshot + "/model"
 
@@ -58,13 +58,13 @@ class MAQA:
         self.config = config
         logger.info(utils.pretty_format_dict(self.config))
 
-        # Load the answer vocabulary
-        if isinstance(vocab_answer, str):
-            vocab_path = vocab_answer
-            vocab_answer = utils.read_vocab(vocab_path)
-            logger.info(f"Loaded answer type vocabulary from {vocab_path}")
-        self.vocab_answer = vocab_answer
-        self.ivocab_answer = {i:l for l, i in self.vocab_answer.items()}
+        # Load the relation vocabulary
+        if isinstance(vocab_relation, str):
+            vocab_path = vocab_relation
+            vocab_relation = utils.read_vocab(vocab_path)
+            logger.info(f"Loaded relation type vocabulary from {vocab_path}")
+        self.vocab_relation = vocab_relation
+        self.ivocab_relation = {i:l for l, i in self.vocab_relation.items()}
 
         # Load the entity dictionary
         logger.info(f"Loading entity dictionary from {path_entity_dict}")
@@ -73,23 +73,22 @@ class MAQA:
             for epage in utils.read_json(path_entity_dict)
         }
         logger.info(f"Completed loading of entity dictionary with {len(self.entity_dict)} entities from {path_entity_dict}")
+        self.kb_entity_ids = list(self.entity_dict.keys())
 
-        # Load the model
+        # Initialize the model
         self.model_name = config["model_name"]
-        if self.model_name == "maqamodel":
-            self.model = MAQAModel(
+        self.top_k_labels = config["top_k_labels"]
+        if self.model_name == "maatlopmodel":
+            self.model = MAATLOPModel(
                 device=device,
                 bert_pretrained_name_or_path=config["bert_pretrained_name_or_path"],
                 max_seg_len=config["max_seg_len"],
                 entity_dict=self.entity_dict,
-                dataset_name=config["dataset_name"],
-                dropout_rate=config["dropout_rate"],
-                vocab_answer=self.vocab_answer,
-                loss_function_name=config["loss_function"],
-                focal_loss_gamma=(
-                    config["focal_loss_gamma"] \
-                    if config["loss_function"] == "focal_loss" else None
-                ),
+                entity_seq_length=config["entity_seq_length"],
+                use_localized_context_pooling=config["use_localized_context_pooling"],
+                bilinear_block_size=config["bilinear_block_size"],
+                use_entity_loss=self.config["do_negative_entity_sampling"],
+                vocab_relation=self.vocab_relation,
                 possible_head_entity_types=config["possible_head_entity_types"],
                 possible_tail_entity_types=config["possible_tail_entity_types"],
                 use_mention_as_canonical_name=config["use_mention_as_canonical_name"]
@@ -112,26 +111,49 @@ class MAQA:
 
         self.model.to(self.model.device)
 
-        logger.info("########## MAQA Initialization Ends ##########")
+        logger.info("########## MAATLOP Initialization Ends ##########")
+
+    # def load_model(self, path_model: str) -> None:
+    #     if ignored_names is None:
+    #         self.model.load_state_dict(
+    #             torch.load(path, map_location=torch.device("cpu")),
+    #             strict=False
+    #         )
+    #     else:
+    #         checkpoint = torch.load(path, map_location=torch.device("cpu"))
+    #         for name in ignored_names:
+    #             logger.info(f"Ignored {name} module in loading")
+    #             checkpoint = {
+    #                 k:v for k,v in checkpoint.items() if not name in k
+    #             }
+    #         self.model.load_state_dict(checkpoint, strict=False)
 
     def save(self, path_snapshot: str, model_only: bool = False) -> None:
         path_config = path_snapshot + "/config"
-        path_vocab = path_snapshot + "/answers.vocab.txt"
+        path_vocab = path_snapshot + "/relations.vocab.txt"
         path_entity_dict = path_snapshot + "/entity_dict.json"
         path_model = path_snapshot + "/model"
         if not model_only:
             utils.write_json(path_config, self.config)
-            utils.write_vocab(path_vocab, self.vocab_answer, write_frequency=False)
+            utils.write_vocab(path_vocab, self.vocab_relation, write_frequency=False)
             utils.write_json(path_entity_dict, self.entity_dict)
         torch.save(self.model.state_dict(), path_model)
 
-    def compute_loss(
-        self,
-        document: Document,
-        qa_index: int
-    ) -> tuple[torch.Tensor, torch.Tensor]:
+    def compute_loss(self, document: Document) -> (
+        tuple[torch.Tensor, torch.Tensor, int, int, torch.Tensor, int]
+        | tuple[torch.Tensor, torch.Tensor, int, int]
+    ):
         # Switch to training mode
         self.model.train()
+
+        # Negative Entity Sampling
+        if self.config["do_negative_entity_sampling"]:
+            document = self.sample_negative_entities_randomly(
+                document=document,
+                sample_size=round(
+                    len(document["entities"]) * self.config["negative_entity_ratio"]
+                )
+            )
 
         # Preprocess
         preprocessed_data = self.model.preprocess(document=document)
@@ -139,17 +161,98 @@ class MAQA:
         # Tensorize
         model_input = self.model.tensorize(
             preprocessed_data=preprocessed_data,
-            qa_index=qa_index,
             compute_loss=True
         )
 
         # Forward
         model_output = self.model.forward(**model_input)
 
-        return (
-            model_output.loss,
-            model_output.acc
+        if self.config["do_negative_entity_sampling"]:
+            return (
+                model_output.pair_loss,
+                model_output.pair_acc,
+                model_output.n_valid_pairs,
+                model_output.n_valid_triples,
+                #
+                model_output.entity_loss,
+                model_output.n_entities,
+            )
+        else:
+            return (
+                model_output.pair_loss,
+                model_output.pair_acc,
+                model_output.n_valid_pairs,
+                model_output.n_valid_triples
+            )
+
+    def sample_negative_entities_randomly(
+        self,
+        document: Document,
+        sample_size: int
+    ) -> Document:
+        result_document = copy.deepcopy(document)
+
+        n_entities = len(result_document["entities"])
+
+        gold_entity_ids = [e["entity_id"] for e in result_document["entities"]]
+
+        # Sample candidate entity ids from the entire KB
+        sampled_entity_ids = np.random.choice(
+            self.kb_entity_ids,
+            sample_size + len(gold_entity_ids),
+            replace=False
         )
+
+        # Remove gold entities from the sampled list
+        sampled_entity_ids = [
+            eid for eid in sampled_entity_ids if not eid in gold_entity_ids
+        ]
+        sampled_entity_ids = sampled_entity_ids[:sample_size]
+
+        # Retrieve the names and types for the sampled entity ids from the KB
+        sampled_entity_names = []
+        sampled_entity_types = []
+        for eid in sampled_entity_ids:
+            epage = self.entity_dict[eid]
+            name = epage["canonical_name"]
+            etype = epage["entity_type"]
+            sampled_entity_names.append(name)
+            sampled_entity_types.append(etype)
+
+        # Integrate the sampled entities to the document
+        sampled_entity_mention_index = []
+        for name, etype, eid in zip(
+            sampled_entity_names,
+            sampled_entity_types,
+            sampled_entity_ids
+        ):
+            mention = {
+                "span": None,
+                "name": name,
+                "entity_type": etype,
+                "entity_id": eid,
+            }
+            result_document["mentions"].append(mention)
+            sampled_entity_mention_index.append(len(result_document["mentions"]) - 1)
+
+        for e_i in range(len(result_document["entities"])):
+            result_document["entities"][e_i]["is_dummy"] = True
+
+        for m_i, etype, eid in zip(
+            sampled_entity_mention_index,
+            sampled_entity_types,
+            sampled_entity_ids
+        ):
+            entity = {
+                "mention_indices": [m_i],
+                "entity_type": etype,
+                "entity_id": eid,
+                "is_dummy": False,
+            }
+            result_document["entities"].append(entity)
+
+        assert len(result_document["entities"]) == n_entities + sample_size
+        return result_document
 
     def extract(self, document: Document) -> Document:
         with torch.no_grad():
@@ -159,38 +262,74 @@ class MAQA:
             # Preprocess
             preprocessed_data = self.model.preprocess(document=document)
 
-            # Generate triples iteratively
-            triples: list[Triple] = []
-            qas = preprocessed_data["qas"]
-            for qa_index in range(len(qas)):
-                # Tensorize
-                model_input = self.model.tensorize(
-                    preprocessed_data=preprocessed_data,
-                    qa_index=qa_index,
-                    compute_loss=False
-                )
+            # Return no triple if head or tail entity is missing
+            if (
+                len(preprocessed_data["pair_head_entity_indices"]) == 0
+                or
+                len(preprocessed_data["pair_tail_entity_indices"]) == 0
+            ):
+                result_document = copy.deepcopy(document)
+                result_document["relations"] = []
+                return result_document
 
-                # Forward
-                model_output = self.model.forward(**model_input)
-                logits = model_output.logits # (1, n_answers)
+            # Tensorize
+            model_input = self.model.tensorize(
+                preprocessed_data=preprocessed_data,
+                compute_loss=False
+            )
 
-                # Structurize
-                pred_answer_label = torch.argmax(logits, dim=1).cpu().item() # int
-                pred_answer = self.ivocab_answer[pred_answer_label] # str
-                if pred_answer_label != 0:
-                    head_entity_i, relation, tail_entity_i = qas[qa_index].triple
-                    triples.append({
-                        "arg1": int(head_entity_i),
-                        "relation": relation,
-                        "arg2": int(tail_entity_i),
-                        "question": " ".join(qas[qa_index].question),
-                        "answer": pred_answer
-                    })
+            # Forward
+            model_output = self.model.forward(**model_input)
+            logits = model_output.pair_logits # (n_entity_pairs, n_relations)
+
+            # Structurize
+            triples = self.structurize(
+                pair_head_entity_indices=preprocessed_data["pair_head_entity_indices"],
+                pair_tail_entity_indices=preprocessed_data["pair_tail_entity_indices"],
+                logits=logits
+            )
 
             # Integrate
             result_document = copy.deepcopy(document)
             result_document["relations"] = triples
             return result_document
+
+    def structurize(
+        self,
+        pair_head_entity_indices: np.ndarray,
+        pair_tail_entity_indices: np.ndarray,
+        logits: torch.Tensor
+    ) -> list[Triple]:
+        triples: list[Triple] = []
+
+        # Get predicted relation labels (indices)
+        # (n_entity_pairs, n_relations)
+        pair_pred_relation_labels = self.model.pair_loss_function.get_labels(
+            logits=logits,
+            top_k=self.top_k_labels
+        ).cpu().numpy()
+
+        for head_entity_i, tail_entity_i, rel_indicators in zip(
+            pair_head_entity_indices,
+            pair_tail_entity_indices,
+            pair_pred_relation_labels
+        ):
+            if head_entity_i == tail_entity_i:
+                continue
+            # Find positive (i.e., non-zero) relation labels (indices)
+            rel_indices = np.nonzero(rel_indicators)[0].tolist()
+            for rel_i in rel_indices:
+                if rel_i != 0:
+                    # Convert relation index to relation name
+                    rel = self.ivocab_relation[rel_i]
+                    # Add a new triple
+                    triples.append({
+                        "arg1": int(head_entity_i),
+                        "relation": rel,
+                        "arg2": int(tail_entity_i),
+                        })
+
+        return triples
 
     def batch_extract(self, documents: list[Document]) -> list[Document]:
         result_documents = []
@@ -200,7 +339,11 @@ class MAQA:
         return result_documents
 
 
-class MAQATrainer:
+class MAATLOPTrainer:
+    """
+    Trainer class for MA-ATLOP extractor.
+    Handles training loop, evaluation, model saving, and early stopping.
+    """
 
     def __init__(self, base_output_path: str):
         self.base_output_path = base_output_path
@@ -224,20 +367,20 @@ class MAQATrainer:
         paths["path_test_pred"] = self.base_output_path + "/test.pred.json"
         paths["path_test_eval"] = self.base_output_path + "/test.eval.json"
 
-        # required for Ign evaulation
+        # required for Ign evaluation
         paths["path_gold_train_triples"] = self.base_output_path + "/gold_train_triples.json"
 
         return paths
 
     def setup_dataset(
         self,
-        extractor: MAQA,
+        extractor: MAATLOP,
         documents: list[Document],
         split: str,
         with_gold_annotations: bool = True
     ) -> None:
-        # Cache the gold training triples for Ign evaluation
         if split == "train":
+            # Cache the gold training triples for Ign evaluation
             if not os.path.exists(self.paths["path_gold_train_triples"]):
                 gold_train_triples = []
                 for document in tqdm(documents, desc="dataset setup"):
@@ -275,7 +418,7 @@ class MAQATrainer:
                 logger.info(f"Saved the gold training triples for Ign evaluation in {self.paths['path_gold_train_triples']}")
 
         # Cache the gold annotations for evaluation
-        if split !=  "train" and with_gold_annotations:
+        if split != "train" and with_gold_annotations:
             path_gold = self.paths[f"path_{split}_gold"]
             if not os.path.exists(path_gold):
                 gold_documents = []
@@ -287,7 +430,7 @@ class MAQATrainer:
 
     def train(
         self,
-        extractor: MAQA,
+        extractor: MAATLOP,
         train_documents: list[Document],
         dev_documents: list[Document],
         supplemental_info: dict[str, Any]
@@ -298,53 +441,14 @@ class MAQATrainer:
 
         train_doc_indices = np.arange(len(train_documents))
 
-        # We expand the training documents for each QA level,
-        # because each document consists of the different number of QAs.
-        # First, aggregate (doc_i, qa_index) tuples
-        # for positive and negative questions separately.
-        pos_train_tuples: list[tuple[int,int]] = []
-        neg_train_tuples: list[tuple[int,int]] = []
-        for doc_i in train_doc_indices:
-            document = train_documents[doc_i]
-            preprocessed_data = extractor.preprocessor.preprocess(
-                document=document
-            )
-            qas = preprocessed_data["qas"]
-            for qa_i in range(len(qas)):
-                answer: str = qas[qa_i].answer
-                if answer == "Yes":
-                    pos_train_tuples.append((doc_i, qa_i))
-                elif answer == "No":
-                    neg_train_tuples.append((doc_i, qa_i))
-                else:
-                    raise Exception(f"Invalid answer: {answer}")
-        n_pos_train = len(pos_train_tuples)
-        n_neg_train_before_sampling = len(neg_train_tuples)
-
-        # Then, perform negative-question sampling
-        if extractor.config["n_negative_samples"] > 0:
-            perm = np.random.permutation(len(neg_train_tuples))
-            perm = perm[
-                0 : len(pos_train_tuples) * extractor.config["n_negative_samples"]
-            ]
-            neg_train_tuples = [neg_train_tuples[i] for i in perm]
-        n_neg_train_after_sampling = len(neg_train_tuples)
-
-        # Finally, concatenate the positive and negative tuples
-        train_doc_index_and_qa_index_tuples = pos_train_tuples + neg_train_tuples
-        train_doc_index_and_qa_index_tuples = np.asarray(
-            train_doc_index_and_qa_index_tuples
-        )
-
-        n_train = len(train_doc_index_and_qa_index_tuples)
+        n_train = len(train_doc_indices)
         max_epoch = extractor.config["max_epoch"]
         batch_size = extractor.config["batch_size"]
         gradient_accumulation_steps = extractor.config["gradient_accumulation_steps"]
         total_update_steps = n_train * max_epoch // (batch_size * gradient_accumulation_steps)
         warmup_steps = int(total_update_steps * extractor.config["warmup_ratio"])
 
-        logger.info(f"Number of training QAs (all): {n_pos_train} (pos) + {n_neg_train_before_sampling} (neg) = {n_pos_train + n_neg_train_before_sampling}")
-        logger.info(f"Number of training QAs (after negative sampling): {n_pos_train} (pos) + {n_neg_train_after_sampling} (neg) = {n_pos_train + n_neg_train_after_sampling}")
+        logger.info("Number of training documents: %d" % n_train)
         logger.info("Number of epochs: %d" % max_epoch)
         logger.info("Batch size: %d" % batch_size)
         logger.info("Gradient accumulation steps: %d" % gradient_accumulation_steps)
@@ -407,7 +511,7 @@ class MAQATrainer:
 
         # Save
         extractor.save(path_snapshot=self.paths["path_snapshot"])
-        logger.info(f"Saved config, answer vocabulary, entity dictionary, and model to {self.paths['path_snapshot']}")
+        logger.info(f"Saved config, relation vocabulary, entity dictionary, and model to {self.paths['path_snapshot']}")
 
         ##################
         # Training Loop
@@ -441,32 +545,62 @@ class MAQATrainer:
                 batch_loss = 0.0
                 batch_acc = 0.0
                 actual_batchsize = 0
+                actual_total_pairs = 0
+                actual_total_triples = 0
 
-                for (doc_i, qa_i) in train_doc_index_and_qa_index_tuples[
-                    perm[instance_i: instance_i + batch_size]
+                batch_entity_loss = 0.0
+                actual_total_entities = 0
+
+                for doc_i in train_doc_indices[
+                    perm[instance_i : instance_i + batch_size]
                 ]:
-                    doc_i = int(doc_i)
-                    qa_i = int(qa_i)
 
                     # Forward and compute loss
-                    one_loss, one_acc = extractor.compute_loss(
-                        document=train_documents[doc_i],
-                        qa_index=qa_i
+                    extractor_output = extractor.compute_loss(
+                        document=train_documents[doc_i]
                     )
+                    if extractor.config["do_negative_entity_sampling"]:
+                        (
+                            one_loss,
+                            one_acc,
+                            n_valid_pairs,
+                            n_valid_triples,
+                            one_entity_loss,
+                            n_entities
+                        ) = extractor_output
+                    else:
+                        (
+                            one_loss,
+                            one_acc,
+                            n_valid_pairs,
+                            n_valid_triples,
+                        ) = extractor_output
 
                     # Accumulate the loss
                     batch_loss = batch_loss + one_loss
-                    batch_acc = batch_acc + one_acc
+                    batch_acc += one_acc
                     actual_batchsize += 1
+                    actual_total_pairs += n_valid_pairs
+                    actual_total_triples += n_valid_triples
+                    if extractor.config["do_negative_entity_sampling"]:
+                        batch_entity_loss = batch_entity_loss + one_entity_loss
+                        actual_total_entities += n_entities
 
                 # Average the loss
                 actual_batchsize = float(actual_batchsize)
-                batch_loss = batch_loss / actual_batchsize # loss per pair
-                batch_acc = batch_acc / actual_batchsize
+                actual_total_pairs = float(actual_total_pairs)
+                actual_total_triples = float(actual_total_triples)
+                batch_loss = batch_loss / actual_total_pairs # loss per pair
+                batch_acc = batch_acc / actual_total_triples
+                if extractor.config["do_negative_entity_sampling"]:
+                    actual_total_entities = float(actual_total_entities)
+                    batch_entity_loss = batch_entity_loss / actual_total_entities # loss per entity
 
                 ##################
                 # Backward
                 ##################
+
+                batch_loss = batch_loss + batch_entity_loss
 
                 batch_loss = batch_loss / gradient_accumulation_steps
                 batch_loss.backward()
@@ -512,7 +646,7 @@ class MAQATrainer:
                 ):
 
                     ##################
-                    # Report
+                    # Rerpot
                     ##################
 
                     report = {
@@ -585,7 +719,7 @@ class MAQATrainer:
                     if did_update:
                         extractor.save(
                             path_snapshot=self.paths["path_snapshot"],
-                            model_only=True 
+                            model_only=True
                         )
                         logger.info(f"Saved model to {self.paths['path_snapshot']}")
 
@@ -608,7 +742,7 @@ class MAQATrainer:
 
     def evaluate(
         self,
-        extractor: MAQA,
+        extractor: MAATLOP,
         documents: list[Document],
         split: str,
         supplemental_info: dict[str, Any],
@@ -621,30 +755,32 @@ class MAQATrainer:
         # Apply the extractor
         result_documents = extractor.batch_extract(documents=documents)
         utils.write_json(self.paths[f"path_{split}_pred"], result_documents)
-
+    
         if prediction_only:
             return
 
         # Calculate the evaluation scores
+        # path_gold_documents = supplemental_info["path_gold_documents"][split]
         scores = evaluation.docre.fscore(
             pred_path=self.paths[f"path_{split}_pred"],
             gold_path=self.paths[f"path_{split}_gold"],
             skip_intra_inter=skip_intra_inter,
             skip_ign=skip_ign,
+            # gold_documents_path=path_gold_documents,
             gold_train_triples_path=self.paths["path_gold_train_triples"]
         )
 
         if get_scores_only:
             return scores
 
-        # Save the evaluation scores
+        # Save the evalution scores
         utils.write_json(self.paths[f"path_{split}_eval"], scores)
         logger.info(utils.pretty_format_dict(scores))
         return scores
 
     def official_evaluate(
         self,
-        extractor: MAQA,
+        extractor: MAATLOP,
         documents: list[Document],
         split: str,
         supplemental_info: dict[str, Any],
@@ -657,8 +793,9 @@ class MAQATrainer:
         utils.write_json(self.paths[f"path_{split}_pred"], result_documents)
         triples = evaluation.docre.to_official(
             path_input=self.paths[f"path_{split}_pred"],
-            path_output=
-            self.paths[f"path_{split}_pred"].replace(".json", ".official.json")
+            path_output=self.paths[
+                f"path_{split}_pred"
+            ].replace(".json", ".official.json")
         )
 
         if prediction_only:

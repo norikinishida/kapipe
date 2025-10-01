@@ -10,7 +10,7 @@ from tqdm import tqdm
 
 import sys
 sys.path.insert(0, "../..")
-from kapipe.triple_extraction import (
+from kapipe.ed_retrieval import (
     BlinkBiEncoder, BlinkBiEncoderTrainer,
     LexicalEntityRetriever, LexicalEntityRetrieverTrainer
 )
@@ -62,7 +62,7 @@ def main(args):
     # Set base output path
     base_output_path = os.path.join(
         path_results_dir,
-        "edret",
+        "ed_retrieval",
         method_name,
         config_name,
         prefix
@@ -118,24 +118,24 @@ def main(args):
         )
 
         if actiontype == "train" or actiontype == "check_preprocessing":
-            # Initialize the extractor
+            # Initialize the retriever
             config = utils.get_hocon_config(
                 config_path=config_path,
                 config_name=config_name
             )
-            extractor = BlinkBiEncoder(
+            retriever = BlinkBiEncoder(
                 device=device,
                 config=config,
                 path_entity_dict=path_entity_dict
             )
         else:
-            # Load the extractor
-            extractor = BlinkBiEncoder(
+            # Load the retriever
+            retriever = BlinkBiEncoder(
                 device=device,
                 path_snapshot=trainer.paths["path_snapshot"]
             )
             # Re-build index
-            extractor.make_index(use_precomputed_entity_vectors=True)
+            retriever.make_index(use_precomputed_entity_vectors=True)
 
     elif method_name == "lexicalentityretriever":
         assert actiontype == "evaluate"
@@ -145,12 +145,12 @@ def main(args):
             base_output_path=base_output_path
         )
 
-        # Initialize the extractor
+        # Initialize the retriever
         config = utils.get_hocon_config(
             config_path=config_path,
             config_name=config_name
         )
-        extractor = LexicalEntityRetriever(
+        retriever = LexicalEntityRetriever(
             config=config,
             path_entity_dict=path_entity_dict
         )
@@ -164,7 +164,7 @@ def main(args):
         # Remove out-of-KB mentions in the training dataset
         processed_train_documents = remove_out_of_kb_mentions(
             train_documents=train_documents,
-            entity_dict=extractor.entity_dict
+            entity_dict=retriever.entity_dict
         )
         shared_functions.show_ed_documents_statistics(
             documents=processed_train_documents,
@@ -174,7 +174,7 @@ def main(args):
         # Split the training documents that contain too many mentions by duplicating and partitioning their mentions.
         processed_train_documents = split_documents_by_mention_limit(
             train_documents=processed_train_documents,
-            n_candidate_entities=extractor.config["n_candidate_entities"]
+            n_candidate_entities=retriever.config["n_candidate_entities"]
         )
         shared_functions.show_ed_documents_statistics(
             documents=processed_train_documents,
@@ -183,38 +183,38 @@ def main(args):
 
         # Set up the datasets for evaluation
         trainer.setup_dataset(
-            extractor=extractor,
+            retriever=retriever,
             documents=dev_documents,
             split="dev"
         )
         trainer.setup_dataset(
-            extractor=extractor,
+            retriever=retriever,
             documents=test_documents,
             split="test"
         )
 
         if actiontype == "train":
-            # Train the extractor
+            # Train the retriever
             trainer.train(
-                extractor=extractor,
+                retriever=retriever,
                 train_documents=processed_train_documents,
                 dev_documents=dev_documents
             )
 
         elif actiontype == "evaluate":
-            # Evaluate the extractor on the datasets
+            # Evaluate the retriever on the datasets
             trainer.evaluate(
-                extractor=extractor,
+                retriever=retriever,
                 documents=dev_documents,
                 split="dev"
             )
             trainer.evaluate(
-                extractor=extractor,
+                retriever=retriever,
                 documents=test_documents,
                 split="test"
             )
             trainer.evaluate(
-                extractor=extractor,
+                retriever=retriever,
                 documents=train_documents,
                 split="train",
                 #
@@ -225,7 +225,7 @@ def main(args):
             # Save preprocessed data
             results = []
             for document in dev_documents:
-                preprocessed_data = extractor.model.preprocessor.preprocess(document)
+                preprocessed_data = retriever.model.preprocessor.preprocess(document)
                 results.append(preprocessed_data)
             utils.write_json(os.path.join(base_output_path, "dev.check_preprocessing.json"), results)
 
@@ -233,33 +233,33 @@ def main(args):
 
         # Set up the datasets for evaluation
         trainer.setup_dataset(
-            extractor=extractor,
+            retriever=retriever,
             documents=dev_documents,
             split="dev"
         )
         trainer.setup_dataset(
-            extractor=extractor,
+            retriever=retriever,
             documents=test_documents,
             split="test"
         )
 
-        # Save the configurations of the extractor
-        trainer.save_extractor(extractor=extractor)
+        # Save the configurations of the retriever
+        trainer.save_retriever(retriever=retriever)
 
         if actiontype == "evaluate":
-            # Evaluate the extractor on the datasets
+            # Evaluate the retriever on the datasets
             trainer.evaluate(
-                extractor=extractor,
+                retriever=retriever,
                 documents=dev_documents,
                 split="dev"
             )
             trainer.evaluate(
-                extractor=extractor,
+                retriever=retriever,
                 documents=test_documents,
                 split="test"
             )
             trainer.evaluate(
-                extractor=extractor,
+                retriever=retriever,
                 documents=train_documents,
                 split="train",
                 #

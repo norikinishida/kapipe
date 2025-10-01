@@ -42,7 +42,7 @@ class LLMDocRE:
         # Loading
         path_snapshot: str | None = None,
         # Misc.
-        model: LLM | OpenAILLM | None = None
+        model: HuggingFaceLLM | OpenAILLM | None = None
     ):
         logger.info("########## LLMDocRE Initialization Starts ##########")
 

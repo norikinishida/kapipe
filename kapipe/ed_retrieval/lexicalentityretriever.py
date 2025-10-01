@@ -116,7 +116,7 @@ class LexicalEntityRetriever:
         utils.write_json(path_config, self.config)
         utils.write_json(path_entity_dict, self.entity_dict)
 
-    def extract(
+    def search(
         self,
         document: Document,
         retrieval_size: int = 1
@@ -193,15 +193,15 @@ class LexicalEntityRetriever:
         }
         return document, candidate_entities_for_doc
 
-    def batch_extract(
+    def batch_search(
         self,
         documents: list[Document],
         retrieval_size: int = 1
     ) -> tuple[list[Document], list[CandidateEntitiesForDocument]]:
         result_documents = []
         candidate_entities = []
-        for document in tqdm(documents, desc="extraction steps"):
-            document, candidate_entities_for_doc = self.extract(
+        for document in tqdm(documents, desc="retrieval steps"):
+            document, candidate_entities_for_doc = self.search(
                 document=document,
                 retrieval_size=retrieval_size
             )
@@ -238,13 +238,13 @@ class LexicalEntityRetrieverTrainer:
 
     def setup_dataset(
         self,
-        extractor: LexicalEntityRetriever,
+        retriever: LexicalEntityRetriever,
         documents: list[Document],
         split: str
     ) -> None:
         path_gold = self.paths[f"path_{split}_gold"]
         if not os.path.exists(path_gold):
-            kb_entity_ids = set(list(extractor.entity_dict.keys()))
+            kb_entity_ids = set(list(retriever.entity_dict.keys()))
             gold_documents = []
             for document in tqdm(documents, desc="dataset setup"):
                 gold_doc = copy.deepcopy(document)
@@ -255,23 +255,23 @@ class LexicalEntityRetrieverTrainer:
             utils.write_json(path_gold, gold_documents)
             logger.info(f"Saved the gold annotations for evaluation in {path_gold}")
 
-    def save_extractor(self, extractor: LexicalEntityRetriever) -> None:
-        extractor.save(path_snapshot=self.paths["path_snapshot"])
+    def save_retriever(self, retriever: LexicalEntityRetriever) -> None:
+        retriever.save(path_snapshot=self.paths["path_snapshot"])
         logger.info(f"Saved config and entity dictionary to {self.paths['path_snapshot']}")
 
     def evaluate(
         self,
-        extractor: LexicalEntityRetriever,
+        retriever: LexicalEntityRetriever,
         documents: list[Document],
         split: str,
         #
         prediction_only: bool = False,
         get_scores_only: bool = False
     ) -> dict[str, Any] | None:
-        # Apply the extractor
-        result_documents, candidate_entities = extractor.batch_extract(
+        # Apply the retriever
+        result_documents, candidate_entities = retriever.batch_search(
             documents=documents,
-            retrieval_size=extractor.config["retrieval_size"]
+            retrieval_size=retriever.config["retrieval_size"]
         )
         utils.write_json(self.paths[f"path_{split}_pred"], result_documents)
         utils.write_json(

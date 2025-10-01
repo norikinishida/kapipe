@@ -2,13 +2,12 @@ import argparse
 import logging
 import os
 
-# import torch
 import transformers
 from tqdm import tqdm
 
 import sys
 sys.path.insert(0, "../..")
-from kapipe.docre import DocRE
+from kapipe.ed_retrieval import EDRetrieval
 from kapipe import utils
 from kapipe.utils import StopWatch
 
@@ -16,7 +15,6 @@ import shared_functions
 
 
 def main(args):
-    # torch.autograd.set_detect_anomaly(True)
     transformers.logging.set_verbosity_error()
 
     sw = StopWatch()
@@ -29,6 +27,7 @@ def main(args):
     # Method
     gpu = args.gpu
     identifier = args.identifier
+    num_candidate_entities = args.num_candidate_entities
 
     # Input Data
     path_input_documents = args.input_documents
@@ -47,8 +46,8 @@ def main(args):
     # Set base output path
     base_output_path = os.path.join(
         path_results_dir,
-        "docre",
-        "docre",
+        "ed_retrieval",
+        "ed_retrieval",
         identifier,
         prefix
     )
@@ -56,7 +55,7 @@ def main(args):
 
     # Set logger
     shared_functions.set_logger(
-        os.path.join(base_output_path, f"extraction.log"),
+        os.path.join(base_output_path, "retrieval.log"),
         # overwrite=True
     )
 
@@ -74,29 +73,37 @@ def main(args):
     # Method
     ##################
 
-    # Initialize the DocRE extractor
-    extractor = DocRE(identifier=identifier, gpu=gpu)
+    # Initialize the ED-Retrieval retriever
+    retriever = EDRetrieval(identifier=identifier, gpu=gpu)
 
     ##################
-    # DocRE
+    # ED-Retrieval
     ##################
 
-    logging.info(f"Applying the DocRE module to {len(documents)} documents in {path_input_documents} ...")
+    logging.info(f"Applying the ED-Retrieval module to {len(documents)} documents in {path_input_documents} ...")
 
     # Create the full output path
-    path_output_documents = os.path.join(base_output_path, f"documents.json")
+    path_output_documents = os.path.join(base_output_path, "documents.json")
+    path_output_candidates = os.path.join(base_output_path, "candidate_entities.json")
 
-    # Apply the DocRE extractor to the documents
+    # Apply the ED-Retrieval retriever to the documents
     result_documents = []
+    candidate_entities = []
     for document in tqdm(documents):
-        result_document = extractor.extract(document=document)
+        result_document, candidate_entities_for_doc = retriever.search(
+            document=document,
+            num_candidate_entities=num_candidate_entities
+        )
         result_documents.append(result_document)
+        candidate_entities.append(candidate_entities_for_doc)
         if len(result_documents) % 500 == 0:
             utils.write_json(path_output_documents.replace(".json", f".until_{len(result_documents)}.json"), result_documents)
+            utils.write_json(path_output_candidates.replace(".json", f".until_{len(candidate_entities)}.json"), candidate_entities)
 
     # Save the results
     utils.write_json(path_output_documents, result_documents)
-    logging.info(f"Saved the prediction results to {path_output_documents}")
+    utils.write_json(path_output_candidates, candidate_entities)
+    logging.info(f"Saved the prediction results to {path_output_documents} and {path_output_candidates}")
 
     ##################
     # Closing
@@ -120,14 +127,15 @@ if __name__ == "__main__":
     # Method
     parser.add_argument("--gpu", type=int, default=0)
     parser.add_argument("--identifier", type=str, required=True)
+    parser.add_argument("--num_candidate_entities", type=int, default=10)
 
     # Input Data
     parser.add_argument("--input_documents", type=str, required=True)
 
-    # Output Path
+    # Output Data
     parser.add_argument("--results_dir", type=str, required=True)
     parser.add_argument("--prefix", type=str, default=None)
 
     args = parser.parse_args()
-        
+
     main(args=args)

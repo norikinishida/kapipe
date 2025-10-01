@@ -12,8 +12,7 @@ import torch
 from tqdm import tqdm
 import jsonlines
 
-from . import shared_functions
-from ..models import BlinkBiEncoderModel
+from ..models import BlinkBiEncoderModel, shared_functions
 from ..passage_retrieval import ApproximateNearestNeighborSearch
 from .. import evaluation
 from .. import utils
@@ -106,9 +105,8 @@ class BlinkBiEncoder:
         self.model.to(self.model.device)
 
         # Initialize the module for Approximate Nearest Neighbor Search
-        # The GPU ID for indexing should NOT be the same with the GPU ID of the BLINK model to avoid OOM error
-        # Here, we assume that GPU-0 is set for the BLINK model.
-        self.anns = ApproximateNearestNeighborSearch(gpu_id=1) # TODO: Allow GPU-ID selection
+        # It might be better to select a different GPU ID for indexing from the GPU ID of the BLINK model to avoid OOM error
+        self.anns = ApproximateNearestNeighborSearch(gpu_id=0) # TODO: Allow GPU-ID selection
 
         logger.info("########## BlinkBiEncoder Initialization Ends ##########")
 
@@ -261,7 +259,7 @@ class BlinkBiEncoder:
             logger.info("Completed indexing")
             logger.info(f"Time: {span_time} min.")
 
-    def extract(self, document: Document, retrieval_size: int = 1) -> tuple[
+    def search(self, document: Document, retrieval_size: int = 1) -> tuple[
         Document, CandidateEntitiesForDocument
     ]:
         with torch.no_grad():
@@ -353,15 +351,15 @@ class BlinkBiEncoder:
             }
             return result_document, candidate_entities_for_doc
 
-    def batch_extract(
+    def batch_search(
         self,
         documents: list[Document],
         retrieval_size: int = 1
     ) -> tuple[list[Document], list[CandidateEntitiesForDocument]]:
         result_documents: list[Document] = []
         candidate_entities: list[CandidateEntitiesForDocument] = []
-        for document in tqdm(documents, desc="extraction steps"):
-            result_document, candidate_entities_for_doc = self.extract(
+        for document in tqdm(documents, desc="retrieval steps"):
+            result_document, candidate_entities_for_doc = self.search(
                 document=document,
                 retrieval_size=retrieval_size
             )
@@ -372,7 +370,7 @@ class BlinkBiEncoder:
 
 class BlinkBiEncoderTrainer:
     """
-    Trainer class for Blink Bi-Encoder extractor.
+    Trainer class for Blink Bi-Encoder retriever.
     Handles training loop, evaluation, model saving, and early stopping.
     """
     def __init__(self, base_output_path: str):
@@ -402,7 +400,7 @@ class BlinkBiEncoderTrainer:
 
     def setup_dataset(
         self,
-        extractor: BlinkBiEncoder,
+        retriever: BlinkBiEncoder,
         documents: list[Document],
         split: str
     ) -> None:
@@ -410,7 +408,7 @@ class BlinkBiEncoderTrainer:
         path_gold = self.paths[f"path_{split}_gold"]
         if not os.path.exists(path_gold):
             # Extract all concepts from the entity dictionary
-            kb_entity_ids = set(list(extractor.entity_dict.keys()))
+            kb_entity_ids = set(list(retriever.entity_dict.keys()))
             gold_documents = []
             for document in tqdm(documents, desc="dataset setup"):
                 gold_doc = copy.deepcopy(document)
@@ -424,7 +422,7 @@ class BlinkBiEncoderTrainer:
 
     def train(
         self,
-        extractor: BlinkBiEncoder,
+        retriever: BlinkBiEncoder,
         train_documents: list[Document],
         dev_documents: list[Document],
     ) -> None:
@@ -435,11 +433,11 @@ class BlinkBiEncoderTrainer:
         train_doc_indices = np.arange(len(train_documents))
 
         n_train = len(train_doc_indices)
-        max_epoch = extractor.config["max_epoch"]
-        batch_size = extractor.config["batch_size"]
-        gradient_accumulation_steps = extractor.config["gradient_accumulation_steps"]
+        max_epoch = retriever.config["max_epoch"]
+        batch_size = retriever.config["batch_size"]
+        gradient_accumulation_steps = retriever.config["gradient_accumulation_steps"]
         total_update_steps = n_train * max_epoch // (batch_size * gradient_accumulation_steps)
-        warmup_steps = int(total_update_steps * extractor.config["warmup_ratio"])
+        warmup_steps = int(total_update_steps * retriever.config["warmup_ratio"])
 
         logger.info("Number of training documents: %d" % n_train)
         logger.info("Number of epochs: %d" % max_epoch)
@@ -449,8 +447,8 @@ class BlinkBiEncoderTrainer:
         logger.info("Warmup steps: %d" % warmup_steps)
 
         optimizer = shared_functions.get_optimizer2(
-            model=extractor.model,
-            config=extractor.config
+            model=retriever.model,
+            config=retriever.config
         )
         scheduler = shared_functions.get_scheduler2(
             optimizer=optimizer,
@@ -475,11 +473,11 @@ class BlinkBiEncoderTrainer:
         ##################
 
         # Build index
-        extractor.make_index()
+        retriever.make_index()
 
-        # Evaluate the extractor
+        # Evaluate the retriever
         scores = self.evaluate(
-            extractor=extractor,
+            retriever=retriever,
             documents=dev_documents,
             split="dev",
             #
@@ -493,15 +491,15 @@ class BlinkBiEncoderTrainer:
         bestscore_holder.compare_scores(scores["inkb_accuracy"]["accuracy"], 0)
 
         # Save
-        extractor.save(path_snapshot=self.paths["path_snapshot"])
+        retriever.save(path_snapshot=self.paths["path_snapshot"])
         logger.info(f"Saved config, entity dictionary, model, and entity vectors to {self.paths['path_snapshot']}")
 
         ##################
         # Training Loop
         ##################
 
-        bert_param, task_param = extractor.model.get_params()
-        extractor.model.zero_grad()
+        bert_param, task_param = retriever.model.get_params()
+        retriever.model.zero_grad()
         step = 0
         batch_i = 0
 
@@ -519,10 +517,10 @@ class BlinkBiEncoderTrainer:
             # For each epoch, we generate candidate entities for each document
             # Note that candidate entities are generated per document
             # list[dict[str, list[CandEntKeyInfo]]]
-            # if not extractor.index_made:
-            #     extractor.make_index()
+            # if not retriever.index_made:
+            #     retriever.make_index()
             flatten_candidate_entities = self._generate_flatten_candidate_entities(
-                extractor=extractor,
+                retriever=retriever,
                 documents=train_documents
             )
 
@@ -541,7 +539,7 @@ class BlinkBiEncoderTrainer:
 
                 for doc_i in train_doc_indices[perm[instance_i: instance_i + batch_size]]:
                     # Forward and compute loss
-                    one_loss, n_valid_mentions = extractor.compute_loss(
+                    one_loss, n_valid_mentions = retriever.compute_loss(
                         document=train_documents[doc_i],
                         flatten_candidate_entities_for_doc=flatten_candidate_entities[doc_i]
                     )
@@ -573,20 +571,20 @@ class BlinkBiEncoderTrainer:
                     # Update
                     ##################
 
-                    if extractor.config["max_grad_norm"] > 0:
+                    if retriever.config["max_grad_norm"] > 0:
                         torch.nn.utils.clip_grad_norm_(
                             bert_param,
-                            extractor.config["max_grad_norm"]
+                            retriever.config["max_grad_norm"]
                         )
                         torch.nn.utils.clip_grad_norm_(
                             task_param,
-                            extractor.config["max_grad_norm"]
+                            retriever.config["max_grad_norm"]
                         )
 
                     optimizer.step()
                     scheduler.step()
 
-                    extractor.model.zero_grad()
+                    retriever.model.zero_grad()
 
                     step += 1
                     progress_bar.update()
@@ -598,7 +596,7 @@ class BlinkBiEncoderTrainer:
                     (
                         (batch_i % gradient_accumulation_steps == 0)
                         and
-                        (step % extractor.config["n_steps_for_monitoring"] == 0)
+                        (step % retriever.config["n_steps_for_monitoring"] == 0)
                     )
                 ):
 
@@ -628,9 +626,9 @@ class BlinkBiEncoderTrainer:
                     (
                         (batch_i % gradient_accumulation_steps == 0)
                         and
-                        (extractor.config["n_steps_for_validation"] > 0)
+                        (retriever.config["n_steps_for_validation"] > 0)
                         and
-                        (step % extractor.config["n_steps_for_validation"] == 0)
+                        (step % retriever.config["n_steps_for_validation"] == 0)
                     )
                 ):
 
@@ -639,11 +637,11 @@ class BlinkBiEncoderTrainer:
                     ##################
 
                     # Build index
-                    extractor.make_index()
+                    retriever.make_index()
 
-                    # Evaluate the extractor
+                    # Evaluate the retriever
                     scores = self.evaluate(
-                        extractor=extractor,
+                        retriever=retriever,
                         documents=dev_documents,
                         split="dev",
                         #
@@ -662,7 +660,7 @@ class BlinkBiEncoderTrainer:
 
                     # Save the model
                     if did_update:
-                        extractor.save(
+                        retriever.save(
                             path_snapshot=self.paths["path_snapshot"],
                             model_only=True
                         )
@@ -672,7 +670,7 @@ class BlinkBiEncoderTrainer:
                     # Termination Check
                     ##################
 
-                    if bestscore_holder.patience >= extractor.config["max_patience"]:
+                    if bestscore_holder.patience >= retriever.config["max_patience"]:
                         writer_train.close()
                         writer_dev.close()
                         progress_bar.close()
@@ -684,17 +682,17 @@ class BlinkBiEncoderTrainer:
 
     def evaluate(
         self,
-        extractor: BlinkBiEncoder,
+        retriever: BlinkBiEncoder,
         documents: list[Document],
         split: str,
         #
         prediction_only: bool = False,
         get_scores_only: bool = False,
     ) -> dict[str, Any] | None:
-        # Apply the extractor
-        result_documents, candidate_entities = extractor.batch_extract(
+        # Apply the retriever
+        result_documents, candidate_entities = retriever.batch_search(
             documents=documents,
-            retrieval_size=extractor.config["retrieval_size"]
+            retrieval_size=retriever.config["retrieval_size"]
         )
         utils.write_json(self.paths[f"path_{split}_pred"], result_documents)
         utils.write_json(
@@ -734,7 +732,7 @@ class BlinkBiEncoderTrainer:
 
     def _generate_flatten_candidate_entities(
         self,
-        extractor: BlinkBiEncoder,
+        retriever: BlinkBiEncoder,
         documents: list[Document]
     ) -> list[dict[str, list[CandEntKeyInfo]]]:
         logger.info("Generating candidate entities for training ...")
@@ -745,12 +743,12 @@ class BlinkBiEncoderTrainer:
         flatten_candidate_entities: list[dict[str, list[CandEntKeyInfo]]] = []
 
         # Predict candidate entities for each mention in each document
-        _, candidate_entities = extractor.batch_extract(
+        _, candidate_entities = retriever.batch_search(
             documents=documents,
             retrieval_size=RETRIEVAL_SIZE
         )
  
-        all_entity_ids = set(list(extractor.entity_dict.keys()))
+        all_entity_ids = set(list(retriever.entity_dict.keys()))
         n_total_mentions = 0
         n_inbatch_negatives = 0
         n_hard_negatives = 0
@@ -763,7 +761,7 @@ class BlinkBiEncoderTrainer:
         ):
             # Aggregate gold entities for the mentions in the document
             gold_entity_ids = list(set([m["entity_id"] for m in document["mentions"]]))
-            assert len(gold_entity_ids) <= extractor.config["n_candidate_entities"]
+            assert len(gold_entity_ids) <= retriever.config["n_candidate_entities"]
 
             tuples = [(eid, 0, float("inf")) for eid in gold_entity_ids]
 
@@ -817,10 +815,10 @@ class BlinkBiEncoderTrainer:
             tuples = list(id_to_score.items())
 
             # Select top-k entities
-            tuples = tuples[:extractor.config["n_candidate_entities"]]
+            tuples = tuples[:retriever.config["n_candidate_entities"]]
 
             # Sample entities randomly if the number of candidates is less than the specified number
-            N = extractor.config["n_candidate_entities"]
+            N = retriever.config["n_candidate_entities"]
             M = len(tuples)
             if N - M > 0:
                 # Identify entities that are not contained in the current candidates

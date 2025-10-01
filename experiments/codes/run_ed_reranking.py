@@ -2,13 +2,13 @@ import argparse
 import logging
 import os
 
-# import torch
+# import numpy as np
 import transformers
 from tqdm import tqdm
 
 import sys
 sys.path.insert(0, "../..")
-from kapipe.docre import DocRE
+from kapipe.ed_reranking import EDReranking
 from kapipe import utils
 from kapipe.utils import StopWatch
 
@@ -16,7 +16,6 @@ import shared_functions
 
 
 def main(args):
-    # torch.autograd.set_detect_anomaly(True)
     transformers.logging.set_verbosity_error()
 
     sw = StopWatch()
@@ -32,6 +31,7 @@ def main(args):
 
     # Input Data
     path_input_documents = args.input_documents
+    path_input_candidate_entities = args.input_candidate_entities
 
     # Output Path
     path_results_dir = args.results_dir
@@ -47,8 +47,8 @@ def main(args):
     # Set base output path
     base_output_path = os.path.join(
         path_results_dir,
-        "docre",
-        "docre",
+        "ed_reranking",
+        "ed_reranking",
         identifier,
         prefix
     )
@@ -56,7 +56,7 @@ def main(args):
 
     # Set logger
     shared_functions.set_logger(
-        os.path.join(base_output_path, f"extraction.log"),
+        os.path.join(base_output_path, f"reranking.log"),
         # overwrite=True
     )
 
@@ -70,26 +70,35 @@ def main(args):
     # Load documents
     documents = utils.read_json(path_input_documents)
 
+    # Load candidate entities
+    candidate_entities = utils.read_json(path_input_candidate_entities)
+
     ##################
     # Method
     ##################
 
-    # Initialize the DocRE extractor
-    extractor = DocRE(identifier=identifier, gpu=gpu)
+    # Initialize the ED-Reranking reranker
+    reranker = EDReranking(identifier=identifier, gpu=gpu)
 
     ##################
-    # DocRE
+    # ED-Reranking
     ##################
-
-    logging.info(f"Applying the DocRE module to {len(documents)} documents in {path_input_documents} ...")
+    
+    logging.info(f"Applying the ED-Reranking module to {len(documents)} documents (+ candidate entities) in {path_input_documents} ({path_input_candidate_entities}) ...")
 
     # Create the full output path
     path_output_documents = os.path.join(base_output_path, f"documents.json")
 
-    # Apply the DocRE extractor to the documents
+    # Apply the ED-Reranking reranker to the documents and candidate entities
     result_documents = []
-    for document in tqdm(documents):
-        result_document = extractor.extract(document=document)
+    for document, candidate_entities_for_doc in tqdm(
+        zip(documents, candidate_entities),
+        total=len(documents)
+    ):
+        result_document = reranker.rerank(
+            document=document,
+            candidate_entities_for_doc=candidate_entities_for_doc
+        )
         result_documents.append(result_document)
         if len(result_documents) % 500 == 0:
             utils.write_json(path_output_documents.replace(".json", f".until_{len(result_documents)}.json"), result_documents)
@@ -123,11 +132,12 @@ if __name__ == "__main__":
 
     # Input Data
     parser.add_argument("--input_documents", type=str, required=True)
+    parser.add_argument("--input_candidate_entities", type=str, required=True)
 
     # Output Path
     parser.add_argument("--results_dir", type=str, required=True)
     parser.add_argument("--prefix", type=str, default=None)
 
     args = parser.parse_args()
-        
+
     main(args=args)

@@ -10,8 +10,7 @@ import torch
 from tqdm import tqdm
 import jsonlines
 
-from . import shared_functions
-from ..models import BiaffineNERModel
+from ..models import BiaffineNERModel, shared_functions
 from .. import evaluation
 from .. import utils
 from ..utils import BestScoreHolder

@@ -142,7 +142,7 @@ class LLMED:
                 list(self.prompt_processor.candidate_entities_pool.values())
             )
 
-    def extract(
+    def rerank(
         self,
         document: Document,
         candidate_entities_for_doc: CandidateEntitiesForDocument,
@@ -156,7 +156,7 @@ class LLMED:
                 # Switch to inference mode
                 self.model.llm.eval()
  
-            # Split mentions into groups and perform extraction on the groups iteratively
+            # Split mentions into groups and perform reranking on the groups iteratively
             prompt_list: list[str] = []
             generated_text_list: list[str] = []
             target_mentions_list: list[list[Mention]] = []
@@ -317,7 +317,7 @@ class LLMED:
 
         return [mentions[m_i] for m_i in target_mention_indices]
 
-    def batch_extract(
+    def batch_rerank(
         self,
         documents: list[Document],
         candidate_entities: list[CandidateEntitiesForDocument],
@@ -347,9 +347,9 @@ class LLMED:
                     contexts
                 ),
                 total=len(documents),
-                desc="extraction steps"
+                desc="reranking steps"
             ):
-            result_document = self.extract(
+            result_document = self.rerank(
                 document=document,
                 candidate_entities_for_doc=candidate_entities_for_doc,
                 demonstrations_for_doc=demonstrations_for_doc,
@@ -695,7 +695,7 @@ class LLMEDTrainer:
 
     def setup_dataset(
         self,
-        extractor: LLMED,
+        reranker: LLMED,
         documents: list[Document],
         candidate_entities: list[CandidateEntitiesForDocument],
         split: str
@@ -703,7 +703,7 @@ class LLMEDTrainer:
         # Cache the gold annotations for evaluation
         path_gold = self.paths[f"path_{split}_gold"]
         if not os.path.exists(path_gold):
-            kb_entity_ids = set(list(extractor.prompt_processor.entity_dict.keys()))
+            kb_entity_ids = set(list(reranker.prompt_processor.entity_dict.keys()))
             gold_documents = []
             for document, candidate_entities_for_doc in tqdm(
                 zip(documents, candidate_entities),
@@ -729,12 +729,12 @@ class LLMEDTrainer:
             utils.write_json(path_gold, gold_documents)
             logger.info(f"Saved the gold annotations for evaluation in {path_gold}")
 
-    def save_extractor(self, extractor: LLMED) -> None:
-        extractor.save(path_snapshot=self.paths["path_snapshot"])
+    def save_reranker(self, reranker: LLMED) -> None:
+        reranker.save(path_snapshot=self.paths["path_snapshot"])
 
     def evaluate(
         self,
-        extractor: LLMED,
+        reranker: LLMED,
         documents: list[Document],
         candidate_entities: list[CandidateEntitiesForDocument],
         demonstrations: list[DemonstrationsForOneExample],
@@ -744,8 +744,8 @@ class LLMEDTrainer:
         prediction_only: bool = False,
         get_scores_only: bool = False
     ) -> dict[str, Any]:
-        # Apply the extractor
-        result_documents = extractor.batch_extract(
+        # Apply the reranker
+        result_documents = reranker.batch_rerank(
             documents=documents,
             candidate_entities=candidate_entities,
             demonstrations=demonstrations,

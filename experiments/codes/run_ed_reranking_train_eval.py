@@ -11,7 +11,7 @@ from tqdm import tqdm
 
 import sys
 sys.path.insert(0, "../..")
-from kapipe.triple_extraction import (
+from kapipe.ed_reranking import (
     BlinkCrossEncoder, BlinkCrossEncoderTrainer,
     LLMED, LLMEDTrainer
 )
@@ -70,7 +70,7 @@ def main(args):
     # Set base output path
     base_output_path = os.path.join(
         path_results_dir,
-        "edrank",
+        "ed_reranking",
         method_name,
         config_name,
         prefix
@@ -135,33 +135,33 @@ def main(args):
         trainer = BlinkCrossEncoderTrainer(base_output_path=base_output_path)
 
         if actiontype == "train" or actiontype == "check_preprocessing":
-            # Initialize the extractor
+            # Initialize the reranker
             config = utils.get_hocon_config(
                 config_path=config_path,
                 config_name=config_name
             )
-            extractor = BlinkCrossEncoder(
+            reranker = BlinkCrossEncoder(
                 device=device,
                 config=config,
                 path_entity_dict=path_entity_dict
             )
         else:
-            # Load the extractor
-            extractor = BlinkCrossEncoder(
+            # Load the reranker
+            reranker = BlinkCrossEncoder(
                 device=device,
                 path_snapshot=trainer.paths["path_snapshot"]
             )
 
     elif method_name == "llmed":
-        # Initialize the extractor
+        # Initialize the reranker
         trainer = LLMEDTrainer(base_output_path=base_output_path)
 
-        # Initialize the extractor
+        # Initialize the reranker
         config = utils.get_hocon_config(
             config_path=config_path,
             config_name=config_name
         )
-        extractor = LLMED(
+        reranker = LLMED(
             device=device,
             config=config,
             path_entity_dict=path_entity_dict,
@@ -182,7 +182,7 @@ def main(args):
         ) = remove_out_of_kb_mentions(
             train_documents=train_documents,
             train_candidate_entities=train_candidate_entities,
-            entity_dict=extractor.entity_dict
+            entity_dict=reranker.entity_dict
         )
         shared_functions.show_ed_documents_statistics(
             documents=processed_train_documents,
@@ -215,13 +215,13 @@ def main(args):
 
         # Set up the datasets for evaluation
         trainer.setup_dataset(
-            extractor=extractor,
+            reranker=reranker,
             documents=dev_documents,
             candidate_entities=dev_candidate_entities,
             split="dev"
         )
         trainer.setup_dataset(
-            extractor=extractor,
+            reranker=reranker,
             documents=test_documents,
             candidate_entities=test_candidate_entities,
             split="test"
@@ -270,9 +270,9 @@ def main(args):
         )) 
 
         if actiontype == "train":
-            # Train the extractor
+            # Train the reranker
             trainer.train(
-                extractor=extractor,
+                reranker=reranker,
                 train_documents=processed_train_documents,
                 train_candidate_entities=processed_train_candidate_entities,
                 dev_documents=dev_documents,
@@ -280,15 +280,15 @@ def main(args):
             )
 
         elif actiontype == "evaluate":
-            # Evaluate the extractor on the datasets
+            # Evaluate the reranker on the datasets
             trainer.evaluate(
-                extractor=extractor,
+                reranker=reranker,
                 documents=dev_documents,
                 candidate_entities=dev_candidate_entities,
                 split="dev"
             )
             trainer.evaluate(
-                extractor=extractor,
+                reranker=reranker,
                 documents=test_documents,
                 candidate_entities=test_candidate_entities,
                 split="test"
@@ -298,7 +298,7 @@ def main(args):
             # Save preprocessed data
             results = []
             for document, candidate_entities_for_doc in zip(dev_documents, dev_candidate_entities):
-                preprocessed_data = extractor.model.preprocessor.preprocess(
+                preprocessed_data = reranker.model.preprocessor.preprocess(
                     document=document,
                     candidate_entities_for_doc=candidate_entities_for_doc,
                     max_n_candidates=3
@@ -318,7 +318,7 @@ def main(args):
                     )):
                         doc_key = document["doc_key"]
                         logging.info(f"Processing {doc_key}")
-                        document = extractor.extract(
+                        document = reranker.rerank(
                             document=document,
                             demonstrations_for_doc=demos,
                             candidate_entities_for_doc=cands
@@ -341,13 +341,13 @@ def main(args):
 
         # Set up the datasets for evaluation
         trainer.setup_dataset(
-            extractor=extractor,
+            reranker=reranker,
             documents=dev_documents,
             candidate_entities=dev_candidate_entities,
             split="dev"
         )
         trainer.setup_dataset(
-            extractor=extractor,
+            reranker=reranker,
             documents=test_documents,
             candidate_entities=test_candidate_entities,
             split="test"
@@ -395,13 +395,13 @@ def main(args):
             )
         )) 
 
-        # Save the configurations of the extractor
-        trainer.save_extractor(extractor=extractor)
+        # Save the configurations of the reranker
+        trainer.save_reranker(reranker=reranker)
 
         if actiontype == "evaluate":
-            # Evaluate the extractor on the datasets
+            # Evaluate the reranker on the datasets
             trainer.evaluate(
-                extractor=extractor,
+                reranker=reranker,
                 documents=dev_documents,
                 candidate_entities=dev_candidate_entities,
                 demonstrations=dev_demonstrations,
@@ -409,7 +409,7 @@ def main(args):
                 split="dev"
             )
             trainer.evaluate(
-                extractor=extractor,
+                reranker=reranker,
                 documents=test_documents,
                 candidate_entities=test_candidate_entities,
                 demonstrations=test_demonstrations,

@@ -3,34 +3,26 @@ from __future__ import annotations
 import copy
 import logging
 import os
-from typing import Any
 
 import numpy as np
 import torch
 from tqdm import tqdm
 import jsonlines
+from typing import Any
 
-from . import shared_functions
-from ..models import BlinkCrossEncoderModel
+from ..models import MAQAModel, shared_functions
 from .. import evaluation
 from .. import utils
 from ..utils import BestScoreHolder
-from ..datatypes import (
-    Config,
-    Document,
-    Mention,
-    Entity,
-    CandEntKeyInfo,
-    CandidateEntitiesForDocument
-)
+from ..datatypes import Config, Document, Triple
 
 
 logger = logging.getLogger(__name__)
 
 
-class BlinkCrossEncoder:
+class MAQA:
     """
-    BLINK Cross-Encoder (Wu et al., 2020).
+    Mention-Agnostic QA-based DocRE Extractor (Oumaima and Nishida et al., 2024)
     """
 
     def __init__(
@@ -38,19 +30,22 @@ class BlinkCrossEncoder:
         device: str,
         # Initialization
         config: Config | str | None = None,
+        vocab_answer: dict[str, int] | str | None = None,
         path_entity_dict: str | None = None,
         # Loading
-        path_snapshot: str | None = None
+        path_snapshot: str | None = None,
     ):
-        logger.info("########## BlinkCrossEncoder Initialization Starts ##########")
+        logger.info("########## MAQA Initialization Starts ##########")
 
         self.device = device
         self.path_snapshot = path_snapshot
 
         if path_snapshot is not None:
             assert config is None
+            assert vocab_answer is None
             assert path_entity_dict is None
             config = path_snapshot + "/config"
+            vocab_answer = path_snapshot + "/answers.vocab.txt"
             path_entity_dict = path_snapshot + "/entity_dict.json"
             path_model = path_snapshot + "/model"
 
@@ -62,6 +57,14 @@ class BlinkCrossEncoder:
         self.config = config
         logger.info(utils.pretty_format_dict(self.config))
 
+        # Load the answer vocabulary
+        if isinstance(vocab_answer, str):
+            vocab_path = vocab_answer
+            vocab_answer = utils.read_vocab(vocab_path)
+            logger.info(f"Loaded answer type vocabulary from {vocab_path}")
+        self.vocab_answer = vocab_answer
+        self.ivocab_answer = {i:l for l, i in self.vocab_answer.items()}
+
         # Load the entity dictionary
         logger.info(f"Loading entity dictionary from {path_entity_dict}")
         self.entity_dict = {
@@ -70,15 +73,25 @@ class BlinkCrossEncoder:
         }
         logger.info(f"Completed loading of entity dictionary with {len(self.entity_dict)} entities from {path_entity_dict}")
 
-        # Initialize the model
+        # Load the model
         self.model_name = config["model_name"]
-        if self.model_name == "blinkcrossencodermodel":
-            self.model = BlinkCrossEncoderModel(
+        if self.model_name == "maqamodel":
+            self.model = MAQAModel(
                 device=device,
                 bert_pretrained_name_or_path=config["bert_pretrained_name_or_path"],
                 max_seg_len=config["max_seg_len"],
                 entity_dict=self.entity_dict,
-                mention_context_length=self.config["mention_context_length"]
+                dataset_name=config["dataset_name"],
+                dropout_rate=config["dropout_rate"],
+                vocab_answer=self.vocab_answer,
+                loss_function_name=config["loss_function"],
+                focal_loss_gamma=(
+                    config["focal_loss_gamma"] \
+                    if config["loss_function"] == "focal_loss" else None
+                ),
+                possible_head_entity_types=config["possible_head_entity_types"],
+                possible_tail_entity_types=config["possible_tail_entity_types"],
+                use_mention_as_canonical_name=config["use_mention_as_canonical_name"]
             )
         else:
             raise Exception(f"Invalid model_name: {self.model_name}")
@@ -86,7 +99,7 @@ class BlinkCrossEncoder:
         # Show parameter shapes
         # logger.info("Model parameters:")
         # for name, param in self.model.named_parameters():
-        #     logger.infof"{name}: {tuple(param.shape)}")
+        #     logger.info(f"{name}: {tuple(param.shape)}")
 
         # Load trained model parameters
         if path_snapshot is not None:
@@ -98,39 +111,34 @@ class BlinkCrossEncoder:
 
         self.model.to(self.model.device)
 
-        logger.info("########## BlinkCrossEncoder Initialization Ends ##########")
+        logger.info("########## MAQA Initialization Ends ##########")
 
     def save(self, path_snapshot: str, model_only: bool = False) -> None:
         path_config = path_snapshot + "/config"
+        path_vocab = path_snapshot + "/answers.vocab.txt"
         path_entity_dict = path_snapshot + "/entity_dict.json"
         path_model = path_snapshot + "/model"
         if not model_only:
             utils.write_json(path_config, self.config)
-            utils.write_json(path_entity_dict, list(self.entity_dict.values()))
+            utils.write_vocab(path_vocab, self.vocab_answer, write_frequency=False)
+            utils.write_json(path_entity_dict, self.entity_dict)
         torch.save(self.model.state_dict(), path_model)
 
     def compute_loss(
         self,
         document: Document,
-        candidate_entities_for_doc: CandidateEntitiesForDocument,
-        mention_index: int
+        qa_index: int
     ) -> tuple[torch.Tensor, torch.Tensor]:
-        assert document["doc_key"] == candidate_entities_for_doc["doc_key"]
-
         # Switch to training mode
         self.model.train()
 
         # Preprocess
-        preprocessed_data = self.model.preprocess(
-            document=document,
-            candidate_entities_for_doc=candidate_entities_for_doc,
-            max_n_candidates=self.config["max_n_candidates_in_training"]
-        )
+        preprocessed_data = self.model.preprocess(document=document)
 
         # Tensorize
         model_input = self.model.tensorize(
             preprocessed_data=preprocessed_data,
-            mention_index=mention_index,
+            qa_index=qa_index,
             compute_loss=True
         )
 
@@ -142,93 +150,56 @@ class BlinkCrossEncoder:
             model_output.acc
         )
 
-    def extract(
-        self,
-        document: Document,
-        candidate_entities_for_doc: CandidateEntitiesForDocument
-    ) -> Document:
-        assert document["doc_key"] == candidate_entities_for_doc["doc_key"]
-
+    def extract(self, document: Document) -> Document:
         with torch.no_grad():
             # Switch to inference mode
             self.model.eval()
 
-            # Return no entity if mention is missing
-            if len(document["mentions"]) == 0:
-                result_document = copy.deepcopy(document)
-                result_document["entities"] = []
-                return result_document
-
             # Preprocess
-            preprocessed_data = self.model.preprocess(
-                document=document,
-                candidate_entities_for_doc=candidate_entities_for_doc,
-                max_n_candidates=self.config["max_n_candidates_in_inference"]
-            )
+            preprocessed_data = self.model.preprocess(document=document)
 
-            mentions: list[Mention] = []
-            cands_for_mentions: list[list[CandEntKeyInfo]] = (
-                candidate_entities_for_doc["candidate_entities"]
-            )
-            for mention_index in range(len(preprocessed_data["mentions"])):
+            # Generate triples iteratively
+            triples: list[Triple] = []
+            qas = preprocessed_data["qas"]
+            for qa_index in range(len(qas)):
                 # Tensorize
                 model_input = self.model.tensorize(
                     preprocessed_data=preprocessed_data,
-                    mention_index=mention_index,
+                    qa_index=qa_index,
                     compute_loss=False
                 )
 
                 # Forward
                 model_output = self.model.forward(**model_input)
-                logits = model_output.logits # (1, n_candidates)
+                logits = model_output.logits # (1, n_answers)
 
-                # Structurize (1)
-                # Transform logits to mention-level entity IDs
-                pred_candidate_entity_index = torch.argmax(logits, dim=1).cpu().item() # int
-                pred_candidate_entity_id = cands_for_mentions[mention_index][
-                    pred_candidate_entity_index
-                ]["entity_id"]
-                mentions.append({"entity_id": pred_candidate_entity_id,})
-
-            # Structurize (2)
-            # Transform to entity-level entity IDs
-            # i.e., aggregate mentions based on the entity IDs
-            entities: list[Entity] = utils.aggregate_mentions_to_entities(
-                document=document,
-                mentions=mentions
-            )
+                # Structurize
+                pred_answer_label = torch.argmax(logits, dim=1).cpu().item() # int
+                pred_answer = self.ivocab_answer[pred_answer_label] # str
+                if pred_answer_label != 0:
+                    head_entity_i, relation, tail_entity_i = qas[qa_index].triple
+                    triples.append({
+                        "arg1": int(head_entity_i),
+                        "relation": relation,
+                        "arg2": int(tail_entity_i),
+                        "question": " ".join(qas[qa_index].question),
+                        "answer": pred_answer
+                    })
 
             # Integrate
             result_document = copy.deepcopy(document)
-            for m_i in range(len(result_document["mentions"])):
-                result_document["mentions"][m_i].update(mentions[m_i])
-            result_document["entities"] = entities
+            result_document["relations"] = triples
             return result_document
 
-    def batch_extract(
-        self,
-        documents: list[Document],
-        candidate_entities: list[CandidateEntitiesForDocument]
-    ) -> list[Document]:
+    def batch_extract(self, documents: list[Document]) -> list[Document]:
         result_documents = []
-        for document, candidate_entities_for_doc in tqdm(
-            zip(documents, candidate_entities),
-            total=len(documents),
-            desc="extraction steps"
-        ):
-            result_document = self.extract(
-                document=document,
-                candidate_entities_for_doc=candidate_entities_for_doc
-            )
+        for document in tqdm(documents, desc="extraction steps"):
+            result_document = self.extract(document=document)
             result_documents.append(result_document)
         return result_documents
 
 
-class BlinkCrossEncoderTrainer:
-    """
-    Trainer class for BLINK Cross-Encoder extractor.
-    Handles training loop, evaluation, model saving, and early stopping.
-    """
+class MAQATrainer:
 
     def __init__(self, base_output_path: str):
         self.base_output_path = base_output_path
@@ -236,11 +207,14 @@ class BlinkCrossEncoderTrainer:
 
     def get_paths(self) -> dict[str, str]:
         paths = {}
+
         # configurations
         paths["path_snapshot"] = self.base_output_path
+
         # training outputs
         paths["path_train_losses"] = self.base_output_path + "/train.losses.jsonl"
         paths["path_dev_evals"] = self.base_output_path + "/dev.eval.jsonl"
+
         # evaluation outputs
         paths["path_dev_gold"] = self.base_output_path + "/dev.gold.json"
         paths["path_dev_pred"] = self.base_output_path + "/dev.pred.json"
@@ -248,99 +222,128 @@ class BlinkCrossEncoderTrainer:
         paths["path_test_gold"] = self.base_output_path + "/test.gold.json"
         paths["path_test_pred"] = self.base_output_path + "/test.pred.json"
         paths["path_test_eval"] = self.base_output_path + "/test.eval.json"
+
+        # required for Ign evaulation
+        paths["path_gold_train_triples"] = self.base_output_path + "/gold_train_triples.json"
+
         return paths
 
     def setup_dataset(
         self,
-        extractor: BlinkCrossEncoder,
+        extractor: MAQA,
         documents: list[Document],
-        candidate_entities: list[CandidateEntitiesForDocument],
-        split: str
+        split: str,
+        with_gold_annotations: bool = True
     ) -> None:
-        # Cache the gold annotations for evaluation
-        path_gold = self.paths[f"path_{split}_gold"]
-        if not os.path.exists(path_gold):
-            kb_entity_ids = set(list(extractor.entity_dict.keys()))
-            gold_documents = []
-            for document, candidate_entities_for_doc in tqdm(
-                zip(documents, candidate_entities),
-                desc="dataset setup"
-            ):
-                gold_doc = copy.deepcopy(document)
-
-                cands_for_mentions: list[list[CandEntKeyInfo]] = (
-                    candidate_entities_for_doc["candidate_entities"]
+        # Cache the gold training triples for Ign evaluation
+        if split == "train":
+            if not os.path.exists(self.paths["path_gold_train_triples"]):
+                gold_train_triples = []
+                for document in tqdm(documents, desc="dataset setup"):
+                    mentions = document["mentions"]
+                    entity_index_to_mention_names = {
+                        e_i: [
+                            mentions[m_i]["name"]
+                            for m_i in e["mention_indices"]
+                        ]
+                        for e_i, e in enumerate(document["entities"])
+                    }
+                    for triple in document["relations"]:
+                        arg1_entity_i = triple["arg1"]
+                        rel = triple["relation"]
+                        arg2_entity_i = triple["arg2"]
+                        arg1_mention_names = entity_index_to_mention_names[
+                            arg1_entity_i
+                        ]
+                        arg2_mention_names = entity_index_to_mention_names[
+                            arg2_entity_i
+                        ]
+                        for arg1_mention_name in arg1_mention_names:
+                            for arg2_mention_name in arg2_mention_names:
+                                gold_train_triples.append((
+                                    arg1_mention_name,
+                                    rel,
+                                    arg2_mention_name
+                                ))
+                gold_train_triples = list(set(gold_train_triples))
+                gold_train_triples = {"root": gold_train_triples}
+                utils.write_json(
+                    self.paths["path_gold_train_triples"],
+                    gold_train_triples
                 )
-                mentions: list[Mention] = document["mentions"]
-                assert len(mentions) == len(cands_for_mentions)
+                logger.info(f"Saved the gold training triples for Ign evaluation in {self.paths['path_gold_train_triples']}")
 
-                for m_i, (mention, cands_for_mention) in enumerate(zip(
-                    mentions,
-                    cands_for_mentions
-                )):
-                    cand_entity_ids = [c["entity_id"] for c in cands_for_mention]
-                    entity_id = mention["entity_id"]
-                    in_kb = entity_id in kb_entity_ids
-                    in_cand = entity_id in cand_entity_ids
-                    gold_doc["mentions"][m_i]["in_kb"] = in_kb
-                    gold_doc["mentions"][m_i]["in_cand"] = in_cand
-                gold_documents.append(gold_doc)
-            utils.write_json(path_gold, gold_documents)
-            logger.info(f"Saved the gold annotations for evaluation in {path_gold}")
+        # Cache the gold annotations for evaluation
+        if split !=  "train" and with_gold_annotations:
+            path_gold = self.paths[f"path_{split}_gold"]
+            if not os.path.exists(path_gold):
+                gold_documents = []
+                for document in tqdm(documents, desc="dataset setup"):
+                    gold_doc = copy.deepcopy(document)
+                    gold_documents.append(gold_doc)
+                utils.write_json(path_gold, gold_documents)
+                logger.info(f"Saved the gold annotations for evaluation in {path_gold}")
 
     def train(
         self,
-        extractor: BlinkCrossEncoder,
+        extractor: MAQA,
         train_documents: list[Document],
-        train_candidate_entities: list[CandidateEntitiesForDocument],
         dev_documents: list[Document],
-        dev_candidate_entities: list[CandidateEntitiesForDocument]
+        supplemental_info: dict[str, Any]
     ) -> None:
         ##################
         # Setup
         ##################
 
-        # Collect tuples of (document index, mention index, gold entity rank in candidates)
-        train_doc_index_and_mention_index_tuples = [] # list[tuple[int,int,int]]
         train_doc_indices = np.arange(len(train_documents))
+
+        # We expand the training documents for each QA level,
+        # because each document consists of the different number of QAs.
+        # First, aggregate (doc_i, qa_index) tuples
+        # for positive and negative questions separately.
+        pos_train_tuples: list[tuple[int,int]] = []
+        neg_train_tuples: list[tuple[int,int]] = []
         for doc_i in train_doc_indices:
-            ranks: list[int] = train_candidate_entities[doc_i][
-                "original_gold_entity_rank_list"
-            ]
-            for m_i in range(len(train_documents[doc_i]["mentions"])):
-                rank = ranks[m_i]
-                train_doc_index_and_mention_index_tuples.append((doc_i, m_i, rank))
-
-        # Sort the tuples based on their ranks in descending order
-        train_doc_index_and_mention_index_tuples = sorted(
-            train_doc_index_and_mention_index_tuples,
-            key=lambda tpl: -tpl[-1]
-        )
-        train_doc_index_and_mention_index_tuples = np.asarray(
-            train_doc_index_and_mention_index_tuples
-        )
-
-        # Limit the training instances to MAX_TRAINING_INSTANCES
-        if extractor.config["max_training_instances"] is not None:
-            n_prev_instances = len(train_doc_index_and_mention_index_tuples)
-            train_doc_index_and_mention_index_tuples = (
-                train_doc_index_and_mention_index_tuples[
-                    :extractor.config["max_training_instances"]
-                ]
+            document = train_documents[doc_i]
+            preprocessed_data = extractor.preprocessor.preprocess(
+                document=document
             )
-            n_new_instances = len(train_doc_index_and_mention_index_tuples)
-            if n_prev_instances != n_new_instances:
-                logger.info("Removed training mentions where the gold entity appears at a lower rank among the candidates")
-                logger.info(f"{n_prev_instances} -> {n_new_instances} mentions")
+            qas = preprocessed_data["qas"]
+            for qa_i in range(len(qas)):
+                answer: str = qas[qa_i].answer
+                if answer == "Yes":
+                    pos_train_tuples.append((doc_i, qa_i))
+                elif answer == "No":
+                    neg_train_tuples.append((doc_i, qa_i))
+                else:
+                    raise Exception(f"Invalid answer: {answer}")
+        n_pos_train = len(pos_train_tuples)
+        n_neg_train_before_sampling = len(neg_train_tuples)
 
-        n_train = len(train_doc_index_and_mention_index_tuples)
+        # Then, perform negative-question sampling
+        if extractor.config["n_negative_samples"] > 0:
+            perm = np.random.permutation(len(neg_train_tuples))
+            perm = perm[
+                0 : len(pos_train_tuples) * extractor.config["n_negative_samples"]
+            ]
+            neg_train_tuples = [neg_train_tuples[i] for i in perm]
+        n_neg_train_after_sampling = len(neg_train_tuples)
+
+        # Finally, concatenate the positive and negative tuples
+        train_doc_index_and_qa_index_tuples = pos_train_tuples + neg_train_tuples
+        train_doc_index_and_qa_index_tuples = np.asarray(
+            train_doc_index_and_qa_index_tuples
+        )
+
+        n_train = len(train_doc_index_and_qa_index_tuples)
         max_epoch = extractor.config["max_epoch"]
         batch_size = extractor.config["batch_size"]
         gradient_accumulation_steps = extractor.config["gradient_accumulation_steps"]
         total_update_steps = n_train * max_epoch // (batch_size * gradient_accumulation_steps)
         warmup_steps = int(total_update_steps * extractor.config["warmup_ratio"])
 
-        logger.info("Number of training mentions: %d" % n_train)
+        logger.info(f"Number of training QAs (all): {n_pos_train} (pos) + {n_neg_train_before_sampling} (neg) = {n_pos_train + n_neg_train_before_sampling}")
+        logger.info(f"Number of training QAs (after negative sampling): {n_pos_train} (pos) + {n_neg_train_after_sampling} (neg) = {n_pos_train + n_neg_train_after_sampling}")
         logger.info("Number of epochs: %d" % max_epoch)
         logger.info("Batch size: %d" % batch_size)
         logger.info("Gradient accumulation steps: %d" % gradient_accumulation_steps)
@@ -374,27 +377,36 @@ class BlinkCrossEncoderTrainer:
         ##################
 
         # Evaluate the extractor
-        scores = self.evaluate(
-            extractor=extractor,
-            documents=dev_documents,
-            candidate_entities=dev_candidate_entities,
-            split="dev",
-            #
-            get_scores_only=True
-        )
+        if extractor.config["use_official_evaluation"]:
+            scores = self.official_evaluate(
+                extractor=extractor,
+                documents=dev_documents,
+                split="dev",
+                supplemental_info=supplemental_info,
+                #
+                get_scores_only=True
+            )
+        else:
+            scores = self.evaluate(
+                extractor=extractor,
+                documents=dev_documents,
+                split="dev",
+                supplemental_info=supplemental_info,
+                #
+                skip_intra_inter=True,
+                skip_ign=True,
+                get_scores_only=True
+            )
         scores.update({"epoch": 0, "step": 0})
         writer_dev.write(scores)
         logger.info(utils.pretty_format_dict(scores))
 
         # Set the best validation score
-        bestscore_holder.compare_scores(
-            scores["inkb_normalized_accuracy"]["accuracy"],
-            0
-        )
+        bestscore_holder.compare_scores(scores["standard"]["f1"], 0)
 
         # Save
         extractor.save(path_snapshot=self.paths["path_snapshot"])
-        logger.info(f"Saved config, entity dictionary, and model to {self.paths['path_snapshot']}")
+        logger.info(f"Saved config, answer vocabulary, entity dictionary, and model to {self.paths['path_snapshot']}")
 
         ##################
         # Training Loop
@@ -429,19 +441,16 @@ class BlinkCrossEncoderTrainer:
                 batch_acc = 0.0
                 actual_batchsize = 0
 
-                for (doc_i, mention_index, _) in (
-                    train_doc_index_and_mention_index_tuples[
-                        perm[instance_i : instance_i + batch_size]
-                    ]
-                ):
+                for (doc_i, qa_i) in train_doc_index_and_qa_index_tuples[
+                    perm[instance_i: instance_i + batch_size]
+                ]:
                     doc_i = int(doc_i)
-                    mention_index = int(mention_index)
+                    qa_i = int(qa_i)
 
                     # Forward and compute loss
                     one_loss, one_acc = extractor.compute_loss(
                         document=train_documents[doc_i],
-                        candidate_entities_for_doc=train_candidate_entities[doc_i],
-                        mention_index=mention_index
+                        qa_index=qa_i
                     )
 
                     # Accumulate the loss
@@ -451,8 +460,8 @@ class BlinkCrossEncoderTrainer:
 
                 # Average the loss
                 actual_batchsize = float(actual_batchsize)
-                batch_loss = batch_loss / actual_batchsize # loss per mention
-                batch_acc = batch_acc / actual_batchsize # accuracy per mention
+                batch_loss = batch_loss / actual_batchsize # loss per pair
+                batch_acc = batch_acc / actual_batchsize
 
                 ##################
                 # Backward
@@ -514,7 +523,7 @@ class BlinkCrossEncoderTrainer:
                         "one_epoch_progress(ratio)": float(instance_i + actual_batchsize) / n_train * 100.0,
                         "loss": loss_accum / accum_count,
                         "accuracy": 100.0 * acc_accum / accum_count,
-                        "max_valid_inkb_acc": bestscore_holder.best_score,
+                        "max_valid_f1": bestscore_holder.best_score,
                         "patience": bestscore_holder.patience
                     }
                     writer_train.write(report)
@@ -540,30 +549,42 @@ class BlinkCrossEncoderTrainer:
                     ##################
 
                     # Evaluate the extractor
-                    scores = self.evaluate(
-                        extractor=extractor,
-                        documents=dev_documents,
-                        candidate_entities=dev_candidate_entities,
-                        split="dev",
-                        #
-                        get_scores_only=True
-                    )
+                    if extractor.config["use_official_evaluation"]:
+                        scores = self.official_evaluate(
+                            extractor=extractor,
+                            documents=dev_documents,
+                            split="dev",
+                            supplemental_info=supplemental_info,
+                            #
+                            get_scores_only=True
+                        )
+                    else:
+                        scores = self.evaluate(
+                            extractor=extractor,
+                            documents=dev_documents,
+                            split="dev",
+                            supplemental_info=supplemental_info,
+                            #
+                            skip_intra_inter=True,
+                            skip_ign=True,
+                            get_scores_only=True
+                        )
                     scores.update({"epoch": epoch, "step": step})
                     writer_dev.write(scores)
                     logger.info(utils.pretty_format_dict(scores))
 
                     # Update the best validation score
                     did_update = bestscore_holder.compare_scores(
-                        scores["inkb_accuracy"]["accuracy"],
+                        scores["standard"]["f1"],
                         epoch
                     )
-                    logger.info("[Step %d] Max validation InKB normalized accuracy: %f" % (step, bestscore_holder.best_score))
+                    logger.info("[Step %d] Max validation F1: %f" % (step, bestscore_holder.best_score))
 
                     # Save the model
                     if did_update:
                         extractor.save(
                             path_snapshot=self.paths["path_snapshot"],
-                            model_only=True
+                            model_only=True 
                         )
                         logger.info(f"Saved model to {self.paths['path_snapshot']}")
 
@@ -571,7 +592,10 @@ class BlinkCrossEncoderTrainer:
                     # Termination Check
                     ##################
 
-                    if bestscore_holder.patience >= extractor.config["max_patience"]:
+                    if (
+                        bestscore_holder.patience
+                        >= extractor.config["max_patience"]
+                    ):
                         writer_train.close()
                         writer_dev.close()
                         progress_bar.close()
@@ -583,35 +607,31 @@ class BlinkCrossEncoderTrainer:
 
     def evaluate(
         self,
-        extractor: BlinkCrossEncoder,
+        extractor: MAQA,
         documents: list[Document],
-        candidate_entities: list[CandidateEntitiesForDocument],
         split: str,
+        supplemental_info: dict[str, Any],
         #
         prediction_only: bool = False,
-        get_scores_only: bool = False,
+        skip_intra_inter: bool = False,
+        skip_ign: bool = False,
+        get_scores_only: bool = False
     ) -> dict[str, Any] | None:
         # Apply the extractor
-        result_documents = extractor.batch_extract(
-            documents=documents,
-            candidate_entities=candidate_entities
-        )
+        result_documents = extractor.batch_extract(documents=documents)
         utils.write_json(self.paths[f"path_{split}_pred"], result_documents)
 
         if prediction_only:
             return
 
         # Calculate the evaluation scores
-        scores = evaluation.ed.accuracy(
+        scores = evaluation.docre.fscore(
             pred_path=self.paths[f"path_{split}_pred"],
             gold_path=self.paths[f"path_{split}_gold"],
-            inkb=True
+            skip_intra_inter=skip_intra_inter,
+            skip_ign=skip_ign,
+            gold_train_triples_path=self.paths["path_gold_train_triples"]
         )
-        scores.update(evaluation.ed.fscore(
-            pred_path=self.paths[f"path_{split}_pred"],
-            gold_path=self.paths[f"path_{split}_gold"],
-            inkb=True
-        ))
 
         if get_scores_only:
             return scores
@@ -621,3 +641,43 @@ class BlinkCrossEncoderTrainer:
         logger.info(utils.pretty_format_dict(scores))
         return scores
 
+    def official_evaluate(
+        self,
+        extractor: MAQA,
+        documents: list[Document],
+        split: str,
+        supplemental_info: dict[str, Any],
+        #
+        prediction_only: bool = False,
+        get_scores_only: bool = False
+    ) -> dict[str, Any] | None:
+        # Apply the extractor
+        result_documents = extractor.batch_extract(documents=documents)
+        utils.write_json(self.paths[f"path_{split}_pred"], result_documents)
+        triples = evaluation.docre.to_official(
+            path_input=self.paths[f"path_{split}_pred"],
+            path_output=
+            self.paths[f"path_{split}_pred"].replace(".json", ".official.json")
+        )
+
+        if prediction_only:
+            return
+
+        # Calculate the evaluation scores
+        original_data_dir = supplemental_info["original_data_dir"]
+        train_file_name = supplemental_info["train_file_name"]
+        dev_file_name = supplemental_info[f"{split}_file_name"]
+        scores = evaluation.docre.official_evaluate(
+            triples=triples,
+            original_data_dir=original_data_dir,
+            train_file_name=train_file_name,
+            dev_file_name=dev_file_name
+        )
+
+        if get_scores_only:
+            return scores
+
+        # Save the evaluation scores
+        utils.write_json(self.paths[f"path_{split}_eval"], scores)
+        logger.info(utils.pretty_format_dict(scores))
+        return scores

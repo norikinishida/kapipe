@@ -5,10 +5,19 @@
 from . import datatypes
 
 #####
+# Pipelines
+#####
+
+# from .pipelines import TripleExtractor
+
+#####
 # Extraction
 #####
 
-from . import triple_extraction
+from . import ner
+from . import ed_retrieval
+from . import ed_reranking
+from . import docre
 
 #####
 # Organization
