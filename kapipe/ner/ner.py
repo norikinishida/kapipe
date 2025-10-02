@@ -24,11 +24,11 @@ class NER:
         self,
         identifier: str,
         gpu: int = 0,
-        user_defined_entity_types: list[dict[str,str]] | None = None
+        entity_types: list[dict[str,str]] | None = None
     ):
         self.identifier = identifier
         self.gpu = gpu
-        self.user_defined_entity_types = user_defined_entity_types
+        self.entity_types = entity_types
 
         root_config: Config = utils.get_hocon_config(
             os.path.join(expanduser("~"), ".kapipe", "download", "config")
@@ -48,7 +48,7 @@ class NER:
                 path_snapshot=self.module_config["snapshot"]
             )
         elif self.module_config["method"] == "llm_ner":
-            if user_defined_entity_types is None:
+            if entity_types is None:
                 # Use pre-defined entity types corresponding to the identifier
                 self.extractor = LLMNER(
                     device=f"cuda:{self.gpu}",
@@ -61,14 +61,14 @@ class NER:
                     device=f"cuda:{self.gpu}",
                     vocab_etype={
                         x["entity_type"]: i
-                        for i, x in enumerate(user_defined_entity_types)
+                        for i, x in enumerate(entity_types)
                     },
                     etype_meta_info={
                         x["entity_type"]: {
                             "Pretty Name": x["entity_type"],
                             "Definition": x["definition"]
                         }
-                        for x in user_defined_entity_types
+                        for x in entity_types
                     },
                     path_snapshot=self.module_config["snapshot"],
                     model=None,

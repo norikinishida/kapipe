@@ -44,6 +44,7 @@ from . import qa
 # Others
 #####
 
+from . import llms
 from . import prompt_templates
 from . import demonstration_retrieval
 from . import evaluation
@@ -54,5 +55,5 @@ from . import utils
 # Package information
 #####
 
-__version__ = "0.0.8"
+__version__ = "0.0.9"
 

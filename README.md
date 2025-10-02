@@ -106,13 +106,13 @@ pipe = TripleExtractionPipeline(
     module_kwargs={
         "ner": {
             "identifier": "gpt4omini_any",
-            "user_defined_entity_types": [{"entity_type": "(your favorite type)", "definition": "..."}]
+            "entity_types": [{"entity_type": "<entity type>", "definition": "<definition>"}]
         },
         "ed_retrieval": {"identifier": "dummy_entity_retriever"},
         "ed_reranking": {"identifier": "identical_entity_reranker"},
         "docre": {
             "identifier": "gpt4omini_any",
-            "user_defined_relation_labels": [{"relation_label": "(your favorite label)", "definition": "..."}]
+            "relation_labels": [{"relation_label": "<entity type>", "definition": "<definition>"}]
         }
     }
 )
