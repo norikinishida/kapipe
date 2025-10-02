@@ -11,6 +11,7 @@
 - [✂️ Chunking](#-chunking)
 - [🔍 Passage Retrieval](#-passage-retrieval)
 - [💬 Question Answering](#-question-answering)
+- [Available Identifiers](#available-identifiers)
 
 ## 🤖 What is KAPipe?
 
@@ -90,6 +91,65 @@ Specifically, this is achieved through the following cascade of subtasks:
 1. **Document-level Relation Extraction (DocRE)**:
     - Extract relational triples based on the disambiguated entity set.
 
+### How to Use
+
+```python
+from kapipe.pipelines import TripleExtractionPipeline
+
+# Load the triple extraction pipeline
+# Example 1
+# (1) NER: GPT-4o-mini (with prompt and user-defined entity types)
+# (2) ED-Retrieval: Dummy Retriever (assigning the lowercased mention string as the entity ID)
+# (3) ED-Reranking: None
+# (4) DocRE: GPT-4o-mini (with prompt and user-defined relation labels)
+pipe = TripleExtractionPipeline(
+    module_kwargs={
+        "ner": {
+            "identifier": "gpt4omini_any",
+            "user_defined_entity_types": [{"entity_type": "(your favorite type)", "definition": "..."}]
+        },
+        "ed_retrieval": {"identifier": "dummy_entity_retriever"},
+        "ed_reranking": {"identifier": "identical_entity_reranker"},
+        "docre": {
+            "identifier": "gpt4omini_any",
+            "user_defined_relation_labels": [{"relation_label": "(your favorite label)", "definition": "..."}]
+        }
+    }
+)
+# Example 2
+# (1) NER: Qwen-2.5-7B-Instruct (with prompt for CDR, i.e., {Chemical, Disease} entity types)
+# (2) ED-Retrieval: BLINK Bi-Encoder (trained on CDR+MeSH)
+# (3) ED-Reranking: Qwen-2.5-7B-Instruct (with prompt for CDR+MeSH)
+# (4) DocRE: Qwen-2.5-7B-Instruct (with prompt for CDR, i.e., Chemical-Induce-Disease relation label)
+pipe = TripleExtractionPipeline(
+    module_kwargs={
+        "ner": {"identifier": "qwen2_5_7b_cdr", "gpu": 1},
+        "ed_retrieval": {"identifier": "blink_bi_encoder_cdr", "gpu": 2},
+        "ed_reranking": {"identifier": "qwen2_5_7b_cdr", "gpu": 1},
+        "docre": {"identifier": "qwen2_5_7b_cdr", "gpu": 1}
+    },
+    share_backborn_llm=True
+)
+# Example 3
+# (1) NER: Biaffine-NER (trained on CDR, i.e., {Chemical, Disease} entity types)
+# (2) ED-Retrieval: BLINK Bi-Encoder (trained on CDR+MeSH)
+# (3) ED-Reranking: BLINK Cross-Encoder (trained on CDR+MeSH)
+# (4) DocRE: ATLOP (trained on CDR, i.e., Chemical-Induce-Disease relation label)
+pipe = TripleExtractionPipeline(
+    module_kwargs={
+        "ner": {"identifier": "biaffine_ner_cdr", "gpu": 1},
+        "ed_retrieval": {"identifier": "blink_bi_encoder_cdr", "gpu": 1},
+        "ed_reranking": {"identifier": "blink_cross_encoder_cdr", "gpu": 2},
+        "docre": {"identifier": "atlop_cdr", "gpu": 3}
+    }
+)
+
+# Apply the triple extractor to your input document
+document = pipe.extract(document)
+```
+(See `experiments/codes/run_triple_extraction_pipeline.py` for specific examples.)
+
+
 ### Input
 
 This module takes as input:
@@ -108,7 +168,7 @@ This module takes as input:
     ]
 }
 ```
-(See `experiments/data/examples/documents_without_triples.json` for more details.)
+(See `experiments/data/examples/documents.json` for more details.)
 
 Each subtask takes a ***Document*** object as input, augments it with new fields, and returns it.  
 This allows custom metadata to persist throughout the triple extractor.
@@ -166,28 +226,6 @@ The output is also the same-format dictionary (***Document***), augmented with e
 ```
 (See `experiments/data/examples/documents_with_triples.json` for more details.)
 
-### How to Use
-
-```python
-import kapipe.triple_extraction
-
-IDENTIFIER = "biaffinener_blink_blink_atlop_cdr"
-
-# Load the triple extractor
-triple_extractor = kapipe.triple_extraction.load(
-    identifier=IDENTIFIER,
-    gpu_map={"ner": 0, "ed_retrieval": 0, "ed_reranking": 2, "docre": 3}
-)
-
-# We provide a utility for converting text (string) to Document format
-# `title` is optional
-document = triple_extractor.text_to_document(doc_key=your_doc_key, text=your_text, title=your_title)
-
-# Apply the triple extractor to your input document
-document = triple_extractor(document)
-```
-(See `experiments/codes/run_triple_extraction.py` for specific examples.)
-
 <!-- The `identifier` determines the specific models used for each subtask.  
 For example, `"biaffinener_blink_blink_atlop_cdr"` uses:
 
@@ -217,16 +255,8 @@ For example, `"biaffinener_blink_blink_atlop_cdr"` uses:
 - **MA-QA** (Oumaima & Nishida, 2024): Question-answering style DocRE model
 - **LLM-DocRE**: A proprietary/open-source LLM using a DocRE-specific prompt template and few-shot examples
 
-### Available Triple Extractor Identifiers
-
-The following triple extractor configurations are currently available:
-
-| identifier | NER (Entity Types) | ED-Retrieval (Knowledge Base) | ED-Reranking (Knowledge Base) | DocRE (Relations) |
-| --- | --- | --- | --- | --- |
-| `biaffinener_blink_blink_atlop_cdr` | Biaffine-NER ({Chemical, Disease}) | BLINK Bi-Encoder (MeSH 2015) | BLINK Cross-Encoder (MeSH 2015) | ATLOP ({Chemical-Induce-Disease}) |
-| `biaffinener_blink_blink_atlop_linked_docred` | Biaffine-NER ({Person, Organization, Location, Time, Number, Misc}) | BLINK Bi-Encoder (DBPedia 2020.02.01) | BLINK Cross-Encoder (DBPedia 2020.02.01) | ATLOP (DBPedia 96 relations) |
-| `llmner_blink_llmed_llmdocre_cdr` | LLM-NER `gpt-4o-mini` ({Chemical, Disease}) | BLINK Bi-Encoder (MeSH 2015) | LLM-ED `gpt-4o-mini` (MeSH 2015) | LLM-DocRE `gpt-4o-mini` ({Chemical-Induce-Disease}) |
-| `llmner_blink_llmed_llmdocre_linked_docred` | LLM-NER `gpt-4o-mini` ({Person, Organization, Location, Time, Number, Misc}) | BLINK Bi-Encoder (DBPedia 2020.02.01) | LLM-ED `gpt-4o-mini` (DBPedia 2020.02.01) | LLM-DocRE `gpt-4o-mini` (DBPedia 96 relations) |
+👉 A full list of available **identifiers** for each subtask can be found at the end of this README:  
+[Available Identifiers](#available-identifiers)
 
 ## 🕸️ Knowledge Graph Construction
 
@@ -236,6 +266,34 @@ The **Knowledge Graph Construction** module builds a **directed multi-relational
 
 - **Nodes** represent unique entities (i.e., concepts).
 - **Edges** represent semantic relations between entities.
+
+### How to Use
+
+```python
+from kapipe.graph_construction import GraphConstructor
+
+PATH_TO_DOCUMENTS = "./experiments/data/examples/documents.json"
+PATH_TO_TRIPLES = "./experiments/data/examples/additional_triples.json" # Or set to None
+PATH_TO_ENTITY_DICT = "./experiments/data/examples/entity_dict.json" # Or set to None
+
+# Initialize the knowledge graph constructor
+constructor = GraphConstructor()
+
+# Construct the knowledge graph
+# Example 1 (use entity dictionary for enriching the node information)
+graph = constructor.construct_knowledge_graph(
+    path_documents_list=[PATH_TO_DOCUMENTS],
+    path_additional_triples=PATH_TO_TRIPLES, # Optional
+    path_entity_dict=PATH_TO_ENTITY_DICT
+)
+# Example 2 (without entity dictionary)
+graph = constructor.construct_knowledge_graph(
+    path_documents_list=[PATH_TO_DOCUMENTS],
+    path_additional_triples=PATH_TO_TRIPLES, # Optional
+    path_entity_dict=None
+)
+```
+(See `experiments/codes/run_graph_construction.py` for specific examples.)
 
 ### Input
 
@@ -318,33 +376,34 @@ Each edge has the following attributes:
 
 (See `experiments/data/examples/graph.graphml` for more details.)
 
-### How to Use
-
-```python
-from kapipe.graph_construction import GraphConstructor
-
-PATH_TO_DOCUMENTS = "./experiments/data/examples/documents.json"
-PATH_TO_TRIPLES = "./experiments/data/examples/additional_triples.json" # Or set to None if unused
-PATH_TO_ENTITY_DICT = "./experiments/data/examples/entity_dict.json"
-
-# Initialize the knowledge graph constructor
-constructor = GraphConstructor()
-
-# Construct the knowledge graph
-graph = constructor.construct_knowledge_graph(
-    path_documents_list=[PATH_TO_DOCUMENTS],
-    path_additional_triples=PATH_TO_TRIPLES, # Optional
-    path_entity_dict=PATH_TO_ENTITY_DICT
-)
-```
-(See `experiments/codes/run_graph_construction.py` for specific examples.)
-
 ## 🧱 Community Clustering
 
 ### Overview
 
 The **Community Clustering** module partitions the knowledge graph into **semantically coherent subgraphs**, referred to as *communities*.  
 Each community represents a localized set of closely related concepts and relations, and serves as a fundamental unit of structured knowledge.
+
+### How to Use
+
+```python
+from kapipe.community_clustering import (
+    HierarchicalLeiden,
+    NeighborhoodAggregation,
+    TripleLevelFactorization
+)
+
+# Initialize the community clusterer
+# Example 1 (Hierarchical Leiden)
+clusterer = HierarchicalLeiden()
+# Example 2 (Neighborhood Aggregation)
+clusterer = NeighborhoodAggregation()
+# Example 3 (Triple-Level Factorization)
+clusterer = TripleLevelFactorization()
+
+# Apply the community clusterer to the graph
+communities = clusterer.cluster_communities(graph)
+```
+(See `experiments/codes/run_community_clustering.py` for specific examples.)
 
 ### Input
 
@@ -402,25 +461,6 @@ The output is a list of hierarchical community records (dictionaries), each cont
 
 This hierarchical structure enables multi-level organization of knowledge, particularly useful for coarse-to-fine report generation and scalable retrieval.
 
-### How to Use
-
-```python
-from kapipe.community_clustering import (
-    HierarchicalLeiden,
-    NeighborhoodAggregation,
-    TripleLevelFactorization
-)
-
-# Initialize the community clusterer
-clusterer = HierarchicalLeiden()
-# clusterer = NeighborhoodAggregation()
-# clusterer = TripleLevelFactorization()
-
-# Apply the community clusterer to the graph
-communities = clusterer.cluster_communities(graph)
-```
-(See `experiments/codes/run_community_clustering.py` for specific examples.)
-
 ### Supported Methods
 
 - **Hierarchical Leiden**
@@ -435,6 +475,46 @@ communities = clusterer.cluster_communities(graph)
 ### Overview
 
 The **Report Generation** module converts each community into a **natural language report**, making structured knowledge interpretable for both humans and language models.  
+
+### How to Use
+
+```python
+from kapipe.report_generation import (
+    LLMBasedReportGenerator,
+    TemplateBasedReportGenerator
+)
+
+PATH_TO_REPORTS = "./experiments/data/examples/reports.jsonl"
+
+# Initialize the report generator
+# Example 1 (LLM-based; GPT-4o-mini)
+generator = LLMBasedReportGenerator(
+    llm_backend="openai",
+    llm_kwargs={
+        "openai_model_name": "gpt-4o-mini",
+        "max_new_tokens": 2048,
+    }
+)
+# Example 2 (LLM-based; Qwen-2.5-7B-Instruct)
+generator = LLMBasedReportGenerator(
+    llm_backend="huggingface",
+    llm_kwargs={
+        "llm_name_or_path": "Qwen/Qwen2.5-7B-Instruct",
+        "max_new_tokens": 2048,
+        "quantization_bits": -1,
+    }
+)
+# Example 3 (Template-based)
+generator = TemplateBasedReportGenerator()
+ 
+# Generate community reports
+generator.generate_community_reports(
+    graph=graph,
+    communities=communities,
+    path_output=PATH_TO_REPORTS
+)
+```
+(See `experiments/codes/run_report_generation.py` for specific examples.)
 
 ### Input
 
@@ -461,43 +541,6 @@ The output is a `.jsonl` file, where each line corresponds to one ***Passage***,
 ✅ The output format is fully compatible with the **Chunking** module, which accepts any dictionary containing a `title` and `text` field.  
 Thus, each community report can also be treated as a generic ***Passage***.
 
-### How to Use
-
-```python
-from kapipe.report_generation import (
-    LLMBasedReportGenerator,
-    TemplateBasedReportGenerator
-)
-
-PATH_TO_REPORTS = "./experiments/data/examples/reports.jsonl"
-
-# Initialize the report generator
-generator = LLMBasedReportGenerator(
-    llm_backend="openai",
-    llm_kwargs={
-        "openai_model_name": "gpt-4o-mini",
-        "max_new_tokens": 2048,
-    }
-)
-# generator = LLMBasedReportGenerator(
-#     llm_backend="huggingface",
-#     llm_kwargs={
-#         "llm_name_or_path": "Qwen/Qwen2.5-7B-Instruct",
-#         "max_new_tokens": 2048,
-#         "quantization_bits": -1,
-#     }
-# )
-# generator = TemplateBasedReportGenerator()
- 
-# Generate community reports
-generator.generate_community_reports(
-    graph=graph,
-    communities=communities,
-    path_output=PATH_TO_REPORTS
-)
-```
-(See `experiments/codes/run_report_generation.py` for specific examples.)
-
 ### Supported Methods
 
 - **LLM-based Generation**
@@ -519,6 +562,25 @@ This module is essential for preparing context units that are compatible with do
 - A dictionary containing a `"title"` and `"text"` field.  
 
 This makes the module applicable not only to **community reports**, but also to other types of *Passage* data with similar structure. -->
+
+### How to Use
+
+```python
+from kapipe.chunking import Chunker
+
+MODEL_NAME = "en_core_web_sm"  # SpaCy tokenizer
+WINDOW_SIZE = 100  # Max number of tokens per chunk
+
+# Initialize the chunker
+chunker = Chunker(model_name=MODEL_NAME)
+
+# Chunk the passage
+chunked_passages = chunker.split_passage_to_chunked_passages(
+    passage=passage,
+    window_size=WINDOW_SIZE
+)
+```
+(See `experiments/codes/run_chunking.py` for specific examples.)
 
 ### Input
 
@@ -562,31 +624,54 @@ The output is a list of ***Passage*** objects, each containing:
 ```
 (See `experiments/data/examples/reports.chunked_w100.jsonl` for more details.)
 
-### How to Use
-
-```python
-from kapipe.chunking import Chunker
-
-MODEL_NAME = "en_core_web_sm"  # SpaCy tokenizer
-WINDOW_SIZE = 100  # Max number of tokens per chunk
-
-# Initialize the chunker
-chunker = Chunker(model_name=MODEL_NAME)
-
-# Chunk the passage
-chunked_passages = chunker.split_passage_to_chunked_passages(
-    passage=passage,
-    window_size=WINDOW_SIZE
-)
-```
-(See `experiments/codes/run_chunking.py` for specific examples.)
-
 ## 🔍 Passage Retrieval
 
 ### Overview
 
 The **Passage Retrieval** module searches for the top-k most **relevant chunks** given a user query.  
 It uses lexical or dense retrievers (e.g., BM25, Contriever) to compute semantic similarity between queries and chunks using embedding-based methods.
+
+### How to Use
+
+**(1) Indexing**:
+
+```python
+from kapipe.passage_retrieval import Contriever
+
+INDEX_ROOT = "./"
+INDEX_NAME = "example"
+
+# Initialize retriever
+retriever = Contriever(
+    max_passage_length=512,
+    pooling_method="average",
+    normalize=False,
+    gpu_id=0,
+    metric="inner-product"
+)
+
+# Build index
+retriever.make_index(
+    passages=passages,
+    index_root=INDEX_ROOT,
+    index_name=INDEX_NAME
+)
+```
+(See `experiments/codes/run_passage_retrieval.py` for specific examples.)
+
+**(2) Search**:
+
+```python
+# Load the index
+retriever.load_index(index_root=INDEX_ROOT, index_name=INDEX_NAME)
+
+# Search for top-k contexts
+retrieved_passages = retriever.search(queries=[question], top_k=10)[0]
+contexts_for_question = {
+    "question_key": question["question_key"],
+    "contexts": retrieved_passages
+}
+```
 
 ### Input
 
@@ -652,48 +737,6 @@ The search result for each question is represented as a dictionary containing:
 ```
 (See `experiments/data/examples/questions.contexts.json` for more details.)
 
-### How to Use
-
-**(1) Indexing**:
-
-```python
-from kapipe.passage_retrieval import Contriever
-
-INDEX_ROOT = "./"
-INDEX_NAME = "example"
-
-# Initialize retriever
-retriever = Contriever(
-    max_passage_length=512,
-    pooling_method="average",
-    normalize=False,
-    gpu_id=0,
-    metric="inner-product"
-)
-
-# Build index
-retriever.make_index(
-    passages=passages,
-    index_root=INDEX_ROOT,
-    index_name=INDEX_NAME
-)
-```
-(See `experiments/codes/run_passage_retrieval.py` for specific examples.)
-
-**(2) Search**:
-
-```python
-# Load the index
-retriever.load_index(index_root=INDEX_ROOT, index_name=INDEX_NAME)
-
-# Search for top-k contexts
-retrieved_passages = retriever.search(queries=[question], top_k=10)[0]
-contexts_for_question = {
-    "question_key": question["question_key"],
-    "contexts": retrieved_passages
-}
-```
-
 ### Supported Methods
 
 - **BM25**
@@ -710,6 +753,25 @@ contexts_for_question = {
 
 The **Question Answering** module generates an answer for each user query, optionally conditioned on the retrieved context chunks.  
 It uses a large language model such as GPT-4o to produce factually grounded and context-aware answers in natural language.
+
+### How to Use
+
+```python
+from os.path import expanduser
+from kapipe.qa import QA
+from kapipe import utils
+
+# Initialize the QA module
+answerer = QA(identifier="gpt4o_with_context")
+
+# Generate answer
+answer = answerer.answer(
+    question=question,
+    contexts_for_question=contexts_for_question
+)
+
+```
+(See `experiments/codes/run_qa.py` for specific examples.)
 
 ### Input
 
@@ -746,21 +808,33 @@ The answer is a dictionary containing:
 ```
 (See `experiments/data/examples/answers.json` for more details.)
 
-### How to Use
+## Available Identifiers
 
-```python
-from os.path import expanduser
-from kapipe.qa import LLMQA
-from kapipe import utils
+The following configurations (`identifier`) are currently available:
 
-# Initialize the QA module
-answerer = LLMQA(path_snapshot=expanduser("~/.kapipe/download/results/qa/llmqa/openai_gpt4o"))
 
-# Generate answer
-answer = answerer.run(
-    question=question,
-    contexts_for_question=contexts_for_question
-)
+| Subtask | identifier | Method and Domain | Label Set or KB |
+| --- | --- | --- | --- |
+| NER | `biaffine_ner_linked_docred` | Biaffine-NER trained on Linked-DocRED (Wikipedia articles) | {ORG, LOC, TIME, PER, MISC, NUM} |
+| NER | `biaffine_ner_cdr` | Biaffine-NER trained on CDR (biomedical abstracts) | {Chemical, Disease} |
+| NER | `gpt4omini_any` | GPT-4o-mini with a zero-shot NER prompting | Any (user defined) |
+| NER | `gpt4omini_linked_docred` | GPT-4o-mini with a few-shot NER prompting for Linked-DocRED | {ORG, LOC, TIME, PER, MISC, NUM} |
+| NER | `gpt4omini_cdr` | GPT-4o-mini with a few-shot NER prompting for CDR | {Chemical, Disease} |
+| NER | `llama3_1_8b_cdr`, `llama3_1_70b_cdr`, `qwen2_5_7b_cdr` | Open-source LLMs with a few-shot NER prompting for CDR | {Chemical, Disease} | 
+| ED-Retrieval | `dummy_entity_retriever` | Dummy retriever that assigns the mention string as the entity type | Any |
+| ED-Retrieval | `blink_bi_encoder_linked_docred` | BLINK Bi-Encoder model trained on Linked-DocRED | DBpedia (2020.02.01) |
+| ED-Retrieval | `blink_bi_encoder_cdr` | BLINK Bi-Encoder model trained on CDR | MeSH (2015) |
+| ED-Reranking | `identical_entity_reranker` | Dummy reranker that selects the top-1 candidate as the output without no reranking | Any |
+| ED-Reranking | `blink_cross_encoder_linked_docred` | BLINK Cross-Encoder model trained on Linked-DocRED | DBpedia (2020.02.01) |
+| ED-Reranking | `blink_cross_encoder_cdr` | BLINK Cross-Encoder model trained on CDR | MeSH (2015) |
+| ED-Reranking | `gpt4omini_linked_docred` | GPT-4o-mini with a few-shot reranking prompting for Linked-DocRED | DBpedia (2020.02.01) |
+| ED-Reranking | `gpt4omini_cdr` | GPT-4o-mini with a few-shot reranking prompting for CDR | MeSH (2015) |
+| ED-Reranking | `llama3_1_8b_cdr`, `llama3_1_70b_cdr`, `qwen2_5_7b_cdr` | Open-source LLMs with a few-shot reranking prompting for CDR | MeSH (2015) |
+| DocRE | `atlop_linked_docred` | ATLOP trained on Linked-DocRED | 96 labels |
+| DocRE | `atlop_cdr` | ATLOP trained on CDR | {Chemical-Induce-Disease} |
+| DocRE | `gpt4omini_linked_docred` | GPT-4o-mini with few-shot prompting for CDR | 96 labels |
+| DocRE | `gpt4omini_cdr` | GPT-4o-mini with few-shot prompting for CDR | {Chemical-Induce-Disease} |
+| DocRE | `llama3_1_8b_cdr`, `llama3_1_70b_cdr`, `qwen2_5_7b_cdr` | Open-source LLMs with few-shot prompting for CDR | {Chemical-Induce-Disease}
+| QA | `gpt4o_without_context` | GPT-4o with QA prompting without retrieved context | Any |
+| QA | `gpt4o_with_context` | GPT-4o with QA prompting with retrieved context | Any |
 
-```
-(See `experiments/codes/run_qa.py` for specific examples.)
