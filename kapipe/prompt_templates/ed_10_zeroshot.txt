@@ -27,10 +27,6 @@ Use bullet points (`-`) for each line. Example:
 - Stage II breast cancer | C0278488  
 - light therapy | NA
 
-### Examples
-
-{demonstrations_prompt}
-
 ### Test Case
 
 Now, assign the most appropriate Concept ID to each entity mention in the following text, using the context of the document.

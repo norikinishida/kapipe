@@ -28,10 +28,6 @@ Use bullet points (`-`) for each line. Example:
 - Entity2 | associated_with | Entity3
 - Entity5 | regulates | Entity7
 
-### Examples
-
-{demonstrations_prompt}
-
 ### Test Case
 
 Now, identify all valid relationships between the detected entities in the following text.

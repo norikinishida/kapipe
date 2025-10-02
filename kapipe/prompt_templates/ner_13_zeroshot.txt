@@ -29,10 +29,6 @@ Use bullet points (`-`) for each line. Example:
 - breast cancer | Disease  
 - light therapy | Treatment
 
-### Examples
-
-{demonstrations_prompt}
-
 ### Test Case
 
 Now, identify all entity mentions in the following text and assign them appropriate types.
