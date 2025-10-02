@@ -8,12 +8,12 @@ STORAGE_RESULTS=${STORAGE}/results
 
 # Method
 # (Biaffine-NER)
-# METHOD=biaffinener
-# CONFIG_PATH=./config/biaffinener.conf
-# CONFIG_NAME=biaffinenermodel_scibertuncased_cdr
+# METHOD=biaffine_ner
+# CONFIG_PATH=./config/biaffine_ner.conf
+# CONFIG_NAME=biaffine_ner_model_scibertuncased_cdr
 # (LLM-NER)
-METHOD=llmner
-CONFIG_PATH=./config/llmner.conf
+METHOD=llm_ner
+CONFIG_PATH=./config/llm_ner.conf
 CONFIG_NAME=openai_gpt4omini_cdr_prompt13fewshot
 
 # Input Data

@@ -6,20 +6,18 @@ STORAGE=/home/nishida/projects/kapipe/experiments
 STORAGE_DATA=${STORAGE}/data
 STORAGE_RESULTS=${STORAGE}/results
 
-# Method
-IDENTIFIER=biaffine_ner_cdr
-# IDENTIFIER=gpt4omini_cdr
-# IDENTIFIER=qwen2_5_7b_cdr
-
 # Input Data
-DOCUMENTS=${STORAGE_DATA}/examples/documents.json
+# DOCUMENTS=${STORAGE_DATA}/examples/documents.json
+DOCUMENTS=${STORAGE_DATA}/examples/documents_with_triples.json
 
 # Output Path
 RESULTS_DIR=${STORAGE_RESULTS}
-MYPREFIX=example
+MYPREFIX=example3
 
-python run_ner.py \
-    --identifier ${IDENTIFIER} \
+python run_triple_extraction_pipeline.py \
     --input_documents ${DOCUMENTS} \
     --results_dir ${RESULTS_DIR} \
     --prefix ${MYPREFIX}
+
+    # --do_evaluation
+

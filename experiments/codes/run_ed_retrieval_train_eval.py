@@ -52,7 +52,7 @@ def main(args):
     # Action
     actiontype = args.actiontype
 
-    assert method_name in ["blinkbiencoder", "lexicalentityretriever"]
+    assert method_name in ["blink_bi_encoder", "lexical_entity_retriever"]
     assert actiontype in ["train", "evaluate", "check_preprocessing"]
 
     ##################
@@ -111,7 +111,7 @@ def main(args):
     # Method
     ##################
 
-    if method_name == "blinkbiencoder":
+    if method_name == "blink_bi_encoder":
         # Initialize the trainer (evaluator)
         trainer = BlinkBiEncoderTrainer(
             base_output_path=base_output_path
@@ -137,7 +137,7 @@ def main(args):
             # Re-build index
             retriever.make_index(use_precomputed_entity_vectors=True)
 
-    elif method_name == "lexicalentityretriever":
+    elif method_name == "lexical_entity_retriever":
         assert actiontype == "evaluate"
 
         # Initialize the trainer (evaluator)
@@ -159,7 +159,7 @@ def main(args):
     # Training, Evaluation
     ##################
 
-    if method_name == "blinkbiencoder":
+    if method_name == "blink_bi_encoder":
 
         # Remove out-of-KB mentions in the training dataset
         processed_train_documents = remove_out_of_kb_mentions(
@@ -229,7 +229,7 @@ def main(args):
                 results.append(preprocessed_data)
             utils.write_json(os.path.join(base_output_path, "dev.check_preprocessing.json"), results)
 
-    elif method_name == "lexicalentityretriever":
+    elif method_name == "lexical_entity_retriever":
 
         # Set up the datasets for evaluation
         trainer.setup_dataset(

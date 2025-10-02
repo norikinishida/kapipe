@@ -57,7 +57,7 @@ def main(args):
     # Action
     actiontype = args.actiontype
 
-    assert method_name in ["atlop", "maatlop", "maqa", "llmdocre"]
+    assert method_name in ["atlop", "ma_atlop", "ma_qa", "llm_docre"]
     assert actiontype in ["train", "evaluate", "check_preprocessing", "check_prompt"]
 
     ##################
@@ -99,13 +99,13 @@ def main(args):
     test_documents = utils.read_json(path_test_documents)
 
     # Load demonstrations (for LLM and in-context learning)
-    if method_name == "llmdocre":
+    if method_name == "llm_docre":
         # train_demonstrations = utils.read_json(path_train_demonstrations)
         dev_demonstrations = utils.read_json(path_dev_demonstrations)
         test_demonstrations = utils.read_json(path_test_demonstrations)
 
     # Create vocabulary of relation labels
-    if method_name == "maqa":
+    if method_name == "ma_qa":
         vocab_answer = get_vocab_answer()
     elif dataset_name == "cdr":
         vocab_relation = get_vocab_relation_for_cdr(method_name=method_name)
@@ -153,7 +153,7 @@ def main(args):
         )
 
     # Load meta information (e.g., pretty labels and definitions) for relation labels
-    if method_name == "llmdocre":
+    if method_name == "llm_docre":
         rel_meta_info = {
             row["Relation"]: {
                 "Pretty Name": row["Pretty Name"],
@@ -222,7 +222,7 @@ def main(args):
                 path_snapshot=trainer.paths["path_snapshot"]
             )
 
-    elif method_name == "maatlop":
+    elif method_name == "ma_atlop":
         # Initialize the extractor
         trainer = MAATLOPTrainer(base_output_path=base_output_path)
 
@@ -245,7 +245,7 @@ def main(args):
                 path_snapshot=trainer.paths["path_snapshot"]
             )
 
-    elif method_name == "maqa":
+    elif method_name == "ma_qa":
         # Initialize the trainer (evaluator)
         trainer = MAQATrainer(base_output_path=base_output_path)
 
@@ -268,7 +268,7 @@ def main(args):
                 path_snapshot=trainer.paths["path_snapshot"]
             )
 
-    elif method_name == "llmdocre":
+    elif method_name == "llm_docre":
         # Initialize the trainer (evaluator)
         trainer = LLMDocRETrainer(base_output_path=base_output_path)
 
@@ -290,7 +290,7 @@ def main(args):
     # Training, Evaluation
     ##################
 
-    if method_name in ["atlop", "maatlop"]:
+    if method_name in ["atlop", "ma_atlop"]:
 
         # train_documents = remove_documents_without_relations(
         #     train_documents=train_documents,
@@ -398,7 +398,7 @@ def main(args):
             # Save preprocessed data
             results = []
             for document in dev_documents:
-                if method_name == "maatlop":
+                if method_name == "ma_atlop":
                     if extractor.config["do_negative_entity_sampling"]:
                         document = extractor.sample_negative_entities_randomly(
                             document=document,
@@ -414,7 +414,7 @@ def main(args):
                 results.append(preprocessed_data)
             utils.write_json(base_output_path + "/dev.check_preprocessing.json", results)
 
-    elif method_name == "maqa":
+    elif method_name == "ma_qa":
         # Set up the datasets
         trainer.setup_dataset(
             extractor=extractor,
@@ -502,7 +502,7 @@ def main(args):
                 results.append(preprocessed_data)
             utils.write_json(base_output_path + "/dev.check_preprocessing.json", results)
 
-    elif method_name == "llmdocre":
+    elif method_name == "llm_docre":
 
         if actiontype == "check_prompt":
             # Show prompts
@@ -670,7 +670,7 @@ def get_vocab_relation(documents_list, method_name):
             for triple in document["relations"]:
                 relations.add(triple["relation"])
     relations = sorted(list(relations))
-    if method_name in ["atlop", "maatlop"]:
+    if method_name in ["atlop", "ma_atlop"]:
         relations = ["NO-REL"] + relations
     vocab_relation = {rel: rel_id for rel_id, rel in enumerate(relations)}
     return vocab_relation
@@ -678,7 +678,7 @@ def get_vocab_relation(documents_list, method_name):
 
 def get_vocab_relation_for_cdr(method_name):
     relations = ["CID"] # CDR contains only one relationship
-    if method_name in ["atlop", "maatlop"]:
+    if method_name in ["atlop", "ma_atlop"]:
         relations = ["NO-REL"] + relations
     vocab_relation = {rel: rel_id for rel_id, rel in enumerate(relations)}
     return vocab_relation
@@ -690,7 +690,7 @@ def get_vocab_relation_for_docred(path, method_name):
     relations = sorted(relations, key=lambda tpl: tpl[1])
     assert relations[0] == ("Na", 0)
     relations = [rel for rel, rel_i in relations[1:]]
-    if method_name in ["atlop", "maatlop"]:
+    if method_name in ["atlop", "ma_atlop"]:
         relations = ["NO-REL"] + relations
     vocab_relation = {rel: rel_id for rel_id, rel in enumerate(relations)}
     return vocab_relation
@@ -709,7 +709,7 @@ def get_vocab_relation_for_hoip(method_name):
     #     "has result", "has part", "has molecular reaction", "part of"
     # ]
     relations = ["has result", "has part"]
-    if method_name in ["atlop", "maatlop"]:
+    if method_name in ["atlop", "ma_atlop"]:
         relations = ["NO-REL"] + relations
     vocab_relation = {rel: rel_id for rel_id, rel in enumerate(relations)}
     return vocab_relation
@@ -721,7 +721,7 @@ def get_vocab_relation_for_linked_docred(path, method_name):
     relations = sorted(relations, key=lambda tpl: tpl[1])
     assert relations[0] == ("Na", 0)
     relations = [rel for rel, rel_i in relations[1:]]
-    if method_name in ["atlop", "maatlop"]:
+    if method_name in ["atlop", "ma_atlop"]:
         relations = ["NO-REL"] + relations
     vocab_relation = {rel: rel_id for rel_id, rel in enumerate(relations)}
     return vocab_relation
@@ -747,7 +747,7 @@ def get_vocab_relation_for_medmentions_dsrel(path, method_name):
         ]
     }
     relations = list(rel_meta_info.keys())
-    if method_name in ["atlop", "maatlop"]:
+    if method_name in ["atlop", "ma_atlop"]:
         relations = ["NO-REL"] + relations
     vocab_relation = {rel: rel_id for rel_id, rel in enumerate(relations)}
     return vocab_relation
@@ -759,7 +759,7 @@ def get_vocab_relation_for_redocred(path, method_name):
     relations = sorted(relations, key=lambda tpl: tpl[1])
     assert relations[0] == ("Na", 0)
     relations = [rel for rel, rel_i in relations[1:]]
-    if method_name in ["atlop", "maatlop"]:
+    if method_name in ["atlop", "ma_atlop"]:
         relations = ["NO-REL"] + relations
     vocab_relation = {rel: rel_id for rel_id, rel in enumerate(relations)}
     return vocab_relation

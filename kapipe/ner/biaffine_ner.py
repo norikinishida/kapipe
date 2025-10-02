@@ -64,7 +64,7 @@ class BiaffineNER:
 
         # Initialize the model
         self.model_name = self.config["model_name"]
-        if self.model_name == "biaffinenermodel":
+        if self.model_name == "biaffine_ner_model":
             self.model = BiaffineNERModel(
                 device=device,
                 bert_pretrained_name_or_path=config["bert_pretrained_name_or_path"],

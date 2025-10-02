@@ -4,8 +4,8 @@ import logging
 import os
 from os.path import expanduser
 
-from .biaffinener import BiaffineNER
-from .llmner import LLMNER
+from .biaffine_ner import BiaffineNER
+from .llm_ner import LLMNER
 from ..demonstration_retrieval import DemonstrationRetriever
 from .. import utils
 from ..datatypes import (
@@ -36,12 +36,12 @@ class NER:
         # )
 
         # Initialize the NER extractor
-        if self.module_config["method"] == "biaffinener":
+        if self.module_config["method"] == "biaffine_ner":
             self.extractor = BiaffineNER(
                 device=f"cuda:{self.gpu}",
                 path_snapshot=self.module_config["snapshot"]
             )
-        elif self.module_config["method"] == "llmner":
+        elif self.module_config["method"] == "llm_ner":
             self.extractor = LLMNER(
                 device=f"cuda:{self.gpu}",
                 path_snapshot=self.module_config["snapshot"],
@@ -56,7 +56,7 @@ class NER:
             raise Exception(f"Invalid method: {self.module_config['method']}")
 
     def extract(self, document: Document) -> Document:
-        if self.module_config["method"] == "llmner":
+        if self.module_config["method"] == "llm_ner":
             # Get demonstrations for this document
             demonstrations_for_doc: DemonstrationsForOneExample = (
                 self.demonstration_retriever.search(

@@ -76,7 +76,7 @@ class BlinkBiEncoder:
 
         # Initialize the model
         self.model_name = config["model_name"]
-        if self.model_name == "blinkbiencodermodel":
+        if self.model_name == "blink_bi_encoder_model":
             self.model = BlinkBiEncoderModel(
                 device=device,
                 bert_pretrained_name_or_path=config["bert_pretrained_name_or_path"],

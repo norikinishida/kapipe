@@ -1,0 +1,1 @@
+from .triple_extraction_pipeline import TripleExtractionPipeline

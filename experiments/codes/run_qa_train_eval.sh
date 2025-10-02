@@ -7,8 +7,8 @@ STORAGE_DATA=${STORAGE}/data
 STORAGE_RESULTS=${STORAGE}/results
 
 # Method
-METHOD=llmqa
-CONFIG_PATH=./config/llmqa.conf
+METHOD=llm_qa
+CONFIG_PATH=./config/llm_qa.conf
 CONFIG_NAME=openai_gpt4o_cdrqa_prompt03_with_context
 # CONFIG_NAME=hf_llama3_1_8b_cdrqa_prompt03_with_context
 # CONFIG_NAME=hf_llama3_1_70b_cdrqa_prompt03_with_context

@@ -7,10 +7,11 @@ STORAGE_DATA=${STORAGE}/data
 STORAGE_RESULTS=${STORAGE}/results
 
 # Method
-IDENTIFIER=blinkbiencoder_cdr
+# IDENTIFIER=dummy_entity_retriever
+IDENTIFIER=blink_bi_encoder_cdr
 
 # Input Data
-DOCUMENTS=${STORAGE_RESULTS}/ner/ner/biaffinener_cdr/example/documents.json
+DOCUMENTS=${STORAGE_RESULTS}/ner/ner/biaffine_ner_cdr/example/documents.json
 
 # Output Path
 RESULTS_DIR=${STORAGE_RESULTS}

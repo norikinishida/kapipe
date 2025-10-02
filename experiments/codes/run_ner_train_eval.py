@@ -54,7 +54,7 @@ def main(args):
     # Action
     actiontype = args.actiontype
 
-    assert method_name in ["biaffinener", "llmner"]
+    assert method_name in ["biaffine_ner", "llm_ner"]
     assert actiontype in ["train", "evaluate", "check_preprocessing", "check_prompt"]
 
     ##################
@@ -96,7 +96,7 @@ def main(args):
     test_documents = utils.read_json(path_test_documents)
 
     # Load demonstrations (for LLM and in-context learning)
-    if method_name == "llmner":
+    if method_name == "llm_ner":
         # train_demonstrations = utils.read_json(path_train_demonstrations)
         dev_demonstrations = utils.read_json(path_dev_demonstrations)
         test_demonstrations = utils.read_json(path_test_demonstrations)
@@ -139,7 +139,7 @@ def main(args):
         )
 
     # Load meta information (e.g., pretty labels and definitions) for entity types
-    if method_name == "llmner":
+    if method_name == "llm_ner":
         etype_meta_info = {
             row["Entity Type"]: {
                 "Pretty Name": row["Pretty Name"],
@@ -166,7 +166,7 @@ def main(args):
     # Method
     ##################
 
-    if method_name == "biaffinener":
+    if method_name == "biaffine_ner":
         # Initialize the trainer (evaluator)
         trainer = BiaffineNERTrainer(base_output_path=base_output_path)
 
@@ -188,7 +188,7 @@ def main(args):
                 path_snapshot=trainer.paths["path_snapshot"]
             )
 
-    elif method_name == "llmner":
+    elif method_name == "llm_ner":
         assert actiontype != "train"
 
         # Initialize the trainer (evaluator)
@@ -210,7 +210,7 @@ def main(args):
     # Training, Evaluation
     ##################
 
-    if method_name == "biaffinener":
+    if method_name == "biaffine_ner":
 
         # Set up the datasets for evaluation
         trainer.setup_dataset(
@@ -255,7 +255,7 @@ def main(args):
                 results.append(preprocessed_data)
             utils.write_json(os.path.join(base_output_path, "dev.check_preprocessing.json"), results)
         
-    elif method_name == "llmner":
+    elif method_name == "llm_ner":
 
         if actiontype == "check_prompt":
             # Show prompts
@@ -341,7 +341,7 @@ def get_vocab_etype(documents_list, method_name):
             for mention in document["mentions"]:
                 entity_types.add(mention["entity_type"])
     entity_types = sorted(list(entity_types))
-    if method_name == "biaffinener":
+    if method_name == "biaffine_ner":
         entity_types = ["NO-ENT"] + entity_types
     vocab_etype = {e_type: e_id for e_id, e_type in enumerate(entity_types)}
     return vocab_etype
@@ -349,7 +349,7 @@ def get_vocab_etype(documents_list, method_name):
 
 def get_vocab_etype_for_cdr(method_name):
     entity_types = ["Chemical", "Disease"]
-    if method_name == "biaffinener":
+    if method_name == "biaffine_ner":
         entity_types = ["NO-ENT"] + entity_types
     vocab_etype = {e_type: e_id for e_id, e_type in enumerate(entity_types)}
     return vocab_etype
@@ -360,7 +360,7 @@ def get_vocab_etype_for_conll2003(path, method_name):
     entity_types = [(etype, etype_i) for etype, etype_i in original_etype2id.items()]
     entity_types = sorted(entity_types, key=lambda tpl: tpl[1])
     entity_types = [etype for etype, etype_i in entity_types]
-    if method_name == "biaffinener":
+    if method_name == "biaffine_ner":
         entity_types = ["NO-ENT"] + entity_types
     vocab_etype = {e_type: e_id for e_id, e_type in enumerate(entity_types)}
     return vocab_etype
@@ -371,7 +371,7 @@ def get_vocab_etype_for_linked_docred(path, method_name):
     entity_types = [(etype, etype_i) for etype, etype_i in original_etype2id.items()]
     entity_types = sorted(entity_types, key=lambda tpl: tpl[1])
     entity_types = [etype for etype, etype_i in entity_types]
-    if method_name == "biaffinener":
+    if method_name == "biaffine_ner":
         entity_types = ["NO-ENT"] + entity_types
     vocab_etype = {e_type: e_id for e_id, e_type in enumerate(entity_types)}
     return vocab_etype
@@ -380,7 +380,7 @@ def get_vocab_etype_for_linked_docred(path, method_name):
 def get_vocab_etype_for_medmentions(path, method_name):
     entity_types = utils.read_json(path)
     entity_types = [x["name"] for x in entity_types]
-    if method_name == "biaffinener":
+    if method_name == "biaffine_ner":
         entity_types = ["NO-ENT"] + entity_types
     vocab_etype = {e_type: e_id for e_id, e_type in enumerate(entity_types)}
     return vocab_etype

@@ -66,7 +66,7 @@ class ATLOP:
         # Initialize the model
         self.model_name = config["model_name"]
         self.top_k_labels = config["top_k_labels"]
-        if self.model_name == "atlopmodel":
+        if self.model_name == "atlop_model":
             self.model = ATLOPModel(
                 device=device,
                 bert_pretrained_name_or_path=config["bert_pretrained_name_or_path"],

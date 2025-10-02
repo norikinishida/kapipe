@@ -47,7 +47,7 @@ def main(args):
     # Action
     actiontype = args.actiontype
 
-    assert method_name in ["llmqa"]
+    assert method_name in ["llm_qa"]
     assert actiontype in ["evaluate", "check_prompt"]
 
     ##################
@@ -58,7 +58,7 @@ def main(args):
     base_output_path = os.path.join(
         path_results_dir,
         "qa",
-        "llmqa",
+        "llm_qa",
         config_name,
         prefix
     )
@@ -100,7 +100,7 @@ def main(args):
     # Method
     ##################
 
-    if method_name == "llmqa":
+    if method_name == "llm_qa":
         # Initialize the trainer (evaluator)
         trainer = LLMQATrainer(base_output_path=base_output_path)
 
@@ -120,7 +120,7 @@ def main(args):
     # Training, Evaluation
     ##################
 
-    if method_name == "llmqa":
+    if method_name == "llm_qa":
 
         if actiontype == "check_prompt":
             # Show prompts

@@ -8,12 +8,12 @@ STORAGE_RESULTS=${STORAGE}/results
 
 # Method
 # (BLINK Cross-Encoder)
-# METHOD=blinkcrossencoder
-# CONFIG_PATH=./config/blinkcrossencoder.conf
-# CONFIG_NAME=blinkcrossencodermodel_scibertuncased_cdr
+# METHOD=blink_cross_encoder
+# CONFIG_PATH=./config/blink_cross_encoder.conf
+# CONFIG_NAME=blink_cross_encoder_model_scibertuncased_cdr
 # (LLM-ED)
-METHOD=llmed
-CONFIG_PATH=./config/llmed.conf
+METHOD=llm_ed
+CONFIG_PATH=./config/llm_ed.conf
 CONFIG_NAME=openai_gpt4omini_cdr_prompt10fewshot
 
 # Input Data
@@ -23,7 +23,7 @@ TRAIN_DOCS=${STORAGE_DATA}/examples/documents_with_triples.json
 DEV_DOCS=${STORAGE_DATA}/examples/documents_with_triples.json
 TEST_DOCS=${STORAGE_DATA}/examples/documents_with_triples.json
 #
-# CANDS_ROOT=${STORAGE_RESULTS}/ed_retrieval/blinkbiencoder/blinkbiencodermodel_scibertuncased_cdr/example
+# CANDS_ROOT=${STORAGE_RESULTS}/ed_retrieval/blink_bi_encoder/blink_bi_encoder_model_scibertuncased_cdr/example
 # TRAIN_CANDS=${CANDS_ROOT}/train.pred_candidate_entities.json
 # DEV_CANDS=${CANDS_ROOT}/dev.pred_candidate_entities.json
 # TEST_CANDS=${CANDS_ROOT}/test.pred_candidate_entities.json

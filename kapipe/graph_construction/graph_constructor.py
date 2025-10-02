@@ -20,17 +20,22 @@ class GraphConstructor:
     def construct_knowledge_graph(
         self,
         path_documents_list: list[str] | None,
-        path_entity_dict: str,
+        path_entity_dict: str | None,
         path_additional_triples: str | None = None,
         excluded_filenames: list[str] | None = None
     ) -> nx.MultiDiGraph:
         if excluded_filenames is None:
             excluded_filenames = []
 
-        # Load the entity dictionary
+        # Load the entity dictionary (if provided)
         # Entity dictionary is a mapping from an entity ID (str) to the corresponding entity page
-        entity_dict = utils.read_json(path_entity_dict)
-        entity_dict = {epage["entity_id"]: epage for epage in entity_dict}
+        if path_entity_dict is not None:
+            entity_dict = utils.read_json(path_entity_dict)
+            entity_dict = {epage["entity_id"]: epage for epage in entity_dict}
+            logger.info(f"Loaded entity dictionary with {len(entity_dict)} entries.")
+        else:
+            entity_dict = {}
+            logger.info("No entity dictionary provided. Falling back to document entities only.")
 
         # Initialize a directed, multi-edge graph
         graph = nx.MultiDiGraph()
@@ -112,8 +117,22 @@ class GraphConstructor:
         # Get entity pages for the head/tail entities
         head_page = entity_dict.get(head_id, None)
         tail_page = entity_dict.get(tail_id, None)
-        if head_page is None or tail_page is None:
-            return
+
+        # if head_page is None or tail_page is None:
+        #     return
+        # If no entity_dict, fallback to dummy entity pages
+        if head_page is None:
+            head_page = {
+                "entity_id": head_id,
+                "canonical_name": head_id, # mention name (normalized)
+                "description": "NO DESCRIPTION."
+            }
+        if tail_page is None:
+            tail_page = {
+                "entity_id": tail_id,
+                "canonical_name": tail_id,
+                "description": "NO DESCRIPTION."
+            }
 
         # Get types for the head/tail entities
         head_type = triple.get("head_type") or self._infer_entity_type(epage=head_page)

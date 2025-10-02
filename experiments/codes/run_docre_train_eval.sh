@@ -10,10 +10,10 @@ STORAGE_RESULTS=${STORAGE}/results
 # (ATLOP)
 # METHOD=atlop
 # CONFIG_PATH=./config/atlop.conf
-# CONFIG_NAME=atlopmodel_scibertcased_cdr_overlap
+# CONFIG_NAME=atlop_model_scibertcased_cdr_overlap
 # (LLM-DocRE)
-METHOD=llmdocre
-CONFIG_PATH=./config/llmdocre.conf
+METHOD=llm_docre
+CONFIG_PATH=./config/llm_docre.conf
 CONFIG_NAME=openai_gpt4omini_cdr_prompt08fewshot
 
 # Input Data
@@ -49,7 +49,7 @@ MYPREFIX=example
 
 # (LLM-DocRE)
 python run_docre_train_eval.py \
-    --method llmdocre \
+    --method llm_docre \
     --config_path ${CONFIG_PATH} \
     --config_name ${CONFIG_NAME} \
     --dataset_name ${DATASET_NAME} \

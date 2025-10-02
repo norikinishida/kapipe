@@ -60,7 +60,7 @@ def main(args):
     # Action
     actiontype = args.actiontype
 
-    assert method_name in ["blinkcrossencoder", "llmed"]
+    assert method_name in ["blink_cross_encoder", "llm_ed"]
     assert actiontype in ["train", "evaluate", "check_preprocessing", "check_prompt"]
 
     ##################
@@ -107,7 +107,7 @@ def main(args):
     test_candidate_entities = utils.read_json(path_test_candidate_entities)
 
     # Load demonstrations (for LLM and in-context learning)
-    if method_name == "llmed":
+    if method_name == "llm_ed":
         # train_demonstrations = utils.read_json(path_train_demonstrations)
         dev_demonstrations = utils.read_json(path_dev_demonstrations)
         test_demonstrations = utils.read_json(path_test_demonstrations)
@@ -130,7 +130,7 @@ def main(args):
     # Method
     ##################
 
-    if method_name == "blinkcrossencoder":
+    if method_name == "blink_cross_encoder":
         # Initialize the trainer (evaluator)
         trainer = BlinkCrossEncoderTrainer(base_output_path=base_output_path)
 
@@ -152,7 +152,7 @@ def main(args):
                 path_snapshot=trainer.paths["path_snapshot"]
             )
 
-    elif method_name == "llmed":
+    elif method_name == "llm_ed":
         # Initialize the reranker
         trainer = LLMEDTrainer(base_output_path=base_output_path)
 
@@ -173,7 +173,7 @@ def main(args):
     # Training, Evaluation
     ##################
 
-    if method_name == "blinkcrossencoder":
+    if method_name == "blink_cross_encoder":
 
         # Remove out-of-kb mentions in the training dataset
         (
@@ -306,7 +306,7 @@ def main(args):
                 results.append(preprocessed_data)
             utils.write_json(base_output_path + "/dev.check_preprocessing.json", results)
 
-    elif method_name == "llmed":
+    elif method_name == "llm_ed":
 
         if actiontype == "check_prompt":
             # Show prompts

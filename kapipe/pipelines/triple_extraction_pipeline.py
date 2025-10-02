@@ -1,0 +1,102 @@
+from __future__ import annotations
+
+import logging
+from typing import Any
+
+from tqdm import tqdm
+
+from ..chunking import Chunker
+from ..ner import NER
+from ..ed_retrieval import EDRetrieval
+from ..ed_reranking import EDReranking
+from ..docre import DocRE
+from ..datatypes import (
+    Document,
+)
+
+
+logger = logging.getLogger(__name__)
+
+
+class TripleExtractionPipeline:
+
+    def __init__(
+        self,
+        module_kwargs: dict[str, dict[str, Any]],
+        share_backborn_llm: bool = False
+    ):
+        self.module_kwargs = module_kwargs
+        self.share_backborn_llm = share_backborn_llm
+
+        # Chunking
+        if "chunking" in self.module_kwargs:
+            self.chunker = Chunker(model_name=self.module_kwargs["chunking"]["model_name"])
+        else:
+            self.chunker = Chunker()
+
+        # NER
+        self.ner = NER(
+            identifier=self.module_kwargs["ner"]["identifier"],
+            gpu=self.module_kwargs["ner"].get("gpu", 0)
+        )
+
+        if self.share_backborn_llm:
+            llm_model = self.ner.extractor.model
+        else:
+            llm_model = None
+
+        # ED-Retrieval
+        self.ed_retrieval = EDRetrieval(
+            identifier=self.module_kwargs["ed_retrieval"]["identifier"],
+            gpu=self.module_kwargs["ed_retrieval"].get("gpu", 0)
+        )
+
+        # ED-Reranking
+        self.ed_reranking = EDReranking(
+            identifier=self.module_kwargs["ed_reranking"]["identifier"],
+            gpu=self.module_kwargs["ed_reranking"].get("gpu", 0),
+            llm_model=llm_model,
+        )
+
+        # DocRE
+        self.docre = DocRE(
+            identifier=self.module_kwargs["docre"]["identifier"],
+            gpu=self.module_kwargs["docre"].get("gpu", 0),
+            llm_model=llm_model
+        )
+
+    def text_to_document(
+        self,
+        input: list[dict[str, str]]
+    ) -> list[Document]:
+        documents = []
+        for x in input:
+            doc = self.chunker.convert_text_to_document(
+                doc_key=x["doc_key"],
+                text=x["text"],
+                title=x["title"] if "title" in x else None
+            )
+            documents.append(doc)
+        return documents
+      
+    def extract(self, document: Document, num_candidate_entities: int = 10) -> Document:
+        # NER
+        document = self.ner.extract(document=document)
+
+        # ED-Retrieval
+        document, candidate_entities_for_doc = self.ed_retrieval.search(
+            document=document,
+            num_candidate_entities=num_candidate_entities
+        )
+
+        # ED-Reranking
+        document = self.ed_reranking.rerank(
+            document=document,
+            candidate_entities_for_doc=candidate_entities_for_doc
+        )
+
+        # DocRE
+        document = self.docre.extract(document=document)
+
+        return document
+

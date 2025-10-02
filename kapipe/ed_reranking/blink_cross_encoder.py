@@ -71,7 +71,7 @@ class BlinkCrossEncoder:
 
         # Initialize the model
         self.model_name = config["model_name"]
-        if self.model_name == "blinkcrossencodermodel":
+        if self.model_name == "blink_cross_encoder_model":
             self.model = BlinkCrossEncoderModel(
                 device=device,
                 bert_pretrained_name_or_path=config["bert_pretrained_name_or_path"],

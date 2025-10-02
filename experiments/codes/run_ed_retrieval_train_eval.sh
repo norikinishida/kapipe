@@ -8,12 +8,12 @@ STORAGE_RESULTS=${STORAGE}/results
 
 # Method
 # (BLINK Bi-Encoder)
-METHOD=blinkbiencoder
-CONFIG_PATH=./config/blinkbiencoder.conf
-CONFIG_NAME=blinkbiencodermodel_scibertuncased_cdr
+METHOD=blink_bi_encoder
+CONFIG_PATH=./config/blink_bi_encoder.conf
+CONFIG_NAME=blink_bi_encoder_model_scibertuncased_cdr
 # (BM25)
-# METHOD=lexicalentityretriever
-# CONFIG_PATH=./config/lexicalentityretriever.conf
+# METHOD=lexical_entity_retriever
+# CONFIG_PATH=./config/lexical_entity_retriever.conf
 # CONFIG_NAME=bm25_cdr
 
 # Input Data

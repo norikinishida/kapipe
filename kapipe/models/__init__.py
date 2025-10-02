@@ -1,14 +1,14 @@
 # NER
-from .biaffinener_model import BiaffineNERModel
+from .biaffine_ner_model import BiaffineNERModel
 
 # ED
-from .blinkbiencoder_model import BlinkBiEncoderModel
-from .blinkcrossencoder_model import BlinkCrossEncoderModel
+from .blink_bi_encoder_model import BlinkBiEncoderModel
+from .blink_cross_encoder_model import BlinkCrossEncoderModel
 
 # DocRE
 from .atlop_model import ATLOPModel
-from .maqa_model import MAQAModel
-from .maatlop_model import MAATLOPModel
+from .ma_qa_model import MAQAModel
+from .ma_atlop_model import MAATLOPModel
 
 # General LLM
 from .hf_llm import HuggingFaceLLM

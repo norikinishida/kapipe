@@ -3,11 +3,10 @@ from __future__ import annotations
 import logging
 import os
 from os.path import expanduser
-
 from typing import Any
 
 from .atlop import ATLOP
-from .llmdocre import LLMDocRE
+from .llm_docre import LLMDocRE
 from ..demonstration_retrieval import DemonstrationRetriever
 from .. import utils
 from ..datatypes import (
@@ -44,7 +43,7 @@ class DocRE:
                 device=f"cuda:{self.gpu}",
                 path_snapshot=self.module_config["snapshot"]
             )
-        elif self.module_config["method"] == "llmdocre":
+        elif self.module_config["method"] == "llm_docre":
             self.extractor = LLMDocRE(
                 device=f"cuda:{self.gpu}",
                 path_snapshot=self.module_config["snapshot"],
@@ -60,7 +59,7 @@ class DocRE:
             raise Exception(f"Invalid method: {self.module_config['method']}")
 
     def extract(self, document: Document) -> Document:
-        if self.module_config["method"] == "llmdocre":
+        if self.module_config["method"] == "llm_docre":
             # Get demonstrations for this document
             demonstrations_for_doc: DemonstrationsForOneExample = (
                 self.demonstration_retriever.search(

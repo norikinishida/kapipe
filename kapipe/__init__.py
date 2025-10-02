@@ -8,7 +8,7 @@ from . import datatypes
 # Pipelines
 #####
 
-# from .pipelines import TripleExtractor
+from .pipelines import TripleExtractionPipeline
 
 #####
 # Extraction

@@ -4,7 +4,7 @@ import logging
 import os
 from os.path import expanduser
 
-from .llmqa import LLMQA
+from .llm_qa import LLMQA
 from .. import utils
 from ..datatypes import (
     Config,
@@ -28,7 +28,7 @@ class QA:
         self.module_config: Config = root_config["qa"][identifier]
 
         # Initialize the QA module
-        if self.module_config["method"] == "llmqa":
+        if self.module_config["method"] == "llm_qa":
             self.answerer = LLMQA(
                 device=f"cuda:{self.gpu}",
                 path_snapshot=self.module_config["snapshot"]
