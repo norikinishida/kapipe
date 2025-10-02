@@ -5,7 +5,7 @@ import logging
 
 import networkx as nx
 
-from ..models import HuggingFaceLLM, OpenAILLM
+from ..llms import HuggingFaceLLM, OpenAILLM
 from .. import utils
 from ..datatypes import (
     CommunityRecord,

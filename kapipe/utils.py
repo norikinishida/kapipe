@@ -380,4 +380,73 @@ def read_prompt_template(prompt_template_name_or_path: str) -> str:
         assert os.path.isfile(prompt_template_name_or_path)
         with open(prompt_template_name_or_path, "r", encoding="utf-8") as f:
             return f.read()
- 
+
+
+def create_intra_inter_map(document) -> dict[str, str]:
+    intra_inter_map = {}
+
+    # We first create token-index-to-sentence-index mapping
+    token_index_to_sent_index = [] # dict[int, int], i.e., list[int]
+    for sent_i, sent in enumerate(document["sentences"]):
+        sent_words = sent.split()
+        token_index_to_sent_index.extend(
+            [sent_i for _ in range(len(sent_words))]
+        )
+    # We then create mention-index-to-sentence-index mapping
+    mention_index_to_sentence_index = [] # list[int]
+    for mention in document["mentions"]:
+        begin_token_index, end_token_index = mention["span"]
+        sentence_index = token_index_to_sent_index[begin_token_index]
+        assert token_index_to_sent_index[end_token_index] == sentence_index
+        mention_index_to_sentence_index.append(sentence_index)
+
+    entities = document["entities"]
+    for u_entity_i in range(len(entities)):
+        u_entity = entities[u_entity_i]
+        u_mention_indices = u_entity["mention_indices"]
+        u_sent_indices = [
+            mention_index_to_sentence_index[i] for i in u_mention_indices
+        ]
+        u_sent_indices = set(u_sent_indices)
+        for v_entity_i in range(u_entity_i, len(entities)):
+            v_entity = entities[v_entity_i]
+            v_mention_indices = v_entity["mention_indices"]
+            v_sent_indices = [
+                mention_index_to_sentence_index[i] for i in v_mention_indices
+            ]
+            v_sent_indices = set(v_sent_indices)
+            if len(u_sent_indices & v_sent_indices) == 0:
+                # No co-occurent mention pairs
+                intra_inter_map[f"{u_entity_i}-{v_entity_i}"] = "inter"
+                intra_inter_map[f"{v_entity_i}-{u_entity_i}"] = "inter"
+            else:
+                # There is at least one co-occurent mention pairs
+                intra_inter_map[f"{u_entity_i}-{v_entity_i}"] = "intra"
+                intra_inter_map[f"{v_entity_i}-{u_entity_i}"] = "intra"
+    return intra_inter_map
+
+
+def create_seen_unseen_map(
+    document,
+    seen_pairs: set[tuple[str, str]]
+) -> dict[str, str]:
+    seen_unseen_map = {}
+    entities = document["entities"]
+    for u_entity_i in range(len(entities)):
+        u_entity = entities[u_entity_i]
+        u_entity_id = u_entity["entity_id"]
+        for v_entity_i in range(u_entity_i, len(entities)):
+            v_entity = entities[v_entity_i]
+            v_entity_id = v_entity["entity_id"]
+            if (
+                ((u_entity_id, v_entity_id) in seen_pairs)
+                or
+                ((v_entity_id, u_entity_id) in seen_pairs)
+            ):
+                seen_unseen_map[f"{u_entity_id}-{v_entity_id}"] = "seen"
+                seen_unseen_map[f"{v_entity_id}-{u_entity_id}"] = "seen"
+            else:
+                seen_unseen_map[f"{u_entity_id}-{v_entity_id}"] = "unseen"
+                seen_unseen_map[f"{v_entity_id}-{u_entity_id}"] = "unseen"
+    return seen_unseen_map
+

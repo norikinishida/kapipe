@@ -10,7 +10,6 @@ import pandas as pd
 import sys
 sys.path.insert(0, "../../..")
 from kapipe import utils
-# from kapipe.models import OpenAILLM
 
 
 # RELATION_MAP = {

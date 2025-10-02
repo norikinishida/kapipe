@@ -17,7 +17,7 @@ DOCUMENTS=${STORAGE_RESULTS}/ed_reranking/ed_reranking/blink_cross_encoder_cdr/e
 
 # Output Path
 RESULTS_DIR=${STORAGE_RESULTS}
-MYPREFIX=example
+MYPREFIX=example2
 
 python run_docre.py \
     --identifier ${IDENTIFIER} \

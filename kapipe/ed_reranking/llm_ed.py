@@ -12,7 +12,7 @@ from typing import Any
 import torch
 from tqdm import tqdm
 
-from ..models import HuggingFaceLLM, OpenAILLM
+from ..llms import HuggingFaceLLM, OpenAILLM
 from .. import evaluation
 from .. import utils
 from ..datatypes import (

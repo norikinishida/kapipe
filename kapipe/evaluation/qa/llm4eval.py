@@ -2,7 +2,7 @@ import re
 
 from tqdm import tqdm
 
-from ...models import OpenAILLM
+from ...llms import OpenAILLM
 from ... import utils
 
 

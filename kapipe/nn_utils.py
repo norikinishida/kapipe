@@ -1,17 +1,20 @@
 from __future__ import annotations
 
 from collections.abc import Iterable
-from typing import Any
 
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 import torch.nn.init as init
 from torch.optim import Optimizer, Adam, AdamW
 # from transformers import AdamW
 from transformers.optimization import get_linear_schedule_with_warmup
 from torch.optim.lr_scheduler import LambdaLR
 
-from ..datatypes import Config, Document
+
+###################################
+# Layers
+###################################
 
 
 def make_embedding(dict_size, dim, std=0.02):
@@ -241,11 +244,225 @@ def make_transformer_encoder(
 
 
 ###################################
+# Loss Functions
+###################################
+
+
+class MarginalizedCrossEntropyLoss(nn.Module):
+    """A marginalized cross entropy loss, which can be used in multi-positive classification setup.
+    """
+    def __init__(self, reduction="none"):
+        super().__init__()
+        self.reduction = reduction
+
+    def forward(self, output, target):
+        """
+        Parameters
+        ----------
+        output : torch.Tensor
+            shape of (batch_size, n_labels)
+        target : torch.Tensor
+            shape of (batch_size, n_labels); binary
+
+        Returns
+        -------
+        torch.Tensor
+            shape of (batch_size,), or scalar
+        """
+        # output: (batch_size, n_labels)
+        # target: (batch_size, n_labels); binary
+
+        # Loss = sum_{i} L_{i}
+        # L_{i}
+        #   = -log[ sum_{k} exp(y_{i,k} + m_{i,k}) / sum_{k} exp(y_{i,k}) ]
+        #   = -(
+        #       log[ sum_{k} exp(y_{i,k} + m_{i,k}) ]
+        #       - log[ sum_{k} exp(y_{i,k}) ]
+        #       )
+        #   = log[sum_{k} exp(y_{i,k})] - log[sum_{k} exp(y_{i,k} + m_{i,k})]
+        # (batch_size,)
+        logsumexp_all = torch.logsumexp(output, dim=1)
+        mask = torch.log(target.to(torch.float)) # 1 -> 0; 0 -> -inf
+        logsumexp_pos = torch.logsumexp(output + mask, dim=1)
+        # (batch_size,)
+        loss = logsumexp_all - logsumexp_pos
+
+        if self.reduction == "mean":
+            return torch.mean(loss)
+        elif self.reduction == "sum":
+            return torch.sum(loss)
+        else:
+            return loss
+
+
+class FocalLoss(nn.CrossEntropyLoss):
+    """Focal loss.
+    """
+    def __init__(
+        self,
+        gamma,
+        alpha=None,
+        ignore_index=-100,
+        reduction="none"
+    ):
+        """
+        Parameters
+        ----------
+        gamma : float
+        alpha : float | None, optional
+            by default None
+        ignore_index : int, optional
+            by default -100
+        reduction : str, optional
+            by default "none"
+        """
+        super().__init__(
+            weight=alpha,
+            ignore_index=ignore_index,
+            reduction="none"
+        )
+        self.gamma = gamma
+        self.alpha = alpha
+        self.ignore_index = ignore_index
+        self.reduction = reduction
+
+    def forward(self, output, target):
+        """
+        Parameters
+        ----------
+        output : torch.Tensor
+            shape of (N, C, H, W)
+        target : torch.Tensor
+            shape of (N, H, W)
+
+        Returns
+        -------
+        torch.Tensor
+            shape of (N, H, W), or scalar
+        """
+        # (N, H, W)
+        target = target * (target != self.ignore_index).long()
+        # (N, H, W)
+        ce_loss = super().forward(output, target)
+
+        # (N, C, H, W)
+        prob = F.softmax(output, dim=1)
+        # (N, H, W)
+        prob = torch.gather(prob, dim=1, index=target.unsqueeze(1)).squeeze(1)
+        # (N, H, W)
+        weight = torch.pow(1 - prob, self.gamma)
+
+        # (N, H, W)
+        focal_loss = weight * ce_loss
+
+        if self.reduction == "mean":
+            return torch.mean(focal_loss)
+        elif self.reduction == "sum":
+            return torch.sum(focal_loss)
+        else:
+            return focal_loss
+
+
+class AdaptiveThresholdingLoss(nn.Module):
+    """Adaptive Thresholding loss function in ATLOP
+    """
+    def __init__(self):
+        super().__init__()
+
+    def forward(self, output, target, pos_weight=1.0, neg_weight=1.0):
+        """
+        Parameters
+        ----------
+        output : torch.Tensor
+            shape of (batch_size, n_labels)
+        target : torch.Tensor
+            shape of (batch_size, n_labels); binary
+        pos_weight : float
+            by default 1.0
+        neg_weight : float
+            by default 1.0
+
+        Returns
+        -------
+        torch.Tensor
+            shape of (batch_size,)
+        """
+        # output: (batch_size, n_labels)
+        # target: (batch_size, n_labels); binary
+
+        # Mask only for the threshold label
+        # (batch_size, n_labels)
+        th_target = torch.zeros_like(target, dtype=torch.float).to(target)
+        th_target[:, 0] = 1.0
+        # Mask for the positive labels
+        target[:, 0] = 0.0
+        # Mask for the positive and threshold labels
+        p_and_th_mask = target + th_target
+        # Mask for the negative and threshold labels
+        n_and_th_mask = 1 - target
+
+        # Rank positive labels to the threshold label
+        # (batch_size, n_labels)
+        p_and_th_output = output - (1 - p_and_th_mask) * 1e30
+        # (batch_size,)
+        loss1 = -(F.log_softmax(p_and_th_output, dim=-1) * target).sum(dim=1)
+
+        # Rank negative labels to the threshold label
+        # (batch_size, n_labels)
+        n_and_th_output = output - (1 - n_and_th_mask) * 1e30
+        # (batch_size,)
+        loss2 = -(F.log_softmax(n_and_th_output, dim=-1) * th_target).sum(dim=1)
+
+        # Sum two parts
+        loss = pos_weight * loss1 + neg_weight * loss2
+        return loss
+
+    def get_labels(self, logits, top_k=-1):
+        """
+        Parameters
+        ----------
+        logits : torch.Tensor
+            shape of (batch_size, n_labels)
+        top_k : int, optional
+            by default -1
+
+        Returns
+        -------
+        torch.Tensor
+            shape of (batch_size, n_labels)
+        """
+        # (batch_size, n_labels)
+        labels = torch.zeros_like(logits).to(logits)
+        # Identify labels l whose logits, Score(l|x),
+        #   are higher than the threshold logit, Score(l=0|x)
+        # (batch_size, 1)
+        th_logits = logits[:, 0].unsqueeze(1)
+        # (batch_size, n_labels)
+        mask = (logits > th_logits)
+        # Identify labels whose logits are higher
+        #   than the minimum logit of the top-k labels
+        if top_k > 0:
+            # (batch_size, top_k)
+            topk_logits, _ = torch.topk(logits, top_k, dim=1)
+            # (batch_size, 1)
+            topk_min_logits = topk_logits[:, -1].unsqueeze(1)
+            # (batch_size, n_labels)
+            mask = (logits >= topk_min_logits) & mask
+        # Set 1 to the labels that meet the above conditions
+        # (batch_size, n_labels)
+        labels[mask] = 1.0
+        # Set 1 to the thresholding labels if no relation holds
+        # (batch_size, n_labels)
+        labels[:, 0] = (labels.sum(dim=1) == 0.0).to(logits)
+        return labels
+
+
+###################################
 # Optimizers
 ###################################
 
 
-def get_optimizer(model: Any, config: Config) -> list[Optimizer]:
+def get_optimizer(model, config) -> list[Optimizer]:
     no_decay = ["bias", "LayerNorm.weight"]
     bert_param, task_param = model.get_params(named=True)
     grouped_bert_param = [
@@ -282,7 +499,7 @@ def get_optimizer(model: Any, config: Config) -> list[Optimizer]:
     return optimizers
 
 
-def get_optimizer2(model: Any, config: Config) -> Optimizer:
+def get_optimizer2(model, config) -> Optimizer:
     bert_param, task_param = model.get_params()
     grouped_param = [
         {
@@ -348,78 +565,3 @@ def get_scheduler2(
         num_warmup_steps=warmup_steps,
         num_training_steps=total_update_steps
     )
-
-
-###################################
-# Data processing
-###################################
-
-
-def create_intra_inter_map(document: Document) -> dict[str, str]:
-    intra_inter_map = {}
-
-    # We first create token-index-to-sentence-index mapping
-    token_index_to_sent_index = [] # dict[int, int], i.e., list[int]
-    for sent_i, sent in enumerate(document["sentences"]):
-        sent_words = sent.split()
-        token_index_to_sent_index.extend(
-            [sent_i for _ in range(len(sent_words))]
-        )
-    # We then create mention-index-to-sentence-index mapping
-    mention_index_to_sentence_index = [] # list[int]
-    for mention in document["mentions"]:
-        begin_token_index, end_token_index = mention["span"]
-        sentence_index = token_index_to_sent_index[begin_token_index]
-        assert token_index_to_sent_index[end_token_index] == sentence_index
-        mention_index_to_sentence_index.append(sentence_index)
-
-    entities = document["entities"]
-    for u_entity_i in range(len(entities)):
-        u_entity = entities[u_entity_i]
-        u_mention_indices = u_entity["mention_indices"]
-        u_sent_indices = [
-            mention_index_to_sentence_index[i] for i in u_mention_indices
-        ]
-        u_sent_indices = set(u_sent_indices)
-        for v_entity_i in range(u_entity_i, len(entities)):
-            v_entity = entities[v_entity_i]
-            v_mention_indices = v_entity["mention_indices"]
-            v_sent_indices = [
-                mention_index_to_sentence_index[i] for i in v_mention_indices
-            ]
-            v_sent_indices = set(v_sent_indices)
-            if len(u_sent_indices & v_sent_indices) == 0:
-                # No co-occurent mention pairs
-                intra_inter_map[f"{u_entity_i}-{v_entity_i}"] = "inter"
-                intra_inter_map[f"{v_entity_i}-{u_entity_i}"] = "inter"
-            else:
-                # There is at least one co-occurent mention pairs
-                intra_inter_map[f"{u_entity_i}-{v_entity_i}"] = "intra"
-                intra_inter_map[f"{v_entity_i}-{u_entity_i}"] = "intra"
-    return intra_inter_map
-
-
-def create_seen_unseen_map(
-    document: Document,
-    seen_pairs: set[tuple[str, str]]
-) -> dict[str, str]:
-    seen_unseen_map = {}
-    entities = document["entities"]
-    for u_entity_i in range(len(entities)):
-        u_entity = entities[u_entity_i]
-        u_entity_id = u_entity["entity_id"]
-        for v_entity_i in range(u_entity_i, len(entities)):
-            v_entity = entities[v_entity_i]
-            v_entity_id = v_entity["entity_id"]
-            if (
-                ((u_entity_id, v_entity_id) in seen_pairs)
-                or
-                ((v_entity_id, u_entity_id) in seen_pairs)
-            ):
-                seen_unseen_map[f"{u_entity_id}-{v_entity_id}"] = "seen"
-                seen_unseen_map[f"{v_entity_id}-{u_entity_id}"] = "seen"
-            else:
-                seen_unseen_map[f"{u_entity_id}-{v_entity_id}"] = "unseen"
-                seen_unseen_map[f"{v_entity_id}-{u_entity_id}"] = "unseen"
-    return seen_unseen_map
-

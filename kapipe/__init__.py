@@ -44,10 +44,10 @@ from . import qa
 # Others
 #####
 
-from . import models
 from . import prompt_templates
 from . import demonstration_retrieval
 from . import evaluation
+from . import nn_utils
 from . import utils
 
 #####
