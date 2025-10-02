@@ -100,7 +100,7 @@ if __name__ == "__main__":
     # Input Data
     parser.add_argument("--documents_list", nargs="*")
     parser.add_argument("--additional_triples", type=str, default=None)
-    parser.add_argument("--entity_dict", type=str, required=True)
+    parser.add_argument("--entity_dict", type=str, default=None)
 
     # Output Path
     parser.add_argument("--results_dir", type=str, required=True)

@@ -4,7 +4,8 @@ import logging
 import os
 from os.path import expanduser
 
-from .blinkbiencoder import BlinkBiEncoder
+from .dummy_entity_retriever import DummyEntityRetriever
+from .blink_bi_encoder import BlinkBiEncoder
 from .. import utils
 from ..datatypes import (
     Config,
@@ -34,7 +35,9 @@ class EDRetrieval:
         # )
        
         # Initialize the ED-Retrieval retriever
-        if self.module_config["method"] == "blinkbiencoder": 
+        if self.module_config["method"] == "dummy_entity_retriever":
+            self.retriever = DummyEntityRetriever()
+        elif self.module_config["method"] == "blink_bi_encoder": 
             self.retriever = BlinkBiEncoder(
                 device=f"cuda:{self.gpu}",
                 path_snapshot=self.module_config["snapshot"]

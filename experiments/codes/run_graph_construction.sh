@@ -15,9 +15,17 @@ ENTITY_DICT=${STORAGE_DATA}/examples/entity_dict.json
 RESULTS_DIR=${STORAGE_RESULTS}
 MYPREFIX=example
 
+# With Entity Dictionary
 python run_graph_construction.py \
     --documents_list ${DOCUMENTS} \
     --entity_dict ${ENTITY_DICT} \
     --additional_triples ${ADDITIONAL_TRIPLES} \
     --results_dir ${RESULTS_DIR} \
     --prefix ${MYPREFIX}
+
+# # Without Entity Dictionary
+# python run_graph_construction.py \
+#     --documents_list ${DOCUMENTS} \
+#     --additional_triples ${ADDITIONAL_TRIPLES} \
+#     --results_dir ${RESULTS_DIR} \
+#     --prefix ${MYPREFIX}

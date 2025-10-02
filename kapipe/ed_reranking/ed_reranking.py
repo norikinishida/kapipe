@@ -6,8 +6,9 @@ from os.path import expanduser
 
 from typing import Any
 
-from .blinkcrossencoder import BlinkCrossEncoder
-from .llmed import LLMED
+from .identical_entity_reranker import IdenticalEntityReranker
+from .blink_cross_encoder import BlinkCrossEncoder
+from .llm_ed import LLMED
 from ..demonstration_retrieval import DemonstrationRetriever
 from .. import utils
 from ..datatypes import (
@@ -39,14 +40,14 @@ class EDReranking:
         # )
  
         # Initialize the ED-Reranking reranker 
-        if self.module_config["method"] == "none":
-            self.reranker = None
-        elif self.module_config["method"] == "blinkcrossencoder":
+        if self.module_config["method"] == "identical_entity_reranker":
+            self.reranker = IdenticalEntityReranker()
+        elif self.module_config["method"] == "blink_cross_encoder":
             self.reranker = BlinkCrossEncoder(
                 device=f"cuda:{self.gpu}",
                 path_snapshot=self.module_config["snapshot"]
             )
-        elif self.module_config["method"] == "llmed":
+        elif self.module_config["method"] == "llm_ed":
             self.reranker = LLMED(
                 device=f"cuda:{self.gpu}",
                 path_snapshot=self.module_config["snapshot"],
@@ -66,10 +67,7 @@ class EDReranking:
         document: Document,
         candidate_entities_for_doc: CandidateEntitiesForDocument
     ) -> Document:
-        # Skip the reranking
-        if self.reranker is None:
-            return document
-        if self.module_config["method"] == "llmed":
+        if self.module_config["method"] == "llm_ed":
             # Get demonstrations for this document
             demonstrations_for_doc: DemonstrationsForOneExample = (
                 self.demonstration_retriever.search(
