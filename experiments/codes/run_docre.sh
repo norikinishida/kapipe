@@ -10,6 +10,7 @@ STORAGE_RESULTS=${STORAGE}/results
 IDENTIFIER=atlop_cdr
 # IDENTIFIER=gpt4omini_cdr
 # IDENTIFIER=qwen2_5_7b_cdr
+# IDENTIFIER=gpt4omini_any
 
 # Input Data
 DOCUMENTS=${STORAGE_RESULTS}/ed_reranking/ed_reranking/blink_cross_encoder_cdr/example/documents.json

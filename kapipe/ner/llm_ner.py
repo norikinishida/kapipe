@@ -50,13 +50,17 @@ class LLMNER:
 
         if path_snapshot is not None:
             assert config is None
-            assert vocab_etype is None
-            assert etype_meta_info is None
+            # assert vocab_etype is None
+            # assert etype_meta_info is None
             assert path_demonstration_pool is None
+
             config = path_snapshot + "/config"
-            vocab_etype = path_snapshot + "/entity_types.vocab.txt"
-            etype_meta_info = path_snapshot + "/etype_meta_info.json"
+            if vocab_etype is None:
+                vocab_etype = path_snapshot + "/entity_types.vocab.txt"
+            if etype_meta_info is None:
+                etype_meta_info = path_snapshot + "/etype_meta_info.json"
             path_demonstration_pool = path_snapshot + "/demonstration_pool.json"
+
             if not os.path.exists(path_demonstration_pool):
                 path_demonstration_pool = None
 
@@ -478,7 +482,10 @@ class PromptProcessor:
             begin_i, end_i = mention["span"]
             name = " ".join(words[begin_i: end_i + 1])
             etype = mention["entity_type"]
-            pretty_name = self.etype_meta_info[etype]["Pretty Name"]
+            if etype in self.etype_meta_info:
+                pretty_name = self.etype_meta_info[etype]["Pretty Name"]
+            else:
+                pretty_name = etype
             prompt += f"- {name} | {pretty_name}\n"
         return prompt.rstrip()
 

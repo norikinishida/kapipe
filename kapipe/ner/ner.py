@@ -20,9 +20,15 @@ logger = logging.getLogger(__name__)
 
 class NER:
 
-    def __init__(self, identifier: str, gpu: int = 0):
+    def __init__(
+        self,
+        identifier: str,
+        gpu: int = 0,
+        user_defined_entity_types: list[dict[str,str]] | None = None
+    ):
         self.identifier = identifier
         self.gpu = gpu
+        self.user_defined_entity_types = user_defined_entity_types
 
         root_config: Config = utils.get_hocon_config(
             os.path.join(expanduser("~"), ".kapipe", "download", "config")
@@ -42,11 +48,33 @@ class NER:
                 path_snapshot=self.module_config["snapshot"]
             )
         elif self.module_config["method"] == "llm_ner":
-            self.extractor = LLMNER(
-                device=f"cuda:{self.gpu}",
-                path_snapshot=self.module_config["snapshot"],
-                model=None,
-            )
+            if user_defined_entity_types is None:
+                # Use pre-defined entity types corresponding to the identifier
+                self.extractor = LLMNER(
+                    device=f"cuda:{self.gpu}",
+                    path_snapshot=self.module_config["snapshot"],
+                    model=None,
+                )
+            else:
+                # Use the user-defined entity types
+                self.extractor = LLMNER(
+                    device=f"cuda:{self.gpu}",
+                    vocab_etype={
+                        x["entity_type"]: i
+                        for i, x in enumerate(user_defined_entity_types)
+                    },
+                    etype_meta_info={
+                        x["entity_type"]: {
+                            "Pretty Name": x["entity_type"],
+                            "Definition": x["definition"]
+                        }
+                        for x in user_defined_entity_types
+                    },
+                    path_snapshot=self.module_config["snapshot"],
+                    model=None,
+                )
+
+            # Initialize the demonstration retriever
             self.demonstration_retriever = DemonstrationRetriever(
                 path_demonstration_pool=self.extractor.prompt_processor.path_demonstration_pool,
                 method="count",

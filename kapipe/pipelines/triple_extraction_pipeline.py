@@ -67,17 +67,15 @@ class TripleExtractionPipeline:
 
     def text_to_document(
         self,
-        input: list[dict[str, str]]
-    ) -> list[Document]:
-        documents = []
-        for x in input:
-            doc = self.chunker.convert_text_to_document(
-                doc_key=x["doc_key"],
-                text=x["text"],
-                title=x["title"] if "title" in x else None
-            )
-            documents.append(doc)
-        return documents
+        doc_key: str,
+        text: str,
+        title: str | None = None
+    ) -> Document:
+        return self.chunker.convert_text_to_document(
+            doc_key=doc_key,
+            text=text,
+            title=title
+        )
       
     def extract(self, document: Document, num_candidate_entities: int = 10) -> Document:
         # NER

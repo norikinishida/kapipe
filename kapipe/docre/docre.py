@@ -22,9 +22,16 @@ logger = logging.getLogger(__name__)
 
 class DocRE:
 
-    def __init__(self, identifier: str, gpu: int = 0, llm_model: Any = None):
+    def __init__(
+        self,
+        identifier: str,
+        gpu: int = 0,
+        user_defined_relation_labels: list[dict[str,str]] | None = None,
+        llm_model: Any = None
+    ):
         self.identifier = identifier
         self.gpu = gpu
+        self.user_defined_relation_labels = user_defined_relation_labels
 
         root_config: Config = utils.get_hocon_config(
             os.path.join(expanduser("~"), ".kapipe", "download", "config")
@@ -44,12 +51,34 @@ class DocRE:
                 path_snapshot=self.module_config["snapshot"]
             )
         elif self.module_config["method"] == "llm_docre":
-            self.extractor = LLMDocRE(
-                device=f"cuda:{self.gpu}",
-                path_snapshot=self.module_config["snapshot"],
-                model=llm_model,
-            )
+            if user_defined_relation_labels is None:
+                # Use pre-defined relation labels corresponding to the identifier
+                self.extractor = LLMDocRE(
+                    device=f"cuda:{self.gpu}",
+                    path_snapshot=self.module_config["snapshot"],
+                    model=llm_model,
+                )
+            else:
+                # Use the user-defined relation labels
+                self.extractor = LLMDocRE(
+                    device=f"cuda:{self.gpu}",
+                    vocab_relation = {
+                        x["relation_label"]: i
+                        for i, x in enumerate(user_defined_relation_labels)
+                    },
+                    rel_meta_info = {
+                        x["relation_label"]: {
+                            "Pretty Name": x["relation_label"],
+                            "Definition": x["definition"]
+                        }
+                        for x in user_defined_relation_labels
+                    },
+                    path_snapshot=self.module_config["snapshot"],
+                    model=llm_model,
+                )
+
             # Initialize the demonstration retriever
+            print(self.extractor.prompt_processor.path_demonstration_pool)
             self.demonstration_retriever = DemonstrationRetriever(
                 path_demonstration_pool=self.extractor.prompt_processor.path_demonstration_pool,
                 method="count",

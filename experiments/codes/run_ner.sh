@@ -10,6 +10,7 @@ STORAGE_RESULTS=${STORAGE}/results
 IDENTIFIER=biaffine_ner_cdr
 # IDENTIFIER=gpt4omini_cdr
 # IDENTIFIER=qwen2_5_7b_cdr
+# IDENTIFIER=gpt4omini_any
 
 # Input Data
 DOCUMENTS=${STORAGE_DATA}/examples/documents.json

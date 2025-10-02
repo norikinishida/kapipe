@@ -51,15 +51,19 @@ class LLMDocRE:
 
         if path_snapshot is not None:
             assert config is None
-            assert vocab_relation is None
-            assert rel_meta_info is None
+            # assert vocab_relation is None
+            # assert rel_meta_info is None
             assert path_entity_dict is None
             assert path_demonstration_pool is None
+
             config = path_snapshot + "/config"
-            vocab_relation = path_snapshot + "/relations.vocab.txt"
-            rel_meta_info = path_snapshot + "/rel_meta_info.json"
+            if vocab_relation is None:
+                vocab_relation = path_snapshot + "/relations.vocab.txt"
+            if rel_meta_info is None:
+                rel_meta_info = path_snapshot + "/rel_meta_info.json"
             path_entity_dict = path_snapshot + "/entity_dict.json"
             path_demonstration_pool = path_snapshot + "/demonstration_pool.json"
+
             if not os.path.exists(path_demonstration_pool):
                 path_demonstration_pool = None
 
@@ -341,8 +345,6 @@ class PromptProcessor:
         # If demonstration pool is provided, `n_demonstration` should also be set
         if self.path_demonstration_pool is not None:
             assert self.n_demonstrations is not None
-        if self.n_demonstrations == 0:
-            self.path_demonstration_pool = None
 
         # Load the prompt template
         self.prompt_template = utils.read_prompt_template(
