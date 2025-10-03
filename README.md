@@ -78,9 +78,9 @@ If the extraction is successful, you should see a directory `~/.kapipe/download/
 
 ### Overview
 
-The **Triple Extraction** module identifies relational facts from raw text in the form of (head entity, relation, tail entity) **triples**.
+The **Triple Extraction** pipeline identifies relational facts from raw text in the form of (head entity, relation, tail entity) **triples**.
 
-Specifically, this is achieved through the following cascade of subtasks:
+Specifically, this is achieved through the following cascade of modules:
 
 1. **Named Entity Recognition (NER):**
     - Detect entity mentions (spans) and classify their types.
@@ -91,17 +91,15 @@ Specifically, this is achieved through the following cascade of subtasks:
 1. **Document-level Relation Extraction (DocRE)**:
     - Extract relational triples based on the disambiguated entity set.
 
-### How to Use
-
 ```python
 from kapipe.pipelines import TripleExtractionPipeline
 
 # Load the triple extraction pipeline
 # Example 1
-# (1) NER: GPT-4o-mini (with prompt and user-defined entity types)
+# (1) NER: GPT-4o-mini with zero-shot NER prompting for user-defined entity types
 # (2) ED-Retrieval: Dummy Retriever (assigning the lowercased mention string as the entity ID)
-# (3) ED-Reranking: None
-# (4) DocRE: GPT-4o-mini (with prompt and user-defined relation labels)
+# (3) ED-Reranking: No reranking
+# (4) DocRE: GPT-4o-mini with zero-shot DocRE prompting for user-defined relation labels
 pipe = TripleExtractionPipeline(
     module_kwargs={
         "ner": {
@@ -117,10 +115,10 @@ pipe = TripleExtractionPipeline(
     }
 )
 # Example 2
-# (1) NER: Qwen-2.5-7B-Instruct (with prompt for CDR, i.e., {Chemical, Disease} entity types)
-# (2) ED-Retrieval: BLINK Bi-Encoder (trained on CDR+MeSH)
-# (3) ED-Reranking: Qwen-2.5-7B-Instruct (with prompt for CDR+MeSH)
-# (4) DocRE: Qwen-2.5-7B-Instruct (with prompt for CDR, i.e., Chemical-Induce-Disease relation label)
+# (1) NER: Qwen-2.5-7B-Instruct with few-shot NER prompting for CDR ({Chemical, Disease} entity types)
+# (2) ED-Retrieval: BLINK Bi-Encoder trained on CDR and MeSH (2015)
+# (3) ED-Reranking: Qwen-2.5-7B-Instruct with few-shot ED-Reranking prompting for CDR and MeSH (2015)
+# (4) DocRE: Qwen-2.5-7B-Instruct with few-shot DocRE prompting for CDR (Chemical-Induce-Disease relation label)
 pipe = TripleExtractionPipeline(
     module_kwargs={
         "ner": {"identifier": "qwen2_5_7b_cdr", "gpu": 1},
@@ -131,10 +129,10 @@ pipe = TripleExtractionPipeline(
     share_backborn_llm=True
 )
 # Example 3
-# (1) NER: Biaffine-NER (trained on CDR, i.e., {Chemical, Disease} entity types)
-# (2) ED-Retrieval: BLINK Bi-Encoder (trained on CDR+MeSH)
-# (3) ED-Reranking: BLINK Cross-Encoder (trained on CDR+MeSH)
-# (4) DocRE: ATLOP (trained on CDR, i.e., Chemical-Induce-Disease relation label)
+# (1) NER: Biaffine-NER trained on CDR ({Chemical, Disease} entity types)
+# (2) ED-Retrieval: BLINK Bi-Encoder trained on CDR and MeSH (2015)
+# (3) ED-Reranking: BLINK Cross-Encoder trained on CDR and MeSH (2015)
+# (4) DocRE: ATLOP trained on CDR (Chemical-Induce-Disease relation label)
 pipe = TripleExtractionPipeline(
     module_kwargs={
         "ner": {"identifier": "biaffine_ner_cdr", "gpu": 1},
@@ -144,7 +142,7 @@ pipe = TripleExtractionPipeline(
     }
 )
 
-# Apply the triple extractor to your input document
+# Apply the triple extraction pipeline to your input document
 document = pipe.extract(document)
 ```
 (See `experiments/codes/run_triple_extraction_pipeline.py` for specific examples.)
@@ -170,12 +168,12 @@ This module takes as input:
 ```
 (See `experiments/data/examples/documents.json` for more details.)
 
-Each subtask takes a ***Document*** object as input, augments it with new fields, and returns it.  
+Each sub-module takes a ***Document*** object as input, augments it with new fields, and returns it.  
 This allows custom metadata to persist throughout the triple extractor.
 
 ### Output
 
-The output is also the same-format dictionary (***Document***), augmented with extracted entities and triples information:
+The output is also the same-format dictionary (***Document***), augmented with extracted mentions, entities, and triples:
 
 - `doc_key` (str): Same as input
 - `sentences` (list[str]): Same as input
@@ -238,22 +236,24 @@ For example, `"biaffinener_blink_blink_atlop_cdr"` uses:
 
 #### Named Entity Recognition (NER)
 - **Biaffine-NER** ([`Yu et al., 2020`](https://aclanthology.org/2020.acl-main.577/)): Span-based BERT model using biaffine scoring
-- **LLM-NER**: A proprietary/open-source LLM using a NER-specific prompt template and few-shot examples
+- **LLM-NER**: A proprietary/open-source LLM using a NER-specific prompt template
 
 #### Entity Disambiguation Retrieval (ED-Retrieval)
+- **Dummy Entity Retriever**: A dummy retriever that assigns the (lowercased) mention string as the entity ID
 - **BLINK Bi-Encoder** ([`Wu et al., 2020`](https://aclanthology.org/2020.emnlp-main.519/)): Dense retriever using BERT-based encoders and approximate nearest neighbor search
 - **BM25**: Lexical matching
 - **Levenshtein**: Edit distance matching
 
 #### Entity Disambiguation Reranking (ED-Reranking)
+- **Identical Entity Reranker**: A identical (dummy) reranker that performs no reranking and always chooses the top-1 candidate as the output
 - **BLINK Cross-Encoder** (Wu et al., 2020): Reranker using a BERT-based encoder for candidates from the Bi-Encoder
-- **LLM-ED**: A proprietary/open-source LLM using a ED-specific prompt template and few-shot examples
+- **LLM-ED**: A proprietary/open-source LLM using a ED-reranking-specific prompt template
 
 #### Document-level Relation Extraction (DocRE)
 - **ATLOP** ([`Zhou et al., 2021`](https://ojs.aaai.org/index.php/AAAI/article/view/17717)): BERT-based model for DocRE
 - **MA-ATLOP** (Oumaima & Nishida et al., 2024): Mention-agnostic extension of ATLOP
 - **MA-QA** (Oumaima & Nishida, 2024): Question-answering style DocRE model
-- **LLM-DocRE**: A proprietary/open-source LLM using a DocRE-specific prompt template and few-shot examples
+- **LLM-DocRE**: A proprietary/open-source LLM using a DocRE-specific prompt template
 
 👉 A full list of available **identifiers** for each subtask can be found at the end of this README:  
 [Available Identifiers](#available-identifiers)
@@ -266,8 +266,6 @@ The **Knowledge Graph Construction** module builds a **directed multi-relational
 
 - **Nodes** represent unique entities (i.e., concepts).
 - **Edges** represent semantic relations between entities.
-
-### How to Use
 
 ```python
 from kapipe.graph_construction import GraphConstructor
@@ -299,7 +297,7 @@ graph = constructor.construct_knowledge_graph(
 
 This module takes as input:
 
-1. List of ***Document*** objects with triples, produced by the **Triple Extraction** module
+1. List of ***Document*** objects with triples, produced by the **Triple Extraction** pipeline
 
 2. (optional) ***Additional Triples*** (existing KBs), or a list of dictionaries, each containing:
     - `head` (str): Entity ID of the subject
@@ -318,7 +316,7 @@ This module takes as input:
 (See `experiments/data/examples/additional_triples.json` for more details.)
 
 
-3. ***Entity Dictionary***, or a list of dictionaries, each containing:
+3. (optional) ***Entity Dictionary***, or a list of dictionaries, each containing:
     - `entity_id` (str): Unique concept ID
     - `canonical_name` (str): Official name of the concept
     - `entity_type` (str): Type/category of the concept
@@ -382,8 +380,6 @@ Each edge has the following attributes:
 
 The **Community Clustering** module partitions the knowledge graph into **semantically coherent subgraphs**, referred to as *communities*.  
 Each community represents a localized set of closely related concepts and relations, and serves as a fundamental unit of structured knowledge.
-
-### How to Use
 
 ```python
 from kapipe.community_clustering import (
@@ -476,8 +472,6 @@ This hierarchical structure enables multi-level organization of knowledge, parti
 
 The **Report Generation** module converts each community into a **natural language report**, making structured knowledge interpretable for both humans and language models.  
 
-### How to Use
-
 ```python
 from kapipe.report_generation import (
     LLMBasedReportGenerator,
@@ -563,8 +557,6 @@ This module is essential for preparing context units that are compatible with do
 
 This makes the module applicable not only to **community reports**, but also to other types of *Passage* data with similar structure. -->
 
-### How to Use
-
 ```python
 from kapipe.chunking import Chunker
 
@@ -631,8 +623,6 @@ The output is a list of ***Passage*** objects, each containing:
 The **Passage Retrieval** module searches for the top-k most **relevant chunks** given a user query.  
 It uses lexical or dense retrievers (e.g., BM25, Contriever) to compute semantic similarity between queries and chunks using embedding-based methods.
 
-### How to Use
-
 **(1) Indexing**:
 
 ```python
@@ -657,7 +647,6 @@ retriever.make_index(
     index_name=INDEX_NAME
 )
 ```
-(See `experiments/codes/run_passage_retrieval.py` for specific examples.)
 
 **(2) Search**:
 
@@ -672,6 +661,8 @@ contexts_for_question = {
     "contexts": retrieved_passages
 }
 ```
+
+(See `experiments/codes/run_passage_retrieval.py` for specific examples.)
 
 ### Input
 
@@ -754,20 +745,21 @@ The search result for each question is represented as a dictionary containing:
 The **Question Answering** module generates an answer for each user query, optionally conditioned on the retrieved context chunks.  
 It uses a large language model such as GPT-4o to produce factually grounded and context-aware answers in natural language.
 
-### How to Use
-
 ```python
 from os.path import expanduser
 from kapipe.qa import QA
 from kapipe import utils
 
 # Initialize the QA module
+# Exmaple 1 (without retrieved context)
+answerer = QA(identifier="gpt4o_without_context")
+# Exmaple 2 (with retrieved context)
 answerer = QA(identifier="gpt4o_with_context")
 
 # Generate answer
 answer = answerer.answer(
     question=question,
-    contexts_for_question=contexts_for_question
+    contexts_for_question=contexts_for_question # or None
 )
 
 ```
@@ -783,7 +775,7 @@ This module takes as input:
 
 (See `experiments/data/examples/questions.json` for more details.)
 
-2. A dictionary containing:
+2. ***Contexts***, or a dictionary containing:
     - `question_key`: The same identifier with the ***Question***
     - `contexts`: List of ***Passage*** objects
 
@@ -813,28 +805,33 @@ The answer is a dictionary containing:
 The following configurations (`identifier`) are currently available:
 
 
-| Subtask | identifier | Method and Domain | Label Set or KB |
+| Module | identifier | Method and Domain | Label Set or KB |
 | --- | --- | --- | --- |
 | NER | `biaffine_ner_linked_docred` | Biaffine-NER trained on Linked-DocRED (Wikipedia articles) | {ORG, LOC, TIME, PER, MISC, NUM} |
 | NER | `biaffine_ner_cdr` | Biaffine-NER trained on CDR (biomedical abstracts) | {Chemical, Disease} |
-| NER | `gpt4omini_any` | GPT-4o-mini with a zero-shot NER prompting | Any (user defined) |
-| NER | `gpt4omini_linked_docred` | GPT-4o-mini with a few-shot NER prompting for Linked-DocRED | {ORG, LOC, TIME, PER, MISC, NUM} |
-| NER | `gpt4omini_cdr` | GPT-4o-mini with a few-shot NER prompting for CDR | {Chemical, Disease} |
-| NER | `llama3_1_8b_cdr`, `llama3_1_70b_cdr`, `qwen2_5_7b_cdr` | Open-source LLMs with a few-shot NER prompting for CDR | {Chemical, Disease} | 
-| ED-Retrieval | `dummy_entity_retriever` | Dummy retriever that assigns the mention string as the entity type | Any |
+| NER | `gpt4omini_any` | GPT-4o-mini with zero-shot NER prompting | Any (user defined) |
+| NER | `gpt4omini_linked_docred` | GPT-4o-mini with few-shot NER prompting for Linked-DocRED | {ORG, LOC, TIME, PER, MISC, NUM} |
+| NER | `gpt4omini_cdr` | GPT-4o-mini with few-shot NER prompting for CDR | {Chemical, Disease} |
+| NER | `llama3_1_8b_any`, `llama3_1_70b_any`, `qwen2_5_7b_any` | Open-source LLMs with zero-shot NER prompting | Any (user defined) |
+| NER | `llama3_1_8b_linked_docred`, `llama3_1_70b_linked_docred`, `qwen2_5_7b_linked_docred` | Open-source LLMs with few-shot NER prompting for Linked-DocRED | {ORG, LOC, TIME, PER, MISC, NUM} |
+| NER | `llama3_1_8b_cdr`, `llama3_1_70b_cdr`, `qwen2_5_7b_cdr` | Open-source LLMs with few-shot NER prompting for CDR | {Chemical, Disease} | 
+| ED-Retrieval | `dummy_entity_retriever` | Dummy retriever that assigns the mention string as the entity ID | Any |
 | ED-Retrieval | `blink_bi_encoder_linked_docred` | BLINK Bi-Encoder model trained on Linked-DocRED | DBpedia (2020.02.01) |
 | ED-Retrieval | `blink_bi_encoder_cdr` | BLINK Bi-Encoder model trained on CDR | MeSH (2015) |
 | ED-Reranking | `identical_entity_reranker` | Dummy reranker that selects the top-1 candidate as the output without no reranking | Any |
 | ED-Reranking | `blink_cross_encoder_linked_docred` | BLINK Cross-Encoder model trained on Linked-DocRED | DBpedia (2020.02.01) |
 | ED-Reranking | `blink_cross_encoder_cdr` | BLINK Cross-Encoder model trained on CDR | MeSH (2015) |
-| ED-Reranking | `gpt4omini_linked_docred` | GPT-4o-mini with a few-shot reranking prompting for Linked-DocRED | DBpedia (2020.02.01) |
-| ED-Reranking | `gpt4omini_cdr` | GPT-4o-mini with a few-shot reranking prompting for CDR | MeSH (2015) |
-| ED-Reranking | `llama3_1_8b_cdr`, `llama3_1_70b_cdr`, `qwen2_5_7b_cdr` | Open-source LLMs with a few-shot reranking prompting for CDR | MeSH (2015) |
+| ED-Reranking | `gpt4omini_linked_docred` | GPT-4o-mini with few-shot Entity Disambiguation (reranking) prompting for Linked-DocRED | DBpedia (2020.02.01) |
+| ED-Reranking | `gpt4omini_cdr` | GPT-4o-mini with few-shot Entity Disambiguation (reranking) prompting for CDR | MeSH (2015) |
+| ED-Reranking | `llama3_1_8b_linked_docred`, `llama3_1_70b_linked_docred`, `qwen2_5_7b_linked_docred` | Open-source LLMs with few-shot Entity Disambiguation (reranking) prompting for Linked-DocRED | DBpedia (2020.02.01) |
+| ED-Reranking | `llama3_1_8b_cdr`, `llama3_1_70b_cdr`, `qwen2_5_7b_cdr` | Open-source LLMs with few-shot Entity Disambiguation (reranking) prompting for CDR | MeSH (2015) |
 | DocRE | `atlop_linked_docred` | ATLOP trained on Linked-DocRED | 96 labels |
 | DocRE | `atlop_cdr` | ATLOP trained on CDR | {Chemical-Induce-Disease} |
-| DocRE | `gpt4omini_linked_docred` | GPT-4o-mini with few-shot prompting for CDR | 96 labels |
-| DocRE | `gpt4omini_cdr` | GPT-4o-mini with few-shot prompting for CDR | {Chemical-Induce-Disease} |
-| DocRE | `llama3_1_8b_cdr`, `llama3_1_70b_cdr`, `qwen2_5_7b_cdr` | Open-source LLMs with few-shot prompting for CDR | {Chemical-Induce-Disease}
+| DocRE | `gpt4omini_any` | GPT-4o-mini with few-shot DocRE prompting | Any (user defined) |
+| DocRE | `gpt4omini_linked_docred` | GPT-4o-mini with few-shot DocRE prompting for Linked-DocRED | 96 labels |
+| DocRE | `gpt4omini_cdr` | GPT-4o-mini with few-shot DocRE prompting for CDR | {Chemical-Induce-Disease} |
+| DocRE | `llama3_1_8b_linked_docred`, `llama3_1_70b_linked_docred`, `qwen2_5_7b_linked_docred` | Open-source LLMs with few-shot DocRE prompting for Linked-DocRED | 96 labels |
+| DocRE | `llama3_1_8b_cdr`, `llama3_1_70b_cdr`, `qwen2_5_7b_cdr` | Open-source LLMs with few-shot DocRE prompting for CDR | {Chemical-Induce-Disease} |
 | QA | `gpt4o_without_context` | GPT-4o with QA prompting without retrieved context | Any |
 | QA | `gpt4o_with_context` | GPT-4o with QA prompting with retrieved context | Any |
 
