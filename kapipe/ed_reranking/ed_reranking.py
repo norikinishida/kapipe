@@ -3,20 +3,19 @@ from __future__ import annotations
 import logging
 import os
 from os.path import expanduser
-
 from typing import Any
 
-from .identical_entity_reranker import IdenticalEntityReranker
-from .blink_cross_encoder import BlinkCrossEncoder
-from .llm_ed import LLMED
-from ..demonstration_retrieval import DemonstrationRetriever
-from .. import utils
 from ..datatypes import (
     Config,
     Document,
     CandidateEntitiesForDocument,
     DemonstrationsForOneExample
 )
+from .. import utils
+from ..demonstration_retrieval import DemonstrationRetriever
+from .identical_entity_reranker import IdenticalEntityReranker
+from .blink_cross_encoder import BlinkCrossEncoder
+from .llm_ed import LLMED
 
 
 logger = logging.getLogger(__name__)

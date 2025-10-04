@@ -5,8 +5,8 @@ import os
 
 from ragatouille import RAGPretrainedModel
 
-from .. import utils
 from ..datatypes import Passage
+from .. import utils
 
 
 logger = logging.getLogger(__name__)

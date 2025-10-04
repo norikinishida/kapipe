@@ -23,11 +23,6 @@ from tqdm import tqdm
 from tqdm.autonotebook import trange
 import jsonlines
 
-from ..nn_utils import get_optimizer2, get_scheduler2
-from ..passage_retrieval import ApproximateNearestNeighborSearch
-from .. import evaluation
-from .. import utils
-from ..utils import BestScoreHolder
 from ..datatypes import (
     Config,
     Document,
@@ -37,6 +32,11 @@ from ..datatypes import (
     CandEntKeyInfo,
     CandidateEntitiesForDocument
 )
+from .. import utils
+from ..utils import BestScoreHolder
+from .. import evaluation
+from ..passage_retrieval import ApproximateNearestNeighborSearch
+from ..nn_utils import get_optimizer2, get_scheduler2
 
 
 logger = logging.getLogger(__name__)

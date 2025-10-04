@@ -5,15 +5,15 @@ import os
 from os.path import expanduser
 from typing import Any
 
-from .atlop import ATLOP
-from .llm_docre import LLMDocRE
-from ..demonstration_retrieval import DemonstrationRetriever
-from .. import utils
 from ..datatypes import (
     Config,
     Document,
     DemonstrationsForOneExample
 )
+from .. import utils
+from ..demonstration_retrieval import DemonstrationRetriever
+from .atlop import ATLOP
+from .llm_docre import LLMDocRE
 
 
 logger = logging.getLogger(__name__)

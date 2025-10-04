@@ -5,13 +5,13 @@ import logging
 
 from tqdm import tqdm
 
-from .. import utils
 from ..datatypes import (
     Document,
     Mention,
     Entity,
     CandidateEntitiesForDocument,
 )
+from .. import utils
 
 
 logger = logging.getLogger(__name__)

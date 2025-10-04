@@ -5,8 +5,8 @@ import logging
 import networkx as nx
 from tqdm import tqdm
 
-from .. import utils
 from ..datatypes import EntityPage
+from .. import utils
 
 
 logger = logging.getLogger(__name__)

@@ -12,9 +12,6 @@ from typing import Any
 import torch
 from tqdm import tqdm
 
-from ..llms import HuggingFaceLLM, OpenAILLM
-from .. import evaluation
-from .. import utils
 from ..datatypes import (
     Config,
     Document,
@@ -24,6 +21,9 @@ from ..datatypes import (
     DemonstrationsForOneExample,
     ContextsForOneExample
 )
+from .. import utils
+from .. import evaluation
+from ..llms import HuggingFaceLLM, OpenAILLM
 
 
 logger = logging.getLogger(__name__)

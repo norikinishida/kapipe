@@ -1,17 +1,12 @@
 #####
-# Data type definitions
+# Core
 #####
 
 from . import datatypes
+from . import utils
 
 #####
-# Pipelines
-#####
-
-from .pipelines import TripleExtractionPipeline
-
-#####
-# Extraction
+# Components for Knowledge Extraction
 #####
 
 from . import ner
@@ -20,7 +15,7 @@ from . import ed_reranking
 from . import docre
 
 #####
-# Organization
+# Components for Knowledge Organization
 #####
 
 from . import graph_construction
@@ -29,31 +24,41 @@ from . import report_generation
 from . import chunking
 
 #####
-# Retrieval
+# Components for Knowledge Retrieval
 #####
 
 from . import passage_retrieval
 
 #####
-# Utilization
+# Components for Knowledge Utilization
 #####
 
 from . import qa
 
 #####
-# Others
+# Components for LLM
 #####
 
 from . import llms
 from . import prompt_templates
 from . import demonstration_retrieval
-from . import evaluation
+
+#####
+# Others
+#####
+
 from . import nn_utils
-from . import utils
+from . import evaluation
+
+#####
+# Pipelines for Knowledge Acquisition
+#####
+
+from . import pipelines
 
 #####
 # Package information
 #####
 
-__version__ = "0.0.9"
+__version__ = "0.1.0"
 

@@ -5,12 +5,12 @@ import logging
 
 import networkx as nx
 
-from ..llms import HuggingFaceLLM, OpenAILLM
-from .. import utils
 from ..datatypes import (
     CommunityRecord,
     Passage
 )
+from .. import utils
+from ..llms import HuggingFaceLLM, OpenAILLM
 
 
 logger = logging.getLogger(__name__)

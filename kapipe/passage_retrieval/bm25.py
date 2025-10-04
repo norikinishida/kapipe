@@ -6,8 +6,8 @@ from typing import Callable
 import numpy as np
 import scipy.sparse as sp
 
-from .. import utils
 from ..datatypes import Passage
+from .. import utils
 
 
 class BM25:

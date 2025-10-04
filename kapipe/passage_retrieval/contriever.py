@@ -7,10 +7,10 @@ import numpy as np
 import torch
 from transformers import AutoTokenizer, AutoModel
 
-from .anns import ApproximateNearestNeighborSearch
+from ..datatypes import Passage
 from .. import utils
 from ..utils import StopWatch
-from ..datatypes import Passage
+from .anns import ApproximateNearestNeighborSearch
 
 
 logger = logging.getLogger(__name__)

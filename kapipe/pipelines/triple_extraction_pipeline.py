@@ -5,14 +5,14 @@ from typing import Any
 
 from tqdm import tqdm
 
+from ..datatypes import (
+    Document,
+)
 from ..chunking import Chunker
 from ..ner import NER
 from ..ed_retrieval import EDRetrieval
 from ..ed_reranking import EDReranking
 from ..docre import DocRE
-from ..datatypes import (
-    Document,
-)
 
 
 logger = logging.getLogger(__name__)

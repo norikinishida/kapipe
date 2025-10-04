@@ -4,13 +4,13 @@ import logging
 import os
 from os.path import expanduser
 
-from .llm_qa import LLMQA
-from .. import utils
 from ..datatypes import (
     Config,
     Question,
     ContextsForOneExample
 )
+from .. import utils
+from .llm_qa import LLMQA
 
 
 logger = logging.getLogger(__name__)
@@ -39,7 +39,7 @@ class QA:
     def answer(
         self,
         question: Question,
-        contexts_for_question: ContextsForOneExample | None
+        contexts_for_question: ContextsForOneExample | None = None
     ) -> Question: 
         return self.answerer.answer(
             question=question,

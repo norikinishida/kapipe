@@ -4,14 +4,14 @@ import logging
 import os
 from os.path import expanduser
 
-from .dummy_entity_retriever import DummyEntityRetriever
-from .blink_bi_encoder import BlinkBiEncoder
-from .. import utils
 from ..datatypes import (
     Config,
     Document,
     CandidateEntitiesForDocument,
 )
+from .. import utils
+from .dummy_entity_retriever import DummyEntityRetriever
+from .blink_bi_encoder import BlinkBiEncoder
 
 
 logger = logging.getLogger(__name__)

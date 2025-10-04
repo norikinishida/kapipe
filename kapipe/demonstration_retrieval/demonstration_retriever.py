@@ -1,10 +1,10 @@
 import random
 
-from .. import utils
 from ..datatypes import (
     Document,
     DemonstrationsForOneExample
 )
+from .. import utils
 
 
 class DemonstrationRetriever:

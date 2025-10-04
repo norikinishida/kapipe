@@ -4,15 +4,15 @@ import logging
 import os
 from os.path import expanduser
 
-from .biaffine_ner import BiaffineNER
-from .llm_ner import LLMNER
-from ..demonstration_retrieval import DemonstrationRetriever
-from .. import utils
 from ..datatypes import (
     Config,
     Document,
     DemonstrationsForOneExample
 )
+from .. import utils
+from ..demonstration_retrieval import DemonstrationRetriever
+from .biaffine_ner import BiaffineNER
+from .llm_ner import LLMNER
 
 
 logger = logging.getLogger(__name__)

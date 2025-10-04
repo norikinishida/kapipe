@@ -15,16 +15,16 @@ from transformers.modeling_outputs import ModelOutput
 from tqdm import tqdm
 import jsonlines
 
+from ..datatypes import Config, Document, Triple
+from .. import utils
+from ..utils import BestScoreHolder
+from .. import evaluation
 from ..nn_utils import (
     make_mlp,
     FocalLoss,
     get_optimizer2,
     get_scheduler2
 )
-from .. import evaluation
-from .. import utils
-from ..utils import BestScoreHolder
-from ..datatypes import Config, Document, Triple
 
 
 logger = logging.getLogger(__name__)

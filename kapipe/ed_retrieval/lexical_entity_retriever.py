@@ -8,9 +8,6 @@ from typing import Any
 from spacy.lang.en import English
 from tqdm import tqdm
 
-from ..passage_retrieval import BM25, TextSimilarityBasedRetriever
-from .. import evaluation
-from .. import utils
 from ..datatypes import (
     Config,
     Document,
@@ -20,6 +17,9 @@ from ..datatypes import (
     CandEntKeyInfo,
     CandidateEntitiesForDocument
 )
+from .. import utils
+from .. import evaluation
+from ..passage_retrieval import BM25, TextSimilarityBasedRetriever
 
 
 logger = logging.getLogger(__name__)

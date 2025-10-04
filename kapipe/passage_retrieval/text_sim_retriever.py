@@ -4,8 +4,8 @@ import numpy as np
 from typing import Callable
 from Levenshtein import distance
 
-from .. import utils
 from ..datatypes import Passage
+from .. import utils
 
 
 class TextSimilarityBasedRetriever:
