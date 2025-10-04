@@ -88,7 +88,7 @@ def main(args):
     # QA
     ##################
 
-    logging.info(f"Applying the QA module to {len(questions)} questions (+ contexts) in {path_input_questions} ({path_input_contexts}) ...")
+    logging.info(f"Applying the QA component to {len(questions)} questions (+ contexts) in {path_input_questions} ({path_input_contexts}) ...")
 
     # Create the full output path
     path_output_questions = os.path.join(base_output_path, f"{base_filename}.pred.json")

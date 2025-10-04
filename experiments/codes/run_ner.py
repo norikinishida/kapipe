@@ -79,7 +79,7 @@ def main(args):
     # NER
     ##################
 
-    logging.info(f"Applying the NER module to {len(documents)} documents in {path_input_documents} ...")
+    logging.info(f"Applying the NER component to {len(documents)} documents in {path_input_documents} ...")
 
     # Create the full output path
     path_output_documents = os.path.join(base_output_path, "documents.json")

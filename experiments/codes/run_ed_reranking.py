@@ -84,7 +84,7 @@ def main(args):
     # ED-Reranking
     ##################
     
-    logging.info(f"Applying the ED-Reranking module to {len(documents)} documents (+ candidate entities) in {path_input_documents} ({path_input_candidate_entities}) ...")
+    logging.info(f"Applying the ED-Reranking component to {len(documents)} documents (+ candidate entities) in {path_input_documents} ({path_input_candidate_entities}) ...")
 
     # Create the full output path
     path_output_documents = os.path.join(base_output_path, f"documents.json")

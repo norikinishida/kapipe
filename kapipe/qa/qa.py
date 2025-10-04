@@ -25,16 +25,16 @@ class QA:
         root_config: Config = utils.get_hocon_config(
             os.path.join(expanduser("~"), ".kapipe", "download", "config")
         )
-        self.module_config: Config = root_config["qa"][identifier]
+        self.component_config: Config = root_config["qa"][identifier]
 
-        # Initialize the QA module
-        if self.module_config["method"] == "llm_qa":
+        # Initialize the QA component
+        if self.component_config["method"] == "llm_qa":
             self.answerer = LLMQA(
                 device=f"cuda:{self.gpu}",
-                path_snapshot=self.module_config["snapshot"]
+                path_snapshot=self.component_config["snapshot"]
             )
         else:
-            raise Exception(f"Invalid method: {self.module_config['method']}")
+            raise Exception(f"Invalid method: {self.component_config['method']}")
 
     def answer(
         self,

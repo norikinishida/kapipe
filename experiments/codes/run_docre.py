@@ -81,7 +81,7 @@ def main(args):
     # DocRE
     ##################
 
-    logging.info(f"Applying the DocRE module to {len(documents)} documents in {path_input_documents} ...")
+    logging.info(f"Applying the DocRE component to {len(documents)} documents in {path_input_documents} ...")
 
     # Create the full output path
     path_output_documents = os.path.join(base_output_path, f"documents.json")

@@ -70,7 +70,7 @@ def main(args):
 
     with open(path_input_passages) as fin:
         n_lines = sum(1 for _ in fin)
-    logging.info(f"Applying the Chunking module to {n_lines} passages in {path_input_passages} ...")
+    logging.info(f"Applying the Chunking component to {n_lines} passages in {path_input_passages} ...")
 
     # Create the full output path
     filename = os.path.splitext(os.path.basename(path_input_passages))[0]

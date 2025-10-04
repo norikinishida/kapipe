@@ -76,7 +76,7 @@ def main(args):
     ##################
 
     pipe = TripleExtractionPipeline(
-        module_kwargs={
+        component_kwargs={
             "chunking": {"model_name": "en_core_sci_md"},
             "ner": {"identifier": "gpt4omini_cdr"},
             "ed_retrieval": {"identifier": "dummy_entity_retriever"},
@@ -85,7 +85,7 @@ def main(args):
         },
         share_backborn_llm=False
         #
-        # module_kwargs={
+        # component_kwargs={
         #     "chunking": {"model_name": "en_core_sci_md"},
         #     "ner": {"identifier": "biaffine_ner_cdr", "gpu": 1},
         #     "ed_retrieval": {"identifier": "blink_bi_encoder_cdr", "gpu": 1},
@@ -94,7 +94,7 @@ def main(args):
         # },
         # share_backborn_llm=False
         #
-        # module_kwargs={
+        # component_kwargs={
         #     "chunking": {"model_name": "en_core_sci_md"},
         #     "ner": {"identifier": "gpt4omini_cdr"},
         #     "ed_retrieval": {"identifier": "blink_bi_encoder_cdr", "gpu": 0},

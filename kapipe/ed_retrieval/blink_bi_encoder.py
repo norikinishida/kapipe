@@ -115,7 +115,7 @@ class BlinkBiEncoder:
 
         self.model.to(self.model.device)
 
-        # Initialize the module for Approximate Nearest Neighbor Search
+        # Initialize Approximate Nearest Neighbor Search tool
         # It might be better to select a different GPU ID for indexing from the GPU ID of the BLINK model to avoid OOM error
         self.anns = ApproximateNearestNeighborSearch(gpu_id=0) # TODO: Allow GPU-ID selection
 

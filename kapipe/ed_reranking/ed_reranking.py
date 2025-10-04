@@ -31,26 +31,26 @@ class EDReranking:
         root_config: Config = utils.get_hocon_config(
             os.path.join(expanduser("~"), ".kapipe", "download", "config")
         )
-        self.module_config: Config = root_config["ed_reranking"][identifier]
+        self.component_config: Config = root_config["ed_reranking"][identifier]
 
         # # Download the configurations
         # utils.download_folder_if_needed(
-        #     dest=self.module_config["snapshot"],
-        #     url=self.module_config["url"]
+        #     dest=self.component_config["snapshot"],
+        #     url=self.component_config["url"]
         # )
  
         # Initialize the ED-Reranking reranker 
-        if self.module_config["method"] == "identical_entity_reranker":
+        if self.component_config["method"] == "identical_entity_reranker":
             self.reranker = IdenticalEntityReranker()
-        elif self.module_config["method"] == "blink_cross_encoder":
+        elif self.component_config["method"] == "blink_cross_encoder":
             self.reranker = BlinkCrossEncoder(
                 device=f"cuda:{self.gpu}",
-                path_snapshot=self.module_config["snapshot"]
+                path_snapshot=self.component_config["snapshot"]
             )
-        elif self.module_config["method"] == "llm_ed":
+        elif self.component_config["method"] == "llm_ed":
             self.reranker = LLMED(
                 device=f"cuda:{self.gpu}",
-                path_snapshot=self.module_config["snapshot"],
+                path_snapshot=self.component_config["snapshot"],
                 model=llm_model,
             )
             # Initialize the demonstration retriever
@@ -60,14 +60,14 @@ class EDReranking:
                 task="ed"
             )
         else:
-            raise Exception(f"Invalid method: {self.module_config['method']}")
+            raise Exception(f"Invalid method: {self.component_config['method']}")
 
     def rerank(
         self,
         document: Document,
         candidate_entities_for_doc: CandidateEntitiesForDocument
     ) -> Document:
-        if self.module_config["method"] == "llm_ed":
+        if self.component_config["method"] == "llm_ed":
             # Get demonstrations for this document
             demonstrations_for_doc: DemonstrationsForOneExample = (
                 self.demonstration_retriever.search(

@@ -86,7 +86,7 @@ def main(args):
     # Community Clustering
     ##################
 
-    logging.info(f"Applying the Community Clustering module to knowledge graph in {path_input_graph} ...")
+    logging.info(f"Applying the Community Clustering component to knowledge graph in {path_input_graph} ...")
 
     # Apply the community clustering object to the graph
     if clustering_method == "hierarchical_leiden":

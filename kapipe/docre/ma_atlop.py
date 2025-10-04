@@ -132,7 +132,7 @@ class MAATLOP:
     #     else:
     #         checkpoint = torch.load(path, map_location=torch.device("cpu"))
     #         for name in ignored_names:
-    #             logger.info(f"Ignored {name} module in loading")
+    #             logger.info(f"Ignored {name} component in loading")
     #             checkpoint = {
     #                 k:v for k,v in checkpoint.items() if not name in k
     #             }

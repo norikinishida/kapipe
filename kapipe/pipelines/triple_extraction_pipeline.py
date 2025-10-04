@@ -22,23 +22,23 @@ class TripleExtractionPipeline:
 
     def __init__(
         self,
-        module_kwargs: dict[str, dict[str, Any]],
+        component_kwargs: dict[str, dict[str, Any]],
         share_backborn_llm: bool = False
     ):
-        self.module_kwargs = module_kwargs
+        self.component_kwargs = component_kwargs
         self.share_backborn_llm = share_backborn_llm
 
         # Chunking
-        if "chunking" in self.module_kwargs:
-            self.chunker = Chunker(model_name=self.module_kwargs["chunking"]["model_name"])
+        if "chunking" in self.component_kwargs:
+            self.chunker = Chunker(model_name=self.component_kwargs["chunking"]["model_name"])
         else:
             self.chunker = Chunker()
 
         # NER
         self.ner = NER(
-            identifier=self.module_kwargs["ner"]["identifier"],
-            gpu=self.module_kwargs["ner"].get("gpu", 0),
-            entity_types=self.module_kwargs["ner"].get("entity_types", None)
+            identifier=self.component_kwargs["ner"]["identifier"],
+            gpu=self.component_kwargs["ner"].get("gpu", 0),
+            entity_types=self.component_kwargs["ner"].get("entity_types", None)
         )
 
         if self.share_backborn_llm:
@@ -48,22 +48,22 @@ class TripleExtractionPipeline:
 
         # ED-Retrieval
         self.ed_retrieval = EDRetrieval(
-            identifier=self.module_kwargs["ed_retrieval"]["identifier"],
-            gpu=self.module_kwargs["ed_retrieval"].get("gpu", 0)
+            identifier=self.component_kwargs["ed_retrieval"]["identifier"],
+            gpu=self.component_kwargs["ed_retrieval"].get("gpu", 0)
         )
 
         # ED-Reranking
         self.ed_reranking = EDReranking(
-            identifier=self.module_kwargs["ed_reranking"]["identifier"],
-            gpu=self.module_kwargs["ed_reranking"].get("gpu", 0),
+            identifier=self.component_kwargs["ed_reranking"]["identifier"],
+            gpu=self.component_kwargs["ed_reranking"].get("gpu", 0),
             llm_model=llm_model,
         )
 
         # DocRE
         self.docre = DocRE(
-            identifier=self.module_kwargs["docre"]["identifier"],
-            gpu=self.module_kwargs["docre"].get("gpu", 0),
-            relation_labels=self.module_kwargs["docre"].get("relation_labels", None),
+            identifier=self.component_kwargs["docre"]["identifier"],
+            gpu=self.component_kwargs["docre"].get("gpu", 0),
+            relation_labels=self.component_kwargs["docre"].get("relation_labels", None),
             llm_model=llm_model
         )
 

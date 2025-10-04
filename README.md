@@ -41,7 +41,7 @@ Currently, KAPipe provides the following functionalities:
 - 💬**Question Answering**  
     - Answer questions using retrieved chunks as context.
 
-These components together form an implementation of **graph-based retrieval-augmented generation (GraphRAG)**, enabling question answering and reasoning grounded in structured knowledge.
+These components together form an implementation of **retrieval-augmented generation (RAG)** or **graph-based RAG (GraphRAG)**, enabling question answering and reasoning grounded in external (structured) knowledge.
 
 ## 📦 Installation
 
@@ -80,7 +80,7 @@ If the extraction is successful, you should see a directory `~/.kapipe/download/
 
 The **Triple Extraction** pipeline identifies relational facts from raw text in the form of (head entity, relation, tail entity) **triples**.
 
-Specifically, this is achieved through the following cascade of modules:
+Specifically, this is achieved through the following cascade of components:
 
 1. **Named Entity Recognition (NER):**
     - Detect entity mentions (spans) and classify their types.
@@ -101,7 +101,7 @@ from kapipe.pipelines import TripleExtractionPipeline
 # (3) ED-Reranking: No reranking
 # (4) DocRE: GPT-4o-mini with zero-shot DocRE prompting for user-defined relation labels
 pipe = TripleExtractionPipeline(
-    module_kwargs={
+    component_kwargs={
         "ner": {
             "identifier": "gpt4omini_any",
             "entity_types": [{"entity_type": "<entity type>", "definition": "<definition>"}]
@@ -120,7 +120,7 @@ pipe = TripleExtractionPipeline(
 # (3) ED-Reranking: Qwen-2.5-7B-Instruct with few-shot ED-Reranking prompting for CDR and MeSH (2015)
 # (4) DocRE: Qwen-2.5-7B-Instruct with few-shot DocRE prompting for CDR (Chemical-Induce-Disease relation label)
 pipe = TripleExtractionPipeline(
-    module_kwargs={
+    component_kwargs={
         "ner": {"identifier": "qwen2_5_7b_cdr", "gpu": 1},
         "ed_retrieval": {"identifier": "blink_bi_encoder_cdr", "gpu": 2},
         "ed_reranking": {"identifier": "qwen2_5_7b_cdr", "gpu": 1},
@@ -134,7 +134,7 @@ pipe = TripleExtractionPipeline(
 # (3) ED-Reranking: BLINK Cross-Encoder trained on CDR and MeSH (2015)
 # (4) DocRE: ATLOP trained on CDR (Chemical-Induce-Disease relation label)
 pipe = TripleExtractionPipeline(
-    module_kwargs={
+    component_kwargs={
         "ner": {"identifier": "biaffine_ner_cdr", "gpu": 1},
         "ed_retrieval": {"identifier": "blink_bi_encoder_cdr", "gpu": 1},
         "ed_reranking": {"identifier": "blink_cross_encoder_cdr", "gpu": 2},
@@ -150,7 +150,7 @@ document = pipe.extract(document)
 
 ### Input
 
-This module takes as input:
+This component takes as input:
 
 1. ***Document***, or a dictionary containing
     - `doc_key` (str): Unique identifier for the document
@@ -168,7 +168,7 @@ This module takes as input:
 ```
 (See `experiments/data/examples/documents.json` for more details.)
 
-Each sub-module takes a ***Document*** object as input, augments it with new fields, and returns it.  
+Each sub-component takes a ***Document*** object as input, augments it with new fields, and returns it.  
 This allows custom metadata to persist throughout the triple extractor.
 
 ### Output
@@ -255,14 +255,14 @@ For example, `"biaffinener_blink_blink_atlop_cdr"` uses:
 - **MA-QA** (Oumaima & Nishida, 2024): Question-answering style DocRE model
 - **LLM-DocRE**: A proprietary/open-source LLM using a DocRE-specific prompt template
 
-👉 A full list of available **identifiers** for each subtask can be found at the end of this README:  
+👉 A full list of available **identifiers** for each component can be found at the end of this README:  
 [Available Identifiers](#available-identifiers)
 
 ## 🕸️ Knowledge Graph Construction
 
 ### Overview
 
-The **Knowledge Graph Construction** module builds a **directed multi-relational graph** from a set of extracted triples.
+The **Knowledge Graph Construction** component builds a **directed multi-relational graph** from a set of extracted triples.
 
 - **Nodes** represent unique entities (i.e., concepts).
 - **Edges** represent semantic relations between entities.
@@ -295,7 +295,7 @@ graph = constructor.construct_knowledge_graph(
 
 ### Input
 
-This module takes as input:
+This component takes as input:
 
 1. List of ***Document*** objects with triples, produced by the **Triple Extraction** pipeline
 
@@ -378,7 +378,7 @@ Each edge has the following attributes:
 
 ### Overview
 
-The **Community Clustering** module partitions the knowledge graph into **semantically coherent subgraphs**, referred to as *communities*.  
+The **Community Clustering** component partitions the knowledge graph into **semantically coherent subgraphs**, referred to as *communities*.  
 Each community represents a localized set of closely related concepts and relations, and serves as a fundamental unit of structured knowledge.
 
 ```python
@@ -403,9 +403,9 @@ communities = clusterer.cluster_communities(graph)
 
 ### Input
 
-This module takes as input:
+This component takes as input:
 
-1. Knowledge graph (`networkx.MultiDiGraph`) produced by the **Knowledge Graph Construction** module.
+1. Knowledge graph (`networkx.MultiDiGraph`) produced by the **Knowledge Graph Construction** component.
 
 ### Output
 
@@ -470,7 +470,7 @@ This hierarchical structure enables multi-level organization of knowledge, parti
 
 ### Overview
 
-The **Report Generation** module converts each community into a **natural language report**, making structured knowledge interpretable for both humans and language models.  
+The **Report Generation** component converts each community into a **natural language report**, making structured knowledge interpretable for both humans and language models.  
 
 ```python
 from kapipe.report_generation import (
@@ -512,10 +512,10 @@ generator.generate_community_reports(
 
 ### Input
 
-This module takes as input:
+This component takes as input:
 
-1. Knowledge graph (`networkx.MultiDiGraph`) generated by the **Knowledge Graph Construction** module.
-1. List of community records generated by the **Community Clustering** module.
+1. Knowledge graph (`networkx.MultiDiGraph`) generated by the **Knowledge Graph Construction** component.
+1. List of community records generated by the **Community Clustering** component.
 
 ### Output
 
@@ -532,7 +532,7 @@ The output is a `.jsonl` file, where each line corresponds to one ***Passage***,
 ```
 (See `experiments/data/examples/reports.jsonl` for more details.)
 
-✅ The output format is fully compatible with the **Chunking** module, which accepts any dictionary containing a `title` and `text` field.  
+✅ The output format is fully compatible with the **Chunking** component, which accepts any dictionary containing a `title` and `text` field.  
 Thus, each community report can also be treated as a generic ***Passage***.
 
 ### Supported Methods
@@ -548,14 +548,8 @@ Thus, each community report can also be treated as a generic ***Passage***.
 
 ### Overview
 
-The **Chunking** module splits each input text into multiple **non-overlapping text chunks**, each constrained by a maximum token length (e.g., 100 tokens).  
-This module is essential for preparing context units that are compatible with downstream modules such as retrieval and question answering.  
-
-<!-- It supports any input that conforms to the following format:
-
-- A dictionary containing a `"title"` and `"text"` field.  
-
-This makes the module applicable not only to **community reports**, but also to other types of *Passage* data with similar structure. -->
+The **Chunking** component splits each input text into multiple **non-overlapping text chunks**, each constrained by a maximum token length (e.g., 100 tokens).  
+This component is essential for preparing context units that are compatible with downstream components such as retrieval and question answering.  
 
 ```python
 from kapipe.chunking import Chunker
@@ -576,7 +570,7 @@ chunked_passages = chunker.split_passage_to_chunked_passages(
 
 ### Input
 
-This module takes as input:
+This component takes as input:
 
 1. ***Passage***, or a dictionary containing `title` and `text` field.
 
@@ -620,7 +614,7 @@ The output is a list of ***Passage*** objects, each containing:
 
 ### Overview
 
-The **Passage Retrieval** module searches for the top-k most **relevant chunks** given a user query.  
+The **Passage Retrieval** component searches for the top-k most **relevant chunks** given a user query.  
 It uses lexical or dense retrievers (e.g., BM25, Contriever) to compute semantic similarity between queries and chunks using embedding-based methods.
 
 **(1) Indexing**:
@@ -668,13 +662,13 @@ contexts_for_question = {
 
 **(1) Indexing**:
 
-During the indexing phase, this module takes as input:
+During the indexing phase, this component takes as input:
 
 1. List of ***Passage*** objects
 
 **(2) Search**:
 
-During the search phase, this module takes as input:
+During the search phase, this component takes as input:
 
 1. ***Question***, or a dictionary containing:
     - `question_key` (str): Unique identifier for the question
@@ -742,7 +736,7 @@ The search result for each question is represented as a dictionary containing:
 
 ### Overview
 
-The **Question Answering** module generates an answer for each user query, optionally conditioned on the retrieved context chunks.  
+The **Question Answering** component generates an answer for each user query, optionally conditioned on the retrieved context chunks.  
 It uses a large language model such as GPT-4o to produce factually grounded and context-aware answers in natural language.
 
 ```python
@@ -750,7 +744,7 @@ from os.path import expanduser
 from kapipe.qa import QA
 from kapipe import utils
 
-# Initialize the QA module
+# Initialize the QA component
 # Exmaple 1 (without retrieved context)
 answerer = QA(identifier="gpt4o_without_context")
 # Exmaple 2 (with retrieved context)
@@ -767,7 +761,7 @@ answer = answerer.answer(
 
 ### Input
 
-This module takes as input:
+This component takes as input:
 
 1. ***Question***, or a dictionary containing:
     - `question_key`: Unique identifier for the question
@@ -804,8 +798,7 @@ The answer is a dictionary containing:
 
 The following configurations (`identifier`) are currently available:
 
-
-| Module | identifier | Method and Domain | Label Set or KB |
+| Component | identifier | Method and Domain | Label Set or KB |
 | --- | --- | --- | --- |
 | NER | `biaffine_ner_linked_docred` | Biaffine-NER trained on Linked-DocRED (Wikipedia articles) | {ORG, LOC, TIME, PER, MISC, NUM} |
 | NER | `biaffine_ner_cdr` | Biaffine-NER trained on CDR (biomedical abstracts) | {Chemical, Disease} |
@@ -830,6 +823,7 @@ The following configurations (`identifier`) are currently available:
 | DocRE | `gpt4omini_any` | GPT-4o-mini with few-shot DocRE prompting | Any (user defined) |
 | DocRE | `gpt4omini_linked_docred` | GPT-4o-mini with few-shot DocRE prompting for Linked-DocRED | 96 labels |
 | DocRE | `gpt4omini_cdr` | GPT-4o-mini with few-shot DocRE prompting for CDR | {Chemical-Induce-Disease} |
+| DocRE | `llama3_1_8b_any`, `llama3_1_70b_any`, `qwen2_5_7b_any` | Open-source LLMs with zero-shot DocRE prompting | Any (user defined) |
 | DocRE | `llama3_1_8b_linked_docred`, `llama3_1_70b_linked_docred`, `qwen2_5_7b_linked_docred` | Open-source LLMs with few-shot DocRE prompting for Linked-DocRED | 96 labels |
 | DocRE | `llama3_1_8b_cdr`, `llama3_1_70b_cdr`, `qwen2_5_7b_cdr` | Open-source LLMs with few-shot DocRE prompting for CDR | {Chemical-Induce-Disease} |
 | QA | `gpt4o_without_context` | GPT-4o with QA prompting without retrieved context | Any |

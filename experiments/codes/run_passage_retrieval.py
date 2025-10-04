@@ -147,7 +147,7 @@ def main(args):
 
 
     if actiontype == "indexing":
-        logging.info(f"Applying the Passage Retrieval module (indexing) to passages in {path_input_file} ...")
+        logging.info(f"Applying the Passage Retrieval component (indexing) to passages in {path_input_file} ...")
 
         # Build index
         retriever.make_index(
@@ -157,7 +157,7 @@ def main(args):
         )
 
     if actiontype == "search":
-        logging.info(f"Applying the Passage Retrieval module (search) to questions in {path_input_file} ...")
+        logging.info(f"Applying the Passage Retrieval component (search) to questions in {path_input_file} ...")
 
         # Load the index
         retriever.load_index(index_root=index_root, index_name=index_name)

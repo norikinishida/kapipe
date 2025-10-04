@@ -65,7 +65,7 @@ def main(args):
     # Knowledge Graph Construction
     ##################
     
-    logging.info(f"Applying the Graph Construction module to extracted triples ({path_documents_list}) and additional triples ({path_additional_triples}) ...")
+    logging.info(f"Applying the Graph Construction component to extracted triples ({path_documents_list}) and additional triples ({path_additional_triples}) ...")
 
     # Apply the graph constructor to extracted triples and additional triples (optional)
     # The entity dictionary is used to label canonical names, synonyms, entity types, and definitions to each node as their attributes

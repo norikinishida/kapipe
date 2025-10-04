@@ -33,26 +33,26 @@ class NER:
         root_config: Config = utils.get_hocon_config(
             os.path.join(expanduser("~"), ".kapipe", "download", "config")
         )
-        self.module_config: Config = root_config["ner"][identifier]
+        self.component_config: Config = root_config["ner"][identifier]
 
         # # Download the configurations
         # utils.download_folder_if_needed(
-        #     dest=self.module_config["snapshot"],
-        #     url=self.module_config["url"]
+        #     dest=self.component_config["snapshot"],
+        #     url=self.component_config["url"]
         # )
 
         # Initialize the NER extractor
-        if self.module_config["method"] == "biaffine_ner":
+        if self.component_config["method"] == "biaffine_ner":
             self.extractor = BiaffineNER(
                 device=f"cuda:{self.gpu}",
-                path_snapshot=self.module_config["snapshot"]
+                path_snapshot=self.component_config["snapshot"]
             )
-        elif self.module_config["method"] == "llm_ner":
+        elif self.component_config["method"] == "llm_ner":
             if entity_types is None:
                 # Use pre-defined entity types corresponding to the identifier
                 self.extractor = LLMNER(
                     device=f"cuda:{self.gpu}",
-                    path_snapshot=self.module_config["snapshot"],
+                    path_snapshot=self.component_config["snapshot"],
                     model=None,
                 )
             else:
@@ -70,7 +70,7 @@ class NER:
                         }
                         for x in entity_types
                     },
-                    path_snapshot=self.module_config["snapshot"],
+                    path_snapshot=self.component_config["snapshot"],
                     model=None,
                 )
 
@@ -81,10 +81,10 @@ class NER:
                 task="ner"
             )
         else:
-            raise Exception(f"Invalid method: {self.module_config['method']}")
+            raise Exception(f"Invalid method: {self.component_config['method']}")
 
     def extract(self, document: Document) -> Document:
-        if self.module_config["method"] == "llm_ner":
+        if self.component_config["method"] == "llm_ner":
             # Get demonstrations for this document
             demonstrations_for_doc: DemonstrationsForOneExample = (
                 self.demonstration_retriever.search(

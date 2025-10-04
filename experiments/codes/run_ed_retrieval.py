@@ -80,7 +80,7 @@ def main(args):
     # ED-Retrieval
     ##################
 
-    logging.info(f"Applying the ED-Retrieval module to {len(documents)} documents in {path_input_documents} ...")
+    logging.info(f"Applying the ED-Retrieval component to {len(documents)} documents in {path_input_documents} ...")
 
     # Create the full output path
     path_output_documents = os.path.join(base_output_path, "documents.json")

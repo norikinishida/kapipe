@@ -66,7 +66,7 @@ def main(args):
     # Conversion from Passage to Document
     ##################
 
-    logging.info(f"Applying the Chunking module to passages in {path_input_passages} ...")
+    logging.info(f"Applying the Chunking component to passages in {path_input_passages} ...")
 
     documents = []
     prev_number = 0

@@ -112,7 +112,7 @@ def main(args):
     # Report Generation
     ##################
 
-    logging.info(f"Applying the Report Generation module to {len(communities)} communities in {path_input_communities} ...")
+    logging.info(f"Applying the Report Generation component to {len(communities)} communities in {path_input_communities} ...")
 
     # Apply the report generator to the communities
     generator.generate_community_reports(
