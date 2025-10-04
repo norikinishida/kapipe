@@ -43,6 +43,8 @@ Currently, KAPipe provides the following functionalities:
 
 These components together form an implementation of **retrieval-augmented generation (RAG)** or **graph-based RAG (GraphRAG)**, enabling question answering and reasoning grounded in external (structured) knowledge.
 
+For an example of the GraphRAG pipeline, please see [this example](experiments/notebooks/example.ipynb).
+
 ## 📦 Installation
 
 ### Step 1: Set up a Python environment
