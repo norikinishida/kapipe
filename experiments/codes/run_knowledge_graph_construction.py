@@ -6,7 +6,7 @@ import networkx as nx
 
 import sys
 sys.path.insert(0, "../..")
-from kapipe.graph_construction import GraphConstructor
+from kapipe.knowledge_graph_construction import KnowledgeGraphConstructor
 from kapipe import utils
 from kapipe.utils import StopWatch
 
@@ -40,14 +40,14 @@ def main(args):
     # Set base output path
     base_output_path = os.path.join(
         path_results_dir,
-        "graph_construction",
+        "knowledge_graph_construction",
         prefix
     )
     utils.mkdir(base_output_path)
 
     # Set logger
     shared_functions.set_logger(
-        os.path.join(base_output_path, "graph_construction.log"),
+        os.path.join(base_output_path, "knowledge_graph_construction.log"),
         # overwrite=True
     )
 
@@ -59,15 +59,15 @@ def main(args):
     ##################
 
     # Initialize the graph constructor
-    constructor = GraphConstructor()
+    constructor = KnowledgeGraphConstructor()
 
     ##################
     # Knowledge Graph Construction
     ##################
     
-    logging.info(f"Applying the Graph Construction component to extracted triples ({path_documents_list}) and additional triples ({path_additional_triples}) ...")
+    logging.info(f"Applying the Knowledge Graph Construction component to extracted triples ({path_documents_list}) and additional triples ({path_additional_triples}) ...")
 
-    # Apply the graph constructor to extracted triples and additional triples (optional)
+    # Apply the knowledge graph constructor to extracted triples and additional triples (optional)
     # The entity dictionary is used to label canonical names, synonyms, entity types, and definitions to each node as their attributes
     graph = constructor.construct_knowledge_graph(
         path_documents_list=path_documents_list,

@@ -26,12 +26,12 @@ __all__ += ["ner", "ed_retrieval", "ed_reranking", "docre"]
 # Components for Knowledge Organization
 #####
 
-# from . import graph_construction
+# from . import knowledge_graph_construction
 # from . import community_clustering
 # from . import report_generation
 # from . import chunking
 
-__all__ += ["graph_construction", "community_clustering", "report_generation", "chunking"]
+__all__ += ["knowledge_graph_construction", "community_clustering", "report_generation", "chunking"]
 
 #####
 # Components for Knowledge Retrieval

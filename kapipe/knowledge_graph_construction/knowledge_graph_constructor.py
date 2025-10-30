@@ -12,7 +12,7 @@ from .. import utils
 logger = logging.getLogger(__name__)
 
 
-class GraphConstructor:
+class KnowledgeGraphConstructor:
 
     def __init__(self):
         pass

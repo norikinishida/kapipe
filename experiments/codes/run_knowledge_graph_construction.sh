@@ -16,7 +16,7 @@ RESULTS_DIR=${STORAGE_RESULTS}
 MYPREFIX=example
 
 # With Entity Dictionary
-python run_graph_construction.py \
+python run_knowledge_graph_construction.py \
     --documents_list ${DOCUMENTS} \
     --entity_dict ${ENTITY_DICT} \
     --additional_triples ${ADDITIONAL_TRIPLES} \
@@ -24,7 +24,7 @@ python run_graph_construction.py \
     --prefix ${MYPREFIX}
 
 # # Without Entity Dictionary
-# python run_graph_construction.py \
+# python run_knowledge_graph_construction.py \
 #     --documents_list ${DOCUMENTS} \
 #     --additional_triples ${ADDITIONAL_TRIPLES} \
 #     --results_dir ${RESULTS_DIR} \

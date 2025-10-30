@@ -270,7 +270,7 @@ The **Knowledge Graph Construction** component builds a **directed multi-relatio
 - **Edges** represent semantic relations between entities.
 
 ```python
-from kapipe.graph_construction import GraphConstructor
+from kapipe.knowledge_graph_construction import KnowledgeGraphConstructor
 
 PATH_TO_DOCUMENTS = "./experiments/data/examples/documents.json"
 PATH_TO_TRIPLES = "./experiments/data/examples/additional_triples.json" # Or set to None
@@ -293,7 +293,7 @@ graph = constructor.construct_knowledge_graph(
     path_entity_dict=None
 )
 ```
-(See `experiments/codes/run_graph_construction.py` for specific examples.)
+(See `experiments/codes/run_knowledge_graph_construction.py` for specific examples.)
 
 ### Input
 
