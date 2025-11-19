@@ -1,4 +1,5 @@
 import argparse
+import json
 import logging
 import os
 
@@ -117,17 +118,23 @@ def main(args):
     logging.info(f"Applying the Report Generation component to {len(communities)} communities in {path_input_communities} ...")
 
     # Apply the report generator to the communities
-    generator.generate_community_reports(
+    reports = generator.generate_community_reports(
         # Input
         graph=graph,
         communities=communities,
         node_attr_keys=node_attr_keys,
         edge_attr_keys=edge_attr_keys,
-        # Output processing
-        path_output=os.path.join(base_output_path, "reports.jsonl"),
-        # Relation label mapping
+        # Misc.
         relation_map=RELATION_MAP
     )
+
+    # Save the Report Generation results
+    path_output_reports = os.path.join(base_output_path, "reports.jsonl")
+    with open(path_output_reports, "w") as f:
+        for r in reports:
+            line = json.dumps(r)
+            f.write(line + "\n")
+    logging.info(f"Saved reports to {path_output_reports}")
 
     ##################
     # Closing

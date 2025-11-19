@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import json
 import logging
 
 import networkx as nx
@@ -66,14 +65,12 @@ class LLMBasedReportGenerator:
         # Input
         graph: nx.MultiDiGraph,
         communities: list[CommunityRecord],
-        # Output processing
-        path_output: str,
-        # Relation label mapping
-        node_attr_keys: tuple[str, ...] = ("name", "entity_type", "description"),
-        edge_attr_keys: tuple[str, ...] = ("relation",),
+        node_attr_keys: tuple[str, ...],
+        edge_attr_keys: tuple[str, ...],
+        # Misc.
         relation_map: dict[str, str] | None = None,
         parse_generated_text_fn = None
-    ) -> None:
+    ) -> list[Passage]:
         """Generate reports for each community using an LLM."""
 
         assert len(node_attr_keys) > 0
@@ -97,19 +94,30 @@ class LLMBasedReportGenerator:
         # Convert list of communities to dictionary for quick access
         communities_dict = {c["community_id"]: c for c in communities}
 
+        # Memorize the community order for later use
+        community_order: dict[str, int] = {
+            c["community_id"]: i for i, c in enumerate(communities)
+        }
+
         # Generate community reports recursively in the bottom-up manner
-        with open(path_output, "w") as fout:
-            self._recursive(
-                community=communities_dict["ROOT"],
-                communities_dict=communities_dict,
-                fout=fout
-            )
+        reports: list[Passage] = []
+        self._recursive(
+            community=communities_dict["ROOT"],
+            communities_dict=communities_dict,
+            reports=reports,
+        )
+
+        # Finally, sort the reports based on the community order
+        reports.sort(key=lambda r: community_order[r["community_id"]])
+
+        return reports
+
 
     def _recursive(
         self,
         community: CommunityRecord,
         communities_dict: dict[str, CommunityRecord],
-        fout
+        reports: list[Passage]
     ) -> Passage | None:
         """Recursively generate reports in bottom-up fashion."""
 
@@ -121,7 +129,7 @@ class LLMBasedReportGenerator:
                 child_report = self._recursive(
                     community=child_community,
                     communities_dict=communities_dict,
-                    fout=fout
+                    reports=reports
                 )
                 child_reports.append(child_report)
 
@@ -142,10 +150,9 @@ class LLMBasedReportGenerator:
             child_reports=child_reports
         )
 
-        # Save the report
-        json_str = json.dumps(report)
-        fout.write(json_str + "\n")
-        fout.flush()
+        # Record the generated report
+        reports.append(report)
+
         return report           
 
     def _generate_community_report(

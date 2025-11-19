@@ -7,7 +7,7 @@ STORAGE_DATA=${STORAGE}/data
 STORAGE_RESULTS=${STORAGE}/results
 
 # Method
-METHOD=llm
+METHOD=template
 
 # Input Data
 INPUT_GRAPH=${STORAGE_DATA}/examples/graph.graphml
@@ -17,7 +17,7 @@ EDGE_ATTR_KEYS="relation"
 
 # Output Path
 RESULTS_DIR=${STORAGE_RESULTS}
-MYPREFIX=example
+MYPREFIX=example4
 
 python run_report_generation.py \
     --method ${METHOD} \
