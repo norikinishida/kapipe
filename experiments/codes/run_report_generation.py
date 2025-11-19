@@ -40,6 +40,8 @@ def main(args):
     # Input Data
     path_input_graph = args.input_graph
     path_input_communities = args.input_communities
+    node_attr_keys = args.node_attr_keys
+    edge_attr_keys = args.edge_attr_keys
 
     # Output Path
     path_results_dir = args.results_dir
@@ -119,6 +121,8 @@ def main(args):
         # Input
         graph=graph,
         communities=communities,
+        node_attr_keys=node_attr_keys,
+        edge_attr_keys=edge_attr_keys,
         # Output processing
         path_output=os.path.join(base_output_path, "reports.jsonl"),
         # Relation label mapping
@@ -148,6 +152,8 @@ if __name__ == "__main__":
     # Input Data
     parser.add_argument("--input_graph", type=str, required=True)
     parser.add_argument("--input_communities", type=str, required=True)
+    parser.add_argument("--node_attr_keys", nargs="+", default=["name", "entity_type", "description"])
+    parser.add_argument("--edge_attr_keys", nargs="+", default=["relation"])
 
     # Output Path
     parser.add_argument("--results_dir", type=str, required=True)

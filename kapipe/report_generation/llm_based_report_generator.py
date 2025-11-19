@@ -69,10 +69,15 @@ class LLMBasedReportGenerator:
         # Output processing
         path_output: str,
         # Relation label mapping
+        node_attr_keys: tuple[str, ...] = ("name", "entity_type", "description"),
+        edge_attr_keys: tuple[str, ...] = ("relation",),
         relation_map: dict[str, str] | None = None,
         parse_generated_text_fn = None
     ) -> None:
         """Generate reports for each community using an LLM."""
+
+        assert len(node_attr_keys) > 0
+        assert len(edge_attr_keys) > 0
 
         if relation_map is None:
             relation_map = {}
@@ -82,6 +87,8 @@ class LLMBasedReportGenerator:
 
         # Save the context for later use
         self.graph = graph
+        self.node_attr_keys = node_attr_keys
+        self.edge_attr_keys = edge_attr_keys
         self.relation_map = relation_map
         self.parse_generated_text_fn = parse_generated_text_fn
         self.n_total = len(communities) - 1 # Exclude ROOT
@@ -198,26 +205,53 @@ class LLMBasedReportGenerator:
 
         # Generate prompt part for nodes
         if len(direct_nodes) > 0:
-            content_prompt += "Entities:\n"
+            # content_prompt += "Entities:\n"
+            content_prompt += "Nodes:\n"
             for node in direct_nodes:
                 props = self.graph.nodes[node]
-                name = props["name"].replace("|", " ")
-                etype = props["entity_type"].replace("|", " ")
-                desc = props["description"].replace("|", " ").replace("\n", " ").rstrip()
-                if desc == "":
-                    desc = "N/A"
-                content_prompt += f"- {name} | {etype} | {desc}\n"
+
+                # name = props["name"].replace("|", " ")
+                # etype = props["entity_type"].replace("|", " ")
+                # desc = props["description"].replace("|", " ").replace("\n", " ").rstrip()
+                # if desc == "":
+                #     desc = "N/A"
+                # content_prompt += f"- {name} | {etype} | {desc}\n"
+
+                # Create one line based on node_attr_keys
+                values = []
+                for key in self.node_attr_keys:
+                    v = props[key].replace("|", " ").replace("\n", " ").strip()
+                    if key == "description" and v == "":
+                        v = "N/A"
+                    values.append(v)
+                line = " | ".join(values)
+                content_prompt += f"- {line}\n"
+ 
             content_prompt += "\n"
 
         # Generate prompt part for edges
         if len(edges) > 0:
             content_prompt += "Relationships:\n"
             for head, tail, props in edges:
-                head_name = self.graph.nodes[head]["name"].replace("|", " ")
-                tail_name = self.graph.nodes[tail]["name"].replace("|", " ")
-                relation = props["relation"]
-                relation = self.relation_map.get(relation, relation).replace("|", " ")
-                content_prompt += f"- {head_name} | {relation} | {tail_name}\n"
+                # head_name = self.graph.nodes[head]["name"].replace("|", " ")
+                # tail_name = self.graph.nodes[tail]["name"].replace("|", " ")
+                # relation = props["relation"]
+                # relation = self.relation_map.get(relation, relation).replace("|", " ")
+                # content_prompt += f"- {head_name} | {relation} | {tail_name}\n"
+
+                # Create one line based on edge_attr_keys
+                head_name = self.graph.nodes[head][self.node_attr_keys[0]].replace("|", " ").replace("\n", " ").strip()
+                tail_name = self.graph.nodes[tail][self.node_attr_keys[0]].replace("|", " ").replace("\n", " ").strip()
+                relation = props[self.edge_attr_keys[0]]
+                relation = self.relation_map.get(relation, relation).replace("|", " ").replace("\n", " ").strip()
+                values = [head_name, relation, tail_name]
+                if len(self.edge_attr_keys) > 1:
+                    for key in self.edge_attr_keys[1:]:
+                        v = props[key].replace("|", " ").replace("\n", " ").strip()
+                        values.append(v)
+                line = " | ".join(values)
+                content_prompt += f"- {line}\n"
+
             content_prompt += "\n"
 
         # Generate prompt part for child reports
