@@ -31,13 +31,17 @@ class NeighborhoodAggregation:
         # Initialize the community records
         communities: list[CommunityRecord] = []
 
+        # undirected_graph = graph.to_undirected()
+
         for center_node in graph.nodes:
             # Get in- and out-neighbor nodes
             out_neighbor_nodes = set(graph.neighbors(center_node))
             in_neighbor_nodes = set(graph.predecessors(center_node))
+            # nodes_within_k = nx.single_source_shortest_path_length(undirected_graph, center_node, cutoff=1).keys()
 
             # Merge the neighbor nodes
             neighbor_nodes = list(out_neighbor_nodes | in_neighbor_nodes)
+            # neighbor_nodes = set(nodes_within_k)  - {center_node}
 
             # Add a new community record
             communities.append({
