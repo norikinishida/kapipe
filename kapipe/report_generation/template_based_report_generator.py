@@ -92,7 +92,8 @@ class TemplateBasedReportGenerator:
             content_text = ""
             if len(direct_nodes) > 0:
                 # content_text += "This community contains the following entities:\n"
-                content_text += "This community contains the following nodes:\n"
+                # content_text += "This community contains the following nodes:\n"
+                content_text += "Nodes:\n"
                 for node in direct_nodes:
                     props = graph.nodes[node]
 
@@ -113,9 +114,12 @@ class TemplateBasedReportGenerator:
                     line = " | ".join(values)
                     content_text += f"- {line}\n"
 
+                content_text += "\n"
+
             if len(edges) > 0:
                 # content_text += "The relationships between the entities are as follows:\n"
-                content_text += "The relationships between the nodes are as follows:\n"
+                # content_text += "The relationships between the nodes are as follows:\n"
+                content_text += "Relationships:\n"
                 for head, tail, props in edges:
                     # head_name = graph.nodes[head]["name"].replace("|", " ")
                     # tail_name = graph.nodes[tail]["name"].replace("|", " ")
