@@ -12,7 +12,6 @@ from tqdm import tqdm
 from ..datatypes import (
     Config,
     Question,
-    DemonstrationsForOneExample,
     ContextsForOneExample
 )
 from .. import utils
@@ -30,7 +29,6 @@ class LLMQA:
         device: str | int = 0,
         # Initialization
         config: Config | str | None = None,
-        path_demonstration_pool: str | None = None,
         # Loading
         path_snapshot: str | None = None,
         # Misc.
@@ -46,11 +44,7 @@ class LLMQA:
 
         if path_snapshot is not None:
             assert config is None
-            assert path_demonstration_pool is None
             config = path_snapshot + "/config"
-            path_demonstration_pool = path_snapshot + "/demonstration_pool.json"
-            if not os.path.exists(path_demonstration_pool):
-                path_demonstration_pool = None
 
         # Load the configuration
         if isinstance(config, str):
@@ -64,8 +58,6 @@ class LLMQA:
         self.prompt_processor = PromptProcessor(
             prompt_template_name_or_path=config["prompt_template_name_or_path"],
             n_contexts=config["n_contexts"],
-            path_demonstration_pool=path_demonstration_pool,
-            n_demonstrations=config["n_demonstrations"]
         )
 
         # Initialize the model
@@ -98,19 +90,11 @@ class LLMQA:
 
     def save(self, path_snapshot: str) -> None:
         path_config = path_snapshot + "/config"
-        path_demonstration_pool = path_snapshot + "/demonstration_pool.json"
         utils.write_json(path_config, self.config)
-        if self.prompt_processor.path_demonstration_pool is not None:
-            utils.write_json(
-                path_demonstration_pool,
-                self.prompt_processor.demonstration_pool
-            )
 
     def answer(
         self,
         question: Question,
-        # optional: few-shot setting
-        demonstrations_for_question: DemonstrationsForOneExample | None = None,
         # optional: context augmentation
         contexts_for_question: ContextsForOneExample | None = None
     ) -> Question:
@@ -136,7 +120,6 @@ class LLMQA:
                     # Generate a prompt
                     prompt = self.prompt_processor.generate(
                         question=question,
-                        demonstrations_for_question=demonstrations_for_question,
                         contexts_for_question=new_contexts_for_question
                     )
 
@@ -178,7 +161,6 @@ class LLMQA:
                 # Generate a prompt
                 prompt = self.prompt_processor.generate(
                     question=question,
-                    demonstrations_for_question=demonstrations_for_question,
                     contexts_for_question=new_contexts_for_question
                 )
 
@@ -194,7 +176,6 @@ class LLMQA:
                 # Generate a prompt
                 prompt = self.prompt_processor.generate(
                     question=question,
-                    demonstrations_for_question=demonstrations_for_question,
                     contexts_for_question=contexts_for_question
                 )
 
@@ -260,27 +241,21 @@ class LLMQA:
     def batch_answer(
         self,
         questions: list[Question],
-        # optional: few-shot setting
-        demonstrations: list[DemonstrationsForOneExample] | None = None,
         # optional: context augmentation
         contexts: list[ContextsForOneExample] | None = None
     ) -> list[Question]:
         result_questions = []
 
-        if demonstrations is None:
-            demonstrations = [None] * len(questions)
-
         if contexts is None:
             contexts = [None] * len(questions)
 
-        for question, demos_for_q, contexts_for_q in tqdm(
-            zip(questions, demonstrations, contexts),
+        for question, contexts_for_q in tqdm(
+            zip(questions, contexts),
             total=len(questions),
             desc="answering steps"
         ):
             result_question = self.answer(
                 question=question,
-                demonstrations_for_question=demos_for_q,
                 contexts_for_question=contexts_for_q
             )
             result_questions.append(result_question)
@@ -294,17 +269,9 @@ class PromptProcessor:
         prompt_template_name_or_path: str,
         # optional: context
         n_contexts: int = -1,
-        # optional: few-shot setting
-        path_demonstration_pool: str | None = None,
-        n_demonstrations: int | None = None
     ): 
         self.prompt_template_name_or_path = prompt_template_name_or_path
-        self.path_demonstration_pool = path_demonstration_pool
         self.n_contexts = n_contexts
-        self.n_demonstrations = n_demonstrations
-
-        if self.path_demonstration_pool is not None:
-            assert self.n_demonstrations is not None
 
         #####
         # Prompt template
@@ -315,42 +282,14 @@ class PromptProcessor:
         )
 
         # Check requirements
-        if self.path_demonstration_pool is not None:
-            assert "{demonstrations_prompt}" in self.prompt_template
         assert "{test_case_prompt}" in self.prompt_template
 
-        #####
-        # Demonstration pool
-        #####
-
-        if self.path_demonstration_pool is not None:
-            self.demonstration_pool: dict[str, Question] = {
-                demo_doc["question_key"]: demo_doc
-                for demo_doc in utils.read_json(self.path_demonstration_pool)
-            }
- 
     def generate(
         self,
         question: Question,
-        # optional: few-shot setting
-        demonstrations_for_question: DemonstrationsForOneExample | None = None,
         # optional: context augmentation
         contexts_for_question: ContextsForOneExample | None = None
     ) -> str:
-        if demonstrations_for_question is not None:
-            # Prepare demonstrations
-            demonstration_questions = [
-                self.demonstration_pool[demo_key_info["question_key"]]
-                for demo_key_info in demonstrations_for_question["demonstrations"][
-                    :self.n_demonstrations
-                ]
-            ]
-            # Get prompt part for demonstrations
-            demonstrations_prompt = self.generate_demonstrations_prompt(
-                demonstration_questions=demonstration_questions
-            )
-        else:
-            demonstrations_prompt = ""
 
         if contexts_for_question is not None:
             # Prepare contexts
@@ -375,31 +314,19 @@ class PromptProcessor:
 
         # Combine the prompt parts
         prompt = self.prompt_template.format(
-            demonstrations_prompt=demonstrations_prompt,
             contexts_prompt=contexts_prompt,
             test_case_prompt=test_case_prompt
         )
         return prompt
-
-    def generate_demonstrations_prompt(
-        self,
-        demonstration_questions: list[Question]
-    ) -> str:
-        prompt = ""
-        n_demos = len(demonstration_questions)
-        for demo_i, demo in enumerate(demonstration_questions):
-            prompt += f"Example {demo_i+1}:\n"
-            prompt += f"Question: {self.generate_input_question_prompt(question=demo)}\n"
-            prompt += f"Answer: {self.generate_output_prompt(question=demo)}\n"
-            if demo_i < n_demos - 1:
-                prompt += "\n"
-        return prompt.rstrip()
 
     def generate_contexts_prompt(self, context_texts: list[str]) -> str:
         n_contexts = len(context_texts)
 
         if n_contexts == 0:
             return ""
+
+        if n_contexts == 1:
+            return context_texts[0].strip()
 
         prompt = ""
         for c_i, content_text in enumerate(context_texts):
@@ -468,7 +395,6 @@ class LLMQATrainer:
         self,
         answerer: LLMQA,
         questions: list[Question],
-        demonstrations: list[DemonstrationsForOneExample] | None,
         contexts: list[ContextsForOneExample] | None,
         split: str,
         #
@@ -477,10 +403,9 @@ class LLMQATrainer:
         get_scores_only: bool = False
     ) -> dict[str, Any] | None:
         # Apply the answerer to the given questions,
-        # optionally based on the demonstrations and contexts
+        # optionally based on the contexts
         result_questions = answerer.batch_answer(
             questions=questions,
-            demonstrations=demonstrations,
             contexts=contexts
         )
 

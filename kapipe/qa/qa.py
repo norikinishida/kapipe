@@ -43,7 +43,6 @@ class QA:
     ) -> Question: 
         return self.answerer.answer(
             question=question,
-            demonstrations_for_question=None,
             contexts_for_question=contexts_for_question
         )
  
