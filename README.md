@@ -2,7 +2,7 @@
 
 ## Table of Contents
 
-- [What is KAPipe?](#what-is-kapipe)
+- [Overview](#overview)
 - [Installation](#installation)
 - [Triple Extraction](#triple-extraction)
 - [Knowledge Graph Construction](#knowledge-graph-construction)
@@ -11,13 +11,14 @@
 - [️Chunking](#chunking)
 - [Passage Retrieval](#passage-retrieval)
 - [Question Answering](#question-answering)
-- [Citation / Publication](#citation--publication)
 - [Available Identifiers](#available-identifiers)
+- [Citation / Publication](#citation--publication)
 
-## What is KAPipe?
+## Overview
 
 **KAPipe** is a modular pipeline for comprehensive **knowledge acquisition** from unstructured documents.  
 It supports **extraction**, **organization**, **retrieval**, and **utilization** of knowledge, serving as a core framework for building intelligent systems that reason over structured knowledge.  
+It is the framework used in our TACL'26 paper (Nishida et al.; to appear).
 
 Currently, KAPipe provides the following functionalities:
 
@@ -44,7 +45,7 @@ Currently, KAPipe provides the following functionalities:
 
 These components together form an implementation of **retrieval-augmented generation (RAG)** or **graph-based RAG (GraphRAG)**, enabling question answering and reasoning grounded in external (structured) knowledge.
 
-For an example of the GraphRAG pipeline, please see [this example](experiments/notebooks/example.ipynb).
+For an example of the GraphRAG pipeline, please see [this example](experiments/examples/example.ipynb).
 
 ## Installation
 
@@ -800,24 +801,6 @@ The answer is a dictionary containing:
 ```
 (See `experiments/data/examples/answers.json` for more details.)
 
-## Citation / Publications
-
-If **KAPipe** is helpful for your work, please consider citing the following paper:
-
-**Dissecting GraphRAG: A Modular Analysis of Knowledge Structuring for Factoid Question Answering**.
-Noriki Nishida, Rumana Ferdous Munne, Shanshan Liu, Narumi Tokunaga, Yuki Yamagata, Fei Cheng, Kouji Kozaki, and Yuji Matsumoto. 2026.
-Transactions of the Association for Computational Linguistics (TACL), to appear.
-
-```bibtex
-@article{nishida2026dissecting,
-  title   = {Dissecting GraphRAG: A Modular Analysis of Knowledge Structuring for Factoid Question Answering},
-  author  = {Nishida, Noriki and Munne, Rumana Ferdous and Liu, Shanshan and Tokunaga, Narumi and Yamagata, Yuki and Cheng, Fei and Kozaki, Kouji and Matsumoto, Yuji},
-  journal = {Transactions of the Association for Computational Linguistics},
-  year    = {2026},
-  note    = {to appear}
-}
-```
-
 ## Available Identifiers
 
 The following configurations (`identifier`) are currently available:
@@ -852,4 +835,22 @@ The following configurations (`identifier`) are currently available:
 | DocRE | `llama3_1_8b_cdr`, `llama3_1_70b_cdr`, `qwen2_5_7b_cdr` | Open-source LLMs with few-shot DocRE prompting for CDR | {Chemical-Induce-Disease} |
 | QA | `gpt4o_without_context` | GPT-4o with QA prompting without retrieved context | Any |
 | QA | `gpt4o_with_context` | GPT-4o with QA prompting with retrieved context | Any |
+
+## Citation / Publication
+
+If **KAPipe** is helpful for your work, please consider citing the following paper:
+
+**Dissecting GraphRAG: A Modular Analysis of Knowledge Structuring for Factoid Question Answering**.
+Noriki Nishida, Rumana Ferdous Munne, Shanshan Liu, Narumi Tokunaga, Yuki Yamagata, Fei Cheng, Kouji Kozaki, and Yuji Matsumoto. 2026.
+Transactions of the Association for Computational Linguistics (TACL), to appear.
+
+```bibtex
+@article{nishida2026dissecting,
+  title   = {Dissecting GraphRAG: A Modular Analysis of Knowledge Structuring for Factoid Question Answering},
+  author  = {Nishida, Noriki and Munne, Rumana Ferdous and Liu, Shanshan and Tokunaga, Narumi and Yamagata, Yuki and Cheng, Fei and Kozaki, Kouji and Matsumoto, Yuji},
+  journal = {Transactions of the Association for Computational Linguistics},
+  year    = {2026},
+  note    = {to appear}
+}
+```
 
