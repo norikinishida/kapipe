@@ -59,7 +59,7 @@ def main(args):
     # Method
     ##################
 
-    # Initialize the chunker
+    # Initialize the Chunking component
     chunker = Chunker(model_name=spacy_model_name)
 
     ##################

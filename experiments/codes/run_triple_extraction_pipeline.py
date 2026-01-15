@@ -108,12 +108,12 @@ def main(args):
     # Triple Extraction
     ##################
 
-    logging.info(f"Applying the Triple Extraction Pipeline to {len(documents)} documents in {path_input_documents} ...")
+    logging.info(f"Applying the Triple Extraction pipeline to {len(documents)} documents in {path_input_documents} ...")
 
     # Create the full output path
     path_output_documents = os.path.join(base_output_path, "documents.json")
 
-    # Apply the triple extraction pipeline to the documents
+    # Apply the Triple Extraction pipeline to the documents
     result_documents = []
     for document in tqdm(documents):
         result_document = pipe.extract(document=document, num_candidate_entities=10)
@@ -121,9 +121,9 @@ def main(args):
         if len(result_documents) % 500 == 0:
             utils.write_json(path_output_documents.replace(".json", f".until_{len(result_documents)}.json"), result_documents)
 
-    # Save the results
+    # Save the Triple Extraction results
     utils.write_json(path_output_documents, result_documents)
-    logging.info(f"Saved the prediction results to {path_output_documents}")
+    logging.info(f"Saved the Triple Extraction results to {path_output_documents}")
 
     # Save the prompt-response pairs visually in plain text
     if "ner_prompt" in result_documents[0] and "ner_generated_text" in result_documents[0]:
@@ -175,7 +175,7 @@ def main(args):
 
     if do_evaluation:
         # Evaluate the prediction results
-        logging.info("Evaluating the prediction results ...")
+        logging.info("Evaluating the Triple Extraction results ...")
         ner_scores = evaluation.ner.fscore(
             pred_path=path_output_documents,
             gold_path=path_input_documents

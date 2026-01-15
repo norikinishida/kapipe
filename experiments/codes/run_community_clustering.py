@@ -72,7 +72,7 @@ def main(args):
     # Method
     ##################
 
-    # Initialize the community clustering object
+    # Initialize the Community Clustering component 
     if clustering_method == "hierarchical_leiden":
         clusterer = HierarchicalLeiden()
     elif clustering_method == "neighborhood_aggregation":
@@ -88,7 +88,7 @@ def main(args):
 
     logging.info(f"Applying the Community Clustering component to knowledge graph in {path_input_graph} ...")
 
-    # Apply the community clustering object to the graph
+    # Apply the Community Clustering component to the graph
     if clustering_method == "hierarchical_leiden":
         communities = clusterer.cluster_communities(graph=graph, max_cluster_size=10, use_lcc=False)
         # communities = clusterer.cluster_communities(graph=graph, max_cluster_size=10, use_lcc=True)

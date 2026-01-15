@@ -110,7 +110,7 @@ def main(args):
             config_name=config_name
         )
 
-        # Initialize the answerer
+        # Initialize the QA component
         answerer = LLMQA(
             device=device,
             config=config,

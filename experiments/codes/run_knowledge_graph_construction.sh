@@ -17,15 +17,15 @@ MYPREFIX=example
 
 # With Entity Dictionary
 python run_knowledge_graph_construction.py \
-    --documents_list ${DOCUMENTS} \
-    --entity_dict ${ENTITY_DICT} \
-    --additional_triples ${ADDITIONAL_TRIPLES} \
+    --input_documents_list ${DOCUMENTS} \
+    --input_additional_triples ${ADDITIONAL_TRIPLES} \
+    --input_entity_dict ${ENTITY_DICT} \
     --results_dir ${RESULTS_DIR} \
     --prefix ${MYPREFIX}
 
 # # Without Entity Dictionary
 # python run_knowledge_graph_construction.py \
-#     --documents_list ${DOCUMENTS} \
-#     --additional_triples ${ADDITIONAL_TRIPLES} \
+#     --input_documents_list ${DOCUMENTS} \
+#     --input_additional_triples ${ADDITIONAL_TRIPLES} \
 #     --results_dir ${RESULTS_DIR} \
 #     --prefix ${MYPREFIX}

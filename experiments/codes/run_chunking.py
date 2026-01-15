@@ -61,7 +61,7 @@ def main(args):
     # Method
     ##################
 
-    # Initialize the chunker
+    # Initialize the Chunking component
     chunker = Chunker(model_name=spacy_model_name)
 
     ##################
@@ -76,7 +76,7 @@ def main(args):
     filename = os.path.splitext(os.path.basename(path_input_passages))[0]
     filename = f"{filename}.chunked_w{window_size}.jsonl"
 
-    # Apply the chunker to the passages
+    # Apply the Chunking component to the passages
     count_before = 0
     count_after = 0
     with open(os.path.join(base_output_path, filename), "w") as fout:

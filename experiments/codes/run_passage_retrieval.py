@@ -129,7 +129,7 @@ def main(args):
     # Method
     ##################
 
-    # Initialize the passage retriever
+    # Initialize the Passage Retrieval component
     if method_name == "contriever":
         retriever = Contriever(
             max_passage_length=512,
@@ -189,7 +189,7 @@ def main(args):
             os.path.splitext(os.path.basename(path_input_file))[0] + ".contexts.json"
         )
         utils.write_json(search_output, contexts)
-        logging.info(f"Saved the retrieval results to {search_output}")
+        logging.info(f"Saved the Passage Retrieval results to {search_output}")
 
     ##################
     # Closing

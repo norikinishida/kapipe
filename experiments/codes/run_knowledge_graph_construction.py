@@ -22,9 +22,9 @@ def main(args):
     ##################
 
     # Input Data
-    path_documents_list = args.documents_list
-    path_additional_triples = args.additional_triples
-    path_entity_dict = args.entity_dict
+    path_input_documents_list = args.input_documents_list
+    path_input_additional_triples = args.input_additional_triples
+    path_input_entity_dict = args.input_entity_dict
 
     # Output Path
     path_results_dir = args.results_dir
@@ -58,21 +58,21 @@ def main(args):
     # Method
     ##################
 
-    # Initialize the graph constructor
+    # Initialize the Knowledge Graph Construction component
     constructor = KnowledgeGraphConstructor()
 
     ##################
     # Knowledge Graph Construction
     ##################
     
-    logging.info(f"Applying the Knowledge Graph Construction component to extracted triples ({path_documents_list}) and additional triples ({path_additional_triples}) ...")
+    logging.info(f"Applying the Knowledge Graph Construction component to extracted triples ({path_input_documents_list}) and additional triples ({path_input_additional_triples}) ...")
 
-    # Apply the knowledge graph constructor to extracted triples and additional triples (optional)
+    # Apply the Knowledge Graph Construction component to extracted triples and additional triples (optional)
     # The entity dictionary is used to label canonical names, synonyms, entity types, and definitions to each node as their attributes
     graph = constructor.construct_knowledge_graph(
-        path_documents_list=path_documents_list,
-        path_additional_triples=path_additional_triples,
-        path_entity_dict=path_entity_dict
+        path_documents_list=path_input_documents_list,
+        path_additional_triples=path_input_additional_triples,
+        path_entity_dict=path_input_entity_dict
     )
 
     # Save the `networkx.MultiDiGraph` in GraphML format
@@ -98,9 +98,9 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
     # Input Data
-    parser.add_argument("--documents_list", nargs="*")
-    parser.add_argument("--additional_triples", type=str, default=None)
-    parser.add_argument("--entity_dict", type=str, default=None)
+    parser.add_argument("--input_documents_list", nargs="*")
+    parser.add_argument("--input_additional_triples", type=str, default=None)
+    parser.add_argument("--input_entity_dict", type=str, default=None)
 
     # Output Path
     parser.add_argument("--results_dir", type=str, required=True)

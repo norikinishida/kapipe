@@ -10,8 +10,8 @@ STORAGE_RESULTS=${STORAGE}/results
 IDENTIFIER=gpt4o_with_context
 
 # Input Data
-QUESTIONS=${STORAGE_DATA}/examples/questions.json
-CONTEXTS=${STORAGE_DATA}/examples/questions.contexts.json
+INPUT_QUESTIONS=${STORAGE_DATA}/examples/questions.json
+INPUT_CONTEXTS=${STORAGE_DATA}/examples/questions.contexts.json
 
 # Output Path
 RESULTS_DIR=${STORAGE_RESULTS}
@@ -19,7 +19,7 @@ MYPREFIX=example
 
 python run_qa.py \
     --identifier ${IDENTIFIER} \
-    --input_questions ${QUESTIONS} \
-    --input_contexts ${CONTEXTS} \
+    --input_questions ${INPUT_QUESTIONS} \
+    --input_contexts ${INPUT_CONTEXTS} \
     --results_dir ${RESULTS_DIR} \
     --prefix ${MYPREFIX}

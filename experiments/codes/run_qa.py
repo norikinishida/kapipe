@@ -81,7 +81,7 @@ def main(args):
     # Method
     ##################
 
-    # Initialilze the question answerer
+    # Initialilze the QA component
     answerer = QA(identifier=identifier, gpu=gpu)
 
     ##################
@@ -93,7 +93,7 @@ def main(args):
     # Create the full output path
     path_output_questions = os.path.join(base_output_path, f"{base_filename}.pred.json")
 
-    # Apply the question answerer to the questions
+    # Apply the QA component to the questions
     result_questions = []
     for question, contexts_for_q in tqdm(
         zip(questions, contexts),
@@ -105,9 +105,9 @@ def main(args):
         )
         result_questions.append(result_question)
 
-    # Save the results
+    # Save the QA results
     utils.write_json(path_output_questions, result_questions)
-    logging.info(f"Saved the prediction results to {path_output_questions}")
+    logging.info(f"Saved the QA results to {path_output_questions}")
 
     # Save the prompt-response pairs in plain text
     if "qa_prompt" in result_questions[0] and "qa_generated_text" in result_questions[0]:

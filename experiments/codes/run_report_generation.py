@@ -88,7 +88,7 @@ def main(args):
     # Method
     ##################
 
-    # Initialize the report generator
+    # Initialize the Report Generation component
     if reporting_method == "llm":
         generator = LLMBasedReportGenerator(
             llm_backend="openai",
