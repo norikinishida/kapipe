@@ -77,7 +77,7 @@ def _llm4eval(pred_questions, gold_questions):
         gold_ans_list = []
         for list_index, synonyms in index_to_synonyms.items():
             gold_ans_list.append(synonyms[0])
-        gold_ans_str = "Answer: " + ", ".join(gold_ans_list)
+        gold_ans_str = "Answer: " + "; ".join(gold_ans_list)
 
         # Ask LLM
         prompt = prompt_template.format(
