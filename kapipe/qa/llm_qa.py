@@ -82,10 +82,6 @@ class LLMQA:
             )
         # self.model.llm.to(self.model.device)
 
-        self.map_reduce_generation = config["map_reduce_generation"]
-        if self.map_reduce_generation:
-            self.n_intermediate_answers = config["n_intermediate_answers"]
-
         logger.info("########## LLMQA Initialization Ends ##########")
 
     def save(self, path_snapshot: str) -> None:
@@ -103,110 +99,50 @@ class LLMQA:
                 # Switch to inference mode
                 self.model.llm.eval()
 
-            if self.map_reduce_generation:
-                ###
-                # Step 1. map generation
-                ###
+            # Generate a prompt
+            prompt = self.generate_prompt(
+                question=question,
+                contexts_for_question=contexts_for_question
+            )
 
-                intermediate_answers = []
-                assert contexts_for_question is not None
-                for passage in contexts_for_question["contexts"]:
-                    # Prepare a new-formed context
-                    new_contexts_for_question: ContextsForOneExample = {
-                        "question_key": contexts_for_question["question_key"],
-                        "contexts": [passage]
-                    }
+            # Generate a response
+            generated_text = self.model.generate(prompt)
 
-                    # Generate a prompt
-                    prompt = self.prompt_processor.generate(
-                        question=question,
-                        contexts_for_question=new_contexts_for_question
-                    )
-
-                    # Generate a response
-                    generated_text = self.model.generate(prompt)
-
-                    # Structurize
-                    answer, helpfulness_score = self.structurize(
-                        question=question,
-                        generated_text=generated_text
-                    )
-                    intermediate_answers.append({
-                        "intermediate_answer": answer,
-                        "helpfulness_score": helpfulness_score
-                    })
-
-                ###
-                # Step 2. reduce generation
-                ###
-
-                # Select high-confident intermediate answers
-                intermediate_answers = sorted(
-                    intermediate_answers,
-                    key=lambda x: -x["helpfulness_score"]
-                )
-                intermediate_answers = intermediate_answers[
-                    :self.n_intermediate_answers
-                ]
-
-                # Prepare a new-formed context
-                new_contexts_for_question: ContextsForOneExample = {
-                    "question_key": contexts_for_question["question_key"],
-                    "contexts": [
-                        {"text": f"{x['intermediate_answer']} (score: {x['helpfulness_score']})"}
-                        for x in intermediate_answers
-                    ]
-                }
-
-                # Generate a prompt
-                prompt = self.prompt_processor.generate(
-                    question=question,
-                    contexts_for_question=new_contexts_for_question
-                )
-
-                # Generate a response
-                generated_text = self.model.generate(prompt)
-
-                # Structurize
-                answer, helpfulness_score = self.structurize(
-                    question=question,
-                    generated_text=generated_text
-                )
-            else:
-                # Generate a prompt
-                prompt = self.prompt_processor.generate(
-                    question=question,
-                    contexts_for_question=contexts_for_question
-                )
-
-                # Generate a response
-                generated_text = self.model.generate(prompt)
-
-                # Structurize
-                answer, helpfulness_score = self.structurize(
-                    question=question,
-                    generated_text=generated_text
-                )
+            # Parse the generated response
+            answer, rationale, helpfulness_score = self.parse(
+                question=question,
+                generated_text=generated_text
+            )
 
             # Integrate
-            result_question = copy.deepcopy(question)
-            result_question["output_answer"] = answer
-            result_question["helpfulness_score"] = helpfulness_score
-            result_question["qa_prompt"] = prompt
-            result_question["qa_generated_text"] = generated_text
-            if self.map_reduce_generation:
-                result_question["intermediate_answers"] = intermediate_answers
-            return result_question
+            result = copy.deepcopy(question)
+            result["output_answer"] = answer
+            result["rationale"] = rationale
+            result["helpfulness_score"] = helpfulness_score
+            result["qa_prompt"] = prompt
+            result["qa_generated_text"] = generated_text
+            return result
 
-    def structurize(
+    def generate_prompt(
+        self,
+        question: Question,
+        contexts_for_question: ContextsForOneExample
+    ) -> str:
+        return self.prompt_processor.generate(
+           question=question,
+           contexts_for_question=contexts_for_question
+        )
+
+    def parse(
         self,
         question: Question,
         generated_text: str
-    ) -> tuple[str, float]:
+    ) -> tuple[str, float, str]:
         question_key = question["question_key"]
 
         # Parse each generated line
         answer = generated_text
+        rationale = ""
         score = 0.0
         for generated_line in generated_text.split("\n"):
             generated_text = generated_line.strip()
@@ -218,6 +154,8 @@ class LLMQA:
             # Parse the generated_line
             if generated_line.startswith("Answer:"):
                 answer = generated_line[len("Answer:"):].strip()
+            elif generated_line.startswith("Rationale:"):
+                rationale = generated_line[len("Rationale:"):].strip()
             elif generated_line.startswith("Score:"):
                 # score = float(generated_line[len("Score:"):].strip())
                 match = re.search(r"Score:\s*([\d.]+)%?", generated_line)
@@ -236,7 +174,7 @@ class LLMQA:
                     score = 0.0
             else:
                 logger.info(f"[{question_key}] Skipped a generated line of invalid formatting: '{generated_line}'")
-        return answer, score
+        return answer, rationale, score
  
     def batch_answer(
         self,
@@ -244,7 +182,7 @@ class LLMQA:
         # optional: context augmentation
         contexts: list[ContextsForOneExample] | None = None
     ) -> list[Question]:
-        result_questions = []
+        results = []
 
         if contexts is None:
             contexts = [None] * len(questions)
@@ -254,12 +192,12 @@ class LLMQA:
             total=len(questions),
             desc="answering steps"
         ):
-            result_question = self.answer(
+            result = self.answer(
                 question=question,
                 contexts_for_question=contexts_for_q
             )
-            result_questions.append(result_question)
-        return result_questions
+            results.append(result)
+        return results
 
 
 class PromptProcessor:
@@ -336,8 +274,18 @@ class PromptProcessor:
         return prompt.rstrip()
 
     def generate_test_case_prompt(self, question: Question) -> str:
-        return f"Question: {self.generate_input_question_prompt(question)}".rstrip()
-                   
+        prompt = f"Question: {self.generate_input_question_prompt(question)}".rstrip()
+
+        # Check if candidate_answers exists and is a list
+        candidate_answers = question.get("candidate_answers")
+        if candidate_answers and isinstance(candidate_answers, list):
+            # Append options to the prompt
+            prompt += "\nOptions:\n"
+            # Join all candidates with a newline and a bullet point
+            prompt += "\n".join([f"- {ans}" for ans in candidate_answers])
+            
+        return prompt.rstrip()
+ 
     def generate_input_question_prompt(self, question: Question) -> str:
         return question["question"]
 
@@ -404,20 +352,20 @@ class LLMQATrainer:
     ) -> dict[str, Any] | None:
         # Apply the answerer to the given questions,
         # optionally based on the contexts
-        result_questions = answerer.batch_answer(
+        results = answerer.batch_answer(
             questions=questions,
             contexts=contexts
         )
 
         # Save the prediction results
-        utils.write_json(self.paths[f"path_{split}_pred"], result_questions)
+        utils.write_json(self.paths[f"path_{split}_pred"], results)
 
         # Save the prompt-response pairs in plain text
         with open(self.paths[f"path_{split}_pred"].replace(".json", ".txt"), "w") as f:
-            for result_question in result_questions:
-                question_key = result_question["question_key"]
-                prompt = result_question["qa_prompt"]
-                generated_text = result_question["qa_generated_text"]
+            for result in results:
+                question_key = result["question_key"]
+                prompt = result["qa_prompt"]
+                generated_text = result["qa_generated_text"]
                 f.write("-------------------------------------\n\n")
                 f.write(f"QUESTION_KEY: {question_key}\n\n")
                 f.write("PROMPT:\n")
