@@ -2,70 +2,71 @@
 
 ## Table of Contents
 
-- [🤖 What is KAPipe?](#what-is-kapipe)
-- [📦 Installation](#-installation)
-- [🧩 Triple Extraction](#-triple-extraction)
-- [🕸️ Knowledge Graph Construction](#-knowledge-graph-construction)
-- [🧱 Community Clustering](#-community-clustering)
-- [📝 Report Generation](#-report-generation)
-- [✂️ Chunking](#-chunking)
-- [🔍 Passage Retrieval](#-passage-retrieval)
-- [💬 Question Answering](#-question-answering)
+- [What is KAPipe?](#what-is-kapipe)
+- [Installation](#installation)
+- [Triple Extraction](#triple-extraction)
+- [Knowledge Graph Construction](#knowledge-graph-construction)
+- [Community Clustering](#community-clustering)
+- [Report Generation](#report-generation)
+- [️Chunking](#chunking)
+- [Passage Retrieval](#passage-retrieval)
+- [Question Answering](#question-answering)
+- [Citation / Publication](#citation--publication)
 - [Available Identifiers](#available-identifiers)
 
-## 🤖 What is KAPipe?
+## What is KAPipe?
 
 **KAPipe** is a modular pipeline for comprehensive **knowledge acquisition** from unstructured documents.  
 It supports **extraction**, **organization**, **retrieval**, and **utilization** of knowledge, serving as a core framework for building intelligent systems that reason over structured knowledge.  
 
 Currently, KAPipe provides the following functionalities:
 
-- 🧩**Triple Extraction**  
+1. **Triple Extraction**  
     - Extract facts in the form of (head entity, relation, tail entity) triples from raw text.
 
-- 🕸️**Knowledge Graph Construction**  
+2. **Knowledge Graph Construction**  
     - Build a symbolic knowledge graph from triples, optionally augmented with external ontologies or knowledge bases (e.g., Wikidata, UMLS).
 
-- 🧱**Community Clustering**  
+3. **Community Clustering**  
     - Cluster the knowledge graph into semantically coherent subgraphs (*communities*).
 
-- 📝**Report Generation**  
+4. **Report Generation**  
     - Generate textual reports (or summaries) of graph communities.
 
-- ✂️**Chunking**  
+5. **Chunking**  
     - Split text (e.g., community report) into fixed-size chunks based on a predefined token length (e.g., n=300).
 
-- 🔍**Passage Retrieval**  
+6. **Passage Retrieval**  
     - Retrieve relevant chunks for given queries using lexical or dense retrieval.
 
-- 💬**Question Answering**  
+7. **Question Answering**  
     - Answer questions using retrieved chunks as context.
 
 These components together form an implementation of **retrieval-augmented generation (RAG)** or **graph-based RAG (GraphRAG)**, enabling question answering and reasoning grounded in external (structured) knowledge.
 
 For an example of the GraphRAG pipeline, please see [this example](experiments/notebooks/example.ipynb).
 
-## 📦 Installation
+## Installation
 
-### Step 1: Set up a Python environment
+<!-- ### Step 0: Set up a Python environment
 ```bash
 python -m venv .env
 source .env/bin/activate
 pip install -U pip setuptools wheel
-```
+``` -->
 
-### Step 2: Install KAPipe
+### Step 1: Install KAPipe
 ```bash
-pip install kapipe
+pip install -U kapipe
 ```
 
-### Step 3: Download pretrained models and configurations
+### Step 2: Download pretrained models and configurations
 
 Pretrained models and configuration files can be downloaded from the following Google Drive folder:
 
 📁 [KAPipe Release Files](https://drive.google.com/drive/folders/16ypMCoLYf5kDxglDD_NYoCNAfhTy4Qwp)
 
-Download the latest release file named release.YYYYMMDD.tar.gz, then extract it to the ~/.kapipe directory:
+Download the latest release file named `release.YYYYMMDD.tar.gz`, then extract it to the `~/.kapipe` directory:
 
 ```bash
 mkdir -p ~/.kapipe
@@ -76,9 +77,9 @@ tar -zxvf release.YYYYMMDD.tar.gz
 
 If the extraction is successful, you should see a directory `~/.kapipe/download/`, which contains model resources.
 
-## 🧩 Triple Extraction
+## Triple Extraction
 
-### Overview
+<!-- ### Overview -->
 
 The **Triple Extraction** pipeline identifies relational facts from raw text in the form of (head entity, relation, tail entity) **triples**.
 
@@ -260,9 +261,9 @@ For example, `"biaffinener_blink_blink_atlop_cdr"` uses:
 👉 A full list of available **identifiers** for each component can be found at the end of this README:  
 [Available Identifiers](#available-identifiers)
 
-## 🕸️ Knowledge Graph Construction
+## Knowledge Graph Construction
 
-### Overview
+<!-- ### Overview -->
 
 The **Knowledge Graph Construction** component builds a **directed multi-relational graph** from a set of extracted triples.
 
@@ -277,7 +278,7 @@ PATH_TO_TRIPLES = "./experiments/data/examples/additional_triples.json" # Or set
 PATH_TO_ENTITY_DICT = "./experiments/data/examples/entity_dict.json" # Or set to None
 
 # Initialize the knowledge graph constructor
-constructor = GraphConstructor()
+constructor = KnowledgeGraphConstructor()
 
 # Construct the knowledge graph
 # Example 1 (use entity dictionary for enriching the node information)
@@ -376,9 +377,9 @@ Each edge has the following attributes:
 
 (See `experiments/data/examples/graph.graphml` for more details.)
 
-## 🧱 Community Clustering
+## Community Clustering
 
-### Overview
+<!-- ### Overview -->
 
 The **Community Clustering** component partitions the knowledge graph into **semantically coherent subgraphs**, referred to as *communities*.  
 Each community represents a localized set of closely related concepts and relations, and serves as a fundamental unit of structured knowledge.
@@ -468,9 +469,9 @@ This hierarchical structure enables multi-level organization of knowledge, parti
 - **Triple-level Factorization**
     - Treats each individual (subject, relation, object) triple as an atomic community.
 
-## 📝 Report Generation
+## Report Generation
 
-### Overview
+<!-- ### Overview -->
 
 The **Report Generation** component converts each community into a **natural language report**, making structured knowledge interpretable for both humans and language models.  
 
@@ -549,9 +550,9 @@ The returned list is sorted to exactly match the input communities list.
         - Entity format: `"{name} | {type} | {definition}"`
         - Triple format: `"{subject} | {relation} | {object}"`
 
-## ✂️ Chunking
+## ️ Chunking
 
-### Overview
+<!-- ### Overview -->
 
 The **Chunking** component splits each input text into multiple **non-overlapping text chunks**, each constrained by a maximum token length (e.g., 100 tokens).  
 This component is essential for preparing context units that are compatible with downstream components such as retrieval and question answering.  
@@ -615,9 +616,9 @@ The output is a list of ***Passage*** objects, each containing:
 ```
 (See `experiments/data/examples/reports.chunked_w100.jsonl` for more details.)
 
-## 🔍 Passage Retrieval
+## Passage Retrieval
 
-### Overview
+<!-- ### Overview -->
 
 The **Passage Retrieval** component searches for the top-k most **relevant chunks** given a user query.  
 It uses lexical or dense retrievers (e.g., BM25, Contriever) to compute semantic similarity between queries and chunks using embedding-based methods.
@@ -737,9 +738,9 @@ The search result for each question is represented as a dictionary containing:
     - A token-level late-interaction retriever for fine-grained semantic matching. Provides higher accuracy with increased inference cost.
     - Note: This method is currently unavailable due to an import error in the external `ragatouille` package ([here](https://github.com/AnswerDotAI/RAGatouille/issues/272)).
 
-## 💬 Question Answering
+## Question Answering
 
-### Overview
+<!-- ### Overview -->
 
 The **Question Answering** component generates an answer for each user query, optionally conditioned on the retrieved context chunks.  
 It uses a large language model such as GPT-4o to produce factually grounded and context-aware answers in natural language.
@@ -798,6 +799,24 @@ The answer is a dictionary containing:
 }
 ```
 (See `experiments/data/examples/answers.json` for more details.)
+
+## Citation / Publications
+
+If **KAPipe** is helpful for your work, please consider citing the following paper:
+
+**Dissecting GraphRAG: A Modular Analysis of Knowledge Structuring for Factoid Question Answering**.
+Noriki Nishida, Rumana Ferdous Munne, Shanshan Liu, Narumi Tokunaga, Yuki Yamagata, Fei Cheng, Kouji Kozaki, and Yuji Matsumoto. 2026.
+Transactions of the Association for Computational Linguistics (TACL), to appear.
+
+```bibtex
+@article{nishida2026dissecting,
+  title   = {Dissecting GraphRAG: A Modular Analysis of Knowledge Structuring for Factoid Question Answering},
+  author  = {Nishida, Noriki and Munne, Rumana Ferdous and Liu, Shanshan and Tokunaga, Narumi and Yamagata, Yuki and Cheng, Fei and Kozaki, Kouji and Matsumoto, Yuji},
+  journal = {Transactions of the Association for Computational Linguistics},
+  year    = {2026},
+  note    = {to appear}
+}
+```
 
 ## Available Identifiers
 
