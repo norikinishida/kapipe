@@ -47,6 +47,8 @@ These components together form an implementation of **retrieval-augmented genera
 
 For an example of the GraphRAG pipeline, please see [this example](experiments/examples/example.ipynb).
 
+![代替テキスト](./images/nishida_et_al_tacl_2026.png)
+
 ## Installation
 
 <!-- ### Step 0: Set up a Python environment
