@@ -1,3 +1,5 @@
+![KAPipe logo](./images/kapipe_logo_v01.png)
+
 # KAPipe: A Modular Pipeline for Knowledge Acquisition
 
 ## Table of Contents
@@ -47,7 +49,7 @@ These components together form an implementation of **retrieval-augmented genera
 
 For an example of the GraphRAG pipeline, please see [this example](experiments/examples/example.ipynb).
 
-![代替テキスト](./images/nishida_et_al_tacl_2026.png)
+![An example of graph-based RAG architecture](./images/nishida_et_al_tacl_2026.png)
 
 ## Installation
 
@@ -553,7 +555,7 @@ The returned list is sorted to exactly match the input communities list.
         - Entity format: `"{name} | {type} | {definition}"`
         - Triple format: `"{subject} | {relation} | {object}"`
 
-## ️ Chunking
+## Chunking
 
 <!-- ### Overview -->
 
