@@ -2,22 +2,6 @@
 
 # KAPipe: A Modular Pipeline for Knowledge Acquisition
 
-## Table of Contents
-
-- [Overview](#overview)
-- [Installation](#installation)
-- [Triple Extraction](#triple-extraction)
-- [Knowledge Graph Construction](#knowledge-graph-construction)
-- [Community Clustering](#community-clustering)
-- [Report Generation](#report-generation)
-- [️Chunking](#chunking)
-- [Passage Retrieval](#passage-retrieval)
-- [Question Answering](#question-answering)
-- [Available Identifiers](#available-identifiers)
-- [Citation / Publication](#citation--publication)
-
-## Overview
-
 **KAPipe** is a modular pipeline for comprehensive **knowledge acquisition** from unstructured documents.  
 It supports **extraction**, **organization**, **retrieval**, and **utilization** of knowledge, serving as a core framework for building intelligent systems that reason over structured knowledge.  
 It is the framework used in our TACL'26 paper (Nishida et al.; to appear).
@@ -50,6 +34,18 @@ These components together form an implementation of **retrieval-augmented genera
 For an example of the GraphRAG pipeline, please see [this example](experiments/examples/example.ipynb).
 
 ![An example of graph-based RAG architecture](./images/nishida_et_al_tacl_2026.png)
+
+## Table of Contents
+- [Installation](#installation)
+- [Triple Extraction](#triple-extraction)
+- [Knowledge Graph Construction](#knowledge-graph-construction)
+- [Community Clustering](#community-clustering)
+- [Report Generation](#report-generation)
+- [️Chunking](#chunking)
+- [Passage Retrieval](#passage-retrieval)
+- [Question Answering](#question-answering)
+- [Available Identifiers](#available-identifiers)
+- [Citation / Publication](#citation--publication)
 
 ## Installation
 
