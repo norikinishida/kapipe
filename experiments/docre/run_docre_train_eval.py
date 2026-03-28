@@ -1,10 +1,14 @@
 import argparse
+from collections import defaultdict
 import logging
 import os
 
+import numpy as np
 import pandas as pd
 import torch
 import transformers
+import tabulate
+from tqdm import tqdm
 
 import sys
 sys.path.insert(0, "../..")
@@ -17,7 +21,289 @@ from kapipe.docre import (
 from kapipe import utils
 from kapipe.utils import StopWatch
 
-import shared_functions
+
+def set_logger(filename, overwrite=False):
+    """
+    Parameters
+    ----------
+    filename: str
+    overwrite: bool, default False
+    """
+    if os.path.exists(filename) and not overwrite:
+        logging.info("%s already exists." % filename)
+        do_remove = input("Delete the existing log file? [y/n]: ")
+        if (not do_remove.lower().startswith("y")) and (not len(do_remove) == 0):
+            logging.info("Done.")
+            sys.exit(0)
+
+    root_logger = logging.getLogger()
+    handler = logging.FileHandler(filename, "w")
+    root_logger.addHandler(handler)
+
+
+def pop_logger_handler():
+    root_logger = logging.getLogger()
+    assert len(root_logger.handlers) > 1
+    handler = root_logger.handlers.pop()
+    root_logger.removeHandler(handler)
+    handler.close()
+    logging.info(f"Removed {handler} from the root logger {root_logger}.")
+
+
+def show_docre_documents_statistics(
+    documents,
+    vocab_relation,
+    with_supervision,
+    title
+):
+    """Show DocRE documents statistics
+
+    Parameters
+    ----------
+    documents : list[Document]
+    vocab_relation : Dict[str, int]
+    with_supervision : bool
+    title : str
+
+    Summarize the following statistics
+        - Number of documents
+        - Number of sentences
+            - Average number of sentences per document
+        - Number of words
+            - Average number of words per document
+        - Number of mentions (without/with redundancy)
+            - Average number of mentions (without/with redundancy) per document
+        - Number of mentions (without/with redundancy) for each entity type
+        - Number of entities
+            - Average number of entities per document
+        - Number of entites for each entity type
+        - Number of pairs
+            - Average number of pairs per document
+        - Number of positive pairs
+            - Average number of positive pairs per document
+        - Number of positive pairs for each relation class
+        - Number of negative pairs (triples)
+            - Average number of negative pairs (triples) per document
+    """
+    if not "NO-REL" in vocab_relation:
+        tmp = {"NO-REL": 0}
+        for k, v in vocab_relation.items():
+            tmp[k] = v + 1
+        vocab_relation = tmp
+
+    ivocab_relation = {i:l for l, i in vocab_relation.items()}
+
+    n_documents = len(documents)
+    n_sentences_list = []
+    n_words_list = []
+
+    n_mentions_list = []
+    n_mentions_dict = defaultdict(int)
+
+    n_mentions2_list = []
+    n_mentions2_dict = defaultdict(int)
+
+    n_entities_list = []
+    n_entities_dict = defaultdict(int)
+
+    n_pairs_list = []
+    n_positive_pairs_list = []
+    n_negative_pairs_list = []
+    # n_positive_pairs_dict = defaultdict(int)
+    n_positive_pairs_dict = {r: 0 for r in vocab_relation.keys()}
+
+    for doc in tqdm(documents):
+        n_sentences_list.append(len(doc["sentences"]))
+
+        n_words_list.append(len(utils.flatten_lists(
+            [s.split() for s in doc["sentences"]]
+        )))
+
+        n_mentions_list.append(len(doc["mentions"]))
+        for mention in doc["mentions"]:
+            etype = mention["entity_type"]
+            n_mentions_dict[etype] += 1
+
+        n_mentions2_list.append(sum(
+            [len(e["mention_indices"]) for e in doc["entities"]]
+        ))
+        for entity in doc["entities"]:
+            ms = entity["mention_indices"]
+            etype = entity["entity_type"]
+            n_mentions2_dict[etype] += len(ms)
+
+        n_entities_list.append(len(doc["entities"]))
+        for entity in doc["entities"]:
+            etype = entity["entity_type"]
+            n_entities_dict[etype] += 1
+
+        (
+            pair_head_entity_indices,
+            pair_tail_entity_indices,
+            pair_gold_relation_labels
+        ) = get_docre_pairs(
+            document=doc,
+            vocab_relation=vocab_relation,
+            with_supervision=with_supervision,
+            possible_head_entity_types=None,
+            possible_tail_entity_types=None
+        )
+
+        n_pairs_list.append(len(pair_head_entity_indices))
+        if with_supervision:
+            n_positive_pairs = 0
+            n_negative_pairs = 0
+            for labels in pair_gold_relation_labels:
+                if labels[0] == 1:
+                    n_negative_pairs += 1
+                else:
+                    n_positive_pairs += 1
+            n_positive_pairs_list.append(n_positive_pairs)
+            n_negative_pairs_list.append(n_negative_pairs)
+        else:
+            n_positive_pairs_list.append(0)
+            n_negative_pairs_list.append(0)
+
+        # Class-wise
+        if with_supervision:
+            count = 0
+            for labels in pair_gold_relation_labels:
+                for l_i, l in enumerate(labels):
+                    if l_i == 0:
+                        continue
+                    if l == 1:
+                        n_positive_pairs_dict[ivocab_relation[l_i]] += 1
+                        count += 1
+            # assert count == len(doc["relations"]), (count, len(doc["relations"]))
+
+    results = {}
+    results["Number of documents"] = n_documents
+    results["Number of sentences"] = get_statistics_text(n_sentences_list)
+    results["Number of words"] = get_statistics_text(n_words_list)
+
+    results["Number of mentions"] = get_statistics_text(n_mentions_list)
+    for key, value in sorted(list(n_mentions_dict.items()), key=lambda tpl: tpl[0]):
+        results[f"\tNumber of mentions for {key}"] = value
+
+    results["Number of mentions (with redundancy)"] = get_statistics_text(n_mentions2_list)
+    for key, value in sorted(list(n_mentions2_dict.items()), key=lambda tpl: tpl[0]):
+        results[f"\tNumber of mentions (with redundancy) for {key}"] = value
+
+    results["Number of entities"] = get_statistics_text(n_entities_list)
+    for key, value in sorted(list(n_entities_dict.items()), key=lambda tpl: tpl[0]):
+        results[f"\tNumber of entities for {key}"] = value
+
+    results["Number of pairs"] = get_statistics_text(n_pairs_list)
+    results["Number of positive pairs"] = get_statistics_text(n_positive_pairs_list)
+    for key, value in n_positive_pairs_dict.items():
+        results[f"\tNumber of positive pairs for {key}"] = value
+    results["Number of negative pairs"] = get_statistics_text(n_negative_pairs_list)
+
+    table = {}
+    table[title] = results.keys()
+    table["Statistics"] = results.values()
+    df = pd.DataFrame.from_dict(table)
+    logging.info("\n" + tabulate.tabulate(df, headers="keys", tablefmt="psql", floatfmt=".1f"))
+
+
+def get_docre_pairs(
+    document,
+    vocab_relation,
+    with_supervision,
+    possible_head_entity_types=None,
+    possible_tail_entity_types=None
+):
+    not_include_entity_pairs = None
+    if "not_include_pairs" in document:
+        # list[tuple[EntityIndex, EntityIndex]]
+        epairs = [
+            (epair["arg1"], epair["arg2"])
+            for epair in document["not_include_pairs"]
+        ]
+        not_include_entity_pairs \
+            = [(e1,e2) for e1,e2 in epairs] + [(e2,e1) for e1,e2 in epairs]
+
+    pair_head_entity_indices = [] # list[int]
+    pair_tail_entity_indices = [] # list[int]
+    pair_gold_relation_labels = [] # list[list[int]]
+
+    for head_entity_i in range(len(document["entities"])):
+        for tail_entity_i in range(len(document["entities"])):
+            # Skip diagonal
+            if head_entity_i == tail_entity_i:
+                continue
+
+            # Skip based on entity types if specified
+            # e.g, Skip chemical-chemical, disease-disease,
+            #      and disease-chemical pairs for CDR.
+            if (
+                (possible_head_entity_types is not None)
+                and
+                (possible_tail_entity_types is not None)
+            ):
+                head_entity_type = document["entities"][head_entity_i]["entity_type"]
+                tail_entity_type = document["entities"][tail_entity_i]["entity_type"]
+                if not (
+                    (head_entity_type in possible_head_entity_types)
+                    and
+                    (tail_entity_type in possible_tail_entity_types)
+                ):
+                    continue
+
+            # Skip "not_include" pairs if specified
+            if not_include_entity_pairs is not None:
+                if (head_entity_i, tail_entity_i) \
+                        in not_include_entity_pairs:
+                    continue
+
+            pair_head_entity_indices.append(head_entity_i)
+            pair_tail_entity_indices.append(tail_entity_i)
+
+            if with_supervision:
+                rels = find_relations(
+                    arg1=head_entity_i,
+                    arg2=tail_entity_i,
+                    relations=document["relations"]
+                )
+                multilabel_positive_indicators \
+                    = [0] * len(vocab_relation)
+                if len(rels) == 0:
+                    # Found no gold relation for this entity pair
+                    multilabel_positive_indicators[0] = 1
+                else:
+                    for rel in rels:
+                        rel_id = vocab_relation[rel]
+                        multilabel_positive_indicators[rel_id] = 1
+                pair_gold_relation_labels.append(
+                    multilabel_positive_indicators
+                )
+            else:
+                pair_gold_relation_labels.append(None)
+
+    return (
+        pair_head_entity_indices,
+        pair_tail_entity_indices,
+        pair_gold_relation_labels
+    )
+
+
+def find_relations(arg1, arg2, relations):
+    rels = [] # list[str]
+    for triple in relations:
+        if triple["arg1"] == arg1 and triple["arg2"] == arg2:
+            rels.append(triple["relation"])
+    return rels
+
+
+def get_statistics_text(xs):
+    if len(xs) == 0:
+        sum_ = mean_ = max_ = min_ = 0
+    else:
+        sum_ = np.sum(xs)
+        mean_ = np.mean(xs)
+        max_ = np.max(xs)
+        min_ = np.min(xs)
+    return f"Total: {sum_} / Average per instance: {mean_} / Max: {max_} / Min: {min_}"
 
 
 def main(args):
@@ -76,12 +362,12 @@ def main(args):
 
     # Set logger
     if actiontype == "train":
-        shared_functions.set_logger(
+        set_logger(
             os.path.join(base_output_path, "training.log"),
             # overwrite=True
         )
     elif actiontype == "evaluate":
-        shared_functions.set_logger(
+        set_logger(
             os.path.join(base_output_path, "evaluation.log"),
             # overwrite=True
         )
@@ -177,19 +463,19 @@ def main(args):
     }
 
     # Show statistics
-    shared_functions.show_docre_documents_statistics(
+    show_docre_documents_statistics(
         documents=train_documents,
         vocab_relation=vocab_relation,
         with_supervision=True,
         title="Training"
     )
-    shared_functions.show_docre_documents_statistics(
+    show_docre_documents_statistics(
         documents=dev_documents,
         vocab_relation=vocab_relation,
         with_supervision=True,
         title="Development"
     )
-    shared_functions.show_docre_documents_statistics(
+    show_docre_documents_statistics(
         documents=test_documents,
         vocab_relation=vocab_relation,
         with_supervision=False if dataset_name in ["docred", "linked_docred"] else True,
@@ -295,7 +581,7 @@ def main(args):
         # train_documents = remove_documents_without_relations(
         #     train_documents=train_documents,
         # )
-        # shared_functions.show_docre_documents_statistics(
+        # show_docre_documents_statistics(
         #     documents=train_documents,
         #     vocab_relation=vocab_relation,
         #     with_supervision=True,
@@ -831,7 +1117,7 @@ if __name__ == "__main__":
         # Evaluation
         args.actiontype = "evaluate"
         args.prefix = prefix
-        shared_functions.pop_logger_handler()
+        pop_logger_handler()
         main(args=args)
     else:
         # Training or Evaluation

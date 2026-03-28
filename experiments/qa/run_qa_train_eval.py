@@ -12,7 +12,97 @@ from kapipe import utils
 from kapipe.utils import StopWatch
 from kapipe.datatypes import Question, ContextsForOneExample
 
-import shared_functions
+
+def set_logger(filename, overwrite=False):
+    """
+    Parameters
+    ----------
+    filename: str
+    overwrite: bool, default False
+    """
+    if os.path.exists(filename) and not overwrite:
+        logging.info("%s already exists." % filename)
+        do_remove = input("Delete the existing log file? [y/n]: ")
+        if (not do_remove.lower().startswith("y")) and (not len(do_remove) == 0):
+            logging.info("Done.")
+            sys.exit(0)
+
+    root_logger = logging.getLogger()
+    handler = logging.FileHandler(filename, "w")
+    root_logger.addHandler(handler)
+
+
+def show_questions_statistics(questions, title):
+    """Show QA questions statistics
+
+    Parameters
+    ----------
+    questions: list[Question]
+    title: str
+
+    Summarize the following statistics
+        - Number of questions
+        - Number of yes-no/list/long answers
+            - Average number of answers per question
+    """
+    n_questions = len(questions)
+    n_yesno_answers_list = []
+    n_long_answers_list = []
+    n_list_answers_list = []
+    n_synonyms_list = []
+
+    for q in tqdm(questions):
+        answers = q.get("answers", None)
+        if answers is None:
+            continue
+
+        n_yesno_answers = 0
+        n_long_answers = 0
+        for a in answers:
+            if a["answer_type"] == "yesno":
+                n_yesno_answers += 1
+            elif a["answer_type"] == "long":
+                n_long_answers += 1
+        n_yesno_answers_list.append(n_yesno_answers)
+        n_long_answers_list.append(n_long_answers)
+
+        index_to_synonyms = {} # dict[int, list[str]]
+        for a in answers:
+            if a["answer_type"] == "list":
+                list_index = a["list_index"]
+                if not list_index in index_to_synonyms:
+                    index_to_synonyms[list_index] = []
+                index_to_synonyms[list_index].append(a["answer"])
+        n_list_answers = len(index_to_synonyms)
+        n_list_answers_list.append(n_list_answers)
+        for index, synonyms in index_to_synonyms.items():
+            n_synonyms = len(synonyms)
+            n_synonyms_list.append(n_synonyms)
+
+    results = {}
+
+    results["Number of questions"] = n_questions
+    results["Number of yes-no answers"] = get_statistics_text(n_yesno_answers_list)
+    results["Number of factoid answers"] = get_statistics_text(n_list_answers_list)
+    results["Number of synonyms"] = get_statistics_text(n_synonyms_list)
+    results["Number of long answers"] = get_statistics_text(n_long_answers_list)
+
+    table = {}
+    table[title] = results.keys()
+    table["Statistics"] = results.values()
+    df = pd.DataFrame.from_dict(table)
+    logging.info("\n" + tabulate.tabulate(df, headers="keys", tablefmt="psql", floatfmt=".1f"))
+
+
+def get_statistics_text(xs):
+    if len(xs) == 0:
+        sum_ = mean_ = max_ = min_ = 0
+    else:
+        sum_ = np.sum(xs)
+        mean_ = np.mean(xs)
+        max_ = np.max(xs)
+        min_ = np.min(xs)
+    return f"Total: {sum_} / Average per instance: {mean_} / Max: {max_} / Min: {min_}"
 
 
 def main(args):
@@ -66,7 +156,7 @@ def main(args):
 
     # Set logger
     if actiontype == "evaluate":
-        shared_functions.set_logger(
+        set_logger(
             os.path.join(base_output_path, "evaluation.log"),
             # overwrite=True
         )
@@ -93,8 +183,8 @@ def main(args):
         test_contexts = None
 
     # Show statistics
-    shared_functions.show_questions_statistics(dev_questions, "Development")
-    shared_functions.show_questions_statistics(test_questions, "Test")
+    show_questions_statistics(dev_questions, "Development")
+    show_questions_statistics(test_questions, "Test")
 
     ##################
     # Method

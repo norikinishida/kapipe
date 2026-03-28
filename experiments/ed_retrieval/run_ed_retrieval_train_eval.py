@@ -1,11 +1,14 @@
 import argparse
+from collections import defaultdict
 import copy
 import logging
 import os
 
 import numpy as np
+import pandas as pd
 import torch
 import transformers
+import tabulate
 from tqdm import tqdm
 
 import sys
@@ -17,7 +20,130 @@ from kapipe.ed_retrieval import (
 from kapipe import utils
 from kapipe.utils import StopWatch
 
-import shared_functions
+
+def set_logger(filename, overwrite=False):
+    """
+    Parameters
+    ----------
+    filename: str
+    overwrite: bool, default False
+    """
+    if os.path.exists(filename) and not overwrite:
+        logging.info("%s already exists." % filename)
+        do_remove = input("Delete the existing log file? [y/n]: ")
+        if (not do_remove.lower().startswith("y")) and (not len(do_remove) == 0):
+            logging.info("Done.")
+            sys.exit(0)
+
+    root_logger = logging.getLogger()
+    handler = logging.FileHandler(filename, "w")
+    root_logger.addHandler(handler)
+
+
+def pop_logger_handler():
+    root_logger = logging.getLogger()
+    assert len(root_logger.handlers) > 1
+    handler = root_logger.handlers.pop()
+    root_logger.removeHandler(handler)
+    handler.close()
+    logging.info(f"Removed {handler} from the root logger {root_logger}.")
+
+
+def show_ed_documents_statistics(
+    documents,
+    title
+):
+    """Show ED documents statistics
+
+    Parameters
+    ----------
+    documents : list[Document]
+    title : str
+
+    Summarize the following statistics
+        - Number of documents
+        - Number of sentences
+            - Average number of sentences per document
+        - Number of words
+            - Average number of words per document
+        - Number of mentions (without/with redundancy)
+            - Average number of mentions (without/with redundancy) per document
+        - Number of mentions (without/with redundancy) for each entity type
+        - Number of entities
+            - Average number of entities per document
+        - Number of entites for each entity type
+    """
+    n_documents = len(documents)
+    n_sentences_list = []
+    n_words_list = []
+
+    n_mentions_list = []
+    n_mentions_dict = defaultdict(int)
+
+    n_mentions2_list = []
+    n_mentions2_dict = defaultdict(int)
+
+    n_entities_list = []
+    n_entities_dict = defaultdict(int)
+
+    for doc in tqdm(documents):
+        n_sentences_list.append(len(doc["sentences"]))
+
+        n_words_list.append(len(utils.flatten_lists(
+            [s.split() for s in doc["sentences"]]
+        )))
+
+        n_mentions_list.append(len(doc["mentions"]))
+        for mention in doc["mentions"]:
+            etype = mention["entity_type"]
+            n_mentions_dict[etype] += 1
+
+        n_mentions2_list.append(sum(
+            [len(e["mention_indices"]) for e in doc["entities"]]
+        ))
+        for entity in doc["entities"]:
+            ms = entity["mention_indices"]
+            etype = entity["entity_type"]
+            n_mentions2_dict[etype] += len(ms)
+
+        n_entities_list.append(len(doc["entities"]))
+        for entity in doc["entities"]:
+            etype = entity["entity_type"]
+            n_entities_dict[etype] += 1
+
+    results = {}
+    results["Number of documents"] = n_documents
+    results["Number of sentences"] = get_statistics_text(n_sentences_list)
+    results["Number of words"] = get_statistics_text(n_words_list)
+
+    results["Number of mentions"] = get_statistics_text(n_mentions_list)
+    for key, value in sorted(list(n_mentions_dict.items()), key=lambda tpl: tpl[0]):
+        results[f"\tNumber of mentions for {key}"] = value
+
+    results["Number of mentions (with redundancy)"] = get_statistics_text(n_mentions2_list)
+    for key, value in sorted(list(n_mentions2_dict.items()), key=lambda tpl: tpl[0]):
+        results[f"\tNumber of mentions (with redundancy) for {key}"] = value
+
+    results["Number of entities"] = get_statistics_text(n_entities_list)
+    for key, value in sorted(list(n_entities_dict.items()), key=lambda tpl: tpl[0]):
+        results[f"\tNumber of entities for {key}"] = value
+
+    table = {}
+    table[title] = results.keys()
+    table["Statistics"] = results.values()
+    df = pd.DataFrame.from_dict(table)
+    logging.info("\n" + tabulate.tabulate(df, headers="keys", tablefmt="psql", floatfmt=".1f"))
+
+
+def get_statistics_text(xs):
+    if len(xs) == 0:
+        sum_ = mean_ = max_ = min_ = 0
+    else:
+        sum_ = np.sum(xs)
+        mean_ = np.mean(xs)
+        max_ = np.max(xs)
+        min_ = np.min(xs)
+    return f"Total: {sum_} / Average per instance: {mean_} / Max: {max_} / Min: {min_}"
 
 
 def main(args):
@@ -71,12 +197,12 @@ def main(args):
 
     # Set logger
     if actiontype == "train":
-        shared_functions.set_logger(
+        set_logger(
             os.path.join(base_output_path, "training.log"),
             # overwrite=True
         )
     elif actiontype == "evaluate":
-        shared_functions.set_logger(
+        set_logger(
             os.path.join(base_output_path, "evaluation.log"),
             # overwrite=True
         )
@@ -94,15 +220,15 @@ def main(args):
     test_documents = utils.read_json(path_test_documents)
 
     # Show statistics
-    shared_functions.show_ed_documents_statistics(
+    show_ed_documents_statistics(
         documents=train_documents,
         title="Training"
     )
-    shared_functions.show_ed_documents_statistics(
+    show_ed_documents_statistics(
         documents=dev_documents,
         title="Development"
     )
-    shared_functions.show_ed_documents_statistics(
+    show_ed_documents_statistics(
         documents=test_documents,
         title="Test"
     )    
@@ -166,7 +292,7 @@ def main(args):
             train_documents=train_documents,
             entity_dict=retriever.entity_dict
         )
-        shared_functions.show_ed_documents_statistics(
+        show_ed_documents_statistics(
             documents=processed_train_documents,
             title="Training after Out-of-Kb Removal"
         )
@@ -176,7 +302,7 @@ def main(args):
             train_documents=processed_train_documents,
             n_candidate_entities=retriever.config["n_candidate_entities"]
         )
-        shared_functions.show_ed_documents_statistics(
+        show_ed_documents_statistics(
             documents=processed_train_documents,
             title="Training after duplication"
         )
@@ -418,7 +544,7 @@ if __name__ == "__main__":
         # Evaluation
         args.actiontype = "evaluate"
         args.prefix = prefix
-        shared_functions.pop_logger_handler()
+        pop_logger_handler()
         main(args=args)
     else:
         # Training or Evaluation

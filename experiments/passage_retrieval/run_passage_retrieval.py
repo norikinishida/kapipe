@@ -11,7 +11,24 @@ from kapipe.passage_retrieval import Contriever
 from kapipe import utils
 from kapipe.utils import StopWatch
 
-import shared_functions
+
+def set_logger(filename, overwrite=False):
+    """
+    Parameters
+    ----------
+    filename: str
+    overwrite: bool, default False
+    """
+    if os.path.exists(filename) and not overwrite:
+        logging.info("%s already exists." % filename)
+        do_remove = input("Delete the existing log file? [y/n]: ")
+        if (not do_remove.lower().startswith("y")) and (not len(do_remove) == 0):
+            logging.info("Done.")
+            sys.exit(0)
+
+    root_logger = logging.getLogger()
+    handler = logging.FileHandler(filename, "w")
+    root_logger.addHandler(handler)
 
 
 def main(args):
@@ -66,7 +83,7 @@ def main(args):
             index_name
         ))
         # Set logger
-        shared_functions.set_logger(
+        set_logger(
             os.path.join(
                 index_root,
                 method_name,
@@ -85,7 +102,7 @@ def main(args):
             index_name
         ))
         # Set logger
-        shared_functions.set_logger(
+        set_logger(
             os.path.join(
                 index_root,
                 method_name,

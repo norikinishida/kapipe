@@ -31,7 +31,7 @@ Currently, KAPipe provides the following functionalities:
 
 These components together form an implementation of **retrieval-augmented generation (RAG)** or **graph-based RAG (GraphRAG)**, enabling question answering and reasoning grounded in external (structured) knowledge.
 
-For an example of the GraphRAG pipeline, please see [this example](experiments/examples/example.ipynb).
+For an example of the GraphRAG pipeline, please see [this example](experiments/graphrag/run_graphrag_pipeline.ipynb).
 
 ![An example of graph-based RAG architecture](./images/nishida_et_al_tacl_2026.png)
 
@@ -149,7 +149,7 @@ pipe = TripleExtractionPipeline(
 # Apply the triple extraction pipeline to your input document
 document = pipe.extract(document)
 ```
-(See `experiments/codes/run_triple_extraction_pipeline.py` for specific examples.)
+(See `experiments/triple_extraction_pipeline/run_triple_extraction_pipeline.py` for specific examples.)
 
 
 ### Input
@@ -295,7 +295,7 @@ graph = constructor.construct_knowledge_graph(
     path_entity_dict=None
 )
 ```
-(See `experiments/codes/run_knowledge_graph_construction.py` for specific examples.)
+(See `experiments/knowledge_graph_construction/run_knowledge_graph_construction.py` for specific examples.)
 
 ### Input
 
@@ -403,7 +403,7 @@ clusterer = TripleLevelFactorization()
 # Apply the community clusterer to the graph
 communities = clusterer.cluster_communities(graph)
 ```
-(See `experiments/codes/run_community_clustering.py` for specific examples.)
+(See `experiments/community_clustering/run_community_clustering.py` for specific examples.)
 
 ### Input
 
@@ -511,7 +511,7 @@ generator.generate_community_reports(
     edge_attr_keys=["relation"],
 )
 ```
-(See `experiments/codes/run_report_generation.py` for specific examples.)
+(See `experiments/report_generation/run_report_generation.py` for specific examples.)
 
 ### Input
 
@@ -573,7 +573,7 @@ chunked_passages = chunker.split_passage_to_chunked_passages(
     window_size=WINDOW_SIZE
 )
 ```
-(See `experiments/codes/run_chunking.py` for specific examples.)
+(See `experiments/chunking/run_chunking.py` for specific examples.)
 
 ### Input
 
@@ -663,7 +663,7 @@ contexts_for_question = {
 }
 ```
 
-(See `experiments/codes/run_passage_retrieval.py` for specific examples.)
+(See `experiments/passage_retrieval/run_passage_retrieval.py` for specific examples.)
 
 ### Input
 
@@ -764,7 +764,7 @@ answer = answerer.answer(
 )
 
 ```
-(See `experiments/codes/run_qa.py` for specific examples.)
+(See `experiments/qa/run_qa.py` for specific examples.)
 
 ### Input
 

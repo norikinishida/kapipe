@@ -2,21 +2,37 @@ import argparse
 import logging
 import os
 
-# import torch
 import transformers
 from tqdm import tqdm
 
 import sys
 sys.path.insert(0, "../..")
-from kapipe.docre import DocRE
+from kapipe.ner import NER
 from kapipe import utils
 from kapipe.utils import StopWatch
 
-import shared_functions
+
+def set_logger(filename, overwrite=False):
+    """
+    Parameters
+    ----------
+    filename: str
+    overwrite: bool, default False
+    """
+    if os.path.exists(filename) and not overwrite:
+        logging.info("%s already exists." % filename)
+        do_remove = input("Delete the existing log file? [y/n]: ")
+        if (not do_remove.lower().startswith("y")) and (not len(do_remove) == 0):
+            logging.info("Done.")
+            sys.exit(0)
+
+    root_logger = logging.getLogger()
+    handler = logging.FileHandler(filename, "w")
+    root_logger.addHandler(handler)
+
 
 
 def main(args):
-    # torch.autograd.set_detect_anomaly(True)
     transformers.logging.set_verbosity_error()
 
     sw = StopWatch()
@@ -47,16 +63,16 @@ def main(args):
     # Set base output path
     base_output_path = os.path.join(
         path_results_dir,
-        "docre",
-        "docre",
+        "ner",
+        "ner",
         identifier,
         prefix
     )
     utils.mkdir(base_output_path)
 
     # Set logger
-    shared_functions.set_logger(
-        os.path.join(base_output_path, f"extraction.log"),
+    set_logger(
+        os.path.join(base_output_path, "extraction.log"),
         # overwrite=True
     )
 
@@ -74,19 +90,19 @@ def main(args):
     # Method
     ##################
 
-    # Initialize the DocRE extractor
-    extractor = DocRE(identifier=identifier, gpu=gpu)
+    # Initialize the NER extractor
+    extractor = NER(identifier=identifier, gpu=gpu)
 
     ##################
-    # DocRE
+    # NER
     ##################
 
-    logging.info(f"Applying the DocRE component to {len(documents)} documents in {path_input_documents} ...")
+    logging.info(f"Applying the NER component to {len(documents)} documents in {path_input_documents} ...")
 
     # Create the full output path
-    path_output_documents = os.path.join(base_output_path, f"documents.json")
+    path_output_documents = os.path.join(base_output_path, "documents.json")
 
-    # Apply the DocRE extractor to the documents
+    # Apply the NER extractor to the documents
     result_documents = []
     for document in tqdm(documents):
         result_document = extractor.extract(document=document)
@@ -99,13 +115,13 @@ def main(args):
     logging.info(f"Saved the prediction results to {path_output_documents}")
 
     # Save the prompt-response pairs visually in plain text
-    if "docre_prompt" in result_documents[0] and "docre_generated_text" in result_documents[0]:
+    if "ner_prompt" in result_documents[0] and "ner_generated_text" in result_documents[0]:
         path_output_text = os.path.join(base_output_path, "prompt_and_response.txt")
         with open(path_output_text, "w") as f:
             for doc in result_documents:
                 doc_key = doc["doc_key"]
-                prompt = doc["docre_prompt"]
-                generated_text = doc["docre_generated_text"]
+                prompt = doc["ner_prompt"]
+                generated_text = doc["ner_generated_text"]
                 f.write("-------------------------------------\n\n")
                 f.write(f"DOC_KEY: {doc_key}\n\n")
                 f.write("PROMPT:\n")
@@ -145,5 +161,5 @@ if __name__ == "__main__":
     parser.add_argument("--prefix", type=str, default=None)
 
     args = parser.parse_args()
-        
+
     main(args=args)
