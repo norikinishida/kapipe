@@ -9,14 +9,15 @@ from typing import Any
 import torch
 from tqdm import tqdm
 
+from .. import evaluation
+from .. import utils
 from ..datatypes import (
     Config,
     Question,
     ContextsForOneExample
 )
-from .. import utils
-from .. import evaluation
 from ..llms import HuggingFaceLLM, OpenAILLM
+from ..resources import resolve_snapshot_path
 
 
 logger = logging.getLogger(__name__)
@@ -26,61 +27,66 @@ class LLMQA:
 
     def __init__(
         self,
-        device: str | int = 0,
+        device: str,
+        model: HuggingFaceLLM | OpenAILLM,
         # Initialization
         config: Config | str | None = None,
         # Loading
         path_snapshot: str | None = None,
-        # Misc.
-        model: HuggingFaceLLM | OpenAILLM | None = None
+        identifier: str | None = None,
     ):
         logger.info("########## LLMQA Initialization Starts ##########")
 
-        if isinstance(device, int):
-            self.device = f"cuda:{0}"
+        # Resolve a public identifier to the corresponding local snapshot
+        if identifier is not None:
+            if path_snapshot is not None:
+                raise ValueError(
+                    "identifier and path_snapshot cannot be specified together."
+                )
+
+            path_snapshot = resolve_snapshot_path(
+                component_name="qa",
+                method_name="llm_qa",
+                identifier=identifier,
+            )
 
         self.device = device
+        self.model = model
         self.path_snapshot = path_snapshot
+        self.identifier = identifier
 
         if path_snapshot is not None:
-            assert config is None
+            # Explicit initialization resources must not be mixed with a
+            # complete snapshot.
+            if config is not None:
+                raise ValueError(
+                    "config cannot be specified when loading a snapshot."
+                )
+
+            # Specify the default paths for the resources in the snapshot
             config = path_snapshot + "/config"
 
         # Load the configuration
         if isinstance(config, str):
-            tmp = config
-            config = utils.get_hocon_config(config_path=config, config_name=None)
-            logger.info(f"Loaded configuration from {tmp}")
+            config_path = config
+            config = utils.get_hocon_config(config_path=config_path)
+            logger.info(f"Loaded configuration from {config_path}")
         self.config = config
         logger.info(utils.pretty_format_dict(self.config))
 
-        # Initialize the prompt processor
+        # Initialize the prompt processor, which generates prompts for the LLM
         self.prompt_processor = PromptProcessor(
-            prompt_template_name_or_path=config["prompt_template_name_or_path"],
-            n_contexts=config["n_contexts"],
+            prompt_template_name_or_path=(
+                self.config["prompt_template_name_or_path"]
+            ),
+            n_contexts=self.config["n_contexts"],
         )
 
-        # Initialize the model
-        self.model_name = config["model_name"]
-        assert self.model_name in ["hf", "openai"]
-        if model is not None:
-            self.model = model
-            logger.info("LLM is provided")
-        elif self.model_name == "hf":
-            self.model = HuggingFaceLLM(
-                device=device,
-                # Model
-                llm_name_or_path=config["llm_name_or_path"],
-                # Generation
-                max_new_tokens=config["max_new_tokens"],
-                quantization_bits=config["quantization_bits"],
-            )
-        else:
-            self.model = OpenAILLM(
-                openai_model_name=config["openai_model_name"],
-                max_new_tokens=config["max_new_tokens"]
-            )
-        # self.model.llm.to(self.model.device)
+        # Check the provider and initialize the LLM model accordingly
+        self.provider = self.config["provider"]
+        if self.provider not in ["hf", "openai"]:
+            raise ValueError(f"Invalid provider: {self.provider}")
+        logger.info("LLM is provided by an argument")
 
         logger.info("########## LLMQA Initialization Ends ##########")
 
@@ -91,12 +97,12 @@ class LLMQA:
     def answer(
         self,
         question: Question,
-        # optional: context augmentation
+        # Optional: context augmentation
         contexts_for_question: ContextsForOneExample | None = None
     ) -> Question:
         with torch.no_grad():
-            if self.model_name == "hf":
-                # Switch to inference mode
+            # Switch to inference mode for Hugging Face models
+            if self.provider == "hf":
                 self.model.llm.eval()
 
             # Generate a prompt
@@ -108,19 +114,20 @@ class LLMQA:
             # Generate a response
             generated_text = self.model.generate(prompt)
 
-            # Parse the generated response
+            # Parse the generated response into structured fields
             answer, rationale, helpfulness_score = self.parse(
                 question=question,
                 generated_text=generated_text
             )
 
-            # Integrate
+            # Integrate the structured fields into the document
             result = copy.deepcopy(question)
             result["output_answer"] = answer
             result["rationale"] = rationale
             result["helpfulness_score"] = helpfulness_score
             result["qa_prompt"] = prompt
             result["qa_generated_text"] = generated_text
+
             return result
 
     def generate_prompt(
@@ -296,6 +303,11 @@ class PromptProcessor:
         prompt += f"Answer: {answer}\n"
         prompt += f"Score: {score}\n"
         return prompt.rstrip()
+
+
+#####################
+# Trainer (Evaluator)
+#####################
 
 
 class LLMQATrainer:

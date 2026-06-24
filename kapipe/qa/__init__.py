@@ -1,3 +1,7 @@
 from .llm_qa import LLMQA, LLMQATrainer
 
-from .qa import QA
+
+__all__ = [
+    "LLMQA",
+    "LLMQATrainer",
+]
