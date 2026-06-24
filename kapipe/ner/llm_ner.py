@@ -83,7 +83,7 @@ class LLMNER:
                 etype_meta_info = path_snapshot + "/etype_meta_info.json"
             path_demonstration_pool = path_snapshot + "/demonstration_pool.json"
 
-            # If the demonstration pool file does not exist, set it to None
+            # Demonstrations are optional for zero-shot configurations
             if not os.path.exists(path_demonstration_pool):
                 path_demonstration_pool = None
 
@@ -115,7 +115,6 @@ class LLMNER:
         self.etype_meta_info = etype_meta_info
 
         # Initialize the prompt processor, which generates prompts for the LLM
-        # based on the input document, demonstrations, and context passages
         self.prompt_processor = PromptProcessor(
             prompt_template_name_or_path=(
                 self.config["prompt_template_name_or_path"]
@@ -130,7 +129,7 @@ class LLMNER:
         self.provider = self.config["provider"]
         if self.provider not in ["hf", "openai"]:
             raise ValueError(f"Invalid provider: {self.provider}")
-        logger.info(f"LLM is provided by {self.provider}")
+        logger.info("LLM is provided by an argument")
 
         # Initialize the demonstration retriever, which retrieves demonstrations
         # from a pool based on the input document
@@ -143,13 +142,11 @@ class LLMNER:
                 task="ner",
             )
 
-        # Define regular expression for output parsing
-        # Parse output lines of the form:
+        # Define regular expression for output parsing.
+        # Parse generated lines of the followingform:
         #
         #     - [mention text] | [entity type]
         #
-        # The first group captures the bullet marker, while the second and
-        # third groups capture the mention and entity type.
         self.re_comp = re.compile("(.+?)\s*(.+?)\s*\|\s*(.+?)$")
 
         # Create entity type mapping (normalized pretty name -> canonical name)
@@ -216,7 +213,7 @@ class LLMNER:
             # Generate a response
             generated_text = self.model.generate(prompt)
 
-            # Convert the free-form generated text into structured mention records
+            # Convert the generated text into structured mentions
             mentions = self.structurize(
                 document=document,
                 generated_text=generated_text

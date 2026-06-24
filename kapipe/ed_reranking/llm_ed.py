@@ -2,28 +2,29 @@ from __future__ import annotations
 
 from collections import defaultdict
 import copy
-# import json
 import logging
 import os
 import re
 from typing import Any
 
-# import numpy as np
 import torch
 from tqdm import tqdm
 
+from .. import evaluation
+from .. import utils
 from ..datatypes import (
     Config,
     Document,
     Mention,
+    Entity,
     EntityPage,
     CandidateEntitiesForDocument,
     DemonstrationsForOneExample,
     ContextsForOneExample
 )
-from .. import utils
-from .. import evaluation
+from ..demonstration_retrieval import DemonstrationRetriever
 from ..llms import HuggingFaceLLM, OpenAILLM
+from ..resources import resolve_snapshot_path
 
 
 logger = logging.getLogger(__name__)
@@ -38,6 +39,7 @@ class LLMED:
     def __init__(
         self,
         device: str,
+        model: HuggingFaceLLM | OpenAILLM,
         # Initialization
         config: Config | str | None = None,
         path_entity_dict: str | None = None,
@@ -45,25 +47,62 @@ class LLMED:
         path_candidate_entities_pool: str | None = None,
         # Loading
         path_snapshot: str | None = None,
-        # Misc.
-        model: HuggingFaceLLM | OpenAILLM | None = None,
+        identifier: str | None = None,
     ):
         logger.info("########## LLMED Initialization Starts ##########")
 
+        # Resolve a public identifier to the corresponding local snapshot
+        if identifier is not None:
+            if path_snapshot is not None:
+                raise ValueError(
+                    "identifier and path_snapshot cannot be specified together."
+                )
+
+            path_snapshot = resolve_snapshot_path(
+                component_name="ed_reranking",
+                method_name="llm_ed",
+                identifier=identifier,
+            )
+
         self.device = device
+        self.model = model
         self.path_snapshot = path_snapshot
+        self.identifier = identifier
 
         if path_snapshot is not None:
-            assert config is None
-            assert path_entity_dict is None
-            assert path_demonstration_pool is None
-            assert path_candidate_entities_pool is None
+            # Explicit initialization resources must not be mixed with a
+            # complete snapshot.
+            if config is not None:
+                raise ValueError(
+                    "config cannot be specified when loading a snapshot."
+                )
+            if path_entity_dict is not None:
+                raise ValueError(
+                    "path_entity_dict cannot be specified when loading "
+                    "a snapshot."
+                )
+            if path_demonstration_pool is not None:
+                raise ValueError(
+                    "path_demonstration_pool cannot be specified when loading "
+                    "a snapshot."
+                )
+            if path_candidate_entities_pool is not None:
+                raise ValueError(
+                    "path_candidate_entities_pool cannot be specified when "
+                    "loading a snapshot."
+                ) 
+
+            # Specify the default paths for the resources in the snapshot
             config = path_snapshot + "/config"
             path_entity_dict = path_snapshot + "/entity_dict.json"
             path_demonstration_pool = path_snapshot + "/demonstration_pool.json"
             path_candidate_entities_pool = path_snapshot + "/candidate_entities_pool.json"
+
+            # Demonstrations are optional for zero-shot configurations
             if not os.path.exists(path_demonstration_pool):
                 path_demonstration_pool = None
+
+            # Candidate annotations are only required when demonstrations are used
             if not os.path.exists(path_candidate_entities_pool):
                 path_candidate_entities_pool = None
 
@@ -83,53 +122,50 @@ class LLMED:
         }
         logger.info(f"Completed loading of entity dictionary with {len(self.entity_dict)} entities from {path_entity_dict}")
 
-        # Initialize the prompt processor
+        # Initialize the prompt processor, whioch generates prompts for the LLM
         self.prompt_processor = PromptProcessor(
-            prompt_template_name_or_path=config["prompt_template_name_or_path"],
-            knowledge_base_name_prompt=config["knowledge_base_name"],
+            prompt_template_name_or_path=self.config["prompt_template_name_or_path"],
+            knowledge_base_name_prompt=self.config["knowledge_base_name"],
             entity_dict=self.entity_dict,
             path_demonstration_pool=path_demonstration_pool,
             path_candidate_entities_pool=path_candidate_entities_pool,
-            n_demonstrations=config["n_demonstrations"]
+            n_demonstrations=self.config["n_demonstrations"]
         )
 
-        # Initialize the model
-        self.model_name = config["model_name"]
-        assert self.model_name in ["hf", "openai"]
-        if model is not None:
-            self.model = model
-            logger.info("LLM is provided by an argument")
-        elif self.model_name == "hf":
-            self.model = HuggingFaceLLM(
-                device=device,
-                # Model
-                llm_name_or_path=config["llm_name_or_path"],
-                # Generation
-                max_new_tokens=config["max_new_tokens"],
-                quantization_bits=config["quantization_bits"],
-            )
-        else:
-            self.model = OpenAILLM(
-                openai_model_name=config["openai_model_name"],
-                max_new_tokens=config["max_new_tokens"]
-            )
-        # self.model.llm.to(self.model.device)
+        # Check the provider and initialize the LLM model accordingly
+        self.provider = self.config["provider"]
+        if self.provider not in ["hf", "openai"]:
+            raise ValueError(f"Invalid provider: {self.provider}")
+        logger.info("LLM is provided by an argument")
 
-        # Define regular expression for output parsing
-        # <bullet> (<mention>, <entity id>)
-        # self.re_comp = re.compile("(.+?)\s*\(\s*(.+?)\s*,\s*(.+?)\s*\)$")
-        # <bullet> <mention> -> <entity id>
-        # self.re_comp = re.compile("(.+?)\s*(.+?)\s*->\s*(.+?)$")
-        # <bullet> <mention> | <entity id>
+        # Initialize the demonstration retriever, which retrieves demonstrations
+        # from a pool based on the input document
+        if path_demonstration_pool is None:
+            self.demonstration_retriever = None
+        else:
+            self.demonstration_retriever = DemonstrationRetriever(
+                path_demonstration_pool=path_demonstration_pool,
+                method="count",
+                task="ed",
+            )
+
+        # Define regular expression for output parsing.
+        # Parse generated lines of the following form:
+        #
+        #     - [mention text] | [entity ID]
+        #
         self.re_comp = re.compile("(.+?)\s*(.+?)\s*\|\s*(.+?)$")
 
         logger.info("########## LLMED Initialization Ends ##########")
 
     def save(self, path_snapshot: str) -> None:
+        """Function to save the configuration, entity dictionary, demonstration pool, and candidate entities pool to a snapshot directory."""
+
         path_config = path_snapshot + "/config"
         path_entity_dict = path_snapshot + "/entity_dict.json"
         path_demonstration_pool = path_snapshot + "/demonstration_pool.json"
         path_candidate_entities_pool = path_snapshot + "/candidate_entities_pool.json"
+
         utils.write_json(path_config, self.config)
         utils.write_json(path_entity_dict, list(self.entity_dict.values()))
         if self.prompt_processor.path_demonstration_pool is not None:
@@ -146,14 +182,25 @@ class LLMED:
         self,
         document: Document,
         candidate_entities_for_doc: CandidateEntitiesForDocument,
-        # optional: few-shot setting
+        # Optional: few-shot setting
         demonstrations_for_doc: DemonstrationsForOneExample | None = None,
-        # optional: prompt augmentation
+        # Optional: prompt augmentation
         contexts_for_doc: ContextsForOneExample | None = None
     ) -> Document:
+        """Function to rerank candidate entities for a single document and return the updated document with predicted entities."""
+
+        if (
+            demonstrations_for_doc is None
+            and self.demonstration_retriever is not None
+        ):
+            demonstrations_for_doc = self.demonstration_retriever.search(
+                document=document,
+                top_k=self.config["n_demonstrations"],
+            )
+
         with torch.no_grad():
-            if self.model_name == "hf":
-                # Switch to inference mode
+            # Switch to inference mode for Hugging Face models
+            if self.provider == "hf":
                 self.model.llm.eval()
  
             # Split mentions into groups and perform reranking on the groups iteratively
@@ -179,8 +226,8 @@ class LLMED:
                 generated_text = self.model.generate(prompt)
                 generated_text_list.append(generated_text)
 
-                # Structurize (1)
-                target_mentions = self._structurize_for_mentions(
+                # Convert the generated text into mention-level records
+                target_mentions = self.structurize(
                     document=document,
                     candidate_entities_for_doc=candidate_entities_for_doc,
                     generated_text=generated_text,
@@ -188,15 +235,15 @@ class LLMED:
                 )
                 target_mentions_list.append(target_mentions)
 
-            # Structurize (2)
+            # Aggregate the mention-level records
             mentions = utils.flatten_lists(target_mentions_list)
             assert len(mentions) == len(document["mentions"])
-            entities = utils.aggregate_mentions_to_entities(
+            entities: list[Entity] = utils.aggregate_mentions_to_entities(
                 document=document,
                 mentions=mentions
             )
 
-            # Integrate
+            # Integrate the entities into the document and return the updated document
             result_document = copy.deepcopy(document)
             for m_i in range(len(result_document["mentions"])):
                 result_document["mentions"][m_i].update(mentions[m_i])
@@ -205,15 +252,17 @@ class LLMED:
             result_document["ed_generated_text"] = "\n@@@@@@@@@@\n".join(
                 generated_text_list
             )
+
             return result_document
 
-    def _structurize_for_mentions(
+    def structurize(
         self,
         document: Document,
         candidate_entities_for_doc: CandidateEntitiesForDocument,
         generated_text: str,
         target_mention_indices: list[int]
     ) -> list[Mention]:
+        """Function to convert the free-form generated text into structured mention-level records."""
         doc_key = document["doc_key"]
 
         # Get one-to-many mapping from normalized mention name to mention indices
@@ -273,7 +322,7 @@ class LLMED:
                     # Skip checking the mention names
     
                     # Check whether the entity ID can be found in the possible list
-                    if not entity_id in possible_entity_ids:
+                    if entity_id not in possible_entity_ids:
                         logger.info(f"[{doc_key}] Skipped a generated line with invalid concept ID: {entity_id}")
                         continue
     
@@ -301,7 +350,7 @@ class LLMED:
                 normalized_name = normalized_name2
 
                 # Check whether the entity ID can be found in the possible list
-                if not entity_id in possible_entity_ids:
+                if entity_id not in possible_entity_ids:
                     logger.info(f"[{doc_key}] Skipped a generated line with invalid concept ID: {entity_id}")
                     continue
 
@@ -312,7 +361,7 @@ class LLMED:
 
         # Check
         for m_i in range(len(document["mentions"])):
-            if not m_i in target_mention_indices:
+            if m_i not in target_mention_indices:
                 assert mentions[m_i]["entity_id"] == "NO-PRED"
 
         return [mentions[m_i] for m_i in target_mention_indices]
@@ -326,6 +375,7 @@ class LLMED:
         # optional: context augmentation
         contexts: list[ContextsForOneExample] | None = None
     ) -> list[Document]:
+        """Function to rerank candidate entities for a batch of documents and return the updated documents with predicted entities."""
         result_documents = []
 
         if demonstrations is None:
@@ -660,7 +710,7 @@ class PromptProcessor:
 
                 # If the ground-truth entity cannot be found in the candidates,
                 # set the target output "NA".
-                if not entity_id in {
+                if entity_id not in {
                     epage["entity_id"]
                     for epage in candidate_entity_pages_for_doc[m_i]
                 }:
@@ -670,7 +720,12 @@ class PromptProcessor:
 
         return prompt.rstrip()
 
- 
+
+ #####################
+# Trainer (Evaluator)
+#####################
+
+
 class LLMEDTrainer:
 
     def __init__(self, base_output_path: str):

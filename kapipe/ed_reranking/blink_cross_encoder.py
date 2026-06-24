@@ -15,6 +15,8 @@ from transformers.modeling_outputs import ModelOutput
 from tqdm import tqdm
 import jsonlines
 
+from .. import evaluation
+from .. import utils
 from ..datatypes import (
     Config,
     Document,
@@ -23,10 +25,9 @@ from ..datatypes import (
     CandEntKeyInfo,
     CandidateEntitiesForDocument
 )
-from .. import utils
-from ..utils import BestScoreHolder
-from .. import evaluation
 from ..nn_utils import get_optimizer2, get_scheduler2
+from ..resources import resolve_snapshot_path
+from ..utils import BestScoreHolder
 
 
 logger = logging.getLogger(__name__)
@@ -44,19 +45,45 @@ class BlinkCrossEncoder:
         config: Config | str | None = None,
         path_entity_dict: str | None = None,
         # Loading
-        path_snapshot: str | None = None
+        path_snapshot: str | None = None,
+        identifier: str | None = None,
     ):
         logger.info("########## BlinkCrossEncoder Initialization Starts ##########")
 
+        # Resolve a public identifier to the corresponding local snapshot
+        if identifier is not None:
+            if path_snapshot is not None:
+                raise ValueError(
+                    "identifier and path_snapshot cannot be specified together."
+                )
+
+            path_snapshot = resolve_snapshot_path(
+                component_name="ed_reranking",
+                method_name="blink_cross_encoder",
+                identifier=identifier,
+            )
+
         self.device = device
         self.path_snapshot = path_snapshot
+        self.identifier = identifier
 
         if path_snapshot is not None:
-            assert config is None
-            assert path_entity_dict is None
+            # Explicit initialization resources must not be mixed with a
+            # complete snapshot.
+            if config is not None:
+                raise ValueError(
+                    "config cannot be specified when loading a snapshot."
+                )
+            if path_entity_dict is not None:
+                raise ValueError(
+                    "path_entity_dict cannot be specified when loading "
+                    "a snapshot."
+                )
+
+            # Specify the default paths for the resources in the snapshot
+            path_model = path_snapshot + "/model"
             config = path_snapshot + "/config"
             path_entity_dict = path_snapshot + "/entity_dict.json"
-            path_model = path_snapshot + "/model"
 
         # Load the configuration
         if isinstance(config, str):
@@ -72,7 +99,10 @@ class BlinkCrossEncoder:
             epage["entity_id"]: epage
             for epage in utils.read_json(path_entity_dict)
         }
-        logger.info(f"Completed loading of entity dictionary with {len(self.entity_dict)} entities from {path_entity_dict}")
+        logger.info(
+            "Completed loading of entity dictionary with "
+            f"{len(self.entity_dict)} entities from {path_entity_dict}"
+        )
 
         # Initialize the model
         self.model_name = config["model_name"]
@@ -100,18 +130,21 @@ class BlinkCrossEncoder:
             )
             logger.info(f"Loaded model parameters from {path_model}")
 
+        # Move the model to the specified device
         self.model.to(self.model.device)
 
         logger.info("########## BlinkCrossEncoder Initialization Ends ##########")
 
     def save(self, path_snapshot: str, model_only: bool = False) -> None:
+        """Function to save the model, configuration, and entity dictionary to the specified snapshot path."""
+        path_model = path_snapshot + "/model"
         path_config = path_snapshot + "/config"
         path_entity_dict = path_snapshot + "/entity_dict.json"
-        path_model = path_snapshot + "/model"
+
+        torch.save(self.model.state_dict(), path_model)
         if not model_only:
             utils.write_json(path_config, self.config)
             utils.write_json(path_entity_dict, list(self.entity_dict.values()))
-        torch.save(self.model.state_dict(), path_model)
 
     def compute_loss(
         self,
@@ -119,26 +152,27 @@ class BlinkCrossEncoder:
         candidate_entities_for_doc: CandidateEntitiesForDocument,
         mention_index: int
     ) -> tuple[torch.Tensor, torch.Tensor]:
+        """Function to compute the loss and accuracy for a given document and mention index."""
         assert document["doc_key"] == candidate_entities_for_doc["doc_key"]
 
         # Switch to training mode
         self.model.train()
 
-        # Preprocess
+        # Preprocess the document and candidate entities for the specified mention index
         preprocessed_data = self.model.preprocess(
             document=document,
             candidate_entities_for_doc=candidate_entities_for_doc,
             max_n_candidates=self.config["max_n_candidates_in_training"]
         )
 
-        # Tensorize
+        # Tensorize the preprocessed data for the specified mention index
         model_input = self.model.tensorize(
             preprocessed_data=preprocessed_data,
             mention_index=mention_index,
             compute_loss=True
         )
 
-        # Forward
+        # Forward pass through the model to compute the loss and accuracy
         model_output = self.model.forward(**model_input)
 
         return (
@@ -151,6 +185,7 @@ class BlinkCrossEncoder:
         document: Document,
         candidate_entities_for_doc: CandidateEntitiesForDocument
     ) -> Document:
+        """Function to rerank candidate entities for a given document and return the updated document with predicted entities."""
         assert document["doc_key"] == candidate_entities_for_doc["doc_key"]
 
         with torch.no_grad():
@@ -163,50 +198,52 @@ class BlinkCrossEncoder:
                 result_document["entities"] = []
                 return result_document
 
-            # Preprocess
+            # Preprocess the document and candidate entities for inference
             preprocessed_data = self.model.preprocess(
                 document=document,
                 candidate_entities_for_doc=candidate_entities_for_doc,
                 max_n_candidates=self.config["max_n_candidates_in_inference"]
             )
 
+            # Rerank candidate entities for each mention in the document
             mentions: list[Mention] = []
             cands_for_mentions: list[list[CandEntKeyInfo]] = (
                 candidate_entities_for_doc["candidate_entities"]
             )
             for mention_index in range(len(preprocessed_data["mentions"])):
-                # Tensorize
+                # Tensorize the preprocessed data for the current mention index
                 model_input = self.model.tensorize(
                     preprocessed_data=preprocessed_data,
                     mention_index=mention_index,
                     compute_loss=False
                 )
 
-                # Forward
+                # Forward pass through the model to compute the logits
                 model_output = self.model.forward(**model_input)
                 logits = model_output.logits # (1, n_candidates)
 
-                # Structurize (1)
-                # Transform logits to mention-level entity IDs
-                pred_candidate_entity_index = torch.argmax(logits, dim=1).cpu().item() # int
-                pred_candidate_entity_id = cands_for_mentions[mention_index][
+                # Determine the index of the predicted candidate entity with the
+                # highest logit score.
+                pred_candidate_entity_index: int = (
+                    torch.argmax(logits, dim=1).cpu().item()
+                )
+                pred_candidate_entity_id: str = cands_for_mentions[mention_index][
                     pred_candidate_entity_index
                 ]["entity_id"]
                 mentions.append({"entity_id": pred_candidate_entity_id,})
 
-            # Structurize (2)
-            # Transform to entity-level entity IDs
-            # i.e., aggregate mentions based on the entity IDs
+            # Aggregate mentions based on the entity IDs
             entities: list[Entity] = utils.aggregate_mentions_to_entities(
                 document=document,
                 mentions=mentions
             )
 
-            # Integrate
+            # Integrate the predicted entities into the result document
             result_document = copy.deepcopy(document)
             for m_i in range(len(result_document["mentions"])):
                 result_document["mentions"][m_i].update(mentions[m_i])
             result_document["entities"] = entities
+
             return result_document
 
     def batch_rerank(
@@ -214,6 +251,7 @@ class BlinkCrossEncoder:
         documents: list[Document],
         candidate_entities: list[CandidateEntitiesForDocument]
     ) -> list[Document]:
+        """Function to rerank candidate entities for a batch of documents and return the updated documents with predicted entities."""
         result_documents = []
         for document, candidate_entities_for_doc in tqdm(
             zip(documents, candidate_entities),
@@ -226,6 +264,11 @@ class BlinkCrossEncoder:
             )
             result_documents.append(result_document)
         return result_documents
+
+
+#####################
+# Trainer (Evaluator), Model, Preprocessor
+#####################
 
 
 class BlinkCrossEncoderTrainer:

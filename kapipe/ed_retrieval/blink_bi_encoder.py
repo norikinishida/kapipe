@@ -200,7 +200,7 @@ class BlinkBiEncoder:
             candidate_entity_passages=candidate_entity_passages
         )
 
-        # Tensorize entities 
+        # Tensorize entities
         model_input_e = self.model.tensorize_entities(
             preprocessed_data=preprocessed_data_e,
             compute_loss=True
