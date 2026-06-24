@@ -44,7 +44,7 @@ class LLMNER:
     ):
         logger.info("########## LLMNER Initialization Starts ##########")
 
-        # Resolve a public identifier to the corresponding local snapshot.
+        # Resolve a public identifier to the corresponding local snapshot
         if identifier is not None:
             if path_snapshot is not None:
                 raise ValueError(
@@ -63,9 +63,9 @@ class LLMNER:
         self.identifier = identifier
 
         if path_snapshot is not None:
+            # Explicit initialization resources must not be mixed with a
+            # complete snapshot.
             if config is not None:
-                # Explicit initialization resources must not be mixed with a
-                # complete snapshot.
                 raise ValueError(
                     "config cannot be specified when loading a snapshot."
                 )

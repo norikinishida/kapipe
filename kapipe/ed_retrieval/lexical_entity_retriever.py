@@ -8,6 +8,8 @@ from typing import Any
 from spacy.lang.en import English
 from tqdm import tqdm
 
+from .. import evaluation
+from .. import utils
 from ..datatypes import (
     Config,
     Document,
@@ -17,9 +19,8 @@ from ..datatypes import (
     CandEntKeyInfo,
     CandidateEntitiesForDocument
 )
-from .. import utils
-from .. import evaluation
 from ..passage_retrieval import BM25, TextSimilarityBasedRetriever
+from ..resources import resolve_snapshot_path
 
 
 logger = logging.getLogger(__name__)
@@ -31,6 +32,7 @@ class Tokenizer:
         self.nlp = English()
 
     def __call__(self, sentence: str) -> list[str]:
+        """Function to tokenize a given text into a list of lowercase tokens using spaCy's English tokenizer."""
         doc = self.nlp(sentence)
         return [token.text.lower() for token in doc]
 
@@ -39,15 +41,45 @@ class LexicalEntityRetriever:
 
     def __init__(
         self,
+        # Initialization
         config: Config | str | None = None,
         path_entity_dict: str | None = None,
-        path_snapshot: str | None = None
+        # Loading
+        path_snapshot: str | None = None,
+        identifier: str | None = None,
     ):
         logger.info("########## LexicalEntityRetriever Initialization Starts ##########")
 
+        # Resolve a public identifier to the corresponding local snapshot
+        if identifier is not None:
+            if path_snapshot is not None:
+                raise ValueError(
+                    "identifier and path_snapshot cannot be specified together."
+                )
+
+            path_snapshot = resolve_snapshot_path(
+                component_name="ed_retrieval",
+                method_name="lexical_entity_retriever",
+                identifier=identifier,
+            )
+
+        self.path_snapshot = path_snapshot
+        self.identifier = identifier
+
         if path_snapshot is not None:
-            assert config is None
-            assert path_entity_dict is None
+            # Explicit initialization resources must not be mixed with a
+            # complete snapshot.
+            if config is not None:
+                raise ValueError(
+                    "config cannot be specified when loading a snapshot."
+                )
+            if path_entity_dict is not None:
+                raise ValueError(
+                    "path_entity_dict cannot be specified when loading "
+                    "a snapshot."
+                )
+
+            # Specify the default paths for the resources in the snapshot
             config = path_snapshot + "/config"
             path_entity_dict = path_snapshot + "/entity_dict.json"
 
@@ -85,9 +117,8 @@ class LexicalEntityRetriever:
         else:
             raise Exception(f"Invalid retriever_name: {self.config['retriever_name']}")
 
-        # Create entity passages
-        # We expand the entities using synonyms
-        # Thus, the number of entity passages >= the number of entities
+        # Convert every entity (i.e., concept) into one or more searchable passages.
+        # Synonyms produce additional passages that point to the same entity ID.
         entity_passages: list[EntityPassage] = []
         use_desc = "description" in self.config["features"]
         for eid, epage in self.entity_dict.items():
@@ -101,9 +132,12 @@ class LexicalEntityRetriever:
                 }
                 entity_passages.append(entity_passage)
         logger.info(f"Number of entities: {len(self.entity_dict)}")
-        logger.info(f"Number of entity passages (after synonym expansion): {len(entity_passages)}")
+        logger.info(
+            "Number of entity passages after synonym expansion: "
+            f"{len(entity_passages)}"
+        )
 
-        # Build index
+        # Build the lexical index
         logger.info("Building index ...")
         self.retriever.make_index(passages=entity_passages)
         logger.info("Completed indexing")
@@ -111,6 +145,7 @@ class LexicalEntityRetriever:
         logger.info("########## LexicalEntityRetriever Initialization Ends ##########")
 
     def save(self, path_snapshot: str) -> None:
+        """Function to save the configuration and entity dictionary to a specified snapshot path."""
         path_config = path_snapshot + "/config"
         path_entity_dict = path_snapshot + "/entity_dict.json"
         utils.write_json(path_config, self.config)
@@ -121,6 +156,8 @@ class LexicalEntityRetriever:
         document: Document,
         retrieval_size: int = 1
     ) -> tuple[Document, CandidateEntitiesForDocument]:
+        """Function to retrieve candidate entities for each mention in the document using the lexical retriever."""
+
         words = " ".join(document["sentences"]).split()
         mention_pred_entity_ids = [] # (n_mentions, retrieval_size)
         mention_pred_entity_names = [] # (n_mentions, retrieval_size)
@@ -198,6 +235,8 @@ class LexicalEntityRetriever:
         documents: list[Document],
         retrieval_size: int = 1
     ) -> tuple[list[Document], list[CandidateEntitiesForDocument]]:
+        """Function to retrieve candidate entities for each mention in a batch of documents using the lexical retriever."""
+
         result_documents = []
         candidate_entities = []
         for document in tqdm(documents, desc="retrieval steps"):
@@ -208,6 +247,11 @@ class LexicalEntityRetriever:
             result_documents.append(document)
             candidate_entities.append(candidate_entities_for_doc)
         return result_documents, candidate_entities
+
+
+#####################
+# Trainer (Evaluator)
+#####################
 
 
 class LexicalEntityRetrieverTrainer:

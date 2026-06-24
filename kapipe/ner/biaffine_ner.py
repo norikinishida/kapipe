@@ -50,7 +50,7 @@ class BiaffineNER:
     ):
         logger.info("########## BiaffineNER Initialization Starts ##########")
    
-        # Resolve a public identifier to the corresponding local snapshot.
+        # Resolve a public identifier to the corresponding local snapshot
         if identifier is not None:
             if path_snapshot is not None:
                 raise ValueError(
@@ -80,9 +80,9 @@ class BiaffineNER:
                 )
 
             # Specify the default paths for the resources in the snapshot
+            path_model = path_snapshot + "/model"
             config = path_snapshot + "/config"
             vocab_etype = path_snapshot + "/entity_types.vocab.txt"
-            path_model = path_snapshot + "/model"
 
         # Load the configuration
         if isinstance(config, str):
@@ -148,14 +148,14 @@ class BiaffineNER:
     def save(self, path_snapshot: str, model_only: bool = False) -> None:
         """Function to save the model, configuration, and entity type vocabulary."""
 
+        path_model = path_snapshot + "/model"
         path_config = path_snapshot + "/config"
         path_vocab = path_snapshot + "/entity_types.vocab.txt"
-        path_model = path_snapshot + "/model"
 
+        torch.save(self.model.state_dict(), path_model)
         if not model_only:
             utils.write_json(path_config, self.config)
             utils.write_vocab(path_vocab, self.vocab_etype, write_frequency=False)
-        torch.save(self.model.state_dict(), path_model)
 
     def compute_loss(self, document: Document) -> tuple[torch.Tensor, torch.Tensor, int]:
         """Function to compute the loss, accuracy, and number of valid spans for a given document."""

@@ -5,13 +5,13 @@ import logging
 
 from tqdm import tqdm
 
+from .. import utils
 from ..datatypes import (
     Document,
     Mention,
     Entity,
     CandidateEntitiesForDocument,
 )
-from .. import utils
 
 
 logger = logging.getLogger(__name__)
@@ -28,6 +28,7 @@ class DummyEntityRetriever:
         document: Document,
         retrieval_size: int = 1
     ) -> tuple[Document, CandidateEntitiesForDocument]:
+        """Function to retrieve candidate entities for each mention in the document using a dummy retriever."""
         # Skip prediction if no mention appears
         if len(document["mentions"]) == 0:
            result_document = copy.deepcopy(document)
@@ -72,6 +73,7 @@ class DummyEntityRetriever:
         documents: list[Document],
         retrieval_size: int = 1
     ) -> tuple[list[Document], list[CandidateEntitiesForDocument]]:
+        """Function to retrieve candidate entities for each mention in a batch of documents using a dummy retriever."""
         result_documents: list[Document] = []
         candidate_entities: list[CandidateEntitiesForDocument] = []
         for document in tqdm(documents, desc="retrieval steps"):

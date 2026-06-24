@@ -23,6 +23,8 @@ from tqdm import tqdm
 from tqdm.autonotebook import trange
 import jsonlines
 
+from .. import evaluation
+from .. import utils
 from ..datatypes import (
     Config,
     Document,
@@ -32,11 +34,10 @@ from ..datatypes import (
     CandEntKeyInfo,
     CandidateEntitiesForDocument
 )
-from .. import utils
-from ..utils import BestScoreHolder
-from .. import evaluation
-from ..passage_retrieval import ApproximateNearestNeighborSearch
 from ..nn_utils import get_optimizer2, get_scheduler2
+from ..passage_retrieval import ApproximateNearestNeighborSearch
+from ..resources import resolve_snapshot_path
+from ..utils import BestScoreHolder
 
 
 logger = logging.getLogger(__name__)
@@ -54,19 +55,45 @@ class BlinkBiEncoder:
         config: Config | str | None = None,
         path_entity_dict: str | None = None,
         # Loading
-        path_snapshot: str | None = None
+        path_snapshot: str | None = None,
+        identifier: str | None = None,
     ):
         logger.info("########## BlinkBiEncoder Initialization Starts ##########")
 
+        # Resolve a public identifier to the corresponding local snapshot
+        if identifier is not None:
+            if path_snapshot is not None:
+                raise ValueError(
+                    "identifier and path_snapshot cannot be specified together."
+                )
+
+            path_snapshot = resolve_snapshot_path(
+                component_name="ed_retrieval",
+                method_name="blinki_bi_encoder",
+                identifier=identifier,
+            )
+
         self.device = device
         self.path_snapshot = path_snapshot
+        self.identifier = identifier
 
         if path_snapshot is not None:
-            assert config is None
-            assert path_entity_dict is None
+            # Explicit initialization resources must not be mixed with a
+            # complete snapshot.
+            if config is not None:
+                raise ValueError(
+                    "config cannot be specified when loading a snapshot."
+                )
+            if path_entity_dict is not None:
+                raise ValueError(
+                    "path_entity_dict cannot be specified when loading "
+                    "a snapshot."
+                )
+
+            # Specify the default paths for the resources in the snapshot
+            path_model = path_snapshot + "/model"
             config = path_snapshot + "/config"
             path_entity_dict = path_snapshot + "/entity_dict.json"
-            path_model = path_snapshot + "/model"
             path_entity_vectors = path_snapshot + "/entity_vectors.npy"
 
         # Load the configuration
@@ -83,7 +110,10 @@ class BlinkBiEncoder:
             epage["entity_id"]: epage
             for epage in utils.read_json(path_entity_dict)
         }
-        logger.info(f"Completed loading of entity dictionary with {len(self.entity_dict)} entities from {path_entity_dict}")
+        logger.info(
+            "Completed loading of entity dictionary with "
+            f"{len(self.entity_dict)} entities from {path_entity_dict}"
+        )
 
         # Initialize the model
         self.model_name = config["model_name"]
@@ -102,7 +132,7 @@ class BlinkBiEncoder:
         # for name, param in self.model.named_parameters():
         #     logger.info(f"{name}: {tuple(param.shape)}")
 
-        # Load trained model parameters and entity vectors
+        # Load trained model parameters and precomputed entity vectors
         if path_snapshot is not None:
             self.model.load_state_dict(
                 torch.load(path_model, map_location=torch.device("cpu")),
@@ -111,25 +141,30 @@ class BlinkBiEncoder:
             logger.info(f"Loaded model parameters from {path_model}")
 
             self.precomputed_entity_vectors = np.load(path_entity_vectors)
-            logger.info(f"Loaded entity vectors from {path_entity_vectors}")
+            logger.info(f"Loaded precomputed entity vectors from {path_entity_vectors}")
 
+        # Move the model to the specified device
         self.model.to(self.model.device)
 
-        # Initialize Approximate Nearest Neighbor Search tool
-        # It might be better to select a different GPU ID for indexing from the GPU ID of the BLINK model to avoid OOM error
+        # Initialize Approximate Nearest Neighbor search tool
+        # It might be better to select a different GPU ID for indexing
+        # from the GPU ID of the BLINK model to avoid OOM error
         self.anns = ApproximateNearestNeighborSearch(gpu_id=0) # TODO: Allow GPU-ID selection
 
         logger.info("########## BlinkBiEncoder Initialization Ends ##########")
 
     def save(self, path_snapshot: str, model_only: bool = False) -> None:
+        """Function to save the model, configuration, entity dictionary, and precomputed entity vectors."""
+
+        path_model = path_snapshot + "/model"
         path_config = path_snapshot + "/config"
         path_entity_dict = path_snapshot + "/entity_dict.json"
-        path_model = path_snapshot + "/model"
         path_entity_vectors = path_snapshot + "/entity_vectors.npy"
+
+        torch.save(self.model.state_dict(), path_model)
         if not model_only:
             utils.write_json(path_config, self.config)
             utils.write_json(path_entity_dict, list(self.entity_dict.values()))
-        torch.save(self.model.state_dict(), path_model)
         np.save(path_entity_vectors, self.precomputed_entity_vectors)
 
     def compute_loss(
@@ -137,6 +172,7 @@ class BlinkBiEncoder:
         document: Document,
         flatten_candidate_entities_for_doc: dict[str, list[CandEntKeyInfo]],
     ) -> tuple[torch.Tensor, int]:
+        """Function to compute the loss and number of valid mentions for a given document."""
         # Switch to training mode
         self.model.train()
 
@@ -220,6 +256,7 @@ class BlinkBiEncoder:
         )
 
     def make_index(self, use_precomputed_entity_vectors: bool = False) -> None:
+        """Function to build the index for Approximate Nearest Neighbor Search (ANNS) based on the entity vectors."""
         with torch.no_grad():
             # Switch to inference mode
             self.model.eval()
@@ -273,6 +310,7 @@ class BlinkBiEncoder:
     def search(self, document: Document, retrieval_size: int = 1) -> tuple[
         Document, CandidateEntitiesForDocument
     ]:
+        """Function to retrieve candidate entities for each mention in the document using Approximate Nearest Neighbor Search (ANNS) based on the mention vectors and the indexed entity vectors."""
         with torch.no_grad():
             # Switch to inference mode
             self.model.eval()
@@ -367,6 +405,8 @@ class BlinkBiEncoder:
         documents: list[Document],
         retrieval_size: int = 1
     ) -> tuple[list[Document], list[CandidateEntitiesForDocument]]:
+        """Function to retrieve candidate entities for each mention in a batch of documents using Approximate Nearest Neighbor Search (ANNS) based on the mention vectors and the indexed entity vectors."""
+
         result_documents: list[Document] = []
         candidate_entities: list[CandidateEntitiesForDocument] = []
         for document in tqdm(documents, desc="retrieval steps"):
@@ -377,6 +417,11 @@ class BlinkBiEncoder:
             result_documents.append(result_document)
             candidate_entities.append(candidate_entities_for_doc)
         return result_documents, candidate_entities
+
+
+#####################
+# Trainer (Evaluator), Model, Preprocessor
+#####################
 
 
 class BlinkBiEncoderTrainer:
