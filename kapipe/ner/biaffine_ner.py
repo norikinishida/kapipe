@@ -13,20 +13,21 @@ import torch.nn as nn
 from transformers import AutoModel
 from transformers import AutoTokenizer
 from transformers.modeling_outputs import ModelOutput
-# from opt_einsum import contract
 from tqdm import tqdm
 import jsonlines
 
-from ..datatypes import Config, Document, Mention
-from .. import utils
-from ..utils import BestScoreHolder
+
 from .. import evaluation
+from .. import utils
+from ..datatypes import Config, Document, Mention
 from ..nn_utils import (
     Biaffine,
     FocalLoss,
     get_optimizer2,
     get_scheduler2
 )
+from ..resources import resolve_snapshot_path
+from ..utils import BestScoreHolder
 
 
 logger = logging.getLogger(__name__)
@@ -44,16 +45,41 @@ class BiaffineNER:
         config: Config | str | None = None,
         vocab_etype: dict[str, int] | str | None = None,
         # Loading
-        path_snapshot: str | None = None
+        path_snapshot: str | None = None,
+        identifier: str | None = None,
     ):
         logger.info("########## BiaffineNER Initialization Starts ##########")
+   
+        # Resolve a public identifier to the corresponding local snapshot.
+        if identifier is not None:
+            if path_snapshot is not None:
+                raise ValueError(
+                    "identifier and path_snapshot cannot be specified together."
+                )
+
+            path_snapshot = resolve_snapshot_path(
+                component_name="ner",
+                method_name="biaffine_ner",
+                identifier=identifier,
+            )
 
         self.device = device
         self.path_snapshot = path_snapshot
+        self.identifier = identifier
 
         if path_snapshot is not None:
-            assert config is None
-            assert vocab_etype is None
+            # Explicit initialization resources must not be mixed with a
+            # complete snapshot.
+            if config is not None:
+                raise ValueError(
+                    "config cannot be specified when loading a snapshot."
+                )
+            if vocab_etype is not None:
+                raise ValueError(
+                    "vocab_etype cannot be specified when loading a snapshot."
+                )
+
+            # Specify the default paths for the resources in the snapshot
             config = path_snapshot + "/config"
             vocab_etype = path_snapshot + "/entity_types.vocab.txt"
             path_model = path_snapshot + "/model"
@@ -66,13 +92,16 @@ class BiaffineNER:
         self.config = config
         logger.info(utils.pretty_format_dict(self.config))
 
-        # Load the entity type vocabulary
+        # Load the entity-type vocabulary
         if isinstance(vocab_etype, str):
             vocab_path = vocab_etype
             vocab_etype = utils.read_vocab(vocab_path)
             logger.info(f"Loaded entity type vocabulary from {vocab_path}")
         self.vocab_etype = vocab_etype
-        self.ivocab_etype = {i: l for l, i in self.vocab_etype.items()}
+        self.ivocab_etype = {
+            entity_type_id: entity_type
+            for entity_type, entity_type_id in self.vocab_etype.items()
+        }
 
         # Initialize the model
         self.model_name = self.config["model_name"]
@@ -86,8 +115,9 @@ class BiaffineNER:
                 loss_function_name=config["loss_function"],
                 focal_loss_gamma=(
                     config["focal_loss_gamma"]
-                    if config["loss_function"] == "focal_loss" else None
-                )
+                    if config["loss_function"] == "focal_loss"
+                    else None
+                ),
             )
         else:
             raise ValueError(f"Invalid model_name: {self.model_name}")
@@ -105,6 +135,7 @@ class BiaffineNER:
             )
             logger.info(f"Loaded model parameters from {path_model}")
 
+        # Move the model to the specified device
         self.model.to(self.model.device)
 
         # Initialize the span-based decoder
@@ -115,28 +146,32 @@ class BiaffineNER:
         logger.info("########## BiaffineNER Initialization Ends ##########")
 
     def save(self, path_snapshot: str, model_only: bool = False) -> None:
+        """Function to save the model, configuration, and entity type vocabulary."""
+
         path_config = path_snapshot + "/config"
         path_vocab = path_snapshot + "/entity_types.vocab.txt"
         path_model = path_snapshot + "/model"
+
         if not model_only:
             utils.write_json(path_config, self.config)
             utils.write_vocab(path_vocab, self.vocab_etype, write_frequency=False)
         torch.save(self.model.state_dict(), path_model)
 
     def compute_loss(self, document: Document) -> tuple[torch.Tensor, torch.Tensor, int]:
+        """Function to compute the loss, accuracy, and number of valid spans for a given document."""
         # Switch to training mode
         self.model.train()
 
-        # Preprocess
+        # Preprocess the document
         preprocessed_data = self.model.preprocess(document=document)
 
-        # Tensorize
+        # Tensorize the preprocessed data
         model_input = self.model.tensorize(
             preprocessed_data=preprocessed_data,
             compute_loss=True
         )
 
-        # Forward
+        # Forward pass through the model
         model_output = self.model.forward(**model_input)
 
         return (
@@ -146,34 +181,40 @@ class BiaffineNER:
         )
 
     def extract(self, document: Document) -> Document:
+        """Function to extract named entity mentions from a given document."""
         with torch.no_grad():
             # Switch to inference mode
             self.model.eval()
 
-            # Preprocess
+            # Preprocess the document
             preprocessed_data = self.model.preprocess(document=document)
 
-            # Tensorize
+            # Tensorize the preprocessed data
             model_input = self.model.tensorize(
                 preprocessed_data=preprocessed_data,
                 compute_loss=False
             )
 
-            # Forward
+            # Forward pass through the model
             model_output = self.model.forward(**model_input)
+
+            # Get the logits
             logits = model_output.logits # (n_tokens, n_tokens, n_etypes)
 
-            # Structurize
+            # Structurize the logits into mentions
             mentions = self.structurize(
                 document=document,
                 logits=logits,
                 matrix_valid_span_mask=preprocessed_data["matrix_valid_span_mask"],
-                subtoken_index_to_word_index=preprocessed_data["bert_input"]["subtoken_index_to_word_index"]
+                subtoken_index_to_word_index=(
+                    preprocessed_data["bert_input"]["subtoken_index_to_word_index"]
+                ),
             )
 
-            # Integrate
+            # Integrate the mentions into the document
             result_document = copy.deepcopy(document)
             result_document["mentions"] = mentions
+
             return result_document
 
     def structurize(
@@ -183,6 +224,8 @@ class BiaffineNER:
         matrix_valid_span_mask: np.ndarray,
         subtoken_index_to_word_index: list[int]
     ) -> list[Mention]:
+        """Function to structurize the logits into mentions."""
+
         # Transform logits to prediction scores and labels for each token-token pair
         # (n_tokens, n_tokens), (n_tokens, n_tokens)
         matrix_pred_entity_type_scores, matrix_pred_entity_type_labels = logits.max(dim=-1)
@@ -262,12 +305,13 @@ class SpanBasedDecoder:
         spans: list[tuple[int, int, str, float]],
         words: list[str]
     ) -> list[Mention]:
+        """Function to decode spans into mention objects."""
         mentions: list[Mention] = []
 
-        # Sort the candidate spans by scores (descending)
+        # Sort spans by their scores in descending order
         spans = sorted(spans, key=lambda x: -x[-1])
 
-        # Select spans
+        # Select valid spans based on the configuration (Flat or Nested NER)
         n_words = len(words)
         self.check_matrix = np.zeros((n_words, n_words)) # Used in Flat NER
         self.check_set = set() # Used in Nested NER
@@ -287,19 +331,22 @@ class SpanBasedDecoder:
             self.check_matrix[begin_token_index: end_token_index + 1] = 1
             self.check_set.add((begin_token_index, end_token_index))
 
-        # Sort mentions by span position
+        # Sort the mentions by their spans for consistent output
         mentions = sorted(mentions, key=lambda m: m["span"])
 
         return mentions
 
     def is_violation(self, begin_token_index: int, end_token_index: int) -> bool:
+        """Function to check if a span violates the constraints of Flat or Nested NER."""
         if not self.allow_nested_entities:
             # Flat NER
+            # Check if any token in the span is already part of another entity
             if self.check_matrix[begin_token_index: end_token_index + 1].sum() > 0:
                 return True
             return False
         else:
             # Nested NER
+            # Check if the span crosses with any existing entity span
             for begin_token_j, end_token_j in self.check_set:
                 if (
                     (begin_token_index < begin_token_j <= end_token_index < end_token_j)
@@ -308,6 +355,11 @@ class SpanBasedDecoder:
                 ):
                     return True
             return False
+
+
+#####################
+# Trainer (Evaluator), Model, Preprocessor
+#####################
 
 
 class BiaffineNERTrainer:

@@ -1,18 +1,17 @@
 from __future__ import annotations
 
 import copy
-# import json
 import logging
 import os
 import re
 from typing import Any
 import unicodedata
 
-# import numpy as np
 import torch
-# import torch.nn as nn
 from tqdm import tqdm
 
+from .. import evaluation
+from .. import utils
 from ..datatypes import (
     Config,
     Document,
@@ -20,9 +19,9 @@ from ..datatypes import (
     DemonstrationsForOneExample,
     ContextsForOneExample
 )
-from .. import utils
-from .. import evaluation
+from ..demonstration_retrieval import DemonstrationRetriever
 from ..llms import HuggingFaceLLM, OpenAILLM
+from ..resources import resolve_snapshot_path
 
 
 logger = logging.getLogger(__name__)
@@ -33,6 +32,7 @@ class LLMNER:
     def __init__(
         self,
         device: str,
+        model: HuggingFaceLLM | OpenAILLM,
         # Initialization
         config: Config | str | None = None,
         vocab_etype: dict[str, int] | str | None = None,
@@ -40,20 +40,42 @@ class LLMNER:
         path_demonstration_pool: str | None = None,
         # Loading
         path_snapshot: str | None = None,
-        # Misc
-        model: HuggingFaceLLM | OpenAILLM | None = None,
+        identifier: str | None = None,
     ):
         logger.info("########## LLMNER Initialization Starts ##########")
 
+        # Resolve a public identifier to the corresponding local snapshot.
+        if identifier is not None:
+            if path_snapshot is not None:
+                raise ValueError(
+                    "identifier and path_snapshot cannot be specified together."
+                )
+
+            path_snapshot = resolve_snapshot_path(
+                component_name="ner",
+                method_name="llm_ner",
+                identifier=identifier,
+            )
+
         self.device = device
+        self.model = model
         self.path_snapshot = path_snapshot
+        self.identifier = identifier
 
         if path_snapshot is not None:
-            assert config is None
-            # assert vocab_etype is None
-            # assert etype_meta_info is None
-            assert path_demonstration_pool is None
+            if config is not None:
+                # Explicit initialization resources must not be mixed with a
+                # complete snapshot.
+                raise ValueError(
+                    "config cannot be specified when loading a snapshot."
+                )
+            if path_demonstration_pool is not None:
+                raise ValueError(
+                    "path_demonstration_pool cannot be specified when loading "
+                    "a snapshot."
+                )
 
+            # Specify the default paths for the resources in the snapshot
             config = path_snapshot + "/config"
             if vocab_etype is None:
                 vocab_etype = path_snapshot + "/entity_types.vocab.txt"
@@ -61,6 +83,7 @@ class LLMNER:
                 etype_meta_info = path_snapshot + "/etype_meta_info.json"
             path_demonstration_pool = path_snapshot + "/demonstration_pool.json"
 
+            # If the demonstration pool file does not exist, set it to None
             if not os.path.exists(path_demonstration_pool):
                 path_demonstration_pool = None
 
@@ -72,74 +95,81 @@ class LLMNER:
         self.config = config
         logger.info(utils.pretty_format_dict(self.config))
 
-        # Load the entity type vocabulary
+        # Load the entity-type vocabulary
         if isinstance(vocab_etype, str):
             vocab_path = vocab_etype
             vocab_etype = utils.read_vocab(vocab_path)
             logger.info(f"Loaded entity type vocabulary from {vocab_path}")
         self.vocab_etype = vocab_etype
-        self.ivocab_etype = {i:l for l, i in self.vocab_etype.items()}
+        self.ivocab_etype = {
+            entity_type_id: entity_type
+            for entity_type, entity_type_id in self.vocab_etype.items()
+        }
 
-        # Load the entity type meta information (pretty names and definitions)
+        # Load human-readable entity-type names and definitions. These values
+        # are inserted into prompts and used to normalize generated labels.
         if isinstance(etype_meta_info, str):
             meta_path = etype_meta_info
             etype_meta_info = utils.read_json(meta_path)
             logger.info(f"Loaded entity type meta-information from {meta_path}")
         self.etype_meta_info = etype_meta_info
 
-        # Initialize the prompt processor
+        # Initialize the prompt processor, which generates prompts for the LLM
+        # based on the input document, demonstrations, and context passages
         self.prompt_processor = PromptProcessor(
-            prompt_template_name_or_path=config["prompt_template_name_or_path"],
+            prompt_template_name_or_path=(
+                self.config["prompt_template_name_or_path"]
+            ),
             vocab_etype=self.vocab_etype,
             etype_meta_info=self.etype_meta_info,
             path_demonstration_pool=path_demonstration_pool,
-            n_demonstrations=config["n_demonstrations"]
+            n_demonstrations=self.config["n_demonstrations"]
         )
 
-        # Initialize the model
-        self.model_name = config["model_name"]
-        assert self.model_name in ["hf", "openai"]
-        if model is not None:
-            self.model = model
-            logger.info("LLM is provided by an argument")
-        elif self.model_name == "hf":
-            self.model = HuggingFaceLLM(
-                device=device,
-                # Model
-                llm_name_or_path=config["llm_name_or_path"],
-                # Generation
-                max_new_tokens=config["max_new_tokens"],
-                quantization_bits=config["quantization_bits"],
-            )
+        # Check the provider and initialize the LLM model accordingly
+        self.provider = self.config["provider"]
+        if self.provider not in ["hf", "openai"]:
+            raise ValueError(f"Invalid provider: {self.provider}")
+        logger.info(f"LLM is provided by {self.provider}")
+
+        # Initialize the demonstration retriever, which retrieves demonstrations
+        # from a pool based on the input document
+        if path_demonstration_pool is None:
+            self.demonstration_retriever = None
         else:
-            self.model = OpenAILLM(
-                openai_model_name=config["openai_model_name"],
-                max_new_tokens=config["max_new_tokens"]
+            self.demonstration_retriever = DemonstrationRetriever(
+                path_demonstration_pool=path_demonstration_pool,
+                method="count",
+                task="ner",
             )
-        # self.model.llm.to(self.model.device)
 
         # Define regular expression for output parsing
-        # <bullet> (<mention>, <entity type>)
-        # self.re_comp = re.compile("(.+?)\s*\(\s*(.+?)\s*,\s*(.+?)\s*\)$")
-        # <bullet> <mention> -> <entity type>
-        # self.re_comp = re.compile("(.+?)\s*(.+?)\s*->\s*(.+?)$")
-        # <bullet> <mention> | <entity type>
+        # Parse output lines of the form:
+        #
+        #     - [mention text] | [entity type]
+        #
+        # The first group captures the bullet marker, while the second and
+        # third groups capture the mention and entity type.
         self.re_comp = re.compile("(.+?)\s*(.+?)\s*\|\s*(.+?)$")
 
         # Create entity type mapping (normalized pretty name -> canonical name)
         # e.g., "Location" -> "LOC"
-        self.normalized_to_canonical = {}
+        self.normalized_to_canonical: dict[str, str] = {}
         for etype in self.vocab_etype.keys():
             pretty_name = self.etype_meta_info[etype]["Pretty Name"]
-            self.normalized_to_canonical[pretty_name.lower()] = etype
+            normalized_pretty_name = pretty_name.lower()
+            self.normalized_to_canonical[normalized_pretty_name] = etype
 
         logger.info("########## LLMNER Initialization Ends ##########")
 
     def save(self, path_snapshot: str) -> None:
+        """Function to save the configuration, entity-type vocabulary, meta-information, and demonstration pool to a snapshot."""
+
         path_config = path_snapshot + "/config"
         path_vocab = path_snapshot + "/entity_types.vocab.txt"
         path_meta_info = path_snapshot + "/etype_meta_info.json"
         path_demonstration_pool = path_snapshot + "/demonstration_pool.json"
+
         utils.write_json(path_config, self.config)
         utils.write_vocab(path_vocab, self.vocab_etype, write_frequency=False)
         utils.write_json(path_meta_info, self.etype_meta_info)
@@ -152,14 +182,28 @@ class LLMNER:
     def extract(
         self,
         document: Document,
-        # optional: few-shot setting
+        # Optional: few-shot setting
         demonstrations_for_doc: DemonstrationsForOneExample | None = None,
-        # optional: context augmentation
+        # Optional: context augmentation
         contexts_for_doc: ContextsForOneExample | None = None
     ) -> Document:
+        """Function to extract named entity mentions from a given document."""
+
+        # Automatically retrieve demonstrations only when the caller does not
+        # provide an explicit selection. This preserves manual control for
+        # evaluation and ablation experiments.
+        if (
+            demonstrations_for_doc is None
+            and self.demonstration_retriever is not None
+        ):
+            demonstrations_for_doc = self.demonstration_retriever.search(
+                document=document,
+                top_k=self.config["n_demonstrations"],
+            )
+
         with torch.no_grad():
-            if self.model_name == "hf":
-                # Switch to inference mode
+            # Switch to inference mode for Hugging Face models
+            if self.provider == "hf":
                 self.model.llm.eval()
 
             # Generate a prompt
@@ -172,20 +216,22 @@ class LLMNER:
             # Generate a response
             generated_text = self.model.generate(prompt)
 
-            # Structurize
+            # Convert the free-form generated text into structured mention records
             mentions = self.structurize(
                 document=document,
                 generated_text=generated_text
             )
 
-            # Integrate
+            # Integrate the mentions into the document
             result_document = copy.deepcopy(document)
             result_document["mentions"] = mentions
             result_document["ner_prompt"] = prompt
             result_document["ner_generated_text"] = generated_text
+
             return result_document
 
     def structurize(self, document: Document, generated_text: str) -> list[Mention]:
+        """Function to convert the generated text into structured mention records."""
         doc_key = document["doc_key"]
 
         # Get mapping from character position to word position (index)
@@ -213,6 +259,8 @@ class LLMNER:
             s_len = len(sent.split())
             token_index_to_sent_index.extend([s_i] * s_len)
 
+        # Parse the generated text and extract mention tuples
+        # (begin_token_index, end_token_index, entity_type)
         tuples: list[tuple[int, int, str]] = []
         for generated_line in generated_text.split("\n"):
             generated_line = generated_line.strip()
@@ -258,6 +306,7 @@ class LLMNER:
                 logger.info(f"[{doc_key}] A generated line contains invalid entity type: '{generated_line}'")
                 # continue
 
+            # Map the normalized entity type to the canonical entity type
             canonical_entity_type = self.normalized_to_canonical.get(
                 normalized_entity_type,
                 entity_type
@@ -287,6 +336,7 @@ class LLMNER:
         normalized_text: str,
         char_index_to_word_index: list[int]
     ) -> list[tuple[int, int]]:
+        """Function to extract word-level spans of a mention string in the input text."""
         spans: list[tuple[int, int]] = []
         pattern = r"\s*".join(re.escape(c) for c in normalized_name)
         results = re.finditer(
@@ -312,6 +362,7 @@ class LLMNER:
         # optional: context augmentation
         contexts: list[ContextsForOneExample] | None = None
     ) -> list[Document]:
+        """Function to extract named entity mentions from a batch of documents."""
         result_documents = []
 
         if demonstrations is None:
@@ -341,7 +392,7 @@ class PromptProcessor:
         prompt_template_name_or_path: str,
         vocab_etype: dict[str, int],
         etype_meta_info: dict[str, dict[str, str]],
-        # optional: few-shot setting
+        # Optional: few-shot setting
         path_demonstration_pool: str | None = None,
         n_demonstrations: int | None = None
     ):
@@ -488,6 +539,11 @@ class PromptProcessor:
                 pretty_name = etype
             prompt += f"- {name} | {pretty_name}\n"
         return prompt.rstrip()
+
+
+#####################
+# Trainer (Evaluator)
+#####################
 
 
 class LLMNERTrainer:
