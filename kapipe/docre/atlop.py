@@ -19,15 +19,16 @@ from opt_einsum import contract
 from tqdm import tqdm
 import jsonlines
 
-from ..datatypes import Config, Document, Triple
-from .. import utils
-from ..utils import BestScoreHolder
 from .. import evaluation
+from .. import utils
+from ..datatypes import Config, Document, Triple
 from ..nn_utils import (
     AdaptiveThresholdingLoss,
     get_optimizer2,
     get_scheduler2
 )
+from ..resources import resolve_snapshot_path
+from ..utils import BestScoreHolder
 
 
 logger = logging.getLogger(__name__)
@@ -45,19 +46,44 @@ class ATLOP:
         config: Config | str | None = None,
         vocab_relation: dict[str, int] | str | None = None,
         # Loading
-        path_snapshot: str | None = None
+        path_snapshot: str | None = None,
+        identifier: str | None = None,
     ):
         logger.info("########## ATLOP Initialization Starts ##########")
 
+        # Resolve a public identifier to the corresponding local snapshot
+        if identifier is not None:
+            if path_snapshot is not None:
+                raise ValueError(
+                    "identifier and path_snapshot cannot be specified together."
+                )
+
+            path_snapshot = resolve_snapshot_path(
+                component_name="docre",
+                method_name="atlop",
+                identifier=identifier,
+            )
+
         self.device = device
         self.path_snapshot = path_snapshot
+        self.identifier = identifier
 
         if path_snapshot is not None:
-            assert config is None
-            assert vocab_relation is None
+            # Explicit initialization resources must not be mixed with a
+            # complete snapshot.
+            if config is not None:
+                raise ValueError(
+                    "config cannot be specified when loading a snapshot."
+                )
+            if vocab_relation is not None:
+                raise ValueError(
+                    "vocab_relation cannot be specified when loading a snapshot."
+                )
+
+            # Specify the default paths for the resources in the snapshot
+            path_model = path_snapshot + "/model"
             config = path_snapshot + "/config"
             vocab_relation = path_snapshot + "/relations.vocab.txt"
-            path_model = path_snapshot + "/model"
 
         # Load the configuration
         if isinstance(config, str):
@@ -73,24 +99,31 @@ class ATLOP:
             vocab_relation = utils.read_vocab(vocab_path)
             logger.info(f"Loaded relation type vocabulary from {vocab_path}")
         self.vocab_relation = vocab_relation
-        self.ivocab_relation = {i:l for l, i in self.vocab_relation.items()}
+        self.ivocab_relation = {
+            relation_id: relation
+            for relation, relation_id in self.vocab_relation.items()
+        }
 
         # Initialize the model
-        self.model_name = config["model_name"]
-        self.top_k_labels = config["top_k_labels"]
+        self.model_name = self.config["model_name"]
+        self.top_k_labels = self.config["top_k_labels"]
         if self.model_name == "atlop_model":
             self.model = ATLOPModel(
                 device=device,
-                bert_pretrained_name_or_path=config["bert_pretrained_name_or_path"],
-                max_seg_len=config["max_seg_len"],
-                token_embedding_method=config["token_embedding_method"],
-                entity_pooling_method=config["entity_pooling_method"],
-                use_localized_context_pooling=config["use_localized_context_pooling"],
-                bilinear_block_size=config["bilinear_block_size"],
+                bert_pretrained_name_or_path=(
+                    self.config["bert_pretrained_name_or_path"]
+                ),
+                max_seg_len=self.config["max_seg_len"],
+                token_embedding_method=self.config["token_embedding_method"],
+                entity_pooling_method=self.config["entity_pooling_method"],
+                use_localized_context_pooling=(
+                    self.config["use_localized_context_pooling"]
+                ),
+                bilinear_block_size=self.config["bilinear_block_size"],
                 vocab_relation=self.vocab_relation,
-                loss_function_name=config["loss_function"],
-                possible_head_entity_types=config["possible_head_entity_types"],
-                possible_tail_entity_types=config["possible_tail_entity_types"]
+                loss_function_name=self.config["loss_function"],
+                possible_head_entity_types=self.config["possible_head_entity_types"],
+                possible_tail_entity_types=self.config["possible_tail_entity_types"],
             )
         else:
             raise ValueError(f"Invalid model_name: {self.model_name}")
@@ -108,36 +141,42 @@ class ATLOP:
             )
             logger.info(f"Loaded model parameters from {path_model}")
 
+        # Move the model to the specified device
         self.model.to(self.model.device)
 
         logger.info("########## ATLOP Initialization Ends ##########")
 
     def save(self, path_snapshot: str, model_only: bool = False) -> None:
+        """Function to save the model, configuration, and relation vocabulary."""
+
+        path_model = path_snapshot + "/model"
         path_config = path_snapshot + "/config"
         path_vocab = path_snapshot + "/relations.vocab.txt"
-        path_model = path_snapshot + "/model"
+
+        torch.save(self.model.state_dict(), path_model)
         if not model_only:
             utils.write_json(path_config, self.config)
             utils.write_vocab(path_vocab, self.vocab_relation, write_frequency=False)
-        torch.save(self.model.state_dict(), path_model)
 
     def compute_loss(
         self,
         document: Document
     ) -> tuple[torch.Tensor, torch.Tensor, int, int]:
+        """Function to compute the loss for a single document."""
+
         # Switch to training mode
         self.model.train()
 
-        # Preprocess
+        # Preprocess the document
         preprocessed_data = self.model.preprocess(document=document)
 
-        # Tensorize
+        # Tensorize the preprocessed data
         model_input = self.model.tensorize(
             preprocessed_data=preprocessed_data,
             compute_loss=True
         )
 
-        # Forward
+        # Forward pass through the model
         model_output = self.model.forward(**model_input)
 
         return (
@@ -148,11 +187,12 @@ class ATLOP:
         )
 
     def extract(self, document: Document) -> Document:
+        """Function to extract relations from a single document."""
         with torch.no_grad():
             # Switch to inference mode
             self.model.eval()
 
-            # Preprocess
+            # Preprocess the document
             preprocessed_data = self.model.preprocess(document=document)
 
             # Return no triple if head or tail entity is missing
@@ -165,26 +205,27 @@ class ATLOP:
                 result_document["relations"] = []
                 return result_document
 
-            # Tensorize
+            # Tensorize the preprocessed data
             model_input = self.model.tensorize(
                 preprocessed_data=preprocessed_data,
                 compute_loss=False
             )
 
-            # Forward
+            # Forward pass through the model
             model_output = self.model.forward(**model_input)
             logits = model_output.logits # (n_entity_pairs, n_relations)
 
-            # Structurize
+            # Structurize the logits into triples
             triples = self.structurize(
                 pair_head_entity_indices=preprocessed_data["pair_head_entity_indices"],
                 pair_tail_entity_indices=preprocessed_data["pair_tail_entity_indices"],
                 logits=logits
             )
 
-            # Integrate
+            # Integrate the triples into the document
             result_document = copy.deepcopy(document)
             result_document["relations"] = triples
+
             return result_document
 
     def structurize(
@@ -193,6 +234,7 @@ class ATLOP:
         pair_tail_entity_indices: np.ndarray,
         logits: torch.Tensor
     ) -> list[Triple]:
+        """Function to structurize the logits into triples."""
         triples: list[Triple] = []
 
         # Get predicted relation labels (indices)
@@ -225,11 +267,17 @@ class ATLOP:
         return triples
 
     def batch_extract(self, documents: list[Document]) -> list[Document]:
+        """Function to extract relations from a batch of documents."""
         result_documents = []
         for document in tqdm(documents, desc="extraction steps"):
             result_document = self.extract(document=document)
             result_documents.append(result_document)
         return result_documents
+
+
+#####################
+# Trainer (Evaluator), Model, Preprocessor
+#####################
 
 
 class ATLOPTrainer:

@@ -6,6 +6,7 @@ import logging
 import os
 from typing import Any, NamedTuple
 
+import jsonlines
 import numpy as np
 import torch
 import torch.nn as nn
@@ -13,18 +14,18 @@ from transformers import AutoModel
 from transformers import AutoTokenizer
 from transformers.modeling_outputs import ModelOutput
 from tqdm import tqdm
-import jsonlines
 
-from ..datatypes import Config, Document, Triple
-from .. import utils
-from ..utils import BestScoreHolder
 from .. import evaluation
+from .. import utils
+from ..datatypes import Config, Document, Triple
 from ..nn_utils import (
     make_mlp,
     FocalLoss,
     get_optimizer2,
     get_scheduler2
 )
+from ..resources import resolve_snapshot_path
+from ..utils import BestScoreHolder
 
 
 logger = logging.getLogger(__name__)
@@ -59,20 +60,49 @@ class MAQA:
         path_entity_dict: str | None = None,
         # Loading
         path_snapshot: str | None = None,
+        identifier: str | None = None,
     ):
         logger.info("########## MAQA Initialization Starts ##########")
 
+        # Resolve a public identifier to the corresponding local snapshot
+        if identifier is not None:
+            if path_snapshot is not None:
+                raise ValueError(
+                    "identifier and path_snapshot cannot be specified together."
+                )
+
+            path_snapshot = resolve_snapshot_path(
+                component_name="docre",
+                method_name="ma_qa",
+                identifier=identifier,
+            )
+
         self.device = device
         self.path_snapshot = path_snapshot
+        self.identifier = identifier
 
         if path_snapshot is not None:
-            assert config is None
-            assert vocab_answer is None
-            assert path_entity_dict is None
+            # Explicit initialization resources must not be mixed with a
+            # complete snapshot.
+            if config is not None:
+                raise ValueError(
+                    "config cannot be specified when loading a snapshot."
+                )
+            if vocab_answer is not None:
+                raise ValueError(
+                    "vocab_answer cannot be specified when loading a snapshot."
+                )
+            if path_entity_dict is not None:
+                raise ValueError(
+                    "path_entity_dict cannot be specified when loading "
+                    "a snapshot."
+                ) 
+
+            # Specify the default paths for the resources in the snapshot
+            path_model = path_snapshot + "/model"
             config = path_snapshot + "/config"
             vocab_answer = path_snapshot + "/answers.vocab.txt"
             path_entity_dict = path_snapshot + "/entity_dict.json"
-            path_model = path_snapshot + "/model"
 
         # Load the configuration
         if isinstance(config, str):
@@ -88,7 +118,10 @@ class MAQA:
             vocab_answer = utils.read_vocab(vocab_path)
             logger.info(f"Loaded answer type vocabulary from {vocab_path}")
         self.vocab_answer = vocab_answer
-        self.ivocab_answer = {i:l for l, i in self.vocab_answer.items()}
+        self.ivocab_answer = {
+            answer_id: answer
+            for answer, answer_id in self.vocab_answer.items()
+        }
 
         # Load the entity dictionary
         logger.info(f"Loading entity dictionary from {path_entity_dict}")
@@ -96,30 +129,38 @@ class MAQA:
             epage["entity_id"]: epage
             for epage in utils.read_json(path_entity_dict)
         }
-        logger.info(f"Completed loading of entity dictionary with {len(self.entity_dict)} entities from {path_entity_dict}")
+        logger.info(
+            "Completed loading of entity dictionary with "
+            f"{len(self.entity_dict)} entities from {path_entity_dict}"
+        )
 
-        # Load the model
-        self.model_name = config["model_name"]
+        # Initialize the model
+        self.model_name = self.config["model_name"]
         if self.model_name == "ma_qa_model":
             self.model = MAQAModel(
                 device=device,
-                bert_pretrained_name_or_path=config["bert_pretrained_name_or_path"],
-                max_seg_len=config["max_seg_len"],
-                entity_dict=self.entity_dict,
-                dataset_name=config["dataset_name"],
-                dropout_rate=config["dropout_rate"],
-                vocab_answer=self.vocab_answer,
-                loss_function_name=config["loss_function"],
-                focal_loss_gamma=(
-                    config["focal_loss_gamma"] \
-                    if config["loss_function"] == "focal_loss" else None
+                bert_pretrained_name_or_path=(
+                    self.config["bert_pretrained_name_or_path"]
                 ),
-                possible_head_entity_types=config["possible_head_entity_types"],
-                possible_tail_entity_types=config["possible_tail_entity_types"],
-                use_mention_as_canonical_name=config["use_mention_as_canonical_name"]
+                max_seg_len=self.config["max_seg_len"],
+                entity_dict=self.entity_dict,
+                dataset_name=self.config["dataset_name"],
+                dropout_rate=self.config["dropout_rate"],
+                vocab_answer=self.vocab_answer,
+                loss_function_name=self.config["loss_function"],
+                focal_loss_gamma=(
+                    self.config["focal_loss_gamma"] \
+                    if self.config["loss_function"] == "focal_loss"
+                    else None
+                ),
+                possible_head_entity_types=self.config["possible_head_entity_types"],
+                possible_tail_entity_types=self.config["possible_tail_entity_types"],
+                use_mention_as_canonical_name=(
+                    self.config["use_mention_as_canonical_name"]
+                ),
             )
         else:
-            raise Exception(f"Invalid model_name: {self.model_name}")
+            raise ValueError(f"Invalid model_name: {self.model_name}")
 
         # Show parameter shapes
         # logger.info("Model parameters:")
@@ -134,20 +175,22 @@ class MAQA:
             )
             logger.info(f"Loaded model parameters from {path_model}")
 
+        # Move the model to the specified device
         self.model.to(self.model.device)
 
         logger.info("########## MAQA Initialization Ends ##########")
 
     def save(self, path_snapshot: str, model_only: bool = False) -> None:
+        path_model = path_snapshot + "/model"
         path_config = path_snapshot + "/config"
         path_vocab = path_snapshot + "/answers.vocab.txt"
         path_entity_dict = path_snapshot + "/entity_dict.json"
-        path_model = path_snapshot + "/model"
+
+        torch.save(self.model.state_dict(), path_model)
         if not model_only:
             utils.write_json(path_config, self.config)
             utils.write_vocab(path_vocab, self.vocab_answer, write_frequency=False)
             utils.write_json(path_entity_dict, self.entity_dict)
-        torch.save(self.model.state_dict(), path_model)
 
     def compute_loss(
         self,
@@ -222,6 +265,11 @@ class MAQA:
             result_document = self.extract(document=document)
             result_documents.append(result_document)
         return result_documents
+
+
+#####################
+# Trainer (Evaluator), Model, Preprocessor
+#####################
 
 
 class MAQATrainer:

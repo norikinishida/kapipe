@@ -17,15 +17,17 @@ from opt_einsum import contract
 from tqdm import tqdm
 import jsonlines
 
-from ..datatypes import Config, Document, Triple
-from .. import utils
-from ..utils import BestScoreHolder
+
 from .. import evaluation
+from .. import utils
+from ..datatypes import Config, Document, Triple
 from ..nn_utils import (
     AdaptiveThresholdingLoss,
     get_optimizer2,
     get_scheduler2
 )
+from ..resources import resolve_snapshot_path
+from ..utils import BestScoreHolder
 
 
 logger = logging.getLogger(__name__)
@@ -44,21 +46,50 @@ class MAATLOP:
         vocab_relation: dict[str, int] | str | None = None,
         path_entity_dict: str | None = None,
         # Loading
-        path_snapshot: str | None = None
+        path_snapshot: str | None = None,
+        identifier: str | None = None,
     ):
         logger.info("########## MAATLOP Initialization Starts ##########")
 
+        # Resolve a public identifier to the corresponding local snapshot
+        if identifier is not None:
+            if path_snapshot is not None:
+                raise ValueError(
+                    "identifier and path_snapshot cannot be specified together."
+                )
+
+            path_snapshot = resolve_snapshot_path(
+                component_name="docre",
+                method_name="ma_atlop",
+                identifier=identifier,
+            )
+
         self.device = device
         self.path_snapshot = path_snapshot
+        self.identifier = identifier
 
         if path_snapshot is not None:
-            assert config is None
-            assert vocab_relation is None
-            assert path_entity_dict is None
+            # Explicit initialization resources must not be mixed with a
+            # complete snapshot.
+            if config is not None:
+                raise ValueError(
+                    "config cannot be specified when loading a snapshot."
+                )
+            if vocab_relation is not None:
+                raise ValueError(
+                    "vocab_relation cannot be specified when loading a snapshot."
+                )
+            if path_entity_dict is not None:
+                raise ValueError(
+                    "path_entity_dict cannot be specified when loading "
+                    "a snapshot."
+                )
+
+            # Specify the default paths for the resources in the snapshot
+            path_model = path_snapshot + "/model"
             config = path_snapshot + "/config"
             vocab_relation = path_snapshot + "/relations.vocab.txt"
             path_entity_dict = path_snapshot + "/entity_dict.json"
-            path_model = path_snapshot + "/model"
 
         # Load the configuration
         if isinstance(config, str):
@@ -74,7 +105,10 @@ class MAATLOP:
             vocab_relation = utils.read_vocab(vocab_path)
             logger.info(f"Loaded relation type vocabulary from {vocab_path}")
         self.vocab_relation = vocab_relation
-        self.ivocab_relation = {i:l for l, i in self.vocab_relation.items()}
+        self.ivocab_relation = {
+            relation_id: relation
+            for relation, relation_id in self.vocab_relation.items()
+        }
 
         # Load the entity dictionary
         logger.info(f"Loading entity dictionary from {path_entity_dict}")
@@ -82,29 +116,40 @@ class MAATLOP:
             epage["entity_id"]: epage
             for epage in utils.read_json(path_entity_dict)
         }
-        logger.info(f"Completed loading of entity dictionary with {len(self.entity_dict)} entities from {path_entity_dict}")
+        logger.info(
+            "Completed loading of entity dictionary with "
+            f"{len(self.entity_dict)} entities from {path_entity_dict}"
+        )        
+
+        # Store the knowledge-base entity identifiers
         self.kb_entity_ids = list(self.entity_dict.keys())
 
         # Initialize the model
-        self.model_name = config["model_name"]
-        self.top_k_labels = config["top_k_labels"]
+        self.model_name = self.config["model_name"]
+        self.top_k_labels = self.config["top_k_labels"]
         if self.model_name == "ma_atlop_model":
             self.model = MAATLOPModel(
                 device=device,
-                bert_pretrained_name_or_path=config["bert_pretrained_name_or_path"],
-                max_seg_len=config["max_seg_len"],
+                bert_pretrained_name_or_path=(
+                    self.config["bert_pretrained_name_or_path"]
+                ),
+                max_seg_len=self.config["max_seg_len"],
                 entity_dict=self.entity_dict,
-                entity_seq_length=config["entity_seq_length"],
-                use_localized_context_pooling=config["use_localized_context_pooling"],
-                bilinear_block_size=config["bilinear_block_size"],
+                entity_seq_length=self.config["entity_seq_length"],
+                use_localized_context_pooling=(
+                    self.config["use_localized_context_pooling"]
+                ),
+                bilinear_block_size=self.config["bilinear_block_size"],
                 use_entity_loss=self.config["do_negative_entity_sampling"],
                 vocab_relation=self.vocab_relation,
-                possible_head_entity_types=config["possible_head_entity_types"],
-                possible_tail_entity_types=config["possible_tail_entity_types"],
-                use_mention_as_canonical_name=config["use_mention_as_canonical_name"]
+                possible_head_entity_types=self.config["possible_head_entity_types"],
+                possible_tail_entity_types=self.config["possible_tail_entity_types"],
+                use_mention_as_canonical_name=(
+                    self.config["use_mention_as_canonical_name"]
+                ),
             )
         else:
-            raise Exception(f"Invalid model_name: {self.model_name}")
+            raise ValueError(f"Invalid model_name: {self.model_name}")
 
         # Show parameter shapes
         # logger.info("Model parameters:")
@@ -119,6 +164,7 @@ class MAATLOP:
             )
             logger.info(f"Loaded model parameters from {path_model}")
 
+        # Move the model to the specified device
         self.model.to(self.model.device)
 
         logger.info("########## MAATLOP Initialization Ends ##########")
@@ -139,15 +185,16 @@ class MAATLOP:
     #         self.model.load_state_dict(checkpoint, strict=False)
 
     def save(self, path_snapshot: str, model_only: bool = False) -> None:
+        path_model = path_snapshot + "/model"
         path_config = path_snapshot + "/config"
         path_vocab = path_snapshot + "/relations.vocab.txt"
         path_entity_dict = path_snapshot + "/entity_dict.json"
-        path_model = path_snapshot + "/model"
+
+        torch.save(self.model.state_dict(), path_model)
         if not model_only:
             utils.write_json(path_config, self.config)
             utils.write_vocab(path_vocab, self.vocab_relation, write_frequency=False)
             utils.write_json(path_entity_dict, self.entity_dict)
-        torch.save(self.model.state_dict(), path_model)
 
     def compute_loss(self, document: Document) -> (
         tuple[torch.Tensor, torch.Tensor, int, int, torch.Tensor, int]
@@ -347,6 +394,11 @@ class MAATLOP:
             result_document = self.extract(document=document)
             result_documents.append(result_document)
         return result_documents
+
+
+#####################
+# Trainer (Evaluator), Model, Preprocessor
+#####################
 
 
 class MAATLOPTrainer:

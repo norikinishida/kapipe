@@ -282,6 +282,7 @@ class BiaffineNER:
         return mentions
 
     def batch_extract(self, documents: list[Document]) -> list[Document]:
+        """Function to extract named entity mentions from a batch of documents."""
         result_documents = []
         for document in tqdm(documents, desc="extraction steps"):
             result_document = self.extract(document=document)
