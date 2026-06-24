@@ -12,12 +12,12 @@ from .. import utils
 logger = logging.getLogger(__name__)
 
 
-class KnowledgeGraphConstructor:
+class EntityGraphConstructor:
 
     def __init__(self):
         pass
     
-    def construct_knowledge_graph(
+    def construct_entity_graph(
         self,
         path_documents_list: list[str] | None,
         path_entity_dict: str | None,
