@@ -5,7 +5,7 @@ import os
 
 import numpy as np
 import torch
-from transformers import AutoTokenizer, AutoModel
+from transformers import AutoModel, AutoTokenizer
 
 from .. import utils
 from ..datatypes import Passage
@@ -16,38 +16,48 @@ from .anns import ApproximateNearestNeighborSearch
 logger = logging.getLogger(__name__)
 
 
-class Contriever:
-    """Passage encoder and retriever using the Contriever model."""
-    
+class Qwen3Embedding:
+    """Passage encoder and retriever using the Qwen3-Embedding model."""
+
     def __init__(
         self,
-        model_name: str = "facebook/contriever-msmarco",
-        max_passage_length: int = 512,
-        pooling_method: str = "average",
-        normalize: bool = False,
+        model_name: str = "Qwen/Qwen3-Embedding-0.6B",
+        max_passage_length: int = 8192,
+        normalize: bool = True,
         metric: str = "inner-product",
+        query_instruction: str = (
+            "Given a question, retrieve relevant passages "
+            "that answer the question."
+        ),
         device: str = "cuda",
     ) -> None:
-
         self.model_name = model_name
         self.max_passage_length = max_passage_length
-        self.pooling_method = pooling_method
         self.normalize = normalize
         self.metric = metric
+        self.query_instruction = query_instruction
         self.device = device
 
-        # Load the tokenizer and pretrained model
-        self.tokenizer = AutoTokenizer.from_pretrained(self.model_name)
-        self.model = AutoModel.from_pretrained(self.model_name)
-   
+        # Load the tokenizer with left padding for last-token pooling
+        self.tokenizer = AutoTokenizer.from_pretrained(
+            self.model_name,
+            padding_side="left",
+        )
+
+        # Load the model with FlashAttention 2 on CUDA
+        if self.device.startswith("cuda"):
+            self.model = AutoModel.from_pretrained(
+                self.model_name,
+                attn_implementation="flash_attention_2",
+                dtype=torch.float16,
+            ).to(self.device)
+        else:
+            self.model = AutoModel.from_pretrained(
+                self.model_name
+            ).to(self.device)
+
         # Switch model to evaluation mode
         self.model.eval()
-
-        # Move model to the specified device
-        self.model.to(self.device)
-
-        # Configure the model for half-precision (FP16)
-        self.model = self.model.half()
 
         # Initialize the FAISS-based nearest-neighbor search tool
         self.anns = ApproximateNearestNeighborSearch(
@@ -63,11 +73,11 @@ class Contriever:
         passages: list[Passage],
         index_root: str,
         index_name: str,
-        batch_size: int = 1024,
+        batch_size: int = 8,
     ) -> None:
         """Function to encode passages and construct an ANN index."""
 
-        logger.info(f"Embedding {len(passages)} passages ...")
+        logger.info("Embedding %d passages ...", len(passages))
 
         # Start measuring passage-encoding time
         sw = StopWatch()
@@ -84,28 +94,33 @@ class Contriever:
 
         # Calculate the number of batches required
         n_batches = (len(passages) + batch_size - 1) // batch_size
-        logger.info(f"Number of batches: {n_batches}")
+        logger.info("Number of batches: %d", n_batches)
 
         for batch_i, start_i in enumerate(
             range(0, len(passages), batch_size),
-            1
+            1,
         ):
             # Select one passage batch
             batch = passages[start_i : start_i + batch_size]
 
             # Combine each passage title and text
             batch_texts = [
-                utils.create_text_from_passage(passage=p, sep=" ")
-                for p in batch
+                utils.create_text_from_passage(
+                    passage=passage,
+                    sep=" ",
+                )
+                for passage in batch
             ]
 
-            # Encode the batch and store its embeddings on CPU
-            batch_embeddings= (
-                self.encode_texts(batch_texts)
+            # Encode passages without a query instruction
+            batch_embeddings = (
+                self.encode_documents(batch_texts)
                 .to(torch.float32)
                 .cpu()
             )
-            passage_embeddings[start_i: start_i + len(batch)] = batch_embeddings
+            passage_embeddings[
+                start_i : start_i + len(batch)
+            ] = batch_embeddings
 
             # Report progress periodically and after the final batch
             if batch_i % 1000 == 0 or batch_i == n_batches:
@@ -122,8 +137,9 @@ class Contriever:
         # Finish measuring passage-encoding time
         logger.info("Completed passage embedding")
         sw.stop("passage_embedding")
-        logging.info(
-            "Time: %f min." % sw.get_time("passage_embedding", minute=True)
+        logger.info(
+            "Time: %f min.",
+            sw.get_time("passage_embedding", minute=True),
         )
 
         # Build the ANN index from passage embeddings
@@ -131,7 +147,9 @@ class Contriever:
             "Building index from %d passage embeddings ...",
             len(passage_embeddings),
         )
-        self.anns.make_index(passage_vectors=passage_embeddings)
+        self.anns.make_index(
+            passage_vectors=passage_embeddings,
+        )
         logger.info("Completed indexing")
 
         # Save passages, passage embeddings, and the ANN index
@@ -142,15 +160,38 @@ class Contriever:
             index_name=index_name,
         )
 
-       # Cache passages for retrieval without reloading the index
+        # Cache passages for retrieval without reloading the index
         self.passages = passages
 
-    def encode_texts(self, texts: list[str]) -> torch.Tensor:
+    def encode_documents(
+        self,
+        documents: list[str],
+    ) -> torch.Tensor:
+        """Function to encode documents into dense vectors."""
+        return self.encode_texts(documents)
+
+    def encode_queries(
+        self,
+        queries: list[str],
+    ) -> torch.Tensor:
+        """Function to encode queries with a retrieval instruction."""
+
+        # Add the retrieval instruction to each query
+        instructed_queries = [
+            f"Instruct: {self.query_instruction}\nQuery: {query}"
+            for query in queries
+        ]
+
+        return self.encode_texts(instructed_queries)
+
+    def encode_texts(
+        self,
+        texts: list[str],
+    ) -> torch.Tensor:
         """Function to encode texts into dense vectors."""
 
         with torch.no_grad():
-
-            # Tokenize the texts and move the tensors to the selected GPU
+            # Tokenize the texts using left padding
             model_input = self.tokenizer(
                 texts,
                 max_length=self.max_passage_length,
@@ -164,33 +205,51 @@ class Contriever:
             token_embeddings = model_output["last_hidden_state"]
             attention_mask = model_input["attention_mask"]
 
-            # Set padding-token embeddings to zero before pooling
-            token_embeddings = token_embeddings.masked_fill(
-                ~attention_mask[..., None].bool(),
-                0.0
+            # Pool the final non-padding token
+            text_embeddings = self._last_token_pool(
+                last_hidden_states=token_embeddings,
+                attention_mask=attention_mask,
             )
-
-            # Pool the token embeddings to get text embeddings
-            if self.pooling_method == "average":
-                text_embeddings = (
-                    token_embeddings.sum(dim=1)
-                    / attention_mask.sum(dim=1)[..., None]
-                )
-            elif self.pooling_method == "cls":
-                text_embeddings = token_embeddings[:, 0]
-            else:
-                raise ValueError(
-                    f"Unsupported pooling method: {self.pooling_method}"
-                )
 
             # Normalize the text embeddings if specified
             if self.normalize:
                 text_embeddings = torch.nn.functional.normalize(
                     text_embeddings,
-                    dim=-1
+                    p=2,
+                    dim=1,
                 )
 
             return text_embeddings
+
+    def _last_token_pool(
+        self,
+        last_hidden_states: torch.Tensor,
+        attention_mask: torch.Tensor,
+    ) -> torch.Tensor:
+        """Function to pool the final non-padding token."""
+
+        # Detect whether every sequence has a valid final token
+        left_padding = (
+            attention_mask[:, -1].sum()
+            == attention_mask.shape[0]
+        )
+
+        if left_padding:
+            # Select the final token directly for left-padded inputs
+            return last_hidden_states[:, -1]
+
+        # Calculate the final non-padding position for each sequence
+        sequence_lengths = attention_mask.sum(dim=1) - 1
+        batch_size = last_hidden_states.shape[0]
+
+        # Select the final non-padding token for each sequence
+        return last_hidden_states[
+            torch.arange(
+                batch_size,
+                device=last_hidden_states.device,
+            ),
+            sequence_lengths,
+        ]
 
     def save_index(
         self,
@@ -204,7 +263,7 @@ class Contriever:
         # Construct the index path and create necessary directories
         index_path = os.path.join(
             index_root,
-            "contriever",
+            "qwen3_embedding",
             "indexes",
             index_name,
         )
@@ -223,7 +282,7 @@ class Contriever:
         )
 
         np.save(
-            os.path.join(index_path, "passage_embeddings.npy"), 
+            os.path.join(index_path, "passage_embeddings.npy"),
             passage_embeddings,
         )
 
@@ -243,50 +302,60 @@ class Contriever:
         # Construct the index directory path
         index_path = os.path.join(
             index_root,
-            "contriever",
+            "qwen3_embedding",
             "indexes",
             index_name,
         )
-        logger.info(f"Loading passages and index from {index_path}")
+        logger.info("Loading passages and index from %s", index_path)
 
         # Load the passages
         self.passages = utils.read_json(
             os.path.join(index_path, "passages.json")
         )
 
-        # Load the saved ANN index if it exists;
-        # otherwise, build it from passage embeddings
+        # Load the saved ANN index if it exists
         index_file = os.path.join(index_path, "index.faiss")
         if os.path.exists(index_file):
             self.anns.load(index_file)
         else:
-            # Rebuild the ANN index from saved passage embeddings
-            logger.info(f"Index not found: {index_file}")
+            # Report the missing ANN index
+            logger.info("Index not found: %s", index_file)
 
             # Load the passage embeddings
-            logger.info(f"Loading passages embeddings from {index_path}") 
+            logger.info(
+                "Loading passage embeddings from %s",
+                index_path,
+            )
             passage_embeddings = np.load(
                 os.path.join(index_path, "passage_embeddings.npy")
             )
-            logger.info(f"Loaded {len(passage_embeddings)} passage embeddings")
+            logger.info(
+                "Loaded %d passage embeddings",
+                len(passage_embeddings),
+            )
 
-            # Build the ANN index
+            # Rebuild the ANN index
             logger.info(
                 "Building index from %d passage embeddings ...",
                 len(passage_embeddings),
             )
-            self.anns.make_index(passage_vectors=passage_embeddings)
+            self.anns.make_index(
+                passage_vectors=passage_embeddings,
+            )
             logger.info("Completed indexing")
 
-            # Save the ANN index
-            logger.info(f"Saving index to {index_path}")
+            # Save the rebuilt ANN index
+            logger.info("Saving index to %s", index_file)
             self.anns.save(index_file)
             logger.info("Completed saving")
 
-        # Verify that passages and index vectors remain aligned
+        # Verify that the ANN index was loaded or built
         if self.anns.anns_index is None:
-            raise RuntimeError("Failed to load or build the ANN index")
+            raise RuntimeError(
+                "Failed to load or build the ANN index"
+            )
 
+        # Verify that passages and index vectors remain aligned
         if self.anns.anns_index.ntotal != len(self.passages):
             raise RuntimeError(
                 "Index/passages mismatch: "
@@ -309,17 +378,19 @@ class Contriever:
         # Require passage data and an ANN index before retrieval
         if self.passages is None:
             raise RuntimeError(
-                "Passages are not loaded. Call make_index() or load_index() first"
+                "Passages are not loaded. "
+                "Call make_index() or load_index() first"
             )
 
         if self.anns.anns_index is None:
             raise RuntimeError(
-                "ANN index is not loaded. Call make_index() or load_index() first"
+                "ANN index is not loaded. "
+                "Call make_index() or load_index() first"
             )
 
-        # Encode queries and convert them to the ANN input format
+        # Encode queries with the retrieval instruction
         query_embeddings = (
-            self.encode_texts(queries)
+            self.encode_queries(queries)
             .cpu()
             .numpy()
             .astype(np.float32)
@@ -328,21 +399,22 @@ class Contriever:
         # Search the ANN index for each query
         batch_indices, _, batch_scores = self.anns.search(
             query_vectors=query_embeddings,
-            top_k=top_k
+            top_k=top_k,
         )
 
         # Construct ranked passage objects for each query
         batch_passages: list[list[Passage]] = []
+
         for indices, scores in zip(batch_indices, batch_scores):
             passages_for_query: list[Passage] = []
 
-            for i, score in zip(indices, scores):
-                # Ignore the sentinel index returned when top_k exceeds index size
-                if i < 0:
+            for index, score in zip(indices, scores):
+                # Ignore an invalid index returned by FAISS
+                if index < 0:
                     continue
 
                 # Add the retrieval score and one-based rank
-                passage = self.passages[i] | {
+                passage = self.passages[index] | {
                     "score": float(score),
                     "rank": len(passages_for_query) + 1,
                 }
