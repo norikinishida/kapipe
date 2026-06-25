@@ -50,13 +50,14 @@ class BlinkBiEncoder:
 
     def __init__(
         self,
-        device: str,
         # Initialization
         config: Config | str | None = None,
         path_entity_dict: str | None = None,
         # Loading
         path_snapshot: str | None = None,
         identifier: str | None = None,
+        # Misc.
+        device: str = "cuda",
     ):
         logger.info("########## BlinkBiEncoder Initialization Starts ##########")
 
@@ -73,7 +74,6 @@ class BlinkBiEncoder:
                 identifier=identifier,
             )
 
-        self.device = device
         self.path_snapshot = path_snapshot
         self.identifier = identifier
 
@@ -119,10 +119,12 @@ class BlinkBiEncoder:
         self.model_name = config["model_name"]
         if self.model_name == "blink_bi_encoder_model":
             self.model = BlinkBiEncoderModel(
+                bert_pretrained_name_or_path=(
+                    self.config["bert_pretrained_name_or_path"]
+                ),
+                max_seg_len=self.config["max_seg_len"],
+                entity_seq_length=self.config["entity_seq_length"],
                 device=device,
-                bert_pretrained_name_or_path=config["bert_pretrained_name_or_path"],
-                max_seg_len=config["max_seg_len"],
-                entity_seq_length=config["entity_seq_length"]
             )
         else:
             raise Exception(f"Invalid model_name: {self.model_name}")
@@ -284,7 +286,7 @@ class BlinkBiEncoder:
                 pool = self.model.start_multi_process_pool()
                 entity_vectors = self.model.encode_multi_process(entity_passages, pool)
                 self.model.stop_multi_process_pool(pool)
-                self.model.to(self.device)
+                self.model.to(self.model.device)
 
             # Make ANNS index
             logger.info(f"Indexing {len(entity_vectors)} entities ...")
@@ -931,18 +933,18 @@ class BlinkBiEncoderModel(nn.Module):
 
     def __init__(
         self,
-        device,
         bert_pretrained_name_or_path,
         max_seg_len,
-        entity_seq_length
+        entity_seq_length,
+        device = "cuda",
     ):
         """
         Parameters
         ----------
-        device : str
         bert_pretrained_name_or_path : str
         max_seg_len : int
         entity_seq_length : int
+        device : str
         """
         super().__init__()
 
@@ -950,10 +952,10 @@ class BlinkBiEncoderModel(nn.Module):
         # Hyper parameters
         ########################
 
-        self.device = device
         self.bert_pretrained_name_or_path = bert_pretrained_name_or_path
         self.max_seg_len = max_seg_len
         self.entity_seq_length = entity_seq_length
+        self.device = device
 
         ########################
         # Components

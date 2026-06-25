@@ -40,13 +40,14 @@ class BiaffineNER:
 
     def __init__(
         self,
-        device: str,
         # Initialization
         config: Config | str | None = None,
         vocab_etype: dict[str, int] | str | None = None,
         # Loading
         path_snapshot: str | None = None,
         identifier: str | None = None,
+        # Misc.
+        device: str = "cuda",
     ):
         logger.info("########## BiaffineNER Initialization Starts ##########")
    
@@ -63,7 +64,6 @@ class BiaffineNER:
                 identifier=identifier,
             )
 
-        self.device = device
         self.path_snapshot = path_snapshot
         self.identifier = identifier
 
@@ -107,7 +107,6 @@ class BiaffineNER:
         self.model_name = self.config["model_name"]
         if self.model_name == "biaffine_ner_model":
             self.model = BiaffineNERModel(
-                device=device,
                 bert_pretrained_name_or_path=config["bert_pretrained_name_or_path"],
                 max_seg_len=config["max_seg_len"],
                 dropout_rate=config["dropout_rate"],
@@ -118,6 +117,7 @@ class BiaffineNER:
                     if config["loss_function"] == "focal_loss"
                     else None
                 ),
+                device=device,
             )
         else:
             raise ValueError(f"Invalid model_name: {self.model_name}")
@@ -695,18 +695,17 @@ class BiaffineNERModel(nn.Module):
 
     def __init__(
         self,
-        device,
         bert_pretrained_name_or_path,
         max_seg_len,
         dropout_rate,
         vocab_etype,
         loss_function_name,
-        focal_loss_gamma=None
+        focal_loss_gamma=None,
+        device="cuda",
     ):
         """
         Parameters
         ----------
-        device : str
         bert_pretrained_name_or_path : str
         max_seg_len : int
         dropout_rate : float
@@ -714,6 +713,8 @@ class BiaffineNERModel(nn.Module):
         loss_function_name : str
         focal_loss_gamma : float | None
             by default None
+        device : str
+            by default "cuda"
         """
         super().__init__()
 
@@ -721,13 +722,13 @@ class BiaffineNERModel(nn.Module):
         # Hyper parameters
         ########################
 
-        self.device = device
         self.bert_pretrained_name_or_path = bert_pretrained_name_or_path
         self.max_seg_len = max_seg_len
         self.dropout_rate = dropout_rate
         self.vocab_etype = vocab_etype
         self.loss_function_name = loss_function_name
         self.focal_loss_gamma = focal_loss_gamma
+        self.device = device
 
         self.n_entity_types = len(self.vocab_etype)
 

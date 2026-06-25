@@ -31,7 +31,6 @@ class LLMNER:
 
     def __init__(
         self,
-        device: str,
         model: HuggingFaceLLM | OpenAILLM,
         # Initialization
         config: Config | str | None = None,
@@ -57,7 +56,6 @@ class LLMNER:
                 identifier=identifier,
             )
 
-        self.device = device
         self.model = model
         self.path_snapshot = path_snapshot
         self.identifier = identifier

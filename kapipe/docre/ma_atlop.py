@@ -40,7 +40,6 @@ class MAATLOP:
 
     def __init__(
         self,
-        device: str,
         # Initialization
         config: Config | str | None = None,
         vocab_relation: dict[str, int] | str | None = None,
@@ -48,6 +47,8 @@ class MAATLOP:
         # Loading
         path_snapshot: str | None = None,
         identifier: str | None = None,
+        # Misc.
+        device: str = "cuda",
     ):
         logger.info("########## MAATLOP Initialization Starts ##########")
 
@@ -64,7 +65,6 @@ class MAATLOP:
                 identifier=identifier,
             )
 
-        self.device = device
         self.path_snapshot = path_snapshot
         self.identifier = identifier
 
@@ -129,7 +129,6 @@ class MAATLOP:
         self.top_k_labels = self.config["top_k_labels"]
         if self.model_name == "ma_atlop_model":
             self.model = MAATLOPModel(
-                device=device,
                 bert_pretrained_name_or_path=(
                     self.config["bert_pretrained_name_or_path"]
                 ),
@@ -147,6 +146,7 @@ class MAATLOP:
                 use_mention_as_canonical_name=(
                     self.config["use_mention_as_canonical_name"]
                 ),
+                device=device,
             )
         else:
             raise ValueError(f"Invalid model_name: {self.model_name}")
@@ -907,7 +907,6 @@ class MAATLOPModel(nn.Module):
 
     def __init__(
         self,
-        device,
         bert_pretrained_name_or_path,
         max_seg_len,
         entity_dict,
@@ -918,12 +917,12 @@ class MAATLOPModel(nn.Module):
         vocab_relation,
         possible_head_entity_types=None,
         possible_tail_entity_types=None,
-        use_mention_as_canonical_name=False
+        use_mention_as_canonical_name=False,
+        device: str = "cuda",
     ):
         """
         Parameters
         ----------
-        device : str
         bert_pretrained_name_or_path : str
         max_seg_len : int
         entity_dict : dict[str, EntityPage]
@@ -938,6 +937,7 @@ class MAATLOPModel(nn.Module):
             by default None
         use_mention_as_canonical_name : bool
             by default False
+        device : str
         """
         super().__init__()
 
@@ -945,7 +945,6 @@ class MAATLOPModel(nn.Module):
         # Hyper parameters
         ########################
 
-        self.device = device
         self.bert_pretrained_name_or_path = bert_pretrained_name_or_path
         self.max_seg_len = max_seg_len
         self.entity_dict = entity_dict
@@ -957,6 +956,7 @@ class MAATLOPModel(nn.Module):
         self.possible_head_entity_types = possible_head_entity_types
         self.possible_tail_entity_types = possible_tail_entity_types
         self.use_mention_as_canonical_name = use_mention_as_canonical_name
+        self.device = device
 
         self.n_relations = len(self.vocab_relation)
 

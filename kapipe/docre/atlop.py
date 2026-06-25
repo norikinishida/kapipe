@@ -41,13 +41,14 @@ class ATLOP:
 
     def __init__(
         self,
-        device: str,
         # Initialization
         config: Config | str | None = None,
         vocab_relation: dict[str, int] | str | None = None,
         # Loading
         path_snapshot: str | None = None,
         identifier: str | None = None,
+        # Misc.
+        device: str = "cuda",
     ):
         logger.info("########## ATLOP Initialization Starts ##########")
 
@@ -64,7 +65,6 @@ class ATLOP:
                 identifier=identifier,
             )
 
-        self.device = device
         self.path_snapshot = path_snapshot
         self.identifier = identifier
 
@@ -109,7 +109,6 @@ class ATLOP:
         self.top_k_labels = self.config["top_k_labels"]
         if self.model_name == "atlop_model":
             self.model = ATLOPModel(
-                device=device,
                 bert_pretrained_name_or_path=(
                     self.config["bert_pretrained_name_or_path"]
                 ),
@@ -124,6 +123,7 @@ class ATLOP:
                 loss_function_name=self.config["loss_function"],
                 possible_head_entity_types=self.config["possible_head_entity_types"],
                 possible_tail_entity_types=self.config["possible_tail_entity_types"],
+                device=device,
             )
         else:
             raise ValueError(f"Invalid model_name: {self.model_name}")
@@ -752,7 +752,6 @@ class ATLOPModel(nn.Module):
 
     def __init__(
         self,
-        device: str,
         bert_pretrained_name_or_path: str,
         max_seg_len: int,
         token_embedding_method: str,
@@ -762,7 +761,8 @@ class ATLOPModel(nn.Module):
         vocab_relation: dict[str, int],
         loss_function_name: str,
         possible_head_entity_types: list[str] | None = None,
-        possible_tail_entity_types: list[str] | None = None
+        possible_tail_entity_types: list[str] | None = None,
+        device: str = "cuda",
     ):
         super().__init__()
 
@@ -770,7 +770,6 @@ class ATLOPModel(nn.Module):
         # Hyper parameters
         ########################
 
-        self.device = device
         self.bert_pretrained_name_or_path = bert_pretrained_name_or_path
         self.max_seg_len = max_seg_len
         self.token_embedding_method = token_embedding_method
@@ -781,6 +780,7 @@ class ATLOPModel(nn.Module):
         self.loss_function_name = loss_function_name
         self.possible_head_entity_types = possible_head_entity_types
         self.possible_tail_entity_types = possible_tail_entity_types
+        self.device = device
 
         self.n_relations = len(self.vocab_relation)
 

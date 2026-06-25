@@ -40,13 +40,14 @@ class BlinkCrossEncoder:
 
     def __init__(
         self,
-        device: str,
         # Initialization
         config: Config | str | None = None,
         path_entity_dict: str | None = None,
         # Loading
         path_snapshot: str | None = None,
         identifier: str | None = None,
+        # Misc.
+        device: str = "cuda",
     ):
         logger.info("########## BlinkCrossEncoder Initialization Starts ##########")
 
@@ -63,7 +64,6 @@ class BlinkCrossEncoder:
                 identifier=identifier,
             )
 
-        self.device = device
         self.path_snapshot = path_snapshot
         self.identifier = identifier
 
@@ -108,11 +108,13 @@ class BlinkCrossEncoder:
         self.model_name = config["model_name"]
         if self.model_name == "blink_cross_encoder_model":
             self.model = BlinkCrossEncoderModel(
-                device=device,
-                bert_pretrained_name_or_path=config["bert_pretrained_name_or_path"],
-                max_seg_len=config["max_seg_len"],
+                bert_pretrained_name_or_path=(
+                    self.config["bert_pretrained_name_or_path"]
+                ),
+                max_seg_len=self.config["max_seg_len"],
                 entity_dict=self.entity_dict,
-                mention_context_length=self.config["mention_context_length"]
+                mention_context_length=self.config["mention_context_length"],
+                device=device,
             )
         else:
             raise Exception(f"Invalid model_name: {self.model_name}")
@@ -686,20 +688,20 @@ class BlinkCrossEncoderModel(nn.Module):
 
     def __init__(
         self,
-        device,
         bert_pretrained_name_or_path,
         max_seg_len,
         entity_dict,
-        mention_context_length
+        mention_context_length,
+        device: str = "cuda",
     ):
         """
         Parameters
         ----------
-        device : str
         bert_pretrained_name_or_path : str
         max_seg_len : int
         entity_dict : dict[str, EntityPage]
         mention_context_length : int
+        device : str
         """
         super().__init__()
 
@@ -707,11 +709,11 @@ class BlinkCrossEncoderModel(nn.Module):
         # Hyper parameters
         ########################
 
-        self.device = device
         self.bert_pretrained_name_or_path = bert_pretrained_name_or_path
         self.max_seg_len = max_seg_len
         self.entity_dict = entity_dict
         self.mention_context_length = mention_context_length
+        self.device = device
 
         ########################
         # Components

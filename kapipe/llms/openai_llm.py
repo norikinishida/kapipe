@@ -7,10 +7,61 @@ from tenacity import (
 )
 
 
+class OpenAILLM:
+    """OpenAI Chat Completions API based LLM wrapper."""
+    
+    def __init__(
+        self,
+        # Model
+        model_name: str,
+        # Generation
+        max_new_tokens: int,
+    ) -> None:
+        self.model_name = model_name
+        self.max_new_tokens = max_new_tokens
+
+        self.client = OpenAI()
+
+    def generate(
+        self,
+        prompt: str | dict[str, str],
+        temperature: float = 0.0,
+    ) -> str:
+        """Function to generate text for the given prompt using the OpenAI API."""
+
+        # Extract system and user prompts based on the input type
+        if isinstance(prompt, str):
+            system_prompt = "You are a helpful assistant."
+            user_prompt = prompt
+        else:
+            system_prompt = prompt["system_prompt"]
+            user_prompt = prompt["user_prompt"]
+
+        # Call the generate_with_backoff function to handle retries and backoff
+        return generate_with_backoff(
+            client=self.client,
+            model_name=self.model_name,
+            max_new_tokens=self.max_new_tokens,
+            system_prompt=system_prompt,
+            user_prompt=user_prompt,
+            temperature=temperature
+        )
+
+
 @retry(wait=wait_random_exponential(min=1, max=60), stop=stop_after_attempt(6))
-def generate_with_backoff(client, openai_model_name, max_new_tokens, system_prompt, user_prompt, temperature=0.0):
+def generate_with_backoff(
+    client: OpenAI,
+    model_name: str,
+    max_new_tokens: int,
+    system_prompt: str,
+    user_prompt: str,
+    temperature: float = 0.0,
+) -> str:
+    """Function to generate text for the given prompt using the OpenAI API with backoff."""
+
+    # Send the request to the OpenAI API
     response = client.chat.completions.create(
-        model=openai_model_name,
+        model=model_name,
         messages=[
             {
                 "role": "system",
@@ -25,46 +76,10 @@ def generate_with_backoff(client, openai_model_name, max_new_tokens, system_prom
         seed=123,
         max_tokens=max_new_tokens,
     )
-    return response.choices[0].message.content
 
+    # Extract the generated text from the first completion
+    generated_text = response.choices[0].message.content
+    if generated_text is None:
+        raise RuntimeError("OpenAI response did not contain text output.")
+    return generated_text
 
-class OpenAILLM:
-    
-    def __init__(
-        self,
-        # Model
-        openai_model_name,
-        # Generation
-        max_new_tokens
-    ):
-        self.openai_model_name = openai_model_name
-        self.max_new_tokens = max_new_tokens
-
-        self.client = OpenAI()
-
-    def generate(
-        self,
-        prompt: str | None = None,
-        system_prompt: str | None = None,
-        user_prompt: str | None = None,
-        temperature: float = 0.0
-    ) -> str:
-        if prompt is not None:
-            if user_prompt is not None:
-                raise ValueError("Specify either `prompt` or `user_prompt`, not both.")
-        else:
-            if user_prompt is None:
-                raise ValueError("Specify `prompt` or `user_prompt`.")
-        user_prompt = prompt if prompt is not None else user_prompt
-
-        if system_prompt is None:
-            system_prompt = "You are a helpful assistant."
-
-        return generate_with_backoff(
-            client=self.client,
-            openai_model_name=self.openai_model_name,
-            max_new_tokens=self.max_new_tokens,
-            system_prompt=system_prompt,
-            user_prompt=user_prompt,
-            temperature=temperature
-        )
