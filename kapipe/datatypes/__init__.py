@@ -20,6 +20,3 @@ from .datatypes import QuestionKey
 from .datatypes import ContextsForOneExample
 from .datatypes import Question
 from .datatypes import Answer
-
-from .datatypes import DemonstrationsForOneExample
-from .datatypes import DemoKeyInfo

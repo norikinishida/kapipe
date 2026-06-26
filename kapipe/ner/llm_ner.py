@@ -16,10 +16,8 @@ from ..datatypes import (
     Config,
     Document,
     Mention,
-    DemonstrationsForOneExample,
     ContextsForOneExample
 )
-from ..demonstration_retrieval import DemonstrationRetriever
 from ..llms import HuggingFaceLLM, OpenAILLM
 from ..resources import resolve_snapshot_path
 
@@ -36,7 +34,7 @@ class LLMNER:
         config: Config | str | None = None,
         vocab_etype: dict[str, int] | str | None = None,
         etype_meta_info: dict[str, dict[str, str]] | str | None = None,
-        path_demonstration_pool: str | None = None,
+        demonstration_documents: list[Document] | str | None = None,
         # Loading
         path_snapshot: str | None = None,
         identifier: str | None = None,
@@ -67,10 +65,9 @@ class LLMNER:
                 raise ValueError(
                     "config cannot be specified when loading a snapshot."
                 )
-            if path_demonstration_pool is not None:
+            if demonstration_documents is not None:
                 raise ValueError(
-                    "path_demonstration_pool cannot be specified when loading "
-                    "a snapshot."
+                    "demonstration_documents cannot be specified when loading a snapshot."
                 )
 
             # Specify the default paths for the resources in the snapshot
@@ -79,11 +76,15 @@ class LLMNER:
                 vocab_etype = path_snapshot + "/entity_types.vocab.txt"
             if etype_meta_info is None:
                 etype_meta_info = path_snapshot + "/etype_meta_info.json"
-            path_demonstration_pool = path_snapshot + "/demonstration_pool.json"
+            path_demonstration_documents = (
+                path_snapshot + "/demonstration_documents.json"
+            )
 
-            # Demonstrations are optional for zero-shot configurations
-            if not os.path.exists(path_demonstration_pool):
-                path_demonstration_pool = None
+            # Use no demonstrations when loading an old zero-shot snapshot
+            if os.path.exists(path_demonstration_documents):
+                demonstration_documents = path_demonstration_documents
+            else:
+                demonstration_documents = []
 
         # Load the configuration
         if isinstance(config, str):
@@ -112,6 +113,19 @@ class LLMNER:
             logger.info(f"Loaded entity type meta-information from {meta_path}")
         self.etype_meta_info = etype_meta_info
 
+        # Load the demonstration documents
+        if isinstance(demonstration_documents, str):
+            path_demonstration_documents = demonstration_documents
+            demonstration_documents = utils.read_json(path_demonstration_documents)
+            logger.info(
+                f"Loaded {len(demonstration_documents)} demonstration documents "
+                f"from {path_demonstration_documents}"
+            )
+        # Represent the zero-shot setting as an empty list
+        if demonstration_documents is None:
+            demonstration_documents = []
+        self.demonstration_documents: list[Document] = demonstration_documents
+
         # Initialize the prompt processor, which generates prompts for the LLM
         self.prompt_processor = PromptProcessor(
             prompt_template_name_or_path=(
@@ -119,8 +133,6 @@ class LLMNER:
             ),
             vocab_etype=self.vocab_etype,
             etype_meta_info=self.etype_meta_info,
-            path_demonstration_pool=path_demonstration_pool,
-            n_demonstrations=self.config["n_demonstrations"]
         )
 
         # Check the provider and initialize the LLM model accordingly
@@ -128,17 +140,6 @@ class LLMNER:
         if self.provider not in ["hf", "openai"]:
             raise ValueError(f"Invalid provider: {self.provider}")
         logger.info("LLM is provided by an argument")
-
-        # Initialize the demonstration retriever, which retrieves demonstrations
-        # from a pool based on the input document
-        if path_demonstration_pool is None:
-            self.demonstration_retriever = None
-        else:
-            self.demonstration_retriever = DemonstrationRetriever(
-                path_demonstration_pool=path_demonstration_pool,
-                method="count",
-                task="ner",
-            )
 
         # Define regular expression for output parsing.
         # Parse generated lines of the followingform:
@@ -158,43 +159,25 @@ class LLMNER:
         logger.info("########## LLMNER Initialization Ends ##########")
 
     def save(self, path_snapshot: str) -> None:
-        """Function to save the configuration, entity-type vocabulary, meta-information, and demonstration pool to a snapshot."""
+        """Function to save the configuration, entity-type vocabulary, meta-information, and demonstration documents to a snapshot."""
 
         path_config = path_snapshot + "/config"
         path_vocab = path_snapshot + "/entity_types.vocab.txt"
         path_meta_info = path_snapshot + "/etype_meta_info.json"
-        path_demonstration_pool = path_snapshot + "/demonstration_pool.json"
+        path_demonstration_documents = path_snapshot + "/demonstration_documents.json"
 
         utils.write_json(path_config, self.config)
         utils.write_vocab(path_vocab, self.vocab_etype, write_frequency=False)
         utils.write_json(path_meta_info, self.etype_meta_info)
-        if self.prompt_processor.path_demonstration_pool is not None:
-            utils.write_json(
-                path_demonstration_pool,
-                list(self.prompt_processor.demonstration_pool.values())
-            )
+        utils.write_json(path_demonstration_documents, self.demonstration_documents)
 
     def extract(
         self,
         document: Document,
-        # Optional: few-shot setting
-        demonstrations_for_doc: DemonstrationsForOneExample | None = None,
         # Optional: context augmentation
         contexts_for_doc: ContextsForOneExample | None = None
     ) -> Document:
         """Function to extract named entity mentions from a given document."""
-
-        # Automatically retrieve demonstrations only when the caller does not
-        # provide an explicit selection. This preserves manual control for
-        # evaluation and ablation experiments.
-        if (
-            demonstrations_for_doc is None
-            and self.demonstration_retriever is not None
-        ):
-            demonstrations_for_doc = self.demonstration_retriever.search(
-                document=document,
-                top_k=self.config["n_demonstrations"],
-            )
 
         with torch.no_grad():
             # Switch to inference mode for Hugging Face models
@@ -204,8 +187,8 @@ class LLMNER:
             # Generate a prompt
             prompt = self.prompt_processor.generate(
                 document=document,
-                demonstrations_for_doc=demonstrations_for_doc,
-                contexts_for_doc=contexts_for_doc
+                demonstration_documents=self.demonstration_documents,
+                contexts_for_doc=contexts_for_doc,
             )
 
             # Generate a response
@@ -352,28 +335,24 @@ class LLMNER:
     def batch_extract(
         self,
         documents: list[Document],
-        # optional: few-shot setting
-        demonstrations: list[DemonstrationsForOneExample] | None = None,
         # optional: context augmentation
         contexts: list[ContextsForOneExample] | None = None
     ) -> list[Document]:
         """Function to extract named entity mentions from a batch of documents."""
-        result_documents = []
 
-        if demonstrations is None:
-            demonstrations = [None] * len(documents)
+        result_documents: list[Document] = []
 
+        # Use empty contexts when no contexts are provided
         if contexts is None:
             contexts = [None] * len(documents)
 
-        for document, demonstrations_for_doc, contexts_for_doc in tqdm(
-            zip(documents, demonstrations, contexts),
+        for document, contexts_for_doc in tqdm(
+            zip(documents, contexts),
             total=len(documents),
             desc="extraction steps"
         ):
             result_document = self.extract(
                 document=document,
-                demonstrations_for_doc=demonstrations_for_doc,
                 contexts_for_doc=contexts_for_doc
             )
             result_documents.append(result_document)
@@ -387,19 +366,10 @@ class PromptProcessor:
         prompt_template_name_or_path: str,
         vocab_etype: dict[str, int],
         etype_meta_info: dict[str, dict[str, str]],
-        # Optional: few-shot setting
-        path_demonstration_pool: str | None = None,
-        n_demonstrations: int | None = None
     ):
         self.prompt_template_name_or_path = prompt_template_name_or_path
         self.vocab_etype = vocab_etype
         self.etype_meta_info = etype_meta_info
-        self.path_demonstration_pool = path_demonstration_pool
-        self.n_demonstrations = n_demonstrations
-
-        # If demonstration pool is provided, `n_demonstartions` should also be set
-        if self.path_demonstration_pool is not None:
-            assert self.n_demonstrations is not None
 
         # Load the prompt template
         self.prompt_template = utils.read_prompt_template(
@@ -414,39 +384,21 @@ class PromptProcessor:
             self.entity_types_prompt += f"- {pretty_name}: {definition}\n"
         self.entity_types_prompt = self.entity_types_prompt.rstrip()
 
-        # Load the demonstration pool
-        if self.path_demonstration_pool is not None:
-            self.demonstration_pool: dict[str, Document] = {
-                demo_doc["doc_key"]: demo_doc
-                for demo_doc in utils.read_json(self.path_demonstration_pool)
-            }
-
     def generate(
         self,
         document: Document,
-        # optional: few-shot setting
-        demonstrations_for_doc: DemonstrationsForOneExample | None = None,
-        # optional: context augmentation
+        demonstration_documents: list[Document],
+        # Optional: context augmentation
         contexts_for_doc: ContextsForOneExample | None = None
     ) -> str:
         ##########
         # Demonstrations Prompt
         ##########
 
-        if demonstrations_for_doc is not None:
-            # Create demonstration documents
-            demonstration_documents: list[Document] = []
-            for demo_key_dict in (
-                demonstrations_for_doc["demonstrations"][:self.n_demonstrations]
-            ):
-                demo_doc = self.demonstration_pool[demo_key_dict["doc_key"]]
-                demonstration_documents.append(demo_doc)
-            # Generate prompt part for demonstrations
-            demonstrations_prompt = self.generate_demonstrations_prompt(
-                demonstration_documents=demonstration_documents
-            )
-        else:
-            demonstrations_prompt = ""
+        # Generate the prompt part for demonstrations
+        demonstrations_prompt = self.generate_demonstrations_prompt(
+            demonstration_documents=demonstration_documents,
+        )        
 
         ##########
         # Contexts Prompt
@@ -586,17 +538,16 @@ class LLMNERTrainer:
         self,
         extractor: LLMNER,
         documents: list[Document],
-        demonstrations: list[DemonstrationsForOneExample] | None,
         contexts: list[ContextsForOneExample] | None,
         split: str,
         #
         prediction_only: bool = False,
         get_scores_only: bool = False
     ) -> dict[str, Any] | None:
+
         # Apply the extractor
         result_documents = extractor.batch_extract(
             documents=documents,
-            demonstrations=demonstrations,
             contexts=contexts
         )
 

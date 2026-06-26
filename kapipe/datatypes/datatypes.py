@@ -128,17 +128,3 @@ Answer : TypeAlias = dict[str, Any]
 # - answer_type: str
 # - list_index: int
 # list_index is required when answer_type is "list"
-
-##########
-# Data types for demonstrations
-##########
-
-DemonstrationsForOneExample : TypeAlias = dict[str, Any]
-# Required fields:
-# - doc_key or question_key: str
-# - demonstrations: list[DemoKeyInfo]
-
-DemoKeyInfo : TypeAlias = dict[str, Any]
-# Required fields:
-# - doc_key or question_key: str
-# - score: int | float
