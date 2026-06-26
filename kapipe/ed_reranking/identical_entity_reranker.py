@@ -15,9 +15,13 @@ logger = logging.getLogger(__name__)
 
 class IdenticalEntityReranker:
 
-    def __init__(self):
-        logger.info("########## IdenticalEntityReranker Initialization Starts ##########")
-        logger.info("########## IdenticalEntityReranker Initialization Ends ##########")
+    def __init__(self) -> None:
+        logger.info(
+            "########## IdenticalEntityReranker Initialization Starts ##########"
+        )
+        logger.info(
+            "########## IdenticalEntityReranker Initialization Ends ##########"
+        )
 
     def rerank(
         self,

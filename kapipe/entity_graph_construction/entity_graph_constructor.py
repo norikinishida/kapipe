@@ -35,7 +35,9 @@ class EntityGraphConstructor:
             logger.info(f"Loaded entity dictionary with {len(entity_dict)} entries.")
         else:
             entity_dict = {}
-            logger.info("No entity dictionary provided. Falling back to document entities only.")
+            logger.info(
+                "No entity dictionary provided. Falling back to document entities only."
+            )
 
         # Initialize a directed, multi-edge graph
         graph = nx.MultiDiGraph()
@@ -59,7 +61,9 @@ class EntityGraphConstructor:
         for path_documents in path_documents_list:
             # Load the documents
             documents = utils.read_json(path_documents)
-            logger.info(f"Loading triples from {len(documents)} documents in {path_documents}")
+            logger.info(
+                f"Loading triples from {len(documents)} documents in {path_documents}"
+            )
             for document in tqdm(documents, f"Processing {path_documents}"):
                 # Get the associated triples from the document
                 doc_key = document["doc_key"]

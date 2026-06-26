@@ -362,24 +362,36 @@ def create_text_from_passage(passage: Passage, sep: str) -> str:
     return text
 
 
-def read_prompt_template(prompt_template_name_or_path: str) -> str:
-    # List text files in "prompt_template" directory
+def read_prompt_template(
+    prompt_template_name_or_path: str,
+    prompt_template_package_name: str,
+) -> str:
+    """Function to read a prompt template from a package or a file path."""
+
+    # List text files in prompt-template package
     prompt_template_names = [
-        x.name for x in files("kapipe.prompt_templates").iterdir()
+        x.name for x in files(prompt_template_package_name).iterdir()
         if x.name.endswith(".txt") and x.is_file() and not x.name.startswith("_")
     ]
 
-    # Load the prompt template
-    candidate_filename = prompt_template_name_or_path + ".txt"        
+    # Build the filename for a packaged prompt template
+    candidate_filename = prompt_template_name_or_path + ".txt"
+
+    # Load the packaged prompt template when the given name exists
     if candidate_filename in prompt_template_names:
-        template_path = files("kapipe.prompt_templates").joinpath(candidate_filename)
+        template_path = files(prompt_template_package_name).joinpath(candidate_filename)
+
+        # Convert the package resource into a readable file-system path
         with as_file(template_path) as path:
             with open(path, "r", encoding="utf-8") as f:
                 return f.read()
-    else:
-        assert os.path.isfile(prompt_template_name_or_path)
-        with open(prompt_template_name_or_path, "r", encoding="utf-8") as f:
-            return f.read()
+
+    # Require the input to be an explicit file path when it is not a packaged name
+    assert os.path.isfile(prompt_template_name_or_path)
+
+    # Load the prompt template from the explicit file path
+    with open(prompt_template_name_or_path, "r", encoding="utf-8") as f:
+        return f.read()
 
 
 def create_intra_inter_map(document) -> dict[str, str]:

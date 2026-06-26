@@ -1,5 +1,5 @@
-from .blink_bi_encoder import BlinkBiEncoder, BlinkBiEncoderTrainer
-from .dummy_entity_retriever import DummyEntityRetriever
+import importlib
+from typing import Any
 
 
 __all__ = [
@@ -7,3 +7,31 @@ __all__ = [
     "BlinkBiEncoderTrainer",
     "DummyEntityRetriever",
 ]
+
+
+_NAME_TO_MODULE = {
+    "BlinkBiEncoder": "blink_bi_encoder",
+    "BlinkBiEncoderTrainer": "blink_bi_encoder",
+    "DummyEntityRetriever": "dummy_entity_retriever",
+}
+
+
+def __getattr__(name: str) -> Any:
+    """Function to lazily import public objects."""
+
+    # Reject unknown public names immediately
+    if name not in __all__:
+        raise AttributeError(
+            f"module '{__name__}' has no attribute '{name}'"
+        )
+
+    # Import the module that defines the requested public object
+    module = importlib.import_module(f".{_NAME_TO_MODULE[name]}", __name__)
+
+    # Read the requested public object from the imported module
+    value = getattr(module, name)
+
+    # Cache the object to avoid importing the module again for the same name
+    globals()[name] = value
+
+    return value

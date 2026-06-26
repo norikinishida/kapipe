@@ -221,7 +221,8 @@ class PromptProcessor:
         #####
 
         self.prompt_template = utils.read_prompt_template(
-            prompt_template_name_or_path=self.prompt_template_name_or_path
+            prompt_template_name_or_path=self.prompt_template_name_or_path,
+            prompt_template_package_name="kapipe.qa.prompt_templates",
         )
 
         # Check requirements

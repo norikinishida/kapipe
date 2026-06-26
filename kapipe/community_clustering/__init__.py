@@ -1,10 +1,37 @@
-from .hierarchical_leiden import HierarchicalLeiden
-from .neighborhood_aggregation import NeighborhoodAggregation
-from .triple_level_factorization import TripleLevelFactorization
+import importlib
+from typing import Any
 
 
 __all__ = [
     "HierarchicalLeiden",
     "NeighborhoodAggregation",
-    "TripleLevelFactorization"
+    "TripleLevelFactorization",
 ]
+
+
+_NAME_TO_MODULE = {
+    "HierarchicalLeiden": "hierarchical_leiden",
+    "NeighborhoodAggregation": "neighborhood_aggregation",
+    "TripleLevelFactorization": "triple_level_factorization",
+}
+
+
+def __getattr__(name: str) -> Any:
+    """Function to lazily import public objects."""
+
+    # Reject unknown public names immediately
+    if name not in __all__:
+        raise AttributeError(
+            f"module '{__name__}' has no attribute '{name}'"
+        )
+
+    # Import the module that defines the requested public object
+    module = importlib.import_module(f".{_NAME_TO_MODULE[name]}", __name__)
+
+    # Read the requested public object from the imported module
+    value = getattr(module, name)
+
+    # Cache the object to avoid importing the module again for the same name
+    globals()[name] = value
+
+    return value

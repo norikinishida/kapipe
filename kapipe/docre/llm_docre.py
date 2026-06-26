@@ -368,7 +368,8 @@ class PromptProcessor:
 
         # Load the prompt template
         self.prompt_template = utils.read_prompt_template(
-            prompt_template_name_or_path=self.prompt_template_name_or_path
+            prompt_template_name_or_path=self.prompt_template_name_or_path,
+            prompt_template_package_name="kapipe.docre.prompt_templates",
         )
 
         # Generate the prompt part for relation labels

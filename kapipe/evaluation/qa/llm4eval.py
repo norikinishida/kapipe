@@ -51,7 +51,10 @@ def _llm4eval(pred_questions, gold_questions):
     total_score = 0
 
     # Prepare prompt template
-    prompt_template = utils.read_prompt_template(prompt_template_name_or_path="llm4eval_01_zeroshot")
+    prompt_template = utils.read_prompt_template(
+        prompt_template_name_or_path="llm4eval_01_zeroshot",
+        prompt_template_package_name="kapipe.evaluation.qa.prompt_templates",
+    )
 
     # Prepare LLM
     model = OpenAILLM(
