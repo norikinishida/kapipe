@@ -12,7 +12,8 @@ logger = logging.getLogger(__name__)
 
 class TripleLevelFactorization:
     """
-    Cluster each triple (head, relation, tail) as an individual community.
+    A community detection algorithm that treats each triple (head, relation, tail) in a directed graph as a community.
+
 
     This method treats every edge in the graph as a unit and creates
     one community per triple, containing both head and tail nodes.
@@ -21,10 +22,14 @@ class TripleLevelFactorization:
     def __init__(self):
         pass
 
-    def cluster_communities(self, graph: nx.MultiDiGraph) -> list[CommunityRecord]:
+    def cluster_communities(
+        self,
+        graph: nx.MultiDiGraph
+    ) -> list[CommunityRecord]:
         """
-        Cluster the graph by treating each triple (head, relation, tail) as a community.
+        Apply the Triple-Level Factorization to cluster communities in a directed graph.
         """
+
         logger.info("Applying Triple-Level Factorization ...")
 
         # Initialize the community records

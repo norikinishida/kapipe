@@ -89,6 +89,8 @@ class LLMQA:
         logger.info("########## LLMQA Initialization Ends ##########")
 
     def save(self, path_snapshot: str) -> None:
+        """Save the configuration."""
+
         path_config = path_snapshot + "/config"
         utils.write_json(path_config, self.config)
 
@@ -98,18 +100,20 @@ class LLMQA:
         # Optional: context augmentation
         contexts_for_question: ContextsForOneExample | None = None
     ) -> Question:
+        """Answer a single question."""
+
         with torch.no_grad():
             # Switch to inference mode for Hugging Face models
             if self.provider == "hf":
                 self.model.llm.eval()
 
-            # Generate a prompt
+            # Generate the prompt
             prompt = self.generate_prompt(
                 question=question,
                 contexts_for_question=contexts_for_question
             )
 
-            # Generate a response
+            # Generate the response
             generated_text = self.model.generate(prompt)
 
             # Parse the generated response into structured fields
@@ -133,6 +137,8 @@ class LLMQA:
         question: Question,
         contexts_for_question: ContextsForOneExample
     ) -> str:
+        """Generate a prompt for the LLM."""
+
         return self.prompt_processor.generate(
            question=question,
            contexts_for_question=contexts_for_question
@@ -143,6 +149,8 @@ class LLMQA:
         question: Question,
         generated_text: str
     ) -> tuple[str, float, str]:
+        """Parse the generated text into structured fields."""
+
         question_key = question["question_key"]
 
         # Parse each generated line
@@ -179,6 +187,7 @@ class LLMQA:
                     score = 0.0
             else:
                 logger.info(f"[{question_key}] Skipped a generated line of invalid formatting: '{generated_line}'")
+
         return answer, rationale, score
  
     def batch_answer(
@@ -187,8 +196,11 @@ class LLMQA:
         # optional: context augmentation
         contexts: list[ContextsForOneExample] | None = None
     ) -> list[Question]:
-        results = []
+        """Answer a batch of questions."""
 
+        results: list[Question] = []
+
+        # Use a list of None for contexts if not provided
         if contexts is None:
             contexts = [None] * len(questions)
 
@@ -202,10 +214,12 @@ class LLMQA:
                 contexts_for_question=contexts_for_q
             )
             results.append(result)
+
         return results
 
 
 class PromptProcessor:
+    """A class to generate prompts for the LLM based on a template and provided contexts."""
     
     def __init__(
         self,
@@ -213,6 +227,7 @@ class PromptProcessor:
         # optional: context
         n_contexts: int = -1,
     ): 
+
         self.prompt_template_name_or_path = prompt_template_name_or_path
         self.n_contexts = n_contexts
 
@@ -231,9 +246,10 @@ class PromptProcessor:
     def generate(
         self,
         question: Question,
-        # optional: context augmentation
+        # Optional: context augmentation
         contexts_for_question: ContextsForOneExample | None = None
     ) -> str:
+        """Generate a prompt for the LLM."""
 
         if contexts_for_question is not None:
             # Prepare contexts
@@ -247,13 +263,15 @@ class PromptProcessor:
                     utils.create_text_from_passage(passage=p, sep=" : ")
                     for p in contexts_for_question["contexts"]
                 ]
+
             # Get prompt part for contexts
             # Note that the number of contexts (context_texts) is limited to n_contexts before calling this function
             contexts_prompt = self.generate_contexts_prompt(context_texts=context_texts)
+
         else:
             contexts_prompt = ""
 
-        # Get prompt part for test case
+        # Get the prompt part for test case
         test_case_prompt = self.generate_test_case_prompt(question=question)
 
         # Combine the prompt parts
@@ -261,9 +279,12 @@ class PromptProcessor:
             contexts_prompt=contexts_prompt,
             test_case_prompt=test_case_prompt
         )
+
         return prompt
 
     def generate_contexts_prompt(self, context_texts: list[str]) -> str:
+        """Generate a prompt for the contexts."""
+
         n_contexts = len(context_texts)
 
         if n_contexts == 0:
@@ -277,9 +298,12 @@ class PromptProcessor:
             prompt += f"[{c_i+1}] {content_text.strip()} \n"
             if c_i < n_contexts - 1:
                 prompt += "\n"
+    
         return prompt.rstrip()
 
     def generate_test_case_prompt(self, question: Question) -> str:
+        """Generate a prompt for the test case."""
+
         prompt = f"Question: {self.generate_input_question_prompt(question)}".rstrip()
 
         # Check if candidate_answers exists and is a list
@@ -287,20 +311,26 @@ class PromptProcessor:
         if candidate_answers and isinstance(candidate_answers, list):
             # Append options to the prompt
             prompt += "\nOptions:\n"
+
             # Join all candidates with a newline and a bullet point
             prompt += "\n".join([f"- {ans}" for ans in candidate_answers])
             
         return prompt.rstrip()
  
     def generate_input_question_prompt(self, question: Question) -> str:
+        """Generate a prompt for the input question."""
+
         return question["question"]
 
     def generate_output_prompt(self, question: Question) -> str:
+        """Generate a prompt for the output answer."""
+
         answer = ", ".join([a["answer"] for a in question["answers"]])
         score = 0.69 # FIXME
         prompt = ""
         prompt += f"Answer: {answer}\n"
         prompt += f"Score: {score}\n"
+
         return prompt.rstrip()
 
 

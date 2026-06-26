@@ -10,10 +10,10 @@ def get_scheduler(
     total_update_steps: int,
     warmup_steps: int,
 ) -> list[LambdaLR]:
-    """Scheduler construction for separate BERT and task optimizers."""
+    """Return a list of schedulers for the optimizers, with separate learning-rate schedules for BERT and task-specific parameters."""
 
     def lr_lambda_bert(current_step: int) -> float:
-        """Learning-rate multiplier for the BERT optimizer."""
+        """Return the learning-rate multiplier for the BERT optimizer."""
 
         # Increase the learning rate linearly during warmup
         if current_step < warmup_steps:
@@ -32,7 +32,7 @@ def get_scheduler(
         )
 
     def lr_lambda_task(current_step: int) -> float:
-        """Learning-rate multiplier for the task optimizer."""
+        """Return the learning-rate multiplier for the task optimizer."""
 
         # Decrease the learning rate linearly from the initial value
         return max(
@@ -62,7 +62,7 @@ def get_scheduler2(
     total_update_steps: int,
     warmup_steps: int,
 ) -> LambdaLR:
-    """Linear scheduler construction with warmup."""
+    """Return a linear scheduler with warmup for the given optimizer."""
 
     # Create a scheduler with linear warmup and linear decay
     return get_linear_schedule_with_warmup(

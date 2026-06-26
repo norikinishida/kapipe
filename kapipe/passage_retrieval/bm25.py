@@ -11,7 +11,7 @@ from ..datatypes import Passage
 
 
 class BM25:
-    """Sparse lexical passage retriever using BM25."""
+    """A class for performing sparse lexical passage retrieval using BM25."""
 
     def __init__(
         self,
@@ -19,6 +19,7 @@ class BM25:
         k1: float = 1.5,
         b: float = 0.75
     ) -> None:
+
         self.tokenizer = tokenizer
         self.k1 = float(k1)
         self.b = float(b)
@@ -36,7 +37,7 @@ class BM25:
         self.factor2: np.ndarray | None = None
 
     def make_index(self, passages: list[Passage]):
-        """Function to build a BM25 index from passages."""
+        """Build a BM25 index from passages."""
 
         # Store passages in their index order
         self.passages = passages
@@ -124,8 +125,7 @@ class BM25:
         self.factor2 = factor2
 
     def search(self, query: str, top_k: int = 1) -> list[Passage]:
-        """Function to retrieve the top-k passages for a query."""
-
+        """Retrieve the top-k passages for a query."""
 
         # Require a built index before retrieval
         if self.passages is None:
@@ -175,7 +175,7 @@ class BM25:
         self,
         query: str,
     ) -> np.ndarray:
-        """Function to compute BM25 scores for all indexed passages."""
+        """Compute BM25 scores for all indexed passages."""
 
         # Require a built index before scoring
         if (

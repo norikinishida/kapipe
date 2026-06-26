@@ -8,7 +8,7 @@ from tenacity import (
 
 
 class OpenAILLM:
-    """OpenAI Chat Completions API based LLM wrapper."""
+    """A class that wraps an OpenAI causal language model (LLM) client for text generation."""
     
     def __init__(
         self,
@@ -17,6 +17,7 @@ class OpenAILLM:
         # Generation
         max_new_tokens: int,
     ) -> None:
+
         self.model_name = model_name
         self.max_new_tokens = max_new_tokens
 
@@ -27,7 +28,7 @@ class OpenAILLM:
         prompt: str | dict[str, str],
         temperature: float = 0.0,
     ) -> str:
-        """Function to generate text for the given prompt using the OpenAI API."""
+        """Generate text for the given prompt."""
 
         # Extract system and user prompts based on the input type
         if isinstance(prompt, str):
@@ -57,7 +58,7 @@ def generate_with_backoff(
     user_prompt: str,
     temperature: float = 0.0,
 ) -> str:
-    """Function to generate text for the given prompt using the OpenAI API with backoff."""
+    """Generate text for the given prompt using the OpenAI API with backoff."""
 
     # Send the request to the OpenAI API
     response = client.chat.completions.create(
@@ -81,5 +82,6 @@ def generate_with_backoff(
     generated_text = response.choices[0].message.content
     if generated_text is None:
         raise RuntimeError("OpenAI response did not contain text output.")
+
     return generated_text
 

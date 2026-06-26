@@ -24,56 +24,63 @@ logger = logging.getLogger(__name__)
 
 
 ########
-# IO utilities
+# Utilities for reading/writing files
 ########
 
 
 def read_lines(path: str, encoding: str = "utf-8") -> list[str]:
+    """Read stripped lines from a text file."""
+
     with open(path, encoding=encoding) as f:
-        lines = [l.strip() for l in f]
+        lines = [line.strip() for line in f]
+
     return lines
 
 
 def read_json(path: str, encoding: str | None = None) -> dict[Any, Any]:
+    """Read a JSON file."""
     if encoding is None:
         with open(path) as f:
-            dct = json.load(f)
+            obj = json.load(f)
     else:
         with io.open(path, "rt", encoding=encoding) as f:
             line = f.read()
-            dct = json.loads(line)
-    return dct
+            obj = json.loads(line)
+    return obj
 
 
-def write_json(path: str, dct: dict[Any, Any], ensure_ascii: bool = True) -> None:
+def write_json(path: str, obj: Any, ensure_ascii: bool = True) -> None:
+    """Write a JSON-compatible object."""
+
     with open(path, "w") as f:
-        json.dump(dct, f, ensure_ascii=ensure_ascii, indent=4)
+        json.dump(obj, f, ensure_ascii=ensure_ascii, indent=4)
 
 
 def read_vocab(path: str) -> dict[str, int]:
-    # begin_time = time.time()
-    # logger.info("Loading a vocabulary from %s" % path)
-    vocab = OrderedDict()
-    for line in open(path):
-        items = line.strip().split("\t")
-        if len(items) == 2:
-            word, word_id = items
-        elif len(items) == 3:
-            word, word_id, freq = items
-        else:
-            raise Exception("Invalid line: %s" % items)
-        vocab[word] = int(word_id)
-    # end_time = time.time()
-    # logger.info("Loaded. %f [sec.]" % (end_time - begin_time))
-    # logger.info("Vocabulary size: %d" % len(vocab))
+    """Read a tab-separated vocabulary file."""
+    
+    vocab: dict[str, int] = OrderedDict()
+    with open(path) as f:
+        for line in f:
+            items = line.strip().split("\t")
+            if len(items) == 2:
+                word, word_id = items
+            elif len(items) == 3:
+                word, word_id, freq = items
+            else:
+                raise Exception("Invalid line: %s" % items)
+            vocab[word] = int(word_id)
+
     return vocab
 
 
 def write_vocab(
     path: str,
     data: list[tuple[str, int]] | list[str],
-    write_frequency: bool = True
+    write_frequency: bool = True,
 ) -> None:
+    """Write a tab-separated vocabulary file."""
+
     with open(path, "w") as f:
         if write_frequency:
             for word_id, (word, freq) in enumerate(data):
@@ -83,22 +90,30 @@ def write_vocab(
                 f.write("%s\t%d\n" % (word, word_id))
 
 
-def get_hocon_config(config_path: str, config_name: str | None = None) -> ConfigTree:
+def get_hocon_config(
+    config_path: str,
+    config_name: str | None = None,
+) -> ConfigTree:
+    """Read a HOCON configuration."""
+
     config = pyhocon.ConfigFactory.parse_file(config_path)
     if config_name is not None:
         config = config[config_name]
     config.config_path = config_path
     config.config_name = config_name
-    # logger.info(pyhocon.HOCONConverter.convert(config, "hocon"))
     return config
 
 
 def dump_hocon_config(path_out: str, config: ConfigTree) -> None:
+    """Write a HOCON configuration."""
+
     with open(path_out, "w") as f:
         f.write(HOCONConverter.to_hocon(config) + "\n")
 
 
 def mkdir(path: str, newdir: str | None = None) -> None:
+    """Create a directory when it does not exist."""
+
     if newdir is None:
         target = path
     else:
@@ -111,8 +126,10 @@ def mkdir(path: str, newdir: str | None = None) -> None:
 def print_list(
     lst: list[Any],
     with_index: bool = False,
-    process: Callable[[Any], Any] | None = None
+    process: Callable[[Any], Any] | None = None,
 ) -> None:
+    """Log list items."""
+
     for i, x in enumerate(lst):
         if process is not None:
             x = process(x)
@@ -125,17 +142,17 @@ def print_list(
 def safe_json_loads(
     generated_text: str,
     fallback: Any = None,
-    list_type: bool = False
+    list_type: bool = False,
 ) -> Any:
-    """
-    Parse the report into a JSON object
-    """
+    """Parse a JSON object or list from generated text."""
+
     if list_type:
         begin_index = generated_text.find("[")
         end_index = generated_text.rfind("]")
     else:
         begin_index = generated_text.find("{")
         end_index = generated_text.rfind("}")
+
     if begin_index < 0 or end_index < 0:
         logger.info(f"Failed to parse the generated text into a JSON object: '{generated_text}'")
         return fallback
@@ -212,38 +229,45 @@ def safe_json_loads(
 
 
 ########
-# Data utilities
+# Utilities for data processing
 ########
 
 
 def flatten_lists(list_of_lists: list[list[Any]]) -> list[Any]:
+    """Flatten one level of nested lists."""
+
     return [elem for lst in list_of_lists for elem in lst]
 
 
 def pretty_format_dict(dct: dict[Any, Any]) -> str:
+    """Format a dictionary as pretty JSON text."""
+
     return "{}".format(json.dumps(dct, indent=4))
 
 
 ########
-# Time utilities
+# Utilities for measuring elapsed time
 ########
 
 
 def get_current_time() -> str:
+    """Return the current timestamp."""
+
     return datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
 
 
 class StopWatch(object):
+    """A class to measure elapsed time for named spans."""
 
     def __init__(self):
         self.dictionary: dict[str | None, dict[str, float]] = {}
 
-    def start(self, name: str | None = None):
+    def start(self, name: str | None = None) -> None:
         start_time = time.time()
         self.dictionary[name] = {}
         self.dictionary[name]["start"] = start_time
 
-    def stop(self, name: str | None = None):
+    def stop(self, name: str | None = None) -> None:
         stop_time = time.time()
         self.dictionary[name]["stop"] = stop_time
 
@@ -257,29 +281,34 @@ class StopWatch(object):
 
 
 ########
-# Training utilities
+# Utilities for tracking the best score
 ########
 
 
 class BestScoreHolder(object):
+    """A class to track the best score during training."""
+
 
     def __init__(self, scale: float = 1.0, higher_is_better: bool = True):
         self.scale = scale
         self.higher_is_better = higher_is_better
 
+        # Select the comparison function
         if higher_is_better:
-            self.comparison_function = lambda best, cur: best < cur
+            self.comparison_function: Callable[[float, float], bool] = (
+                lambda best, cur: best < cur
+            )
         else:
-            self.comparison_function = lambda best, cur: best > cur
+            self.comparison_function: Callable[[float, float], bool] = (
+                lambda best, cur: best > cur
+            )
 
-        if higher_is_better:
-            self.best_score = -np.inf
-        else:
-            self.best_score = np.inf
-        self.best_step = 0
-        self.patience = 0
+        # Initialize the tracked values
+        self.init()
 
     def init(self) -> None:
+        """Initialize the tracked values."""
+
         if self.higher_is_better:
             self.best_score = -np.inf
         else:
@@ -288,41 +317,82 @@ class BestScoreHolder(object):
         self.patience = 0
 
     def compare_scores(self, score: float, step: int) -> bool:
+        """Compare the current score with the best score and update if necessary."""
+
+        # Check whether the current score improves the best score
         if self.comparison_function(self.best_score, score):
-            # Update the score
-            logger.info("(best_score = %.02f, best_step = %d, patience = %d) -> (%.02f, %d, %d)" % \
-                    (self.best_score * self.scale, self.best_step, self.patience,
-                     score * self.scale, step, 0))
+            # Log the score update
+            logger.info(
+                "(best_score = %.02f, best_step = %d, patience = %d) -> "
+                "(%.02f, %d, %d)"
+                % (
+                    self.best_score * self.scale,
+                    self.best_step,
+                    self.patience,
+                    score * self.scale,
+                    step,
+                    0,
+                )
+            )
+
+            # Update the best score, step, and patience 
             self.best_score = score
             self.best_step = step
             self.patience = 0
+
+            # Report the the score improved
             return True
         else:
-            # Increment the patience
-            logger.info("(best_score = %.02f, best_step = %d, patience = %d) -> (%.02f, %d, %d)" % \
-                    (self.best_score * self.scale, self.best_step, self.patience,
-                     self.best_score * self.scale, self.best_step, self.patience+1))
+            # Log the patience update
+            logger.info(
+                "(best_score = %.02f, best_step = %d, patience = %d) -> "
+                "(%.02f, %d, %d)"
+                % (
+                    self.best_score * self.scale,
+                    self.best_step,
+                    self.patience,
+                    self.best_score * self.scale,
+                    self.best_step,
+                    self.patience + 1,
+                )
+            )
+
+            # Update the patience 
             self.patience += 1
+
+            # Report that the score did not improve
             return False
 
     def ask_finishing(self, max_patience: int) -> bool:
-        if self.patience >= max_patience:
-            return True
-        else:
-            return False
+        """Check whether the training should be stopped based on patience."""
+        return self.patience >= max_patience
 
 
 ########
-# Task-specific utilities
+# Utilities for specific components (tasks)
 ########
 
 
-def aggregate_mentions_to_entities(document: Document, mentions: list[Mention]):
+def aggregate_mentions_to_entities(
+    document: Document,
+    mentions: list[Mention]
+) -> list[Entity]:
+    """Aggregate linked mentions into entities."""
+
+    # Initialize per-entity aggregation storage
     entity_id_to_info: dict[str, dict[str, Any]] = {}
+
+    # Aggregate mention information by predicted entity ID
     for m_i in range(len(document["mentions"])):
+        # Read the gold mention name and type
         name = document["mentions"][m_i]["name"]
         entity_type = document["mentions"][m_i]["entity_type"]
+
+        # Read the predicted entity ID
         entity_id = mentions[m_i]["entity_id"]
+
+        # Append mention information to an existing entity,
+        # or create a new entity if the entity ID is not seen before
         if entity_id in entity_id_to_info:
             entity_id_to_info[entity_id]["mention_indices"].append(m_i)
             entity_id_to_info[entity_id]["mention_names"].append(name)
@@ -336,29 +406,44 @@ def aggregate_mentions_to_entities(document: Document, mentions: list[Mention]):
             entity_id_to_info[entity_id] = {}
             entity_id_to_info[entity_id]["mention_indices"] = [m_i]
             entity_id_to_info[entity_id]["mention_names"] = [name]
-            # TODO
             entity_id_to_info[entity_id]["entity_type"] = entity_type
+
+    # Initialize the output entities
     entities: list[Entity] = []
+
+    # Convert the aggregation storage into entity records
     for entity_id in entity_id_to_info.keys():
+        # Read the aggregated mention indices, names, and entity type for the current entity ID
         mention_indices = entity_id_to_info[entity_id]["mention_indices"]
         mention_names = entity_id_to_info[entity_id]["mention_names"]
         entity_type = entity_id_to_info[entity_id]["entity_type"]
+
+        # Append the entity record
         entities.append({
             "mention_indices": mention_indices,
             "mention_names": mention_names,
             "entity_type": entity_type,
             "entity_id": entity_id,
         })
+
     return entities
 
 
 def create_text_from_passage(passage: Passage, sep: str) -> str:
-    if not "title" in passage:
+    """Create display text string from a passage."""
+
+    # Use only the body text when the passage has no title
+    if "title" not in passage:
         text = passage["text"]
+    
+    # Use only the title when the body text is empty
     elif passage["text"].strip() == "":
         text = passage["title"]
+
+    # Otherwise, join the title and body text with the given separator
     else:
         text = passage["title"] + sep + passage["text"]
+
     return text
 
 
@@ -366,7 +451,7 @@ def read_prompt_template(
     prompt_template_name_or_path: str,
     prompt_template_package_name: str,
 ) -> str:
-    """Function to read a prompt template from a package or a file path."""
+    """Read a prompt template from a package or a file path."""
 
     # List text files in prompt-template package
     prompt_template_names = [
@@ -395,46 +480,65 @@ def read_prompt_template(
 
 
 def create_intra_inter_map(document) -> dict[str, str]:
-    intra_inter_map = {}
+    """Create intra/inter labels for entity pairs."""
 
-    # We first create token-index-to-sentence-index mapping
-    token_index_to_sent_index = [] # dict[int, int], i.e., list[int]
+    # Initialize the output map
+    intra_inter_map: dict[str, str] = {}
+
+    # Initialize token-index to sentence-index mapping
+    token_index_to_sent_index: list[int] = []
+
+    # Assign each token index to its corresponding sentence index
     for sent_i, sent in enumerate(document["sentences"]):
         sent_words = sent.split()
         token_index_to_sent_index.extend(
             [sent_i for _ in range(len(sent_words))]
         )
-    # We then create mention-index-to-sentence-index mapping
-    mention_index_to_sentence_index = [] # list[int]
+
+    # Initialize mention-index to sentence-index mapping
+    mention_index_to_sentence_index: list[int] = []
+
+    # Assign each mention to its sentence
     for mention in document["mentions"]:
         begin_token_index, end_token_index = mention["span"]
         sentence_index = token_index_to_sent_index[begin_token_index]
+
+        # Require the mention to stay inside the same sentence
         assert token_index_to_sent_index[end_token_index] == sentence_index
+
         mention_index_to_sentence_index.append(sentence_index)
 
     entities = document["entities"]
+
+    # Label each unordered entity pair
     for u_entity_i in range(len(entities)):
+        # Read the first entity
         u_entity = entities[u_entity_i]
         u_mention_indices = u_entity["mention_indices"]
         u_sent_indices = [
             mention_index_to_sentence_index[i] for i in u_mention_indices
         ]
         u_sent_indices = set(u_sent_indices)
+
         for v_entity_i in range(u_entity_i, len(entities)):
+            # Read the second entity
             v_entity = entities[v_entity_i]
             v_mention_indices = v_entity["mention_indices"]
             v_sent_indices = [
                 mention_index_to_sentence_index[i] for i in v_mention_indices
             ]
             v_sent_indices = set(v_sent_indices)
+
+            # Mark the pair as inter-sentence when no sentence is shared
             if len(u_sent_indices & v_sent_indices) == 0:
-                # No co-occurent mention pairs
                 intra_inter_map[f"{u_entity_i}-{v_entity_i}"] = "inter"
                 intra_inter_map[f"{v_entity_i}-{u_entity_i}"] = "inter"
+
+            # Mark the pair as intra-sentence when at least one sentence is shared
             else:
-                # There is at least one co-occurent mention pairs
                 intra_inter_map[f"{u_entity_i}-{v_entity_i}"] = "intra"
                 intra_inter_map[f"{v_entity_i}-{u_entity_i}"] = "intra"
+
     return intra_inter_map
 
 
@@ -442,14 +546,25 @@ def create_seen_unseen_map(
     document,
     seen_pairs: set[tuple[str, str]]
 ) -> dict[str, str]:
-    seen_unseen_map = {}
+    """Create seen/unseen labels for entity pairs."""
+
+    # Initialize the output map
+    seen_unseen_map: dict[str, str] = {}
+
     entities = document["entities"]
+
+    # Label each unordered entity pair
     for u_entity_i in range(len(entities)):
+        # Read the first entity
         u_entity = entities[u_entity_i]
         u_entity_id = u_entity["entity_id"]
+
         for v_entity_i in range(u_entity_i, len(entities)):
+            # Read the second entity
             v_entity = entities[v_entity_i]
             v_entity_id = v_entity["entity_id"]
+
+            # Mark the pair as seen when either direction exists
             if (
                 ((u_entity_id, v_entity_id) in seen_pairs)
                 or
@@ -457,8 +572,11 @@ def create_seen_unseen_map(
             ):
                 seen_unseen_map[f"{u_entity_id}-{v_entity_id}"] = "seen"
                 seen_unseen_map[f"{v_entity_id}-{u_entity_id}"] = "seen"
+
+            # Mark the pair as unseen otherwise
             else:
                 seen_unseen_map[f"{u_entity_id}-{v_entity_id}"] = "unseen"
                 seen_unseen_map[f"{v_entity_id}-{u_entity_id}"] = "unseen"
+
     return seen_unseen_map
 

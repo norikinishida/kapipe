@@ -35,6 +35,7 @@ class IdenticalEntityReranker:
         documents: list[Document],
         candidate_entities: list[CandidateEntitiesForDocument]
     ) -> list[Document]:
+
         result_documents = []
         for document, candidate_entities_for_doc in tqdm(
             zip(documents, candidate_entities),
@@ -46,5 +47,6 @@ class IdenticalEntityReranker:
                 candidate_entities_for_doc=candidate_entities_for_doc
             )
             result_documents.append(result_document)
+
         return result_documents
 

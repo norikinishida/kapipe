@@ -48,7 +48,7 @@ TRIPLE_TO_QUESTION_TEMPLATES = {
 
 class MAQA:
     """
-    Mention-Agnostic QA-based DocRE Extractor (Oumaima and Nishida et al., 2024)
+    A class for performing document-level relation extraction using the Mention-Agnostic QA-based DocRE Extractor (Oumaima and Nishida et al., 2024)
     """
 
     def __init__(
@@ -180,7 +180,13 @@ class MAQA:
 
         logger.info("########## MAQA Initialization Ends ##########")
 
-    def save(self, path_snapshot: str, model_only: bool = False) -> None:
+    def save(
+        self,
+        path_snapshot: str,
+        model_only: bool = False
+    ) -> None:
+        """Save the model parameters, configuration, answer vocabulary, and entity dictionary to the specified snapshot path."""
+
         path_model = path_snapshot + "/model"
         path_config = path_snapshot + "/config"
         path_vocab = path_snapshot + "/answers.vocab.txt"
@@ -197,20 +203,22 @@ class MAQA:
         document: Document,
         qa_index: int
     ) -> tuple[torch.Tensor, torch.Tensor]:
+        """Compute the loss for a given document and QA index."""
+
         # Switch to training mode
         self.model.train()
 
-        # Preprocess
+        # Preprocess the document
         preprocessed_data = self.model.preprocess(document=document)
 
-        # Tensorize
+        # Tensorize the preprocessed data
         model_input = self.model.tensorize(
             preprocessed_data=preprocessed_data,
             qa_index=qa_index,
             compute_loss=True
         )
 
-        # Forward
+        # Forward pass through the model
         model_output = self.model.forward(**model_input)
 
         return (
@@ -219,33 +227,39 @@ class MAQA:
         )
 
     def extract(self, document: Document) -> Document:
+        """Extract triples from a given document."""
+
         with torch.no_grad():
             # Switch to inference mode
             self.model.eval()
 
-            # Preprocess
+            # Preprocess the document
             preprocessed_data = self.model.preprocess(document=document)
 
             # Generate triples iteratively
             triples: list[Triple] = []
             qas = preprocessed_data["qas"]
             for qa_index in range(len(qas)):
-                # Tensorize
+                # Tensorize the preprocessed data
                 model_input = self.model.tensorize(
                     preprocessed_data=preprocessed_data,
                     qa_index=qa_index,
                     compute_loss=False
                 )
 
-                # Forward
+                # Forward pass through the model
                 model_output = self.model.forward(**model_input)
                 logits = model_output.logits # (1, n_answers)
 
-                # Structurize
-                pred_answer_label = torch.argmax(logits, dim=1).cpu().item() # int
-                pred_answer = self.ivocab_answer[pred_answer_label] # str
+                # Structurize the logits into triples
+                pred_answer_label: int = (
+                    torch.argmax(logits, dim=1).cpu().item()
+                )
+                pred_answer: str = self.ivocab_answer[pred_answer_label]
                 if pred_answer_label != 0:
-                    head_entity_i, relation, tail_entity_i = qas[qa_index].triple
+                    head_entity_i, relation, tail_entity_i = (
+                        qas[qa_index].triple
+                    )
                     triples.append({
                         "arg1": int(head_entity_i),
                         "relation": relation,
@@ -254,16 +268,21 @@ class MAQA:
                         "answer": pred_answer
                     })
 
-            # Integrate
+            # Integrate the triples into the document
             result_document = copy.deepcopy(document)
             result_document["relations"] = triples
+
             return result_document
 
     def batch_extract(self, documents: list[Document]) -> list[Document]:
-        result_documents = []
+        """Extract triples from a batch of documents."""
+
+        result_documents: list[Document] = []
+
         for document in tqdm(documents, desc="extraction steps"):
             result_document = self.extract(document=document)
             result_documents.append(result_document)
+
         return result_documents
 
 

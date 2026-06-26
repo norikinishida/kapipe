@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 class NeighborhoodAggregation:
     """
-    Cluster nodes in a graph by simple neighborhood aggregation.
+    A community detection algorithm that aggregates each node with its in- and out-neighbors.
 
     Each node forms a community with its in- and out-neighbors.
     This results in overlapping communities (if not deduplicated),
@@ -22,10 +22,14 @@ class NeighborhoodAggregation:
     def __init__(self):
         pass
 
-    def cluster_communities(self, graph: nx.MultiDiGraph) -> list[CommunityRecord]:
+    def cluster_communities(
+        self,
+        graph: nx.MultiDiGraph
+    ) -> list[CommunityRecord]:
         """
-        Cluster the graph using neighborhood aggregation strategy.
+        Apply the Neighborhood Aggregation to cluster communities in a directed graph.
         """
+
         logger.info("Applying Neighborhood Aggregation ...")
 
         # Initialize the community records
@@ -41,7 +45,7 @@ class NeighborhoodAggregation:
 
             # Merge the neighbor nodes
             neighbor_nodes = list(out_neighbor_nodes | in_neighbor_nodes)
-            # neighbor_nodes = set(nodes_within_k)  - {center_node}
+            # neighbor_nodes = set(nodes_within_k) - {center_node}
 
             # Add a new community record
             communities.append({

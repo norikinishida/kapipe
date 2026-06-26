@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 
 class Contriever:
-    """Passage encoder and retriever using the Contriever model."""
+    """A class for performing dense passage retrieval using the Contriever model."""
     
     def __init__(
         self,
@@ -65,7 +65,7 @@ class Contriever:
         index_name: str,
         batch_size: int = 1024,
     ) -> None:
-        """Function to encode passages and construct an ANN index."""
+        """Encode passages and construct an ANN index."""
 
         logger.info(f"Embedding {len(passages)} passages ...")
 
@@ -146,7 +146,7 @@ class Contriever:
         self.passages = passages
 
     def encode_texts(self, texts: list[str]) -> torch.Tensor:
-        """Function to encode texts into dense vectors."""
+        """Encode texts into dense vectors."""
 
         with torch.no_grad():
 
@@ -199,7 +199,7 @@ class Contriever:
         index_root: str,
         index_name: str,
     ) -> None:
-        """Function to save passages, embeddings, and an ANN index."""
+        """Save passages, embeddings, and an ANN index."""
 
         # Construct the index path and create necessary directories
         index_path = os.path.join(
@@ -238,7 +238,7 @@ class Contriever:
         index_root: str,
         index_name: str,
     ) -> None:
-        """Function to load passage data and an ANN index from disk."""
+        """Load an ANN index and associated passages."""
 
         # Construct the index directory path
         index_path = os.path.join(
@@ -304,7 +304,7 @@ class Contriever:
         queries: list[str],
         top_k: int = 1,
     ) -> list[list[Passage]]:
-        """Function to retrieve the top-k passages for each query."""
+        """Retrieve the top-k passages for each query."""
 
         # Require passage data and an ANN index before retrieval
         if self.passages is None:

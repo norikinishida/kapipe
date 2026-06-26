@@ -34,9 +34,7 @@ logger = logging.getLogger(__name__)
 
 
 class BiaffineNER:
-    """
-    Biaffine Named Entity Recognizer (Yu et al., 2020).
-    """
+    """A class for performing Named Entity Recognition (NER) using a Biaffine-NER model (Yu et al., 2020)."""
 
     def __init__(
         self,
@@ -146,7 +144,7 @@ class BiaffineNER:
         logger.info("########## BiaffineNER Initialization Ends ##########")
 
     def save(self, path_snapshot: str, model_only: bool = False) -> None:
-        """Function to save the model, configuration, and entity type vocabulary."""
+        """Save the model, configuration, and entity type vocabulary."""
 
         path_model = path_snapshot + "/model"
         path_config = path_snapshot + "/config"
@@ -157,8 +155,11 @@ class BiaffineNER:
             utils.write_json(path_config, self.config)
             utils.write_vocab(path_vocab, self.vocab_etype, write_frequency=False)
 
-    def compute_loss(self, document: Document) -> tuple[torch.Tensor, torch.Tensor, int]:
-        """Function to compute the loss, accuracy, and number of valid spans for a given document."""
+    def compute_loss(self, document: Document) -> (
+        tuple[torch.Tensor, torch.Tensor, int]
+    ):
+        """Compute the loss for a single document."""
+
         # Switch to training mode
         self.model.train()
 
@@ -181,7 +182,8 @@ class BiaffineNER:
         )
 
     def extract(self, document: Document) -> Document:
-        """Function to extract named entity mentions from a given document."""
+        """Extract named entity mentions from a single document."""
+
         with torch.no_grad():
             # Switch to inference mode
             self.model.eval()
@@ -224,7 +226,7 @@ class BiaffineNER:
         matrix_valid_span_mask: np.ndarray,
         subtoken_index_to_word_index: list[int]
     ) -> list[Mention]:
-        """Function to structurize the logits into mentions."""
+        """Structurize the logits into mentions."""
 
         # Transform logits to prediction scores and labels for each token-token pair
         # (n_tokens, n_tokens), (n_tokens, n_tokens)
@@ -282,11 +284,13 @@ class BiaffineNER:
         return mentions
 
     def batch_extract(self, documents: list[Document]) -> list[Document]:
-        """Function to extract named entity mentions from a batch of documents."""
+        """Extract named entity mentions from a batch of documents."""
+
         result_documents = []
         for document in tqdm(documents, desc="extraction steps"):
             result_document = self.extract(document=document)
             result_documents.append(result_document)
+
         return result_documents
 
 
@@ -306,7 +310,8 @@ class SpanBasedDecoder:
         spans: list[tuple[int, int, str, float]],
         words: list[str]
     ) -> list[Mention]:
-        """Function to decode spans into mention objects."""
+        """Decode spans into mention objects."""
+
         mentions: list[Mention] = []
 
         # Sort spans by their scores in descending order
@@ -338,7 +343,8 @@ class SpanBasedDecoder:
         return mentions
 
     def is_violation(self, begin_token_index: int, end_token_index: int) -> bool:
-        """Function to check if a span violates the constraints of Flat or Nested NER."""
+        """Check if a span violates the constraints of Flat or Nested NER."""
+
         if not self.allow_nested_entities:
             # Flat NER
             # Check if any token in the span is already part of another entity

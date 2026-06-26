@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 
 class ApproximateNearestNeighborSearch:
-    """FAISS-based approximate nearest-neighbor search."""
+    """A class for performing approximate nearest-neighbor search using FAISS."""
 
     def __init__(self, metric: str = "l2", gpu_id: int = -1) -> None:
         self.metric = metric
@@ -26,7 +26,7 @@ class ApproximateNearestNeighborSearch:
         passage_vectors: np.ndarray,
         passage_metadatas: list[dict] | None = None,
     ) -> None:
-        """Function to build an ANN index from passage vectors."""
+        """Build an ANN index from passage vectors."""
 
         # Obtain the vector dimension
         dim = passage_vectors.shape[1]
@@ -105,7 +105,7 @@ class ApproximateNearestNeighborSearch:
         list[list[dict]] | None,
         list[list[float]],
     ]:
-        """Function to search the ANN index in query batches."""
+        """Retrieve the top-k passages for each of the query vectors."""
 
         # Require a built or loaded index before searching
         if self.anns_index is None:
@@ -194,7 +194,7 @@ class ApproximateNearestNeighborSearch:
         return all_indices, all_metadatas, all_scores
 
     def save(self, path: str) -> None:
-        """Function to save the ANN index to a file."""
+        """Save the ANN index."""
 
         # Require a built or loaded index before saving
         if self.anns_index is None:
@@ -207,7 +207,7 @@ class ApproximateNearestNeighborSearch:
         faiss.write_index(self.anns_index, path)
 
     def load(self, path: str) -> None:
-        """Function to load an ANN index from a file."""
+        """Load an ANN index."""
 
         # Load the FAISS index
         self.anns_index = faiss.read_index(path)

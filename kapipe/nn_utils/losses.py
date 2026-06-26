@@ -6,11 +6,9 @@ import torch.nn.functional as F
 
 
 class MarginalizedCrossEntropyLoss(nn.Module):
-    """Marginalized cross-entropy loss for multi-positive classification."""
+    """A class for marginalized cross-entropy loss used in multi-positive classification."""
 
     def __init__(self, reduction: str = "none") -> None:
-        """Initializer for marginalized cross-entropy loss."""
-
         super().__init__()
 
         self.reduction = reduction
@@ -21,7 +19,7 @@ class MarginalizedCrossEntropyLoss(nn.Module):
         target: torch.Tensor,
     ) -> torch.Tensor:
         """
-        Function to compute loss values for classification scores and binary targets.
+        Compute loss values for classification scores and binary targets.
 
         Loss = sum_{i} L_{i}
         L_{i}
@@ -63,7 +61,7 @@ class MarginalizedCrossEntropyLoss(nn.Module):
 
 
 class FocalLoss(nn.CrossEntropyLoss):
-    """Focal loss for classification."""
+    """A class for focal loss used in multi-class classification."""
 
     def __init__(
         self,
@@ -72,7 +70,6 @@ class FocalLoss(nn.CrossEntropyLoss):
         ignore_index: int = -100,
         reduction: str = "none",
     ) -> None:
-        """Initializer for focal loss."""
 
         super().__init__(
             weight=alpha,
@@ -90,7 +87,7 @@ class FocalLoss(nn.CrossEntropyLoss):
         output: torch.Tensor,
         target: torch.Tensor,
     ) -> torch.Tensor:
-        """Focal loss values for classification scores and targets."""
+        """Compute loss values for classification scores and class indices."""
 
         # Replace ignored indices with zero
         # (N, H, W)
@@ -130,10 +127,9 @@ class FocalLoss(nn.CrossEntropyLoss):
 
 
 class AdaptiveThresholdingLoss(nn.Module):
-    """Adaptive thresholding loss used by ATLOP."""
+    """A class for adaptive thresholding loss used by ATLOP."""
 
     def __init__(self) -> None:
-        """Initializer for adaptive thresholding loss."""
 
         super().__init__()
 
@@ -144,7 +140,7 @@ class AdaptiveThresholdingLoss(nn.Module):
         pos_weight: float = 1.0,
         neg_weight: float = 1.0,
     ) -> torch.Tensor:
-        """Loss values for adaptive multi-label classification."""
+        """Compute loss values for adaptive multi-label classification.""" 
 
         # output: (batch_size, n_labels)
         # target: (batch_size, n_labels); binary

@@ -46,7 +46,7 @@ class LLMBasedReportGenerator:
         relation_map: dict[str, str] | None = None,
         parse_generated_text_fn = None
     ) -> list[Passage]:
-        """Generate reports for each community using an LLM."""
+        """Generate reports for each community."""
 
         assert len(node_attr_keys) > 0
         assert len(edge_attr_keys) > 0

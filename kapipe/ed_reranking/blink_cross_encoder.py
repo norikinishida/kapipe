@@ -35,7 +35,7 @@ logger = logging.getLogger(__name__)
 
 class BlinkCrossEncoder:
     """
-    BLINK Cross-Encoder (Wu et al., 2020).
+    A class for entity disambiguation (reranking) using the BLINK Cross-Encoder (Wu et al., 2020).
     """
 
     def __init__(
@@ -138,7 +138,8 @@ class BlinkCrossEncoder:
         logger.info("########## BlinkCrossEncoder Initialization Ends ##########")
 
     def save(self, path_snapshot: str, model_only: bool = False) -> None:
-        """Function to save the model, configuration, and entity dictionary to the specified snapshot path."""
+        """Save the model, configuration, and entity dictionary to the specified snapshot path."""
+
         path_model = path_snapshot + "/model"
         path_config = path_snapshot + "/config"
         path_entity_dict = path_snapshot + "/entity_dict.json"
@@ -154,7 +155,9 @@ class BlinkCrossEncoder:
         candidate_entities_for_doc: CandidateEntitiesForDocument,
         mention_index: int
     ) -> tuple[torch.Tensor, torch.Tensor]:
-        """Function to compute the loss and accuracy for a given document and mention index."""
+        """Compute the loss for a single document and mention index."""
+
+        # Ensure that the document and candidate entities correspond to the same example
         assert document["doc_key"] == candidate_entities_for_doc["doc_key"]
 
         # Switch to training mode
@@ -187,7 +190,9 @@ class BlinkCrossEncoder:
         document: Document,
         candidate_entities_for_doc: CandidateEntitiesForDocument
     ) -> Document:
-        """Function to rerank candidate entities for a given document and return the updated document with predicted entities."""
+        """Rerank candidate entities for a single document."""
+
+        # Ensure that the document and candidate entities correspond to the same example
         assert document["doc_key"] == candidate_entities_for_doc["doc_key"]
 
         with torch.no_grad():
@@ -240,7 +245,7 @@ class BlinkCrossEncoder:
                 mentions=mentions
             )
 
-            # Integrate the predicted entities into the result document
+            # Integrate the entities into the document
             result_document = copy.deepcopy(document)
             for m_i in range(len(result_document["mentions"])):
                 result_document["mentions"][m_i].update(mentions[m_i])
@@ -253,8 +258,10 @@ class BlinkCrossEncoder:
         documents: list[Document],
         candidate_entities: list[CandidateEntitiesForDocument]
     ) -> list[Document]:
-        """Function to rerank candidate entities for a batch of documents and return the updated documents with predicted entities."""
-        result_documents = []
+        """Rerank candidate entities for a batch of documents."""
+
+        result_documents: list[Document] = []
+
         for document, candidate_entities_for_doc in tqdm(
             zip(documents, candidate_entities),
             total=len(documents),
@@ -265,6 +272,7 @@ class BlinkCrossEncoder:
                 candidate_entities_for_doc=candidate_entities_for_doc
             )
             result_documents.append(result_document)
+
         return result_documents
 
 

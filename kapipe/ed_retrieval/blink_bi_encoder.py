@@ -45,7 +45,7 @@ logger = logging.getLogger(__name__)
 
 class BlinkBiEncoder:
     """
-    BLINK Bi-Encoder (Wu et al., 2020).
+    A class for entity disambiguation (candidate retrieval) using the BLINK Bi-Encoder (Wu et al., 2020).
     """
 
     def __init__(
@@ -156,7 +156,7 @@ class BlinkBiEncoder:
         logger.info("########## BlinkBiEncoder Initialization Ends ##########")
 
     def save(self, path_snapshot: str, model_only: bool = False) -> None:
-        """Function to save the model, configuration, entity dictionary, and precomputed entity vectors."""
+        """Save the model, configuration, entity dictionary, and precomputed entity vectors."""
 
         path_model = path_snapshot + "/model"
         path_config = path_snapshot + "/config"
@@ -174,7 +174,8 @@ class BlinkBiEncoder:
         document: Document,
         flatten_candidate_entities_for_doc: dict[str, list[CandEntKeyInfo]],
     ) -> tuple[torch.Tensor, int]:
-        """Function to compute the loss and number of valid mentions for a given document."""
+        """Compute the loss for a single document."""
+
         # Switch to training mode
         self.model.train()
 
@@ -258,7 +259,7 @@ class BlinkBiEncoder:
         )
 
     def make_index(self, use_precomputed_entity_vectors: bool = False) -> None:
-        """Function to build the index for Approximate Nearest Neighbor Search (ANNS) based on the entity vectors."""
+        """Build the index for Approximate Nearest Neighbor Search (ANNS) based on the entity vectors."""
         with torch.no_grad():
             # Switch to inference mode
             self.model.eval()
@@ -312,7 +313,7 @@ class BlinkBiEncoder:
     def search(self, document: Document, retrieval_size: int = 1) -> tuple[
         Document, CandidateEntitiesForDocument
     ]:
-        """Function to retrieve candidate entities for each mention in the document using Approximate Nearest Neighbor Search (ANNS) based on the mention vectors and the indexed entity vectors."""
+        """Retrieve candidate entities for each mention in a single document."""
         with torch.no_grad():
             # Switch to inference mode
             self.model.eval()
@@ -361,22 +362,18 @@ class BlinkBiEncoder:
                 for ys in mention_pred_entity_metadatas
             ]
 
-            # Structurize (1)
-            # Transform to mention-level entity IDs
+            # Structurize the retrieved entity IDs for each mention in the document
             mentions: list[Mention] = []
             for m_i in range(len(preprocessed_data_m["mentions"])):
                 mentions.append({"entity_id": mention_pred_entity_ids[m_i][0]})
 
-            # Structurize (2)
-            # Transform to entity-level entity IDs
-            # i.e., aggregate mentions based on the entity IDs
+            # Aggregate mentions based on the entity IDs
             entities: list[Entity] = utils.aggregate_mentions_to_entities(
                 document=document,
                 mentions=mentions
             )
 
-            # Structuriaze (3)
-            # Transform to candidate entities for each mention
+            # Structurize the retrieved candidate entities for each mention in the document
             candidate_entities_for_mentions: list[list[CandEntKeyInfo]] = []
             n_mentions = len(mention_pred_entity_ids)
             assert len(mention_pred_entity_ids[0]) == retrieval_size
@@ -391,7 +388,7 @@ class BlinkBiEncoder:
                     lst_cand_ent.append(cand_ent)
                 candidate_entities_for_mentions.append(lst_cand_ent)
 
-            # Integrate
+            # Integrate the retrieved candidate entities into the document
             result_document = copy.deepcopy(document)
             for m_i in range(len(result_document["mentions"])):
                 result_document["mentions"][m_i].update(mentions[m_i])
@@ -400,6 +397,7 @@ class BlinkBiEncoder:
                 "doc_key": result_document["doc_key"],
                 "candidate_entities": candidate_entities_for_mentions
             }
+
             return result_document, candidate_entities_for_doc
 
     def batch_search(
@@ -407,10 +405,11 @@ class BlinkBiEncoder:
         documents: list[Document],
         retrieval_size: int = 1
     ) -> tuple[list[Document], list[CandidateEntitiesForDocument]]:
-        """Function to retrieve candidate entities for each mention in a batch of documents using Approximate Nearest Neighbor Search (ANNS) based on the mention vectors and the indexed entity vectors."""
+        """Retrieve candidate entities for each mention in a batch of documents."""
 
         result_documents: list[Document] = []
         candidate_entities: list[CandidateEntitiesForDocument] = []
+
         for document in tqdm(documents, desc="retrieval steps"):
             result_document, candidate_entities_for_doc = self.search(
                 document=document,
@@ -418,6 +417,7 @@ class BlinkBiEncoder:
             )
             result_documents.append(result_document)
             candidate_entities.append(candidate_entities_for_doc)
+
         return result_documents, candidate_entities
 
 

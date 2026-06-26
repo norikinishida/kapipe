@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 
 class Qwen3Embedding:
-    """Passage encoder and retriever using the Qwen3-Embedding model."""
+    """A class for performing dense passage retrieval using the Qwen3-Embedding model."""
 
     def __init__(
         self,
@@ -75,7 +75,7 @@ class Qwen3Embedding:
         index_name: str,
         batch_size: int = 8,
     ) -> None:
-        """Function to encode passages and construct an ANN index."""
+        """Encode passages and construct an ANN index."""
 
         logger.info("Embedding %d passages ...", len(passages))
 
@@ -167,14 +167,14 @@ class Qwen3Embedding:
         self,
         documents: list[str],
     ) -> torch.Tensor:
-        """Function to encode documents into dense vectors."""
+        """Encode documents into dense vectors."""
         return self.encode_texts(documents)
 
     def encode_queries(
         self,
         queries: list[str],
     ) -> torch.Tensor:
-        """Function to encode queries with a retrieval instruction."""
+        """Encode queries with a retrieval instruction."""
 
         # Add the retrieval instruction to each query
         instructed_queries = [
@@ -188,7 +188,7 @@ class Qwen3Embedding:
         self,
         texts: list[str],
     ) -> torch.Tensor:
-        """Function to encode texts into dense vectors."""
+        """Encode texts into dense vectors."""
 
         with torch.no_grad():
             # Tokenize the texts using left padding
@@ -226,7 +226,7 @@ class Qwen3Embedding:
         last_hidden_states: torch.Tensor,
         attention_mask: torch.Tensor,
     ) -> torch.Tensor:
-        """Function to pool the final non-padding token."""
+        """Pool the final non-padding token."""
 
         # Detect whether every sequence has a valid final token
         left_padding = (
@@ -258,7 +258,7 @@ class Qwen3Embedding:
         index_root: str,
         index_name: str,
     ) -> None:
-        """Function to save passages, embeddings, and an ANN index."""
+        """Save passages, embeddings, and an ANN index."""
 
         # Construct the index path and create necessary directories
         index_path = os.path.join(
@@ -275,17 +275,14 @@ class Qwen3Embedding:
             len(passages),
             index_path,
         )
-
         utils.write_json(
             os.path.join(index_path, "passages.json"),
             passages,
         )
-
         np.save(
             os.path.join(index_path, "passage_embeddings.npy"),
             passage_embeddings,
         )
-
         self.anns.save(
             os.path.join(index_path, "index.faiss"),
         )
@@ -297,7 +294,7 @@ class Qwen3Embedding:
         index_root: str,
         index_name: str,
     ) -> None:
-        """Function to load passage data and an ANN index from disk."""
+        """Load an ANN index and associated passages."""
 
         # Construct the index directory path
         index_path = os.path.join(
@@ -373,7 +370,7 @@ class Qwen3Embedding:
         queries: list[str],
         top_k: int = 1,
     ) -> list[list[Passage]]:
-        """Function to retrieve the top-k passages for each query."""
+        """Retrieve the top-k passages for each query."""
 
         # Require passage data and an ANN index before retrieval
         if self.passages is None:

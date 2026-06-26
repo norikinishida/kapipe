@@ -159,7 +159,7 @@ class LLMNER:
         logger.info("########## LLMNER Initialization Ends ##########")
 
     def save(self, path_snapshot: str) -> None:
-        """Function to save the configuration, entity-type vocabulary, meta-information, and demonstration documents to a snapshot."""
+        """Save the configuration, entity-type vocabulary, meta-information, and demonstration documents to a snapshot."""
 
         path_config = path_snapshot + "/config"
         path_vocab = path_snapshot + "/entity_types.vocab.txt"
@@ -177,24 +177,24 @@ class LLMNER:
         # Optional: context augmentation
         contexts_for_doc: ContextsForOneExample | None = None
     ) -> Document:
-        """Function to extract named entity mentions from a given document."""
+        """Extract named entity mentions from a single document."""
 
         with torch.no_grad():
             # Switch to inference mode for Hugging Face models
             if self.provider == "hf":
                 self.model.llm.eval()
 
-            # Generate a prompt
+            # Generate the prompt
             prompt = self.prompt_processor.generate(
                 document=document,
                 demonstration_documents=self.demonstration_documents,
                 contexts_for_doc=contexts_for_doc,
             )
 
-            # Generate a response
+            # Generate the response
             generated_text = self.model.generate(prompt)
 
-            # Convert the generated text into structured mentions
+            # Structurize the generated text into mentions
             mentions = self.structurize(
                 document=document,
                 generated_text=generated_text
@@ -209,7 +209,8 @@ class LLMNER:
             return result_document
 
     def structurize(self, document: Document, generated_text: str) -> list[Mention]:
-        """Function to convert the generated text into structured mention records."""
+        """Structurize the generated text into the mentions."""
+
         doc_key = document["doc_key"]
 
         # Get mapping from character position to word position (index)
@@ -306,6 +307,7 @@ class LLMNER:
                 "entity_type": etype,
             })
         mentions = sorted(mentions, key=lambda m: m["span"])
+
         return mentions
 
     def extract_word_level_spans(
@@ -314,7 +316,8 @@ class LLMNER:
         normalized_text: str,
         char_index_to_word_index: list[int]
     ) -> list[tuple[int, int]]:
-        """Function to extract word-level spans of a mention string in the input text."""
+        """Extract word-level spans of a mention string in the input text."""
+
         spans: list[tuple[int, int]] = []
         pattern = r"\s*".join(re.escape(c) for c in normalized_name)
         results = re.finditer(
@@ -330,6 +333,7 @@ class LLMNER:
             begin_word_i = char_index_to_word_index[begin_char_i]
             end_word_i = char_index_to_word_index[end_char_i - 1]
             spans.append((begin_word_i, end_word_i))
+
         return spans
 
     def batch_extract(
@@ -338,7 +342,7 @@ class LLMNER:
         # optional: context augmentation
         contexts: list[ContextsForOneExample] | None = None
     ) -> list[Document]:
-        """Function to extract named entity mentions from a batch of documents."""
+        """Extract named entity mentions from a batch of documents."""
 
         result_documents: list[Document] = []
 
@@ -356,6 +360,7 @@ class LLMNER:
                 contexts_for_doc=contexts_for_doc
             )
             result_documents.append(result_document)
+
         return result_documents
 
 
@@ -392,11 +397,13 @@ class PromptProcessor:
         # Optional: context augmentation
         contexts_for_doc: ContextsForOneExample | None = None
     ) -> str:
+        """Generate a prompt for the input document."""
+
         ##########
         # Demonstrations Prompt
         ##########
 
-        # Generate the prompt part for demonstrations
+        # Generate the prompt part for the demonstrations
         demonstrations_prompt = self.generate_demonstrations_prompt(
             demonstration_documents=demonstration_documents,
         )        
@@ -411,7 +418,7 @@ class PromptProcessor:
             for passage in contexts_for_doc["contexts"]:
                 text = utils.create_text_from_passage(passage=passage, sep=" : ")
                 context_texts.append(text)
-            # Generate prompt part for contexts
+            # Generate the prompt part for the contexts
             contexts_prompt = self.generate_contexts_prompt(
                 context_texts=context_texts
             )
@@ -422,7 +429,7 @@ class PromptProcessor:
         # Test Case Prompt
         ##########
 
-        # Generate prompt part for the test case
+        # Generate the prompt part for the test case
         test_case_prompt = self.generate_test_case_prompt(
             document=document
         )
@@ -438,12 +445,15 @@ class PromptProcessor:
             contexts_prompt=contexts_prompt,
             test_case_prompt=test_case_prompt
         )
+
         return prompt
 
     def generate_demonstrations_prompt(
         self,
         demonstration_documents: list[Document]
     ) -> str:
+        """Generate a prompt for the demonstrations."""
+
         prompt = ""
         n_demos = len(demonstration_documents)
         for demo_i, demo_doc in enumerate(demonstration_documents):
@@ -453,9 +463,12 @@ class PromptProcessor:
             prompt += f"{self.generate_output_prompt(document=demo_doc)}\n"
             if demo_i < n_demos - 1:
                 prompt += "\n"
+
         return prompt.rstrip()
         
     def generate_contexts_prompt(self, context_texts: list[str]) -> str:
+        """Generate a prompt for the contexts."""
+
         n_contexts = len(context_texts)
         if n_contexts == 0:
             return ""
@@ -464,17 +477,26 @@ class PromptProcessor:
             prompt += f"[{context_i+1}] {content.strip()} \n"
             if context_i < n_contexts - 1:
                 prompt += "\n"
+
         return prompt.rstrip()
 
     def generate_test_case_prompt(self, document: Document) -> str:
+        """Generate a prompt for the test case."""
+
         prompt = f"Text: {self.generate_input_text_prompt(document=document)}\n"
+
         return prompt.rstrip()
 
     def generate_input_text_prompt(self, document: Document) -> str:
+        """Generate a prompt for the input text."""
+
         prompt = " ".join(document["sentences"]) + "\n"
+
         return prompt.rstrip()
 
     def generate_output_prompt(self, document: Document) -> str:
+        """Generate a prompt for the output mentions."""
+
         prompt = ""
         words = " ".join(document["sentences"]).split()
         for mention in document["mentions"]:
@@ -486,6 +508,7 @@ class PromptProcessor:
             else:
                 pretty_name = etype
             prompt += f"- {name} | {pretty_name}\n"
+
         return prompt.rstrip()
 
 

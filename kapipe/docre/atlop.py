@@ -36,7 +36,7 @@ logger = logging.getLogger(__name__)
 
 class ATLOP:
     """
-    ATLOP (Zhou et al., 2021).
+    A class for performing document-level relation extraction using ATLOP (Zhou et al., 2021).
     """
 
     def __init__(
@@ -128,11 +128,6 @@ class ATLOP:
         else:
             raise ValueError(f"Invalid model_name: {self.model_name}")
 
-        # Show parameter shapes
-        # logger.info("Model parameters:")
-        # for name, param in self.model.named_parameters():
-        #     logger.info(f"{name}: {tuple(param.shape)}")
-
         # Load trained model parameters
         if path_snapshot is not None:
             self.model.load_state_dict(
@@ -147,7 +142,7 @@ class ATLOP:
         logger.info("########## ATLOP Initialization Ends ##########")
 
     def save(self, path_snapshot: str, model_only: bool = False) -> None:
-        """Function to save the model, configuration, and relation vocabulary."""
+        """Save the model, configuration, and relation vocabulary."""
 
         path_model = path_snapshot + "/model"
         path_config = path_snapshot + "/config"
@@ -156,13 +151,17 @@ class ATLOP:
         torch.save(self.model.state_dict(), path_model)
         if not model_only:
             utils.write_json(path_config, self.config)
-            utils.write_vocab(path_vocab, self.vocab_relation, write_frequency=False)
+            utils.write_vocab(
+                path_vocab,
+                self.vocab_relation,
+                write_frequency=False
+            )
 
     def compute_loss(
         self,
         document: Document
     ) -> tuple[torch.Tensor, torch.Tensor, int, int]:
-        """Function to compute the loss for a single document."""
+        """Compute the loss for a single document."""
 
         # Switch to training mode
         self.model.train()
@@ -187,7 +186,7 @@ class ATLOP:
         )
 
     def extract(self, document: Document) -> Document:
-        """Function to extract relations from a single document."""
+        """Extract triples from a single document."""
         with torch.no_grad():
             # Switch to inference mode
             self.model.eval()
@@ -234,7 +233,8 @@ class ATLOP:
         pair_tail_entity_indices: np.ndarray,
         logits: torch.Tensor
     ) -> list[Triple]:
-        """Function to structurize the logits into triples."""
+        """Structurize the logits into triples."""
+
         triples: list[Triple] = []
 
         # Get predicted relation labels (indices)
@@ -249,29 +249,35 @@ class ATLOP:
             pair_tail_entity_indices,
             pair_pred_relation_labels
         ):
+            # Skip self-relations
             if head_entity_i == tail_entity_i:
                 continue
+
             # Find positive (i.e., non-zero) relation labels (indices)
             rel_indices = np.nonzero(rel_indicators)[0].tolist()
             for rel_i in rel_indices:
                 if rel_i != 0:
                     # Convert relation index to relation name
                     rel = self.ivocab_relation[rel_i]
+
                     # Add a new triple
                     triples.append({
                         "arg1": int(head_entity_i),
                         "relation": rel,
                         "arg2": int(tail_entity_i),
-                        })
+                    })
 
         return triples
 
     def batch_extract(self, documents: list[Document]) -> list[Document]:
-        """Function to extract relations from a batch of documents."""
-        result_documents = []
+        """Extract triples from a batch of documents."""
+
+        result_documents: list[Document] = []
+
         for document in tqdm(documents, desc="extraction steps"):
             result_document = self.extract(document=document)
             result_documents.append(result_document)
+
         return result_documents
 
 

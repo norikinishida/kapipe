@@ -35,7 +35,7 @@ logger = logging.getLogger(__name__)
 
 class MAATLOP:
     """
-    Mention-Agnostic ATLOP (Oumaima and Nishida et al., 2024)
+    A class for performing document-level relation extraction using Mention-Agnostic ATLOP (Oumaima and Nishida et al., 2024)
     """
 
     def __init__(
@@ -184,7 +184,13 @@ class MAATLOP:
     #             }
     #         self.model.load_state_dict(checkpoint, strict=False)
 
-    def save(self, path_snapshot: str, model_only: bool = False) -> None:
+    def save(
+        self,
+        path_snapshot: str,
+        model_only: bool = False
+    ) -> None:
+        """Save the model parameters, configuration, relation vocabulary, and entity dictionary."""
+
         path_model = path_snapshot + "/model"
         path_config = path_snapshot + "/config"
         path_vocab = path_snapshot + "/relations.vocab.txt"
@@ -193,7 +199,11 @@ class MAATLOP:
         torch.save(self.model.state_dict(), path_model)
         if not model_only:
             utils.write_json(path_config, self.config)
-            utils.write_vocab(path_vocab, self.vocab_relation, write_frequency=False)
+            utils.write_vocab(
+                path_vocab,
+                self.vocab_relation,
+                write_frequency=False
+            )
             utils.write_json(path_entity_dict, self.entity_dict)
 
     def compute_loss(self, document: Document) -> (
@@ -203,7 +213,7 @@ class MAATLOP:
         # Switch to training mode
         self.model.train()
 
-        # Negative Entity Sampling
+        # Perform negative entity sampling if enabled
         if self.config["do_negative_entity_sampling"]:
             document = self.sample_negative_entities_randomly(
                 document=document,
@@ -212,16 +222,16 @@ class MAATLOP:
                 )
             )
 
-        # Preprocess
+        # Preprocess the document
         preprocessed_data = self.model.preprocess(document=document)
 
-        # Tensorize
+        # Tensorize the preprocessed data
         model_input = self.model.tensorize(
             preprocessed_data=preprocessed_data,
             compute_loss=True
         )
 
-        # Forward
+        # Forward pass through the model
         model_output = self.model.forward(**model_input)
 
         if self.config["do_negative_entity_sampling"]:
@@ -247,6 +257,8 @@ class MAATLOP:
         document: Document,
         sample_size: int
     ) -> Document:
+        """Sample negative entities randomly from the knowledge base and integrate them into the document."""
+
         result_document = copy.deepcopy(document)
 
         n_entities = len(result_document["entities"])
@@ -262,7 +274,9 @@ class MAATLOP:
 
         # Remove gold entities from the sampled list
         sampled_entity_ids = [
-            eid for eid in sampled_entity_ids if not eid in gold_entity_ids
+            eid
+            for eid in sampled_entity_ids
+            if eid not in gold_entity_ids
         ]
         sampled_entity_ids = sampled_entity_ids[:sample_size]
 
@@ -292,9 +306,11 @@ class MAATLOP:
             result_document["mentions"].append(mention)
             sampled_entity_mention_index.append(len(result_document["mentions"]) - 1)
 
+        # Mark all existing entities in the document as dummy entities
         for e_i in range(len(result_document["entities"])):
             result_document["entities"][e_i]["is_dummy"] = True
 
+        # Integrate the sampled entities as new entities in the document
         for m_i, etype, eid in zip(
             sampled_entity_mention_index,
             sampled_entity_types,
@@ -308,15 +324,21 @@ class MAATLOP:
             }
             result_document["entities"].append(entity)
 
-        assert len(result_document["entities"]) == n_entities + sample_size
+        # Ensure that the number of entities in the result document is equal to the original number of entities plus the sample size
+        assert len(result_document["entities"]) == (
+            n_entities + sample_size
+        )
+
         return result_document
 
     def extract(self, document: Document) -> Document:
+        """Extract triples from a single document."""
+
         with torch.no_grad():
             # Switch to inference mode
             self.model.eval()
 
-            # Preprocess
+            # Preprocess the document
             preprocessed_data = self.model.preprocess(document=document)
 
             # Return no triple if head or tail entity is missing
@@ -329,26 +351,32 @@ class MAATLOP:
                 result_document["relations"] = []
                 return result_document
 
-            # Tensorize
+            # Tensorize the preprocessed data
             model_input = self.model.tensorize(
                 preprocessed_data=preprocessed_data,
                 compute_loss=False
             )
 
-            # Forward
+            # Forward pass through the model
             model_output = self.model.forward(**model_input)
-            logits = model_output.pair_logits # (n_entity_pairs, n_relations)
+            # (n_entity_pairs, n_relations)
+            logits = model_output.pair_logits
 
-            # Structurize
+            # Structurize the logits into triples
             triples = self.structurize(
-                pair_head_entity_indices=preprocessed_data["pair_head_entity_indices"],
-                pair_tail_entity_indices=preprocessed_data["pair_tail_entity_indices"],
+                pair_head_entity_indices=(
+                    preprocessed_data["pair_head_entity_indices"]
+                ),
+                pair_tail_entity_indices=(
+                    preprocessed_data["pair_tail_entity_indices"]
+                ),
                 logits=logits
             )
 
-            # Integrate
+            # Integrate the triples into the document
             result_document = copy.deepcopy(document)
             result_document["relations"] = triples
+
             return result_document
 
     def structurize(
@@ -357,6 +385,8 @@ class MAATLOP:
         pair_tail_entity_indices: np.ndarray,
         logits: torch.Tensor
     ) -> list[Triple]:
+        """Structurize the logits into triples."""
+
         triples: list[Triple] = []
 
         # Get predicted relation labels (indices)
@@ -371,14 +401,17 @@ class MAATLOP:
             pair_tail_entity_indices,
             pair_pred_relation_labels
         ):
+            # Skip self-relations
             if head_entity_i == tail_entity_i:
                 continue
+
             # Find positive (i.e., non-zero) relation labels (indices)
             rel_indices = np.nonzero(rel_indicators)[0].tolist()
             for rel_i in rel_indices:
                 if rel_i != 0:
                     # Convert relation index to relation name
                     rel = self.ivocab_relation[rel_i]
+
                     # Add a new triple
                     triples.append({
                         "arg1": int(head_entity_i),
@@ -389,10 +422,14 @@ class MAATLOP:
         return triples
 
     def batch_extract(self, documents: list[Document]) -> list[Document]:
-        result_documents = []
+        """Extract triples from a batch of documents."""
+
+        result_documents: list[Document] = []
+
         for document in tqdm(documents, desc="extraction steps"):
             result_document = self.extract(document=document)
             result_documents.append(result_document)
+
         return result_documents
 
 

@@ -193,7 +193,7 @@ class LLMED:
         logger.info("########## LLMED Initialization Ends ##########")
 
     def save(self, path_snapshot: str) -> None:
-        """Function to save the configuration, entity dictionary, demonstration documents, and demonstration candidate entities to a snapshot directory."""
+        """Save the configuration, entity dictionary, demonstration documents, and demonstration candidate entities to a snapshot directory."""
 
         path_config = path_snapshot + "/config"
         path_entity_dict = path_snapshot + "/entity_dict.json"
@@ -222,7 +222,7 @@ class LLMED:
         # Optional: prompt augmentation
         contexts_for_doc: ContextsForOneExample | None = None
     ) -> Document:
-        """Function to rerank candidate entities for a single document and return the updated document with predicted entities."""
+        """Rerank candidate entities for a single document."""
 
         with torch.no_grad():
             # Switch to inference mode for Hugging Face models
@@ -273,7 +273,7 @@ class LLMED:
                 mentions=mentions
             )
 
-            # Integrate the entities into the document and return the updated document
+            # Integrate the entities into the document
             result_document = copy.deepcopy(document)
             for m_i in range(len(result_document["mentions"])):
                 result_document["mentions"][m_i].update(mentions[m_i])
@@ -292,7 +292,8 @@ class LLMED:
         generated_text: str,
         target_mention_indices: list[int]
     ) -> list[Mention]:
-        """Function to convert the free-form generated text into structured mention-level records."""
+        """Structurize the generated text into mention-level entity records."""
+
         doc_key = document["doc_key"]
 
         # Get one-to-many mapping from normalized mention name to mention indices
@@ -403,7 +404,7 @@ class LLMED:
         # Optional: context augmentation
         contexts: list[ContextsForOneExample] | None = None
     ) -> list[Document]:
-        """Function to rerank candidate entities for a batch of documents and return the updated documents with predicted entities."""
+        """Rerank candidate entities for a batch of documents."""
 
         result_documents: list[Document] = []
 
@@ -430,6 +431,7 @@ class LLMED:
                 contexts_for_doc=contexts_for_doc
             )
             result_documents.append(result_document)
+
         return result_documents
 
 
@@ -462,6 +464,8 @@ class PromptProcessor:
         # optional: context augmentation
         contexts_for_doc: ContextsForOneExample | None = None
     ) -> str:
+        """Generate a prompt for the LLM based on the input document, candidate entities, and optional context augmentation."""
+
         ##########
         # Demonstrations Prompt
         ##########
@@ -542,6 +546,7 @@ class PromptProcessor:
             contexts_prompt=contexts_prompt,
             test_case_prompt=test_case_prompt
         )
+
         return prompt
 
     def generate_demonstrations_prompt(
@@ -549,6 +554,8 @@ class PromptProcessor:
         demonstration_documents: list[Document],
         candidate_entity_pages_for_demos: list[list[list[EntityPage]]]
     ) -> str:
+        """Generate a prompt for the demonstrations based on the demonstration documents and their corresponding candidate entity pages."""
+
         prompt = ""
         n_demos = len(demonstration_documents)
         for demo_i, (demo_doc, cand_ent_pages_for_demo) in enumerate(zip(
@@ -557,7 +564,7 @@ class PromptProcessor:
         )):
             prompt += f"Example {demo_i+1}:\n"
 
-            # Generate prompt part fro the input text
+            # Generate prompt part """fro the input text
             prompt += f"Text: {self.generate_input_text_prompt(document=demo_doc)}\n"
            
             # Sample target mention indices
@@ -592,6 +599,8 @@ class PromptProcessor:
         return prompt.rstrip()
 
     def generate_contexts_prompt(self, context_texts: list[str]) -> str:
+        """Generate a prompt for the contexts based on the provided context texts."""
+
         n_contexts = len(context_texts)
         if n_contexts == 0:
             return ""
@@ -609,9 +618,13 @@ class PromptProcessor:
         candidate_entity_pages_for_doc: list[list[EntityPage]],
         target_mention_indices: list[int]
     ) -> str:
+        """Generate a prompt for the test case based on the input document, candidate entity pages, and target mention indices."""
+
         prompt = ""
+
         # Generate prompt part for the input text
         prompt += f"Text: {self.generate_input_text_prompt(document=document)}\n"
+
         # Generate prompt part for the mentions and their candidate concepts 
         mention_candidates_pairs_prompt = (
             self.generate_input_mention_candidates_pairs_prompt(
@@ -622,10 +635,14 @@ class PromptProcessor:
             )
         )
         prompt += f"{mention_candidates_pairs_prompt}\n"
+
         return prompt.rstrip()
 
     def generate_input_text_prompt(self, document: Document) -> str:
+        """Generate a prompt for the input text based on the provided document."""
+
         prompt = " ".join(document["sentences"]) + "\n"
+
         return prompt.rstrip()
 
     def generate_input_mention_candidates_pairs_prompt(
@@ -635,6 +652,8 @@ class PromptProcessor:
         target_mention_indices: list[int],
         demonstration_mode: bool = False
     ) -> str:
+        """Generate a prompt for the mention-candidate pairs based on the provided document, candidate entity pages, and target mention indices."""
+
         # Aggregate mentions strings
         words = " ".join(document["sentences"]).split()
         names = []
@@ -676,6 +695,7 @@ class PromptProcessor:
                 canonical_name = cand_page["canonical_name"].replace("|", " ")
                 desc = cand_page["description"].replace("|", " ").replace("\n", " ").rstrip()
                 prompt += f"- ID: {entity_id} | Name: {canonical_name} | Description: {desc}\n"
+
         return prompt.rstrip()
 
     def generate_output_prompt(
@@ -684,6 +704,8 @@ class PromptProcessor:
         candidate_entity_pages_for_doc: list[list[EntityPage]],
         target_mention_indices: list[int]
     ) -> str:
+        """Generate a prompt for the output based on the provided document, candidate entity pages, and target mention indices."""
+
         prompt = ""
 
         words = " ".join(document["sentences"]).split()

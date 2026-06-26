@@ -24,11 +24,14 @@ class EntityGraphConstructor:
         path_additional_triples: str | None = None,
         excluded_filenames: list[str] | None = None
     ) -> nx.MultiDiGraph:
+        """Construct a directed, multi-edge graph from the provided documents and entity dictionary."""
+
         if excluded_filenames is None:
             excluded_filenames = []
 
-        # Load the entity dictionary (if provided)
-        # Entity dictionary is a mapping from an entity ID (str) to the corresponding entity page
+        # Load the entity dictionary (if provided).
+        # Entity dictionary is a mapping from an entity ID (str) to the corresponding
+        # entity page.
         if path_entity_dict is not None:
             entity_dict = utils.read_json(path_entity_dict)
             entity_dict = {epage["entity_id"]: epage for epage in entity_dict}
@@ -64,6 +67,7 @@ class EntityGraphConstructor:
             logger.info(
                 f"Loading triples from {len(documents)} documents in {path_documents}"
             )
+
             for document in tqdm(documents, f"Processing {path_documents}"):
                 # Get the associated triples from the document
                 doc_key = document["doc_key"]
@@ -84,6 +88,7 @@ class EntityGraphConstructor:
                         "head_type": head_type,
                         "tail_type": tail_type
                     }
+
                     # Add the single triple to the graph
                     self._add_triple_to_graph(
                         graph=graph,
@@ -104,6 +109,7 @@ class EntityGraphConstructor:
 
         logger.info(f"The number of nodes: {graph.number_of_nodes()}") 
         logger.info(f"The number of edges: {graph.number_of_edges()}") 
+
         return graph
 
     def _add_triple_to_graph(
@@ -113,6 +119,8 @@ class EntityGraphConstructor:
         entity_dict: dict[str, EntityPage],
         doc_key: str
     ) -> None:
+        """Add a single triple to the graph, including its head and tail entities as nodes and the relation as an edge."""
+
         # Extract the elements
         head_id = triple["head"]
         tail_id = triple["tail"]
@@ -172,10 +180,13 @@ class EntityGraphConstructor:
             graph.edges[head_id, tail_id, relation]["doc_key_list"].append(doc_key)
 
     def _infer_entity_type(self, epage: EntityPage) -> str:
+        """Infer the entity type from the entity page, if available."""
+
         # Help to infer entity type from entity page
         if "entity_type_names" in epage:
             return " | ".join(epage["entity_type_names"])
         elif "entity_type" in epage:
             return epage["entity_type"]
+
         return "UNKNOWN"
 

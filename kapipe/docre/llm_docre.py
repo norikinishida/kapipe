@@ -26,6 +26,7 @@ logger = logging.getLogger(__name__)
 
 
 class LLMDocRE:
+    """A class for performing document-level relation extraction using a large language model (LLM)."""
 
     def __init__(
         self,
@@ -141,6 +142,7 @@ class LLMDocRE:
                 f"Loaded {len(demonstration_documents)} demonstration documents "
                 f"from {path_demonstration_documents}"
             )
+
         # Represent the zero-shot setting as an empty list
         if demonstration_documents is None:
             demonstration_documents = []
@@ -181,7 +183,7 @@ class LLMDocRE:
         logger.info("########## LLMDocRE Initialization Ends ##########")
 
     def save(self, path_snapshot: str) -> None:
-        """Function to save the configuration, relation vocabulary, relation meta-information, entity dictionary, and demonstration pool to a specified snapshot path."""
+        """Save the configuration, relation vocabulary, relation meta-information, entity dictionary, and demonstration pool to a specified snapshot path."""
 
         path_config = path_snapshot + "/config"
         path_vocab = path_snapshot + "/relations.vocab.txt"
@@ -203,7 +205,7 @@ class LLMDocRE:
         # Optional: context augmentation
         contexts_for_doc: ContextsForOneExample | None = None
     ) -> Document:
-        """Function to extract relations from a single document."""
+        """Extract triples from a single document."""
 
         # Skip relation extraction if there are 1 or fewer entities
         if len(document["entities"]) <= 1:
@@ -228,7 +230,7 @@ class LLMDocRE:
             # Generate a reponse
             generated_text = self.model.generate(prompt)
 
-            # Convert the generated text into structured triples
+            # Structurize the generated text into triples
             triples: list[Triple] = self.structurize(
                 document=document,
                 generated_text=generated_text
@@ -243,7 +245,7 @@ class LLMDocRE:
             return result_document
 
     def structurize(self, document: Document, generated_text: str) -> list[Triple]:
-        """Function to convert the free-form generated text into structured triples."""
+        """Structurize the generated text into triples."""
 
         doc_key = document["doc_key"]
 
@@ -263,15 +265,17 @@ class LLMDocRE:
             # Parse the generated line
             parsed = self.re_comp.findall(generated_line)
             if not (len(parsed) == 1 and len(parsed[0]) == 4):
-                logger.info(f"[{doc_key}] Skipped a generated line of invalid formatting: '{generated_line}'")
+                logger.info(
+                    f"[{doc_key}] Skipped a generated line of invalid formatting: "
+                    f"'{generated_line}'")
                 continue
             _, head_id, relation, tail_id= parsed[0]
 
             # Check whether the head/tail IDs can be found in the possible list
             if (
-                (not head_id in entity_id_to_index)
+                (head_id not in entity_id_to_index)
                 or
-                (not tail_id in entity_id_to_index)
+                (tail_id not in entity_id_to_index)
                 or
                 head_id == tail_id
             ):
@@ -280,8 +284,11 @@ class LLMDocRE:
 
             # Check whether the normalized relation label can be found in the possible set
             normalized_relation = relation.lower()
-            if not normalized_relation in self.normalized_to_canonical:
-                logger.info(f"[{doc_key}] A generated line contains invalid relation: '{generated_line}'")
+            if normalized_relation not in self.normalized_to_canonical:
+                logger.info(
+                    f"[{doc_key}] A generated line contains invalid relation: "
+                    f"'{generated_line}'"
+                )
                 # continue
 
             # Transform the normalized relation to canonical label
@@ -296,7 +303,7 @@ class LLMDocRE:
 
             # Add a new tuple
             tuple_ = (head_idx, canonical_relation, tail_idx)
-            if not tuple_ in tuples:
+            if tuple_ not in tuples:
                 tuples.append(tuple_)
 
         # Convert tuples
@@ -311,6 +318,7 @@ class LLMDocRE:
             triples,
             key=lambda x: (x["arg1"], x["arg2"], x["relation"])
         )
+
         return triples
 
     def batch_extract(
@@ -319,7 +327,7 @@ class LLMDocRE:
         # Optional: context augmentation
         contexts: list[ContextsForOneExample] | None = None
     ) -> list[Document]:
-        """Function to extract relations from a batch of documents."""
+        """Extract triples from a batch of documents."""
 
         result_documents: list[Document] = []
 
@@ -337,6 +345,7 @@ class LLMDocRE:
                 contexts_for_doc=contexts_for_doc
             )
             result_documents.append(result_document)
+
         return result_documents
 
 
@@ -387,6 +396,8 @@ class PromptProcessor:
         # Optional: context augmentation
         contexts_for_doc: ContextsForOneExample | None = None
     ) -> str:
+        """Generate a prompt for a given document, demonstration documents, and optional contexts."""
+
         ##########
         # Demonstrations Prompt
         ##########
@@ -406,7 +417,8 @@ class PromptProcessor:
             for passage in contexts_for_doc["contexts"]:
                 text = utils.create_text_from_passage(passage=passage, sep=" : ")
                 context_texts.append(text)
-            # Generate prompt part for contexts
+
+            # Generate the prompt part for contexts
             contexts_prompt = self.generate_contexts_prompt(
                 context_texts=context_texts
             )
@@ -417,7 +429,7 @@ class PromptProcessor:
         # Test Case Prompt
         ##########
 
-        # Generate prompt part for test case
+        # Generate the prompt part for the test case
         test_case_prompt = self.generate_test_case_prompt(
             document=document,
         )
@@ -434,14 +446,18 @@ class PromptProcessor:
             contexts_prompt=contexts_prompt,
             test_case_prompt=test_case_prompt
         )
+
         return prompt
 
     def generate_demonstrations_prompt(
         self,
         demonstration_documents: list[Document]
     ) -> str:
+        """Generate a prompt for the demonstration documents."""
+
         prompt = ""
         n_demos = len(demonstration_documents)
+
         for demo_i, demo_doc in enumerate(demonstration_documents):
             prompt += f"Example {demo_i+1}:\n"
             prompt += f"Text: {self.generate_input_text_prompt(document=demo_doc)}\n"
@@ -451,10 +467,14 @@ class PromptProcessor:
             prompt += f"{self.generate_relations_prompt(document=demo_doc)}\n"
             if demo_i < n_demos - 1:
                 prompt += "\n"
+
         return prompt.rstrip()
 
     def generate_contexts_prompt(self, context_texts: list[str]) -> str:
+        """Generate a prompt for the contexts."""
+
         n_contexts = len(context_texts)
+
         if n_contexts == 0:
             return ""
         else:
@@ -463,20 +483,29 @@ class PromptProcessor:
                 prompt += f"[{context_i+1}] {content.strip()} \n"
                 if context_i < n_contexts - 1:
                     prompt += "\n"
+
             return prompt.rstrip()
 
     def generate_test_case_prompt(self, document: Document) -> str:
+        """Generate a prompt for the test case."""
+
         prompt = ""
         prompt += f"Text: {self.generate_input_text_prompt(document=document)}\n"
         prompt += "Entities:\n"
         prompt += f"{self.generate_input_entities_prompt(document=document)}\n"
+
         return prompt.rstrip()
 
     def generate_input_text_prompt(self, document: Document) -> str:
+        """Generate a prompt for the input text."""
+
         prompt = " ".join(document["sentences"]) + "\n"
+
         return prompt.rstrip()
 
     def generate_input_entities_prompt(self, document: Document) -> str:
+        """Generate a prompt for the input entities."""
+
         prompt = ""
 
         words = " ".join(document["sentences"]).split()
@@ -500,14 +529,17 @@ class PromptProcessor:
                     else:
                         begin_i, end_i = mention["span"]
                         name = " ".join(words[begin_i: end_i + 1])
+
                     # Remove duplicated mentions
                     # (inserted after the BioNLP'24 submission)
                     if name in names:
                         continue
                     names.append(name)
+
                 # Add the entity to prompt
                 names = ", ".join([f"\"{n}\"" for n in names])
                 prompt += f"- Entity{e_i}: {names} ({entity_type})\n"
+
             elif self.mention_style == "first_mention":
                 # Get the first mention name
                 mention_indices = entity["mention_indices"]
@@ -517,19 +549,26 @@ class PromptProcessor:
                     name = " ".join(words[begin_i: end_i + 1])
                 else:
                     name = mention["name"]
+
                 # Add the entity to prompt
                 prompt += f"- Entity{e_i}: \"{name}\" ({entity_type})\n"
+
             elif self.mention_style == "canonical_name":
                 # Get entity canonical name
                 epage = self.entity_dict[entity_id]
                 name = epage["canonical_name"]
+
                 # Add the entity to prompt
                 prompt += f"- Entity{e_i}: {name} ({entity_type})\n"
+
             else:
                 raise Exception(f"Invalid mention_style: {self.mention_style}")
+
         return prompt.rstrip()
 
     def generate_relations_prompt(self, document: Document) -> str:
+        """Generate a prompt for the input triples."""
+
         prompt = ""
         for triple in document["relations"]:
             head_idx = triple["arg1"]
@@ -537,6 +576,7 @@ class PromptProcessor:
             rel = triple["relation"]
             pretty_name = self.rel_meta_info[rel]["Pretty Name"]
             prompt += f"- Entity{head_idx} | {pretty_name} | Entity{tail_idx}\n"
+
         return prompt.rstrip()
 
 

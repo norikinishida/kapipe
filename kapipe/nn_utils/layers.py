@@ -12,7 +12,7 @@ def make_embedding(
     dim: int,
     std: float = 0.02
 ) -> nn.Embedding:
-    """Factory for a normally initialized embedding layer."""
+    """ Create an embedding layer."""
 
     # Create an embedding layer
     emb = nn.Embedding(dict_size, dim)
@@ -29,7 +29,8 @@ def make_linear(
     bias: bool = True,
     std: float = 0.02,
 ) -> nn.Linear:
-    """Factory for a linear layer."""
+    """Create a linear layer."""
+
     # Create a linear layer using PyTorch's default initialization
     linear = nn.Linear(
         in_features=input_dim,
@@ -50,7 +51,7 @@ def make_mlp(
     output_dim: int,
     dropout_rate: float,
 ) -> nn.Linear | nn.Sequential:
-    """Factory for a multilayer perceptron."""
+    """Create a multi-layer perceptron (MLP) with optional hidden layers."""
 
     # Return a single linear layer when no hidden layer is requested
     if (
@@ -97,7 +98,7 @@ def make_mlp_hidden(
     hidden_dim: int,
     dropout_rate: float,
 ) -> nn.Sequential:
-    """Factory for one hidden MLP layer."""
+    """Create a single hidden layer MLP."""
 
     # Create the linear transformation, activation, and dropout
     layers: list[nn.Module] = [
@@ -111,7 +112,7 @@ def make_mlp_hidden(
 
 
 class Biaffine(nn.Module):
-    """Biaffine scoring layer."""
+    """A class for a biaffine scoring layer."""
 
     def __init__(
         self,
@@ -120,8 +121,6 @@ class Biaffine(nn.Module):
         bias_x: bool = True,
         bias_y: bool = True,
     ) -> None:
-        """Initializer for a biaffine scoring layer."""
-
         super().__init__()
 
         self.input_dim = input_dim
@@ -146,7 +145,7 @@ class Biaffine(nn.Module):
         self.reset_parameters()
 
     def __repr__(self) -> str:
-        """String representation of the layer configuration."""
+        """Return a string representation of the Biaffine layer with its configuration."""
 
         fields = [
             f"input_dim={self.input_dim}",
@@ -163,7 +162,7 @@ class Biaffine(nn.Module):
         return f"{self.__class__.__name__}({configuration})"
 
     def reset_parameters(self) -> None:
-        """Parameter initialization with a normal distribution."""
+        """Initialize the trainable parameters of the Biaffine layer."""
 
         # Initialize the biaffine weights
         init.normal_(self.weight, std=0.02)
@@ -173,7 +172,7 @@ class Biaffine(nn.Module):
         x: torch.Tensor,
         y: torch.Tensor,
     ) -> torch.Tensor:
-        """Biaffine scores for every pair of input vectors."""
+        """Compute biaffine scores for every pair of input vectors."""
 
         # Append a constant feature to the first input when requested
         if self.bias_x:
@@ -217,7 +216,7 @@ def make_transformer_encoder(
     dropout_rate: float,
     n_layers: int,
 ) -> nn.TransformerEncoder:
-    """Factory for a Transformer encoder."""
+    """Create a Transformer encoder."""
 
     # Create the shared Transformer encoder layer configuration
     transformer_encoder_layer = nn.TransformerEncoderLayer(

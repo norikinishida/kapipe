@@ -10,7 +10,7 @@ def get_optimizer(
     model: Any,
     config: dict[str, Any],
 ) -> list[Optimizer]:
-    """Optimizer construction for separate BERT and task parameters."""
+    """Return a list of optimizers for the model parameters, separating BERT and task-specific parameters."""
 
     # Define parameter names excluded from weight decay
     no_decay = ["bias", "LayerNorm.weight"]
@@ -66,7 +66,7 @@ def get_optimizer2(
     model: Any,
     config: dict[str, Any],
 ) -> Optimizer:
-    """Optimizer construction with separate parameter-group learning rates."""
+    """Return a single optimizer for the model parameters, with separate learning rates for BERT and task-specific parameters."""
 
     # Retrieve BERT parameters and task parameters
     bert_param, task_param = model.get_params()

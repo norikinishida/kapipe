@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 
 class HuggingFaceLLM:
-    """Hugging Face causal LM wrapper."""
+    """A class that wraps a Hugging Face causal language model (LLM) for text generation."""
 
     def __init__(
         self,
@@ -44,7 +44,7 @@ class HuggingFaceLLM:
         self,
         quantization_bits: int | None
     ) -> BitsAndBytesConfig | None:
-        """Function to build the optional bitsandbytes quantization configuration."""
+        """Build the optional bitsandbytes quantization configuration."""
 
         # Return no configuration when quantization is disabled
         if quantization_bits not in [4, 8]:
@@ -78,7 +78,7 @@ class HuggingFaceLLM:
         self,
         model_name: str
     ) -> tuple[AutoModelForCausalLM, AutoTokenizer]:
-        """Function to load the model and tokenizer."""
+        """Load the model and tokenizer."""
 
         logger.info(f"Loading a large language model: {model_name}")
 
@@ -129,7 +129,7 @@ class HuggingFaceLLM:
         return llm, tokenizer
 
     def _get_attn_implementation(self) -> str | None:
-        """Function to return Flash Attention 2 only when it is available and useful."""
+        """Return Flash Attention 2 only when it is available and useful."""
 
         # Disable Flash Attention when CUDA is unavailable
         if not torch.cuda.is_available():
@@ -173,7 +173,7 @@ class HuggingFaceLLM:
         do_sample: bool = False,
         temperature: float = 0.0,
     ) -> str:
-        """Function to generate text for the given prompt using the Hugging Face model."""
+        """Generate text for the given prompt."""
 
         # Represent the prompt as a single user message
         messages: list[dict[str, str]] = [
