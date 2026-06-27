@@ -59,7 +59,7 @@ def _llm4eval(pred_questions, gold_questions):
     # Prepare LLM
     model = OpenAILLM(
         # Model
-        openai_model_name="gpt-4o",
+        model_name="gpt-4o",
         # Generation
         max_new_tokens=512
     )
@@ -74,7 +74,7 @@ def _llm4eval(pred_questions, gold_questions):
             if gold_ans["answer_type"] == "list":
                 gold_ans_str = gold_ans["answer"]
                 list_index = gold_ans["list_index"]
-                if not list_index in index_to_synonyms:
+                if list_index not in index_to_synonyms:
                     index_to_synonyms[list_index] = []
                 index_to_synonyms[list_index].append(gold_ans_str)
         gold_ans_list = []

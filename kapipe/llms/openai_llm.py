@@ -60,23 +60,35 @@ def generate_with_backoff(
 ) -> str:
     """Generate text for the given prompt using the OpenAI API with backoff."""
 
-    # Send the request to the OpenAI API
-    response = client.chat.completions.create(
-        model=model_name,
-        messages=[
+    # Set up the parameters for the OpenAI Chat Completion API call
+    params: dict[str, object] = {
+        "model": model_name,
+        "messages": [
             {
-                "role": "system",
-                "content": system_prompt
+                "role": (
+                    "system" if model_name.startswith("gpt-4")
+                    else "developer"
+                ),
+                "content": system_prompt,
             },
             {
                 "role": "user",
-                "content": user_prompt
-            }
+                "content": user_prompt,
+            },
         ],
-        temperature=temperature,
-        seed=123,
-        max_tokens=max_new_tokens,
-    )
+        "seed": 123,
+    }
+
+    # Adjust parameters based on the model type
+    if model_name.startswith("gpt-4"):
+        params["max_tokens"] = max_new_tokens
+        params["temperature"] = temperature
+    else:
+        params["max_completion_tokens"] = max_new_tokens
+        params["reasoning_effort"] = "medium"
+
+    # Send the request to the OpenAI Chat Completion API and get the response
+    response = client.chat.completions.create(**params)
 
     # Extract the generated text from the first completion
     generated_text = response.choices[0].message.content

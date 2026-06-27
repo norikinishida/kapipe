@@ -148,8 +148,8 @@ class MAATLOP:
         self.top_k_labels = self.config["top_k_labels"]
         if self.model_name == "ma_atlop_model":
             self.model = MAATLOPModel(
-                bert_pretrained_name_or_path=(
-                    self.config["bert_pretrained_name_or_path"]
+                bert_pretrained_model_name_or_path=(
+                    self.config["bert_pretrained_model_name_or_path"]
                 ),
                 max_seg_len=self.config["max_seg_len"],
                 entity_dict=self.entity_dict,
@@ -954,7 +954,7 @@ class MAATLOPModel(nn.Module):
 
     def __init__(
         self,
-        bert_pretrained_name_or_path,
+        bert_pretrained_model_name_or_path,
         max_seg_len,
         entity_dict,
         entity_seq_length,
@@ -970,7 +970,7 @@ class MAATLOPModel(nn.Module):
         """
         Parameters
         ----------
-        bert_pretrained_name_or_path : str
+        bert_pretrained_model_name_or_path : str
         max_seg_len : int
         entity_dict : dict[str, EntityPage]
         entity_seq_length : int
@@ -992,7 +992,7 @@ class MAATLOPModel(nn.Module):
         # Hyper parameters
         ########################
 
-        self.bert_pretrained_name_or_path = bert_pretrained_name_or_path
+        self.bert_pretrained_model_name_or_path = bert_pretrained_model_name_or_path
         self.max_seg_len = max_seg_len
         self.entity_dict = entity_dict
         self.entity_seq_length = entity_seq_length
@@ -1013,7 +1013,7 @@ class MAATLOPModel(nn.Module):
 
         # BERT, tokenizer
         self.bert, self.tokenizer = self._initialize_bert_and_tokenizer(
-            pretrained_model_name_or_path=self.bert_pretrained_name_or_path
+            pretrained_model_name_or_path=self.bert_pretrained_model_name_or_path
         )
 
         # Dimensionality

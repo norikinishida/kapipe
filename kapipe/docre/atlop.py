@@ -132,8 +132,8 @@ class ATLOP:
         self.top_k_labels = self.config["top_k_labels"]
         if self.model_name == "atlop_model":
             self.model = ATLOPModel(
-                bert_pretrained_name_or_path=(
-                    self.config["bert_pretrained_name_or_path"]
+                bert_pretrained_model_name_or_path=(
+                    self.config["bert_pretrained_model_name_or_path"]
                 ),
                 max_seg_len=self.config["max_seg_len"],
                 token_embedding_method=self.config["token_embedding_method"],
@@ -773,7 +773,7 @@ class ATLOPModel(nn.Module):
 
     def __init__(
         self,
-        bert_pretrained_name_or_path: str,
+        bert_pretrained_model_name_or_path: str,
         max_seg_len: int,
         token_embedding_method: str,
         entity_pooling_method: str,
@@ -791,7 +791,7 @@ class ATLOPModel(nn.Module):
         # Hyper parameters
         ########################
 
-        self.bert_pretrained_name_or_path = bert_pretrained_name_or_path
+        self.bert_pretrained_model_name_or_path = bert_pretrained_model_name_or_path
         self.max_seg_len = max_seg_len
         self.token_embedding_method = token_embedding_method
         self.entity_pooling_method = entity_pooling_method
@@ -816,7 +816,7 @@ class ATLOPModel(nn.Module):
 
         # BERT, tokenizer
         self.bert, self.tokenizer = self._initialize_bert_and_tokenizer(
-            pretrained_model_name_or_path=self.bert_pretrained_name_or_path
+            pretrained_model_name_or_path=self.bert_pretrained_model_name_or_path
         )
 
         # Dimensionality

@@ -130,8 +130,8 @@ class BlinkCrossEncoder:
         self.model_name = config["model_name"]
         if self.model_name == "blink_cross_encoder_model":
             self.model = BlinkCrossEncoderModel(
-                bert_pretrained_name_or_path=(
-                    self.config["bert_pretrained_name_or_path"]
+                bert_pretrained_model_name_or_path=(
+                    self.config["bert_pretrained_model_name_or_path"]
                 ),
                 max_seg_len=self.config["max_seg_len"],
                 entity_dict=self.entity_dict,
@@ -710,7 +710,7 @@ class BlinkCrossEncoderModel(nn.Module):
 
     def __init__(
         self,
-        bert_pretrained_name_or_path,
+        bert_pretrained_model_name_or_path,
         max_seg_len,
         entity_dict,
         mention_context_length,
@@ -719,7 +719,7 @@ class BlinkCrossEncoderModel(nn.Module):
         """
         Parameters
         ----------
-        bert_pretrained_name_or_path : str
+        bert_pretrained_model_name_or_path : str
         max_seg_len : int
         entity_dict : dict[str, EntityPage]
         mention_context_length : int
@@ -731,7 +731,7 @@ class BlinkCrossEncoderModel(nn.Module):
         # Hyper parameters
         ########################
 
-        self.bert_pretrained_name_or_path = bert_pretrained_name_or_path
+        self.bert_pretrained_model_name_or_path = bert_pretrained_model_name_or_path
         self.max_seg_len = max_seg_len
         self.entity_dict = entity_dict
         self.mention_context_length = mention_context_length
@@ -743,7 +743,7 @@ class BlinkCrossEncoderModel(nn.Module):
 
         # BERT, tokenizer
         self.bert, self.tokenizer = self._initialize_bert_and_tokenizer(
-            pretrained_model_name_or_path=self.bert_pretrained_name_or_path
+            pretrained_model_name_or_path=self.bert_pretrained_model_name_or_path
         )
 
         # Dimensionality

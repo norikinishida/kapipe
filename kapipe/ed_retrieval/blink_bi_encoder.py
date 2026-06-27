@@ -145,8 +145,8 @@ class BlinkBiEncoder:
         self.model_name = config["model_name"]
         if self.model_name == "blink_bi_encoder_model":
             self.model = BlinkBiEncoderModel(
-                bert_pretrained_name_or_path=(
-                    self.config["bert_pretrained_name_or_path"]
+                bert_pretrained_model_name_or_path=(
+                    self.config["bert_pretrained_model_name_or_path"]
                 ),
                 max_seg_len=self.config["max_seg_len"],
                 entity_seq_length=self.config["entity_seq_length"],
@@ -948,7 +948,7 @@ class BlinkBiEncoderModel(nn.Module):
 
     def __init__(
         self,
-        bert_pretrained_name_or_path,
+        bert_pretrained_model_name_or_path,
         max_seg_len,
         entity_seq_length,
         device = "cuda",
@@ -956,7 +956,7 @@ class BlinkBiEncoderModel(nn.Module):
         """
         Parameters
         ----------
-        bert_pretrained_name_or_path : str
+        bert_pretrained_model_name_or_path : str
         max_seg_len : int
         entity_seq_length : int
         device : str
@@ -967,7 +967,7 @@ class BlinkBiEncoderModel(nn.Module):
         # Hyper parameters
         ########################
 
-        self.bert_pretrained_name_or_path = bert_pretrained_name_or_path
+        self.bert_pretrained_model_name_or_path = bert_pretrained_model_name_or_path
         self.max_seg_len = max_seg_len
         self.entity_seq_length = entity_seq_length
         self.device = device
@@ -978,10 +978,10 @@ class BlinkBiEncoderModel(nn.Module):
 
         # BERT, tokenizer
         self.bert_m, self.tokenizer = self._initialize_bert_and_tokenizer(
-            pretrained_model_name_or_path=self.bert_pretrained_name_or_path
+            pretrained_model_name_or_path=self.bert_pretrained_model_name_or_path
         )
         self.bert_e, _ = self._initialize_bert_and_tokenizer(
-            pretrained_model_name_or_path=self.bert_pretrained_name_or_path
+            pretrained_model_name_or_path=self.bert_pretrained_model_name_or_path
         )
 
         # Dimensionality

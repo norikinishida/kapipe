@@ -128,14 +128,16 @@ class BiaffineNER:
         self.model_name = self.config["model_name"]
         if self.model_name == "biaffine_ner_model":
             self.model = BiaffineNERModel(
-                bert_pretrained_name_or_path=config["bert_pretrained_name_or_path"],
-                max_seg_len=config["max_seg_len"],
-                dropout_rate=config["dropout_rate"],
+                bert_pretrained_model_name_or_path=(
+                    self.config["bert_pretrained_model_name_or_path"]
+                ),
+                max_seg_len=self.config["max_seg_len"],
+                dropout_rate=self.config["dropout_rate"],
                 vocab_etype=self.vocab_etype,
-                loss_function_name=config["loss_function"],
+                loss_function_name=self.config["loss_function_name"],
                 focal_loss_gamma=(
-                    config["focal_loss_gamma"]
-                    if config["loss_function"] == "focal_loss"
+                    self.config["focal_loss_gamma"]
+                    if self.config["loss_function_name"] == "focal_loss"
                     else None
                 ),
                 device=device,
@@ -716,7 +718,7 @@ class BiaffineNERModel(nn.Module):
 
     def __init__(
         self,
-        bert_pretrained_name_or_path,
+        bert_pretrained_model_name_or_path,
         max_seg_len,
         dropout_rate,
         vocab_etype,
@@ -727,7 +729,7 @@ class BiaffineNERModel(nn.Module):
         """
         Parameters
         ----------
-        bert_pretrained_name_or_path : str
+        bert_pretrained_model_name_or_path : str
         max_seg_len : int
         dropout_rate : float
         vocab_etype : dict[str, int]
@@ -743,7 +745,7 @@ class BiaffineNERModel(nn.Module):
         # Hyper parameters
         ########################
 
-        self.bert_pretrained_name_or_path = bert_pretrained_name_or_path
+        self.bert_pretrained_model_name_or_path = bert_pretrained_model_name_or_path
         self.max_seg_len = max_seg_len
         self.dropout_rate = dropout_rate
         self.vocab_etype = vocab_etype
@@ -759,7 +761,7 @@ class BiaffineNERModel(nn.Module):
 
         # BERT, tokenizer
         self.bert, self.tokenizer = self._initialize_bert_and_tokenizer(
-            pretrained_model_name_or_path=self.bert_pretrained_name_or_path
+            pretrained_model_name_or_path=self.bert_pretrained_model_name_or_path
         )
 
         # Dimensionality
@@ -800,7 +802,7 @@ class BiaffineNERModel(nn.Module):
             )
         else:
             raise Exception(
-                f"Invalid loss_function: {self.loss_function_name}"
+                f"Invalid loss_function_name: {self.loss_function_name}"
             )
 
     def _initialize_bert_and_tokenizer(self, pretrained_model_name_or_path):

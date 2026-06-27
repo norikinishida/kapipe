@@ -157,8 +157,8 @@ class MAQA:
         self.model_name = self.config["model_name"]
         if self.model_name == "ma_qa_model":
             self.model = MAQAModel(
-                bert_pretrained_name_or_path=(
-                    self.config["bert_pretrained_name_or_path"]
+                bert_pretrained_model_name_or_path=(
+                    self.config["bert_pretrained_model_name_or_path"]
                 ),
                 max_seg_len=self.config["max_seg_len"],
                 entity_dict=self.entity_dict,
@@ -815,7 +815,7 @@ class MAQAModel(nn.Module):
 
     def __init__(
         self,
-        bert_pretrained_name_or_path,
+        bert_pretrained_model_name_or_path,
         max_seg_len,
         entity_dict,
         dataset_name,
@@ -831,7 +831,7 @@ class MAQAModel(nn.Module):
         """
         Parameters
         ----------
-        bert_pretrained_name_or_path : str
+        bert_pretrained_model_name_or_path : str
         max_seg_len : int
         entity_dict : dict[str, EntityPage]
         dataset_name : str
@@ -854,7 +854,7 @@ class MAQAModel(nn.Module):
         # Hyper parameters
         ########################
 
-        self.bert_pretrained_name_or_path = bert_pretrained_name_or_path
+        self.bert_pretrained_model_name_or_path = bert_pretrained_model_name_or_path
         self.max_seg_len = max_seg_len
         self.entity_dict = entity_dict
         self.dataset_name = dataset_name
@@ -875,7 +875,7 @@ class MAQAModel(nn.Module):
 
         # BERT, tokenizer
         self.bert, self.tokenizer = self._initialize_bert_and_tokenizer(
-            pretrained_model_name_or_path=self.bert_pretrained_name_or_path
+            pretrained_model_name_or_path=self.bert_pretrained_model_name_or_path
         )
 
         # Dimensionality

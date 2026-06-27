@@ -81,7 +81,9 @@ class HuggingFaceLLM:
     ) -> tuple[AutoModelForCausalLM, AutoTokenizer]:
         """Load the model and tokenizer."""
 
-        logger.info(f"Loading a large language model: {model_name}")
+        logger.info(
+            f"Loading a large language model: {model_name}"
+        )
 
         # Define the common model-loading arguments
         model_kwargs: dict[str, object] = {
