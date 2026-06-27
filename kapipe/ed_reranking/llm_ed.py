@@ -179,12 +179,6 @@ class LLMED:
             entity_dict=self.entity_dict,
         )
 
-        # Check the LLM provider
-        self.provider = self.config["provider"]
-        if self.provider not in ["hf", "openai"]:
-            raise ValueError(f"Invalid provider: {self.provider}")
-        logger.info("LLM is provided by an argument")
-
         # Define regular expression for output parsing.
         # Parse generated lines of the following form:
         #
@@ -228,7 +222,7 @@ class LLMED:
 
         with torch.no_grad():
             # Switch to inference mode for Hugging Face models
-            if self.provider == "hf":
+            if self.model.provider == "hf":
                 self.model.llm.eval()
  
             # Split mentions into groups and perform reranking on the groups iteratively

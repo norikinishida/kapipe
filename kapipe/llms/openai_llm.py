@@ -9,14 +9,14 @@ from tenacity import (
 
 class OpenAILLM:
     """A class that wraps an OpenAI causal language model (LLM) client for text generation."""
-    
+ 
     def __init__(
         self,
-        # Model
         model_name: str,
-        # Generation
         max_new_tokens: int,
     ) -> None:
+
+        self.provider = "openai"
 
         self.model_name = model_name
         self.max_new_tokens = max_new_tokens

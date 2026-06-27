@@ -149,12 +149,6 @@ class LLMNER:
             etype_meta_info=self.etype_meta_info,
         )
 
-        # Check the LLM provider
-        self.provider = self.config["provider"]
-        if self.provider not in ["hf", "openai"]:
-            raise ValueError(f"Invalid provider: {self.provider}")
-        logger.info("LLM is provided by an argument")
-
         # Define regular expression for output parsing.
         # Parse generated lines of the followingform:
         #
@@ -195,7 +189,7 @@ class LLMNER:
 
         with torch.no_grad():
             # Switch to inference mode for Hugging Face models
-            if self.provider == "hf":
+            if self.model.provider == "hf":
                 self.model.llm.eval()
 
             # Generate the prompt

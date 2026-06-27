@@ -16,13 +16,14 @@ class HuggingFaceLLM:
 
     def __init__(
         self,
-        # Model
         model_name: str,
-        # Generation
         max_new_tokens: int,
-        # Model (with default)
+        # Optional
         quantization_bits: int | None = None,
     ) -> None:
+
+        self.provider = "hf"
+
         self.model_name = model_name
         self.quantization_bits = quantization_bits
         self.max_new_tokens = max_new_tokens

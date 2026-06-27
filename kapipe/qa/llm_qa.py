@@ -97,12 +97,6 @@ class LLMQA:
             n_contexts=self.config["n_contexts"],
         )
 
-        # Check the LLM provider
-        self.provider = self.config["provider"]
-        if self.provider not in ["hf", "openai"]:
-            raise ValueError(f"Invalid provider: {self.provider}")
-        logger.info("LLM is provided by an argument")
-
         logger.info("########## LLMQA Initialization Ends ##########")
 
     def save(self, snapshot_path: str) -> None:
@@ -121,7 +115,7 @@ class LLMQA:
 
         with torch.no_grad():
             # Switch to inference mode for Hugging Face models
-            if self.provider == "hf":
+            if self.model.provider == "hf":
                 self.model.llm.eval()
 
             # Generate the prompt

@@ -167,12 +167,6 @@ class LLMDocRE:
             with_span_annotation=self.config["with_span_annotation"]
         )
 
-        # Check the LLM provider
-        self.provider = self.config["provider"]
-        if self.provider not in ["hf", "openai"]:
-            raise ValueError(f"Invalid provider: {self.provider}")
-        logger.info("LLM is provided by an argument")
-
         # Define regular expression for output parsing.
         # Parse lines of the following form:
         #
@@ -225,7 +219,7 @@ class LLMDocRE:
 
         with torch.no_grad():
             # Switch to inference mode for Hugging Face models
-            if self.provider == "hf":
+            if self.model.provider == "hf":
                 self.model.llm.eval()
 
             # Generate a prompt

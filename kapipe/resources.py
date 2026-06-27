@@ -11,13 +11,7 @@ def resolve_snapshot_path(
     method_name: str,
     identifier: str,
 ) -> str:
-    """
-    Resolve a public resource identifier to its local snapshot path.
-
-    The root resource configuration maps each identifier to both its method
-    name and snapshot path. The method name is checked here to prevent loading
-    a snapshot with an incompatible implementation class.
-    """
+    """Resolve a public resource identifier to its local snapshot path."""
 
     # KAPipe stores the downloaded-resource configuration under the user's
     # home directory. Keep this path resolution in one place so that method
@@ -33,15 +27,7 @@ def resolve_snapshot_path(
     root_config: Config = utils.get_hocon_config(
         config_path=resource_config_path
     )
-    resource_config: Config = root_config[component_name][identifier]
-
-    # Check that the resource identifier belongs to the expected method
-    configured_method_name = resource_config["method"]
-    if configured_method_name != method_name:
-        raise ValueError(
-            f"Identifier '{identifier}' belongs to method "
-            f"'{configured_method_name}', not '{method_name}'."
-        )
+    resource_config: Config = root_config[component_name][method_name][identifier]
 
     # Only expose the resolved snapshot path
     snapshot_path: str = resource_config["snapshot"]
