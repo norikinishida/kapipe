@@ -25,44 +25,61 @@ logger = logging.getLogger(__name__)
 
 class LLMQA:
 
+    @classmethod
+    def from_identifier(
+        cls,
+        model: HuggingFaceLLM | OpenAILLM,
+        identifier: str,
+    ) -> "LLMQA":
+
+        # Resolve the public identifier to the corresponding local snapshot
+        path_snapshot = resolve_snapshot_path(
+            component_name="qa",
+            method_name="llm_qa",
+            identifier=identifier,
+        )
+
+        # Load the answerer from the resolved snapshot
+        answerer = cls.from_snapshot(
+            model=model,
+            path_snapshot=path_snapshot,
+        )
+
+        # Store the public identifier for later inspection
+        answerer.identifier = identifier
+
+        return answerer
+
+    @classmethod
+    def from_snapshot(
+        cls,
+        model: HuggingFaceLLM | OpenAILLM,
+        path_snapshot: str,
+    ) -> "LLMQA":
+
+        # Define the default paths for the resources in the snapshot
+        path_config = path_snapshot + "/config"
+
+        # Initialize the answerer from explicit snapshot resources
+        answerer = cls(
+            model=model,
+            config=path_config,
+        )
+
+        # Store the snapshot path for later inspection
+        answerer.path_snapshot = path_snapshot
+
+        return answerer
+
     def __init__(
         self,
         model: HuggingFaceLLM | OpenAILLM,
         # Initialization
         config: Config | str | None = None,
-        # Loading
-        path_snapshot: str | None = None,
-        identifier: str | None = None,
     ):
         logger.info("########## LLMQA Initialization Starts ##########")
 
-        # Resolve a public identifier to the corresponding local snapshot
-        if identifier is not None:
-            if path_snapshot is not None:
-                raise ValueError(
-                    "identifier and path_snapshot cannot be specified together."
-                )
-
-            path_snapshot = resolve_snapshot_path(
-                component_name="qa",
-                method_name="llm_qa",
-                identifier=identifier,
-            )
-
         self.model = model
-        self.path_snapshot = path_snapshot
-        self.identifier = identifier
-
-        if path_snapshot is not None:
-            # Explicit initialization resources must not be mixed with a
-            # complete snapshot.
-            if config is not None:
-                raise ValueError(
-                    "config cannot be specified when loading a snapshot."
-                )
-
-            # Specify the default paths for the resources in the snapshot
-            config = path_snapshot + "/config"
 
         # Load the configuration
         if isinstance(config, str):
@@ -80,7 +97,7 @@ class LLMQA:
             n_contexts=self.config["n_contexts"],
         )
 
-        # Check the provider and initialize the LLM model accordingly
+        # Check the LLM provider
         self.provider = self.config["provider"]
         if self.provider not in ["hf", "openai"]:
             raise ValueError(f"Invalid provider: {self.provider}")

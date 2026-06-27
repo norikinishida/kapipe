@@ -38,52 +38,73 @@ class BlinkCrossEncoder:
     A class for entity disambiguation (reranking) using the BLINK Cross-Encoder (Wu et al., 2020).
     """
 
+    @classmethod
+    def from_identifier(
+        cls,
+        identifier: str,
+        device: str = "cuda",
+    ) -> "BlinkCrossEncoder":
+
+        # Resolve the public identifier to the corresponding local snapshot
+        path_snapshot = resolve_snapshot_path(
+            component_name="ed_reranking",
+            method_name="blink_cross_encoder",
+            identifier=identifier,
+        )
+
+        # Load the reranker from the resolved snapshot
+        reranker = cls.from_snapshot(
+            path_snapshot=path_snapshot,
+            device=device,
+        )
+
+        # Store the public identifier for later inspection
+        reranker.identifier = identifier
+
+        return reranker
+
+    @classmethod
+    def from_snapshot(
+        cls,
+        path_snapshot: str,
+        device: str = "cuda",
+    ) -> "BlinkCrossEncoder":
+
+        # Define the default paths for the resources in the snapshot
+        path_model = path_snapshot + "/model"
+        path_config = path_snapshot + "/config"
+        path_entity_dict = path_snapshot + "/entity_dict.json"
+
+        # Initialize the reranker from explicit snapshot resources
+        reranker = cls(
+            config=path_config,
+            path_entity_dict=path_entity_dict,
+            device=device,
+        )
+
+        # Store the snapshot path for later inspection
+        reranker.path_snapshot = path_snapshot
+
+        # Load trained model parameters from the snapshot
+        reranker.model.load_state_dict(
+            torch.load(path_model, map_location=torch.device("cpu")),
+            strict=False
+        )
+        logger.info(f"Loaded model parameters from {path_model}")
+
+        # Move the model again after loading parameters
+        reranker.model.to(reranker.model.device)
+
+        return reranker
+
     def __init__(
         self,
-        # Initialization
         config: Config | str | None = None,
         path_entity_dict: str | None = None,
-        # Loading
-        path_snapshot: str | None = None,
-        identifier: str | None = None,
         # Misc.
         device: str = "cuda",
     ):
         logger.info("########## BlinkCrossEncoder Initialization Starts ##########")
-
-        # Resolve a public identifier to the corresponding local snapshot
-        if identifier is not None:
-            if path_snapshot is not None:
-                raise ValueError(
-                    "identifier and path_snapshot cannot be specified together."
-                )
-
-            path_snapshot = resolve_snapshot_path(
-                component_name="ed_reranking",
-                method_name="blink_cross_encoder",
-                identifier=identifier,
-            )
-
-        self.path_snapshot = path_snapshot
-        self.identifier = identifier
-
-        if path_snapshot is not None:
-            # Explicit initialization resources must not be mixed with a
-            # complete snapshot.
-            if config is not None:
-                raise ValueError(
-                    "config cannot be specified when loading a snapshot."
-                )
-            if path_entity_dict is not None:
-                raise ValueError(
-                    "path_entity_dict cannot be specified when loading "
-                    "a snapshot."
-                )
-
-            # Specify the default paths for the resources in the snapshot
-            path_model = path_snapshot + "/model"
-            config = path_snapshot + "/config"
-            path_entity_dict = path_snapshot + "/entity_dict.json"
 
         # Load the configuration
         if isinstance(config, str):
@@ -123,14 +144,6 @@ class BlinkCrossEncoder:
         # logger.info("Model parameters:")
         # for name, param in self.model.named_parameters():
         #     logger.infof"{name}: {tuple(param.shape)}")
-
-        # Load trained model parameters
-        if path_snapshot is not None:
-            self.model.load_state_dict(
-                torch.load(path_model, map_location=torch.device("cpu")),
-                strict=False
-            )
-            logger.info(f"Loaded model parameters from {path_model}")
 
         # Move the model to the specified device
         self.model.to(self.model.device)

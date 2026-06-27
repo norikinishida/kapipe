@@ -28,72 +28,81 @@ logger = logging.getLogger(__name__)
 class LLMDocRE:
     """A class for performing document-level relation extraction using a large language model (LLM)."""
 
+    @classmethod
+    def from_identifier(
+        cls,
+        model: HuggingFaceLLM | OpenAILLM,
+        identifier: str,
+    ) -> "LLMDocRE":
+
+        # Resolve the public identifier to the corresponding local snapshot
+        path_snapshot = resolve_snapshot_path(
+            component_name="docre",
+            method_name="llm_docre",
+            identifier=identifier,
+        )
+
+        # Load the extractor from the resolved snapshot
+        extractor = cls.from_snapshot(
+            model=model,
+            path_snapshot=path_snapshot,
+        )
+
+        # Store the public identifier for later inspection
+        extractor.identifier = identifier
+
+        return extractor
+
+    @classmethod
+    def from_snapshot(
+        cls,
+        model: HuggingFaceLLM | OpenAILLM,
+        path_snapshot: str,
+    ) -> "LLMDocRE":
+
+        # Define the default paths for the resources in the snapshot
+        path_config = path_snapshot + "/config"
+        path_vocab = path_snapshot + "/relations.vocab.txt"
+        path_meta_info = path_snapshot + "/rel_meta_info.json"
+        path_entity_dict = path_snapshot + "/entity_dict.json"
+        path_demonstration_documents = (
+            path_snapshot + "/demonstration_documents.json"
+        )
+
+        # Use an empty list of demonstrations if the snapshot does not contain 
+        # any demonstration documents.
+        if os.path.exists(path_demonstration_documents):
+            demonstration_documents = path_demonstration_documents
+        else:
+            demonstration_documents = []
+
+        # Initialize the extractor from explicit snapshot resources
+        extractor = cls(
+            model=model,
+            config=path_config,
+            vocab_relation=path_vocab,
+            rel_meta_info=path_meta_info,
+            path_entity_dict=path_entity_dict,
+            demonstration_documents=demonstration_documents,
+        )
+
+        # Store the snapshot path for later inspection
+        extractor.path_snapshot = path_snapshot
+
+        return extractor
+
     def __init__(
         self,
         model: HuggingFaceLLM | OpenAILLM,
-        # Initialization
         config: Config | str | None = None,
         vocab_relation: dict[str, int] | str | None = None,
         rel_meta_info: dict[str, dict[str, str]] | str | None = None,
         path_entity_dict: str | None = None,
         demonstration_documents: list[Document] | str | None = None,
-        # Loading
-        path_snapshot: str | None = None,
-        identifier: str | None = None,
     ):
         logger.info("########## LLMDocRE Initialization Starts ##########")
 
-        # Resolve a public identifier to the corresponding local snapshot
-        if identifier is not None:
-            if path_snapshot is not None:
-                raise ValueError(
-                    "identifier and path_snapshot cannot be specified together."
-                )
-
-            path_snapshot = resolve_snapshot_path(
-                component_name="docre",
-                method_name="llm_docre",
-                identifier=identifier,
-            )
-
         self.model = model
-        self.path_snapshot = path_snapshot
-        self.identifier = identifier
-
-        if path_snapshot is not None:
-            # Explicit initialization resources must not be mixed with a
-            # complete snapshot.
-            if config is not None:
-                raise ValueError(
-                    "config cannot be specified when loading a snapshot."
-                )
-            if path_entity_dict is not None:
-                raise ValueError(
-                    "path_entity_dict cannot be specified when loading "
-                    "a snapshot."
-                )
-            if demonstration_documents is not None:
-                raise ValueError(
-                    "demonstration_documents cannot be specified when loading "
-                    "a snapshot."
-                )
-
-            # Specify the default paths for the resources in the snapshot
-            config = path_snapshot + "/config"
-            if vocab_relation is None:
-                vocab_relation = path_snapshot + "/relations.vocab.txt"
-            if rel_meta_info is None:
-                rel_meta_info = path_snapshot + "/rel_meta_info.json"
-            path_entity_dict = path_snapshot + "/entity_dict.json"
-            path_demonstration_documents = (
-                path_snapshot + "/demonstration_documents.json"
-            )
-
-            # Use no demonstrations when loading an old zero-shot snapshot
-            if os.path.exists(path_demonstration_documents):
-                demonstration_documents = path_demonstration_documents
-            else:
-                demonstration_documents = []
 
         # Load the configuration
         if isinstance(config, str):
@@ -142,9 +151,8 @@ class LLMDocRE:
                 f"Loaded {len(demonstration_documents)} demonstration documents "
                 f"from {path_demonstration_documents}"
             )
-
-        # Represent the zero-shot setting as an empty list
-        if demonstration_documents is None:
+        elif demonstration_documents is None:
+            # Use an empty list for zero-shot setting
             demonstration_documents = []
         self.demonstration_documents: list[Document] = demonstration_documents
 
@@ -159,7 +167,7 @@ class LLMDocRE:
             with_span_annotation=self.config["with_span_annotation"]
         )
 
-        # Check the provider and initialize the LLM model accordingly
+        # Check the LLM provider
         self.provider = self.config["provider"]
         if self.provider not in ["hf", "openai"]:
             raise ValueError(f"Invalid provider: {self.provider}")

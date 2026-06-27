@@ -34,85 +34,88 @@ N_MENT_PER_CHUNK = 5
 
 class LLMED:
 
+    @classmethod
+    def from_identifier(
+        cls,
+        model: HuggingFaceLLM | OpenAILLM,
+        identifier: str,
+    ) -> "LLMED":
+
+        # Resolve the public identifier to the corresponding local snapshot
+        path_snapshot = resolve_snapshot_path(
+            component_name="ed_reranking",
+            method_name="llm_ed",
+            identifier=identifier,
+        )
+
+        # Load the reranker from the resolved snapshot
+        reranker = cls.from_snapshot(
+            model=model,
+            path_snapshot=path_snapshot,
+        )
+
+        # Store the public identifier for later inspection
+        reranker.identifier = identifier
+
+        return reranker
+
+    @classmethod
+    def from_snapshot(
+        cls,
+        model: HuggingFaceLLM | OpenAILLM,
+        path_snapshot: str,
+    ) -> "LLMED":
+
+        # Define the default paths for the resources in the snapshot
+        path_config = path_snapshot + "/config"
+        path_entity_dict = path_snapshot + "/entity_dict.json"
+        path_demonstration_documents = (
+            path_snapshot + "/demonstration_documents.json"
+        )
+        path_demonstration_candidate_entities = (
+            path_snapshot + "/demonstration_candidate_entities.json"
+        )
+
+        # Use an empty list of demonstrations if the snapshot does not contain 
+        # any demonstration documents.
+        if os.path.exists(path_demonstration_documents):
+            demonstration_documents = path_demonstration_documents
+        else:
+            demonstration_documents = []
+        if os.path.exists(path_demonstration_candidate_entities):
+            demonstration_candidate_entities = (
+                path_demonstration_candidate_entities
+            )
+        else:
+            demonstration_candidate_entities = []
+
+        # Initialize the reranker from explicit snapshot resources
+        reranker = cls(
+            model=model,
+            config=path_config,
+            path_entity_dict=path_entity_dict,
+            demonstration_documents=demonstration_documents,
+            demonstration_candidate_entities=demonstration_candidate_entities,
+        )
+
+        # Store the snapshot path for later inspection
+        reranker.path_snapshot = path_snapshot
+
+        return reranker
+
     def __init__(
         self,
         model: HuggingFaceLLM | OpenAILLM,
-        # Initialization
         config: Config | str | None = None,
         path_entity_dict: str | None = None,
         demonstration_documents: list[Document] | str | None = None,
         demonstration_candidate_entities: (
             list[CandidateEntitiesForDocument] | str | None
         ) = None,
-        # Loading
-        path_snapshot: str | None = None,
-        identifier: str | None = None,
     ):
         logger.info("########## LLMED Initialization Starts ##########")
 
-        # Resolve a public identifier to the corresponding local snapshot
-        if identifier is not None:
-            if path_snapshot is not None:
-                raise ValueError(
-                    "identifier and path_snapshot cannot be specified together."
-                )
-
-            path_snapshot = resolve_snapshot_path(
-                component_name="ed_reranking",
-                method_name="llm_ed",
-                identifier=identifier,
-            )
-
         self.model = model
-        self.path_snapshot = path_snapshot
-        self.identifier = identifier
-
-        if path_snapshot is not None:
-            # Explicit initialization resources must not be mixed with a
-            # complete snapshot.
-            if config is not None:
-                raise ValueError(
-                    "config cannot be specified when loading a snapshot."
-                )
-            if path_entity_dict is not None:
-                raise ValueError(
-                    "path_entity_dict cannot be specified when loading "
-                    "a snapshot."
-                )
-            if demonstration_documents is not None:
-                raise ValueError(
-                    "demonstration_documents cannot be specified when loading "
-                    "a snapshot."
-                )
-            if demonstration_candidate_entities is not None:
-                raise ValueError(
-                    "demonstration_candidate_entities cannot be specified when "
-                    "loading a snapshot."
-                ) 
-
-            # Specify the default paths for the resources in the snapshot
-            config = path_snapshot + "/config"
-            path_entity_dict = path_snapshot + "/entity_dict.json"
-            path_demonstration_documents = (
-                path_snapshot + "/demonstration_documents.json"
-            )
-            path_demonstration_candidate_entities = (
-                path_snapshot + "/demonstration_candidate_entities.json"
-            )
-
-            # Use no demonstrations when loading an old zero-shot snapshot
-            if os.path.exists(path_demonstration_documents):
-                demonstration_documents = path_demonstration_documents
-            else:
-                demonstration_documents = []
-
-            # Use no demonstration candidate entities when loading an old zero-shot snapshot
-            if os.path.exists(path_demonstration_candidate_entities):
-                demonstration_candidate_entities = (
-                    path_demonstration_candidate_entities
-                )
-            else:
-                demonstration_candidate_entities = []
 
         # Load the configuration
         if isinstance(config, str):
@@ -138,6 +141,10 @@ class LLMED:
                 f"Loaded {len(demonstration_documents)} demonstration documents "
                 f"from {path_demonstration_documents}"
             )
+        elif demonstration_documents is None:
+            # Use an empty list for zero-shot setting
+            demonstration_documents = []
+        self.demonstration_documents: list[Document] = demonstration_documents
 
         # Load demonstration candidate entities
         if isinstance(demonstration_candidate_entities, str):
@@ -151,24 +158,23 @@ class LLMED:
                 "demonstration candidate-entity records "
                 f"from {path_demonstration_candidate_entities}"
             )
-
-        # Represent the zero-shot setting as an empty list
-        if demonstration_documents is None:
-            demonstration_documents = []
-        if demonstration_candidate_entities is None:
+        elif demonstration_candidate_entities is None:
+            # Use an empty list for zero-shot setting
             demonstration_candidate_entities = [] 
+        self.demonstration_candidate_entities: list[CandidateEntitiesForDocument] = (
+            demonstration_candidate_entities
+        )
 
-        # Validate the lengths of demonstration documents and demonstration candidate entities
-        if len(demonstration_documents) != len(demonstration_candidate_entities):
+        # Validate the lengths of demonstration documents and demonstration
+        # candidate entities.
+        if (
+            len(self.demonstration_documents)
+            != len(self.demonstration_candidate_entities)
+        ):
             raise ValueError(
                 "demonstration_documents and demonstration_candidate_entities "
                 "must have the same length."
             )
-
-        self.demonstration_documents: list[Document] = demonstration_documents
-        self.demonstration_candidate_entities: list[CandidateEntitiesForDocument] = (
-            demonstration_candidate_entities
-        )
 
         # Initialize the prompt processor, whioch generates prompts for the LLM
         self.prompt_processor = PromptProcessor(
@@ -177,7 +183,7 @@ class LLMED:
             entity_dict=self.entity_dict,
         )
 
-        # Check the provider and initialize the LLM model accordingly
+        # Check the LLM provider
         self.provider = self.config["provider"]
         if self.provider not in ["hf", "openai"]:
             raise ValueError(f"Invalid provider: {self.provider}")

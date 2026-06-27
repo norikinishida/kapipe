@@ -48,55 +48,80 @@ class BlinkBiEncoder:
     A class for entity disambiguation (candidate retrieval) using the BLINK Bi-Encoder (Wu et al., 2020).
     """
 
+    @classmethod
+    def from_identifier(
+        cls,
+        identifier: str,
+        device: str = "cuda",
+    ) -> "BlinkBiEncoder":
+
+        # Resolve the public identifier to the corresponding local snapshot
+        path_snapshot = resolve_snapshot_path(
+            component_name="ed_retrieval",
+            method_name="blink_bi_encoder",
+            identifier=identifier,
+        )
+
+        # Load the retriever from the resolved snapshot
+        retriever = cls.from_snapshot(
+            path_snapshot=path_snapshot,
+            device=device,
+        )
+
+        # Store the public identifier for later inspection
+        retriever.identifier = identifier
+
+        return retriever
+
+    @classmethod
+    def from_snapshot(
+        cls,
+        path_snapshot: str,
+        device: str = "cuda",
+    ) -> "BlinkBiEncoder":
+
+        # Define the default paths for the resources in the snapshot
+        path_model = path_snapshot + "/model"
+        path_config = path_snapshot + "/config"
+        path_entity_dict = path_snapshot + "/entity_dict.json"
+        path_entity_vectors = path_snapshot + "/entity_vectors.npy"
+
+        # Initialize the retriever from explicit snapshot resources
+        retriever = cls(
+            config=path_config,
+            path_entity_dict=path_entity_dict,
+            device=device,
+        )
+
+        # Store the snapshot path for later inspection
+        retriever.path_snapshot = path_snapshot
+
+        # Load trained model parameters from the snapshot
+        retriever.model.load_state_dict(
+            torch.load(path_model, map_location=torch.device("cpu")),
+            strict=False
+        )
+        logger.info(f"Loaded model parameters from {path_model}")
+
+        # Load precomputed entity vectors from the snapshot
+        retriever.precomputed_entity_vectors = np.load(path_entity_vectors)
+        logger.info(f"Loaded precomputed entity vectors from {path_entity_vectors}")
+
+        # Move the model again after loading parameters
+        retriever.model.to(retriever.model.device)
+
+        return retriever
+
     def __init__(
         self,
-        # Initialization
         config: Config | str | None = None,
         path_entity_dict: str | None = None,
-        # Loading
-        path_snapshot: str | None = None,
-        identifier: str | None = None,
         # Misc.
         device: str = "cuda",
     ):
         logger.info("########## BlinkBiEncoder Initialization Starts ##########")
 
-        # Resolve a public identifier to the corresponding local snapshot
-        if identifier is not None:
-            if path_snapshot is not None:
-                raise ValueError(
-                    "identifier and path_snapshot cannot be specified together."
-                )
-
-            path_snapshot = resolve_snapshot_path(
-                component_name="ed_retrieval",
-                method_name="blinki_bi_encoder",
-                identifier=identifier,
-            )
-
-        self.path_snapshot = path_snapshot
-        self.identifier = identifier
-
-        if path_snapshot is not None:
-            # Explicit initialization resources must not be mixed with a
-            # complete snapshot.
-            if config is not None:
-                raise ValueError(
-                    "config cannot be specified when loading a snapshot."
-                )
-            if path_entity_dict is not None:
-                raise ValueError(
-                    "path_entity_dict cannot be specified when loading "
-                    "a snapshot."
-                )
-
-            # Specify the default paths for the resources in the snapshot
-            path_model = path_snapshot + "/model"
-            config = path_snapshot + "/config"
-            path_entity_dict = path_snapshot + "/entity_dict.json"
-            path_entity_vectors = path_snapshot + "/entity_vectors.npy"
-
-        # Load the configuration
+       # Load the configuration
         if isinstance(config, str):
             config_path = config
             config = utils.get_hocon_config(config_path=config_path)
@@ -133,17 +158,6 @@ class BlinkBiEncoder:
         # logger.info("Model parameters:")
         # for name, param in self.model.named_parameters():
         #     logger.info(f"{name}: {tuple(param.shape)}")
-
-        # Load trained model parameters and precomputed entity vectors
-        if path_snapshot is not None:
-            self.model.load_state_dict(
-                torch.load(path_model, map_location=torch.device("cpu")),
-                strict=False
-            )
-            logger.info(f"Loaded model parameters from {path_model}")
-
-            self.precomputed_entity_vectors = np.load(path_entity_vectors)
-            logger.info(f"Loaded precomputed entity vectors from {path_entity_vectors}")
 
         # Move the model to the specified device
         self.model.to(self.model.device)

@@ -38,58 +38,76 @@ class MAATLOP:
     A class for performing document-level relation extraction using Mention-Agnostic ATLOP (Oumaima and Nishida et al., 2024)
     """
 
+    @classmethod
+    def from_identifier(
+        cls,
+        identifier: str,
+        device: str = "cuda",
+    ) -> "MAATLOP":
+
+        # Resolve the public identifier to the corresponding local snapshot
+        path_snapshot = resolve_snapshot_path(
+            component_name="docre",
+            method_name="ma_atlop",
+            identifier=identifier,
+        )
+
+        # Load the extractor from the resolved snapshot
+        extractor = cls.from_snapshot(
+            path_snapshot=path_snapshot,
+            device=device,
+        )
+
+        # Store the public identifier for later inspection
+        extractor.identifier = identifier
+
+        return extractor
+
+    @classmethod
+    def from_snapshot(
+        cls,
+        path_snapshot: str,
+        device: str = "cuda",
+    ) -> "MAATLOP":
+
+        # Define the default paths for the resources in the snapshot
+        path_model = path_snapshot + "/model"
+        path_config = path_snapshot + "/config"
+        path_vocab = path_snapshot + "/relations.vocab.txt"
+        path_entity_dict = path_snapshot + "/entity_dict.json"
+
+        # Initialize the extractor from explicit snapshot resources
+        extractor = cls(
+            config=path_config,
+            vocab_relation=path_vocab,
+            path_entity_dict=path_entity_dict,
+            device=device,
+        )
+
+        # Store the snapshot path for later inspection
+        extractor.path_snapshot = path_snapshot
+
+        # Load trained model parameters from the snapshot
+        extractor.model.load_state_dict(
+            torch.load(path_model, map_location=torch.device("cpu")),
+            strict=False
+        )
+        logger.info(f"Loaded model parameters from {path_model}")
+
+        # Move the model again after loading parameters
+        extractor.model.to(extractor.model.device)
+
+        return extractor
+
     def __init__(
         self,
-        # Initialization
         config: Config | str | None = None,
         vocab_relation: dict[str, int] | str | None = None,
         path_entity_dict: str | None = None,
-        # Loading
-        path_snapshot: str | None = None,
-        identifier: str | None = None,
         # Misc.
         device: str = "cuda",
     ):
         logger.info("########## MAATLOP Initialization Starts ##########")
-
-        # Resolve a public identifier to the corresponding local snapshot
-        if identifier is not None:
-            if path_snapshot is not None:
-                raise ValueError(
-                    "identifier and path_snapshot cannot be specified together."
-                )
-
-            path_snapshot = resolve_snapshot_path(
-                component_name="docre",
-                method_name="ma_atlop",
-                identifier=identifier,
-            )
-
-        self.path_snapshot = path_snapshot
-        self.identifier = identifier
-
-        if path_snapshot is not None:
-            # Explicit initialization resources must not be mixed with a
-            # complete snapshot.
-            if config is not None:
-                raise ValueError(
-                    "config cannot be specified when loading a snapshot."
-                )
-            if vocab_relation is not None:
-                raise ValueError(
-                    "vocab_relation cannot be specified when loading a snapshot."
-                )
-            if path_entity_dict is not None:
-                raise ValueError(
-                    "path_entity_dict cannot be specified when loading "
-                    "a snapshot."
-                )
-
-            # Specify the default paths for the resources in the snapshot
-            path_model = path_snapshot + "/model"
-            config = path_snapshot + "/config"
-            vocab_relation = path_snapshot + "/relations.vocab.txt"
-            path_entity_dict = path_snapshot + "/entity_dict.json"
 
         # Load the configuration
         if isinstance(config, str):
@@ -155,14 +173,6 @@ class MAATLOP:
         # logger.info("Model parameters:")
         # for name, param in self.model.named_parameters():
         #     logger.info(f"{name}: {tuple(param.shape)}")
-
-        # Load trained model parameters
-        if path_snapshot is not None:
-            self.model.load_state_dict(
-                torch.load(path_model, map_location=torch.device("cpu")),
-                strict=False
-            )
-            logger.info(f"Loaded model parameters from {path_model}")
 
         # Move the model to the specified device
         self.model.to(self.model.device)
