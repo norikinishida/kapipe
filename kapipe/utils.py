@@ -104,10 +104,10 @@ def get_hocon_config(
     return config
 
 
-def dump_hocon_config(path_out: str, config: ConfigTree) -> None:
+def dump_hocon_config(path: str, config: ConfigTree) -> None:
     """Write a HOCON configuration."""
 
-    with open(path_out, "w") as f:
+    with open(path, "w") as f:
         f.write(HOCONConverter.to_hocon(config) + "\n")
 
 

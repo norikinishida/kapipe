@@ -46,7 +46,7 @@ class MAATLOP:
     ) -> "MAATLOP":
 
         # Resolve the public identifier to the corresponding local snapshot
-        path_snapshot = resolve_snapshot_path(
+        snapshot_path = resolve_snapshot_path(
             component_name="docre",
             method_name="ma_atlop",
             identifier=identifier,
@@ -54,7 +54,7 @@ class MAATLOP:
 
         # Load the extractor from the resolved snapshot
         extractor = cls.from_snapshot(
-            path_snapshot=path_snapshot,
+            snapshot_path=snapshot_path,
             device=device,
         )
 
@@ -66,33 +66,33 @@ class MAATLOP:
     @classmethod
     def from_snapshot(
         cls,
-        path_snapshot: str,
+        snapshot_path: str,
         device: str = "cuda",
     ) -> "MAATLOP":
 
         # Define the default paths for the resources in the snapshot
-        path_model = path_snapshot + "/model"
-        path_config = path_snapshot + "/config"
-        path_vocab = path_snapshot + "/relations.vocab.txt"
-        path_entity_dict = path_snapshot + "/entity_dict.json"
+        model_path = snapshot_path + "/model"
+        config_path = snapshot_path + "/config"
+        vocab_path = snapshot_path + "/relations.vocab.txt"
+        entity_dict_path = snapshot_path + "/entity_dict.json"
 
         # Initialize the extractor from explicit snapshot resources
         extractor = cls(
-            config=path_config,
-            vocab_relation=path_vocab,
-            path_entity_dict=path_entity_dict,
+            config=config_path,
+            vocab_relation=vocab_path,
+            entity_dict_path=entity_dict_path,
             device=device,
         )
 
         # Store the snapshot path for later inspection
-        extractor.path_snapshot = path_snapshot
+        extractor.snapshot_path = snapshot_path
 
         # Load trained model parameters from the snapshot
         extractor.model.load_state_dict(
-            torch.load(path_model, map_location=torch.device("cpu")),
+            torch.load(model_path, map_location=torch.device("cpu")),
             strict=False
         )
-        logger.info(f"Loaded model parameters from {path_model}")
+        logger.info(f"Loaded model parameters from {model_path}")
 
         # Move the model again after loading parameters
         extractor.model.to(extractor.model.device)
@@ -103,7 +103,7 @@ class MAATLOP:
         self,
         config: Config | str | None = None,
         vocab_relation: dict[str, int] | str | None = None,
-        path_entity_dict: str | None = None,
+        entity_dict_path: str | None = None,
         # Misc.
         device: str = "cuda",
     ):
@@ -129,14 +129,14 @@ class MAATLOP:
         }
 
         # Load the entity dictionary
-        logger.info(f"Loading entity dictionary from {path_entity_dict}")
+        logger.info(f"Loading entity dictionary from {entity_dict_path}")
         self.entity_dict = {
             epage["entity_id"]: epage
-            for epage in utils.read_json(path_entity_dict)
+            for epage in utils.read_json(entity_dict_path)
         }
         logger.info(
             "Completed loading of entity dictionary with "
-            f"{len(self.entity_dict)} entities from {path_entity_dict}"
+            f"{len(self.entity_dict)} entities from {entity_dict_path}"
         )        
 
         # Store the knowledge-base entity identifiers
@@ -179,7 +179,7 @@ class MAATLOP:
 
         logger.info("########## MAATLOP Initialization Ends ##########")
 
-    # def load_model(self, path_model: str) -> None:
+    # def load_model(self, model_path: str) -> None:
     #     if ignored_names is None:
     #         self.model.load_state_dict(
     #             torch.load(path, map_location=torch.device("cpu")),
@@ -196,25 +196,25 @@ class MAATLOP:
 
     def save(
         self,
-        path_snapshot: str,
+        snapshot_path: str,
         model_only: bool = False
     ) -> None:
         """Save the model parameters, configuration, relation vocabulary, and entity dictionary."""
 
-        path_model = path_snapshot + "/model"
-        path_config = path_snapshot + "/config"
-        path_vocab = path_snapshot + "/relations.vocab.txt"
-        path_entity_dict = path_snapshot + "/entity_dict.json"
+        model_path = snapshot_path + "/model"
+        config_path = snapshot_path + "/config"
+        vocab_path = snapshot_path + "/relations.vocab.txt"
+        entity_dict_path = snapshot_path + "/entity_dict.json"
 
-        torch.save(self.model.state_dict(), path_model)
+        torch.save(self.model.state_dict(), model_path)
         if not model_only:
-            utils.write_json(path_config, self.config)
+            utils.write_json(config_path, self.config)
             utils.write_vocab(
-                path_vocab,
+                vocab_path,
                 self.vocab_relation,
                 write_frequency=False
             )
-            utils.write_json(path_entity_dict, self.entity_dict)
+            utils.write_json(entity_dict_path, self.entity_dict)
 
     def compute_loss(self, document: Document) -> (
         tuple[torch.Tensor, torch.Tensor, int, int, torch.Tensor, int]
@@ -462,22 +462,22 @@ class MAATLOPTrainer:
         paths = {}
 
         # configurations
-        paths["path_snapshot"] = self.base_output_path
+        paths["snapshot_path"] = self.base_output_path
 
         # training outputs
-        paths["path_train_losses"] = self.base_output_path + "/train.losses.jsonl"
-        paths["path_dev_evals"] = self.base_output_path + "/dev.eval.jsonl"
+        paths["train_losses_path"] = self.base_output_path + "/train.losses.jsonl"
+        paths["dev_evals_path"] = self.base_output_path + "/dev.eval.jsonl"
 
         # evaluation outputs
-        paths["path_dev_gold"] = self.base_output_path + "/dev.gold.json"
-        paths["path_dev_pred"] = self.base_output_path + "/dev.pred.json"
-        paths["path_dev_eval"] = self.base_output_path + "/dev.eval.json"
-        paths["path_test_gold"] = self.base_output_path + "/test.gold.json"
-        paths["path_test_pred"] = self.base_output_path + "/test.pred.json"
-        paths["path_test_eval"] = self.base_output_path + "/test.eval.json"
+        paths["dev_gold_path"] = self.base_output_path + "/dev.gold.json"
+        paths["dev_pred_path"] = self.base_output_path + "/dev.pred.json"
+        paths["dev_eval_path"] = self.base_output_path + "/dev.eval.json"
+        paths["test_gold_path"] = self.base_output_path + "/test.gold.json"
+        paths["test_pred_path"] = self.base_output_path + "/test.pred.json"
+        paths["test_eval_path"] = self.base_output_path + "/test.eval.json"
 
         # required for Ign evaluation
-        paths["path_gold_train_triples"] = self.base_output_path + "/gold_train_triples.json"
+        paths["gold_train_triples_path"] = self.base_output_path + "/gold_train_triples.json"
 
         return paths
 
@@ -490,7 +490,7 @@ class MAATLOPTrainer:
     ) -> None:
         if split == "train":
             # Cache the gold training triples for Ign evaluation
-            if not os.path.exists(self.paths["path_gold_train_triples"]):
+            if not os.path.exists(self.paths["gold_train_triples_path"]):
                 gold_train_triples = []
                 for document in tqdm(documents, desc="dataset setup"):
                     mentions = document["mentions"]
@@ -521,21 +521,21 @@ class MAATLOPTrainer:
                 gold_train_triples = list(set(gold_train_triples))
                 gold_train_triples = {"root": gold_train_triples}
                 utils.write_json(
-                    self.paths["path_gold_train_triples"],
+                    self.paths["gold_train_triples_path"],
                     gold_train_triples
                 )
-                logger.info(f"Saved the gold training triples for Ign evaluation in {self.paths['path_gold_train_triples']}")
+                logger.info(f"Saved the gold training triples for Ign evaluation in {self.paths['gold_train_triples_path']}")
 
         # Cache the gold annotations for evaluation
         if split != "train" and with_gold_annotations:
-            path_gold = self.paths[f"path_{split}_gold"]
-            if not os.path.exists(path_gold):
+            gold_path = self.paths[f"{split}_gold_path"]
+            if not os.path.exists(gold_path):
                 gold_documents = []
                 for document in tqdm(documents, desc="dataset setup"):
                     gold_doc = copy.deepcopy(document)
                     gold_documents.append(gold_doc)
-                utils.write_json(path_gold, gold_documents)
-                logger.info(f"Saved the gold annotations for evaluation in {path_gold}")
+                utils.write_json(gold_path, gold_documents)
+                logger.info(f"Saved the gold annotations for evaluation in {gold_path}")
 
     def train(
         self,
@@ -575,11 +575,11 @@ class MAATLOPTrainer:
         )
 
         writer_train = jsonlines.Writer(
-            open(self.paths["path_train_losses"], "w"),
+            open(self.paths["train_losses_path"], "w"),
             flush=True
         )
         writer_dev = jsonlines.Writer(
-            open(self.paths["path_dev_evals"], "w"),
+            open(self.paths["dev_evals_path"], "w"),
             flush=True
         )
 
@@ -619,8 +619,8 @@ class MAATLOPTrainer:
         bestscore_holder.compare_scores(scores["standard"]["f1"], 0)
 
         # Save
-        extractor.save(path_snapshot=self.paths["path_snapshot"])
-        logger.info(f"Saved config, relation vocabulary, entity dictionary, and model to {self.paths['path_snapshot']}")
+        extractor.save(snapshot_path=self.paths["snapshot_path"])
+        logger.info(f"Saved config, relation vocabulary, entity dictionary, and model to {self.paths['snapshot_path']}")
 
         ##################
         # Training Loop
@@ -827,10 +827,10 @@ class MAATLOPTrainer:
                     # Save the model
                     if did_update:
                         extractor.save(
-                            path_snapshot=self.paths["path_snapshot"],
+                            snapshot_path=self.paths["snapshot_path"],
                             model_only=True
                         )
-                        logger.info(f"Saved model to {self.paths['path_snapshot']}")
+                        logger.info(f"Saved model to {self.paths['snapshot_path']}")
 
                     ##################
                     # Termination Check
@@ -863,27 +863,26 @@ class MAATLOPTrainer:
     ) -> dict[str, Any] | None:
         # Apply the extractor
         result_documents = extractor.batch_extract(documents=documents)
-        utils.write_json(self.paths[f"path_{split}_pred"], result_documents)
+        utils.write_json(self.paths[f"{split}_pred_path"], result_documents)
     
         if prediction_only:
             return
 
         # Calculate the evaluation scores
-        # path_gold_documents = supplemental_info["path_gold_documents"][split]
         scores = evaluation.docre.fscore(
-            pred_path=self.paths[f"path_{split}_pred"],
-            gold_path=self.paths[f"path_{split}_gold"],
+            pred_path=self.paths[f"{split}_pred_path"],
+            gold_path=self.paths[f"{split}_gold_path"],
             skip_intra_inter=skip_intra_inter,
             skip_ign=skip_ign,
-            # gold_documents_path=path_gold_documents,
-            gold_train_triples_path=self.paths["path_gold_train_triples"]
+            # gold_documents_path=gold_documents_path,
+            gold_train_triples_path=self.paths["gold_train_triples_path"]
         )
 
         if get_scores_only:
             return scores
 
         # Save the evalution scores
-        utils.write_json(self.paths[f"path_{split}_eval"], scores)
+        utils.write_json(self.paths[f"{split}_eval_path"], scores)
         logger.info(utils.pretty_format_dict(scores))
         return scores
 
@@ -899,12 +898,12 @@ class MAATLOPTrainer:
     ) -> dict[str, Any] | None:
         # Apply the extractor
         result_documents = extractor.batch_extract(documents=documents)
-        utils.write_json(self.paths[f"path_{split}_pred"], result_documents)
+        utils.write_json(self.paths[f"{split}_pred_path"], result_documents)
         triples = evaluation.docre.to_official(
-            path_input=self.paths[f"path_{split}_pred"],
-            path_output=self.paths[
-                f"path_{split}_pred"
-            ].replace(".json", ".official.json")
+            input_path=self.paths[f"{split}_pred_path"],
+            output_path=(
+                self.paths[f"{split}_pred_path"].replace(".json", ".official.json")
+            )
         )
 
         if prediction_only:
@@ -925,7 +924,7 @@ class MAATLOPTrainer:
             return scores
 
         # Save the evaluation scores
-        utils.write_json(self.paths[f"path_{split}_eval"], scores)
+        utils.write_json(self.paths[f"{split}_eval_path"], scores)
         logger.info(utils.pretty_format_dict(scores))
         return scores
 

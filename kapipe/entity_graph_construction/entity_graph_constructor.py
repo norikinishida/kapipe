@@ -19,9 +19,9 @@ class EntityGraphConstructor:
     
     def construct_entity_graph(
         self,
-        path_documents_list: list[str] | None,
-        path_entity_dict: str | None,
-        path_additional_triples: str | None = None,
+        documents_paths: list[str] | None,
+        entity_dict_path: str | None,
+        additional_triples_path: str | None = None,
         excluded_filenames: list[str] | None = None
     ) -> nx.MultiDiGraph:
         """Construct a directed, multi-edge graph from the provided documents and entity dictionary."""
@@ -32,8 +32,8 @@ class EntityGraphConstructor:
         # Load the entity dictionary (if provided).
         # Entity dictionary is a mapping from an entity ID (str) to the corresponding
         # entity page.
-        if path_entity_dict is not None:
-            entity_dict = utils.read_json(path_entity_dict)
+        if entity_dict_path is not None:
+            entity_dict = utils.read_json(entity_dict_path)
             entity_dict = {epage["entity_id"]: epage for epage in entity_dict}
             logger.info(f"Loaded entity dictionary with {len(entity_dict)} entries.")
         else:
@@ -46,9 +46,9 @@ class EntityGraphConstructor:
         graph = nx.MultiDiGraph()
 
         # Add triples from external file if provided
-        if path_additional_triples is not None:
+        if additional_triples_path is not None:
             # Load the additional triples
-            triples = utils.read_json(path_additional_triples)
+            triples = utils.read_json(additional_triples_path)
             for triple in tqdm(triples, desc="Adding additional triples"):
                 # Add the single triple to the graph
                 self._add_triple_to_graph(
@@ -59,16 +59,16 @@ class EntityGraphConstructor:
                 )
 
         # Add triples from documents
-        if path_documents_list is None:
-            path_documents_list = []
-        for path_documents in path_documents_list:
+        if documents_paths is None:
+            documents_paths = []
+        for documents_path in documents_paths:
             # Load the documents
-            documents = utils.read_json(path_documents)
+            documents = utils.read_json(documents_path)
             logger.info(
-                f"Loading triples from {len(documents)} documents in {path_documents}"
+                f"Loading triples from {len(documents)} documents in {documents_path}"
             )
 
-            for document in tqdm(documents, f"Processing {path_documents}"):
+            for document in tqdm(documents, f"Processing {documents_path}"):
                 # Get the associated triples from the document
                 doc_key = document["doc_key"]
                 triples = document["relations"]

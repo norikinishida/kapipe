@@ -42,7 +42,7 @@ class LLMED:
     ) -> "LLMED":
 
         # Resolve the public identifier to the corresponding local snapshot
-        path_snapshot = resolve_snapshot_path(
+        snapshot_path = resolve_snapshot_path(
             component_name="ed_reranking",
             method_name="llm_ed",
             identifier=identifier,
@@ -51,7 +51,7 @@ class LLMED:
         # Load the reranker from the resolved snapshot
         reranker = cls.from_snapshot(
             model=model,
-            path_snapshot=path_snapshot,
+            snapshot_path=snapshot_path,
         )
 
         # Store the public identifier for later inspection
@@ -63,28 +63,28 @@ class LLMED:
     def from_snapshot(
         cls,
         model: HuggingFaceLLM | OpenAILLM,
-        path_snapshot: str,
+        snapshot_path: str,
     ) -> "LLMED":
 
         # Define the default paths for the resources in the snapshot
-        path_config = path_snapshot + "/config"
-        path_entity_dict = path_snapshot + "/entity_dict.json"
-        path_demonstration_documents = (
-            path_snapshot + "/demonstration_documents.json"
+        config_path = snapshot_path + "/config"
+        entity_dict_path = snapshot_path + "/entity_dict.json"
+        demonstration_documents_path = (
+            snapshot_path + "/demonstration_documents.json"
         )
-        path_demonstration_candidate_entities = (
-            path_snapshot + "/demonstration_candidate_entities.json"
+        demonstration_candidate_entities_path = (
+            snapshot_path + "/demonstration_candidate_entities.json"
         )
 
         # Use an empty list of demonstrations if the snapshot does not contain 
         # any demonstration documents.
-        if os.path.exists(path_demonstration_documents):
-            demonstration_documents = path_demonstration_documents
+        if os.path.exists(demonstration_documents_path):
+            demonstration_documents = demonstration_documents_path
         else:
             demonstration_documents = []
-        if os.path.exists(path_demonstration_candidate_entities):
+        if os.path.exists(demonstration_candidate_entities_path):
             demonstration_candidate_entities = (
-                path_demonstration_candidate_entities
+                demonstration_candidate_entities_path
             )
         else:
             demonstration_candidate_entities = []
@@ -92,14 +92,14 @@ class LLMED:
         # Initialize the reranker from explicit snapshot resources
         reranker = cls(
             model=model,
-            config=path_config,
-            path_entity_dict=path_entity_dict,
+            config=config_path,
+            entity_dict_path=entity_dict_path,
             demonstration_documents=demonstration_documents,
             demonstration_candidate_entities=demonstration_candidate_entities,
         )
 
         # Store the snapshot path for later inspection
-        reranker.path_snapshot = path_snapshot
+        reranker.snapshot_path = snapshot_path
 
         return reranker
 
@@ -107,7 +107,7 @@ class LLMED:
         self,
         model: HuggingFaceLLM | OpenAILLM,
         config: Config | str | None = None,
-        path_entity_dict: str | None = None,
+        entity_dict_path: str | None = None,
         demonstration_documents: list[Document] | str | None = None,
         demonstration_candidate_entities: (
             list[CandidateEntitiesForDocument] | str | None
@@ -126,20 +126,20 @@ class LLMED:
         logger.info(utils.pretty_format_dict(self.config))
 
         # Load the entity dictionary
-        logger.info(f"Loading entity dictionary from {path_entity_dict}")
+        logger.info(f"Loading entity dictionary from {entity_dict_path}")
         self.entity_dict = {
             epage["entity_id"]: epage
-            for epage in utils.read_json(path_entity_dict)
+            for epage in utils.read_json(entity_dict_path)
         }
-        logger.info(f"Completed loading of entity dictionary with {len(self.entity_dict)} entities from {path_entity_dict}")
+        logger.info(f"Completed loading of entity dictionary with {len(self.entity_dict)} entities from {entity_dict_path}")
 
         # Load the demonstration documents
         if isinstance(demonstration_documents, str):
-            path_demonstration_documents = demonstration_documents
-            demonstration_documents = utils.read_json(path_demonstration_documents)
+            demonstration_documents_path = demonstration_documents
+            demonstration_documents = utils.read_json(demonstration_documents_path)
             logger.info(
                 f"Loaded {len(demonstration_documents)} demonstration documents "
-                f"from {path_demonstration_documents}"
+                f"from {demonstration_documents_path}"
             )
         elif demonstration_documents is None:
             # Use an empty list for zero-shot setting
@@ -148,15 +148,15 @@ class LLMED:
 
         # Load demonstration candidate entities
         if isinstance(demonstration_candidate_entities, str):
-            path_demonstration_candidate_entities = demonstration_candidate_entities
+            demonstration_candidate_entities_path = demonstration_candidate_entities
             demonstration_candidate_entities = utils.read_json(
-                path_demonstration_candidate_entities
+                demonstration_candidate_entities_path
             )
             logger.info(
                 "Loaded "
                 f"{len(demonstration_candidate_entities)} "
                 "demonstration candidate-entity records "
-                f"from {path_demonstration_candidate_entities}"
+                f"from {demonstration_candidate_entities_path}"
             )
         elif demonstration_candidate_entities is None:
             # Use an empty list for zero-shot setting
@@ -194,30 +194,30 @@ class LLMED:
         #
         #     - [mention text] | [entity ID]
         #
-        self.re_comp = re.compile("(.+?)\s*(.+?)\s*\|\s*(.+?)$")
+        self.re_comp = re.compile(r"(.+?)\s*(.+?)\s*\|\s*(.+?)$")
 
         logger.info("########## LLMED Initialization Ends ##########")
 
-    def save(self, path_snapshot: str) -> None:
+    def save(self, snapshot_path: str) -> None:
         """Save the configuration, entity dictionary, demonstration documents, and demonstration candidate entities to a snapshot directory."""
 
-        path_config = path_snapshot + "/config"
-        path_entity_dict = path_snapshot + "/entity_dict.json"
-        path_demonstration_documents = (
-            path_snapshot + "/demonstration_documents.json"
+        config_path = snapshot_path + "/config"
+        entity_dict_path = snapshot_path + "/entity_dict.json"
+        demonstration_documents_path = (
+            snapshot_path + "/demonstration_documents.json"
         )
-        path_demonstration_candidate_entities = (
-            path_snapshot + "/demonstration_candidate_entities.json"
+        demonstration_candidate_entities_path = (
+            snapshot_path + "/demonstration_candidate_entities.json"
         )
 
-        utils.write_json(path_config, self.config)
-        utils.write_json(path_entity_dict, list(self.entity_dict.values()))
+        utils.write_json(config_path, self.config)
+        utils.write_json(entity_dict_path, list(self.entity_dict.values()))
         utils.write_json(
-            path_demonstration_documents,
+            demonstration_documents_path,
             self.demonstration_documents
         )
         utils.write_json(
-            path_demonstration_candidate_entities,
+            demonstration_candidate_entities_path,
             self.demonstration_candidate_entities
         )
 
@@ -751,15 +751,15 @@ class LLMEDTrainer:
         paths = {}
 
         # configurations
-        paths["path_snapshot"] = self.base_output_path
+        paths["snapshot_path"] = self.base_output_path
 
         # evaluation outputs
-        paths["path_dev_gold"] = self.base_output_path + "/dev.gold.json"
-        paths["path_dev_pred"] = self.base_output_path + "/dev.pred.json"
-        paths["path_dev_eval"] = self.base_output_path + "/dev.eval.json"
-        paths["path_test_gold"] = self.base_output_path + "/test.gold.json"
-        paths["path_test_pred"] = self.base_output_path + "/test.pred.json"
-        paths["path_test_eval"] = self.base_output_path + "/test.eval.json"
+        paths["dev_gold_path"] = self.base_output_path + "/dev.gold.json"
+        paths["dev_pred_path"] = self.base_output_path + "/dev.pred.json"
+        paths["dev_eval_path"] = self.base_output_path + "/dev.eval.json"
+        paths["test_gold_path"] = self.base_output_path + "/test.gold.json"
+        paths["test_pred_path"] = self.base_output_path + "/test.pred.json"
+        paths["test_eval_path"] = self.base_output_path + "/test.eval.json"
 
         return paths
 
@@ -771,8 +771,8 @@ class LLMEDTrainer:
         split: str
     ) -> None:
         # Cache the gold annotations for evaluation
-        path_gold = self.paths[f"path_{split}_gold"]
-        if not os.path.exists(path_gold):
+        gold_path = self.paths[f"{split}_gold_path"]
+        if not os.path.exists(gold_path):
             kb_entity_ids = set(list(reranker.prompt_processor.entity_dict.keys()))
             gold_documents = []
             for document, candidate_entities_for_doc in tqdm(
@@ -796,11 +796,11 @@ class LLMEDTrainer:
                     gold_doc["mentions"][m_i]["in_kb"] = in_kb
                     gold_doc["mentions"][m_i]["in_cand"] = in_cand
                 gold_documents.append(gold_doc)
-            utils.write_json(path_gold, gold_documents)
-            logger.info(f"Saved the gold annotations for evaluation in {path_gold}")
+            utils.write_json(gold_path, gold_documents)
+            logger.info(f"Saved the gold annotations for evaluation in {gold_path}")
 
     def save_reranker(self, reranker: LLMED) -> None:
-        reranker.save(path_snapshot=self.paths["path_snapshot"])
+        reranker.save(snapshot_path=self.paths["snapshot_path"])
 
     def evaluate(
         self,
@@ -821,11 +821,11 @@ class LLMEDTrainer:
         )
 
         # Save the prediction results
-        utils.write_json(self.paths[f"path_{split}_pred"], result_documents)
+        utils.write_json(self.paths[f"{split}_pred_path"], result_documents)
 
         # Save the prompt-response pairs in plain text
         with open(
-            self.paths[f"path_{split}_pred"].replace(".json", ".txt"), "w"
+            self.paths[f"{split}_pred_path"].replace(".json", ".txt"), "w"
         ) as f:
             for result_doc in result_documents:
                 doc_key = result_doc["doc_key"]
@@ -844,13 +844,13 @@ class LLMEDTrainer:
 
         # Calculate the evaluation scores
         scores = evaluation.ed.accuracy(
-            pred_path=self.paths[f"path_{split}_pred"],
-            gold_path=self.paths[f"path_{split}_gold"],
+            pred_path=self.paths[f"{split}_pred_path"],
+            gold_path=self.paths[f"{split}_gold_path"],
             inkb=True
         )
         scores.update(evaluation.ed.fscore(
-            pred_path=self.paths[f"path_{split}_pred"],
-            gold_path=self.paths[f"path_{split}_gold"],
+            pred_path=self.paths[f"{split}_pred_path"],
+            gold_path=self.paths[f"{split}_gold_path"],
             inkb=True
         ))
 
@@ -858,6 +858,6 @@ class LLMEDTrainer:
             return scores
 
         # Save the evaluation scores
-        utils.write_json(self.paths[f"path_{split}_eval"], scores)
+        utils.write_json(self.paths[f"{split}_eval_path"], scores)
         logger.info(utils.pretty_format_dict(scores))
         return scores

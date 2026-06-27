@@ -56,7 +56,7 @@ class BlinkBiEncoder:
     ) -> "BlinkBiEncoder":
 
         # Resolve the public identifier to the corresponding local snapshot
-        path_snapshot = resolve_snapshot_path(
+        snapshot_path = resolve_snapshot_path(
             component_name="ed_retrieval",
             method_name="blink_bi_encoder",
             identifier=identifier,
@@ -64,7 +64,7 @@ class BlinkBiEncoder:
 
         # Load the retriever from the resolved snapshot
         retriever = cls.from_snapshot(
-            path_snapshot=path_snapshot,
+            snapshot_path=snapshot_path,
             device=device,
         )
 
@@ -76,36 +76,36 @@ class BlinkBiEncoder:
     @classmethod
     def from_snapshot(
         cls,
-        path_snapshot: str,
+        snapshot_path: str,
         device: str = "cuda",
     ) -> "BlinkBiEncoder":
 
         # Define the default paths for the resources in the snapshot
-        path_model = path_snapshot + "/model"
-        path_config = path_snapshot + "/config"
-        path_entity_dict = path_snapshot + "/entity_dict.json"
-        path_entity_vectors = path_snapshot + "/entity_vectors.npy"
+        model_path = snapshot_path + "/model"
+        config_path = snapshot_path + "/config"
+        entity_dict_path = snapshot_path + "/entity_dict.json"
+        entity_vectors_path = snapshot_path + "/entity_vectors.npy"
 
         # Initialize the retriever from explicit snapshot resources
         retriever = cls(
-            config=path_config,
-            path_entity_dict=path_entity_dict,
+            config=config_path,
+            entity_dict_path=entity_dict_path,
             device=device,
         )
 
         # Store the snapshot path for later inspection
-        retriever.path_snapshot = path_snapshot
+        retriever.snapshot_path = snapshot_path
 
         # Load trained model parameters from the snapshot
         retriever.model.load_state_dict(
-            torch.load(path_model, map_location=torch.device("cpu")),
+            torch.load(model_path, map_location=torch.device("cpu")),
             strict=False
         )
-        logger.info(f"Loaded model parameters from {path_model}")
+        logger.info(f"Loaded model parameters from {model_path}")
 
         # Load precomputed entity vectors from the snapshot
-        retriever.precomputed_entity_vectors = np.load(path_entity_vectors)
-        logger.info(f"Loaded precomputed entity vectors from {path_entity_vectors}")
+        retriever.precomputed_entity_vectors = np.load(entity_vectors_path)
+        logger.info(f"Loaded precomputed entity vectors from {entity_vectors_path}")
 
         # Move the model again after loading parameters
         retriever.model.to(retriever.model.device)
@@ -115,7 +115,7 @@ class BlinkBiEncoder:
     def __init__(
         self,
         config: Config | str | None = None,
-        path_entity_dict: str | None = None,
+        entity_dict_path: str | None = None,
         # Misc.
         device: str = "cuda",
     ):
@@ -130,14 +130,14 @@ class BlinkBiEncoder:
         logger.info(utils.pretty_format_dict(self.config))
 
        # Load the entity dictionary
-        logger.info(f"Loading entity dictionary from {path_entity_dict}")
+        logger.info(f"Loading entity dictionary from {entity_dict_path}")
         self.entity_dict = {
             epage["entity_id"]: epage
-            for epage in utils.read_json(path_entity_dict)
+            for epage in utils.read_json(entity_dict_path)
         }
         logger.info(
             "Completed loading of entity dictionary with "
-            f"{len(self.entity_dict)} entities from {path_entity_dict}"
+            f"{len(self.entity_dict)} entities from {entity_dict_path}"
         )
 
         # Initialize the model
@@ -169,19 +169,19 @@ class BlinkBiEncoder:
 
         logger.info("########## BlinkBiEncoder Initialization Ends ##########")
 
-    def save(self, path_snapshot: str, model_only: bool = False) -> None:
+    def save(self, snapshot_path: str, model_only: bool = False) -> None:
         """Save the model, configuration, entity dictionary, and precomputed entity vectors."""
 
-        path_model = path_snapshot + "/model"
-        path_config = path_snapshot + "/config"
-        path_entity_dict = path_snapshot + "/entity_dict.json"
-        path_entity_vectors = path_snapshot + "/entity_vectors.npy"
+        model_path = snapshot_path + "/model"
+        config_path = snapshot_path + "/config"
+        entity_dict_path = snapshot_path + "/entity_dict.json"
+        entity_vectors_path = snapshot_path + "/entity_vectors.npy"
 
-        torch.save(self.model.state_dict(), path_model)
+        torch.save(self.model.state_dict(), model_path)
         if not model_only:
-            utils.write_json(path_config, self.config)
-            utils.write_json(path_entity_dict, list(self.entity_dict.values()))
-        np.save(path_entity_vectors, self.precomputed_entity_vectors)
+            utils.write_json(config_path, self.config)
+            utils.write_json(entity_dict_path, list(self.entity_dict.values()))
+        np.save(entity_vectors_path, self.precomputed_entity_vectors)
 
     def compute_loss(
         self,
@@ -452,22 +452,22 @@ class BlinkBiEncoderTrainer:
     def get_paths(self) -> dict[str, str]:
         return {
             # configurations
-            "path_snapshot": self.base_output_path,
+            "snapshot_path": self.base_output_path,
             # training outputs
-            "path_train_losses": f"{self.base_output_path}/train.losses.jsonl",
-            "path_dev_evals": f"{self.base_output_path}/dev.eval.jsonl",
+            "train_losses_path": f"{self.base_output_path}/train.losses.jsonl",
+            "dev_evals_path": f"{self.base_output_path}/dev.eval.jsonl",
             # evaluation outputs
-            "path_dev_gold": f"{self.base_output_path}/dev.gold.json",
-            "path_dev_pred": f"{self.base_output_path}/dev.pred.json",
-            "path_dev_pred_retrieval": f"{self.base_output_path}/dev.pred_candidate_entities.json",
-            "path_dev_eval": f"{self.base_output_path}/dev.eval.json",
-            "path_test_gold": f"{self.base_output_path}/test.gold.json",
-            "path_test_pred": f"{self.base_output_path}/test.pred.json",
-            "path_test_pred_retrieval": f"{self.base_output_path}/test.pred_candidate_entities.json",
-            "path_test_eval": f"{self.base_output_path}/test.eval.json",
+            "dev_gold_path": f"{self.base_output_path}/dev.gold.json",
+            "dev_pred_path": f"{self.base_output_path}/dev.pred.json",
+            "dev_pred_retrieval_path": f"{self.base_output_path}/dev.pred_candidate_entities.json",
+            "dev_eval_path": f"{self.base_output_path}/dev.eval.json",
+            "test_gold_path": f"{self.base_output_path}/test.gold.json",
+            "test_pred_path": f"{self.base_output_path}/test.pred.json",
+            "test_pred_retrieval_path": f"{self.base_output_path}/test.pred_candidate_entities.json",
+            "test_eval_path": f"{self.base_output_path}/test.eval.json",
             # For the reranking-model training in the later stage, we need to annotate candidate entities also for the training set
-            "path_train_pred": f"{self.base_output_path}/train.pred.json",
-            "path_train_pred_retrieval": f"{self.base_output_path}/train.pred_candidate_entities.json",
+            "train_pred_path": f"{self.base_output_path}/train.pred.json",
+            "train_pred_retrieval_path": f"{self.base_output_path}/train.pred_candidate_entities.json",
         }
 
     def setup_dataset(
@@ -477,8 +477,8 @@ class BlinkBiEncoderTrainer:
         split: str
     ) -> None:
         # Cache the gold annotations for evaluation
-        path_gold = self.paths[f"path_{split}_gold"]
-        if not os.path.exists(path_gold):
+        gold_path = self.paths[f"{split}_gold_path"]
+        if not os.path.exists(gold_path):
             # Extract all concepts from the entity dictionary
             kb_entity_ids = set(list(retriever.entity_dict.keys()))
             gold_documents = []
@@ -489,8 +489,8 @@ class BlinkBiEncoderTrainer:
                     in_kb = mention["entity_id"] in kb_entity_ids
                     gold_doc["mentions"][m_i]["in_kb"] = in_kb
                 gold_documents.append(gold_doc)
-            utils.write_json(path_gold, gold_documents)
-            logger.info(f"Saved the gold annotations for evaluation in {path_gold}")
+            utils.write_json(gold_path, gold_documents)
+            logger.info(f"Saved the gold annotations for evaluation in {gold_path}")
 
     def train(
         self,
@@ -529,11 +529,11 @@ class BlinkBiEncoderTrainer:
         )
 
         writer_train = jsonlines.Writer(
-            open(self.paths["path_train_losses"], "w"),
+            open(self.paths["train_losses_path"], "w"),
             flush=True
         )
         writer_dev = jsonlines.Writer(
-            open(self.paths["path_dev_evals"], "w"),
+            open(self.paths["dev_evals_path"], "w"),
             flush=True
         )
 
@@ -563,8 +563,8 @@ class BlinkBiEncoderTrainer:
         bestscore_holder.compare_scores(scores["inkb_accuracy"]["accuracy"], 0)
 
         # Save
-        retriever.save(path_snapshot=self.paths["path_snapshot"])
-        logger.info(f"Saved config, entity dictionary, model, and entity vectors to {self.paths['path_snapshot']}")
+        retriever.save(snapshot_path=self.paths["snapshot_path"])
+        logger.info(f"Saved config, entity dictionary, model, and entity vectors to {self.paths['snapshot_path']}")
 
         ##################
         # Training Loop
@@ -733,10 +733,10 @@ class BlinkBiEncoderTrainer:
                     # Save the model
                     if did_update:
                         retriever.save(
-                            path_snapshot=self.paths["path_snapshot"],
+                            snapshot_path=self.paths["snapshot_path"],
                             model_only=True
                         )
-                        logger.info(f"Saved model and entity vectors to {self.paths['path_snapshot']}")
+                        logger.info(f"Saved model and entity vectors to {self.paths['snapshot_path']}")
 
                     ##################
                     # Termination Check
@@ -766,9 +766,9 @@ class BlinkBiEncoderTrainer:
             documents=documents,
             retrieval_size=retriever.config["retrieval_size"]
         )
-        utils.write_json(self.paths[f"path_{split}_pred"], result_documents)
+        utils.write_json(self.paths[f"{split}_pred_path"], result_documents)
         utils.write_json(
-            self.paths[f"path_{split}_pred_retrieval"],
+            self.paths[f"{split}_pred_retrieval_path"],
             candidate_entities
         )
 
@@ -777,20 +777,20 @@ class BlinkBiEncoderTrainer:
 
         # Calculate the evaluation scores
         scores = evaluation.ed.accuracy(
-            pred_path=self.paths[f"path_{split}_pred"],
-            gold_path=self.paths[f"path_{split}_gold"],
+            pred_path=self.paths[f"{split}_pred_path"],
+            gold_path=self.paths[f"{split}_gold_path"],
             inkb=True,
             skip_normalization=True
         )
         scores.update(evaluation.ed.fscore(
-            pred_path=self.paths[f"path_{split}_pred"],
-            gold_path=self.paths[f"path_{split}_gold"],
+            pred_path=self.paths[f"{split}_pred_path"],
+            gold_path=self.paths[f"{split}_gold_path"],
             inkb=True,
             skip_normalization=True
         ))
         scores.update(evaluation.ed.recall_at_k(
-            pred_path=self.paths[f"path_{split}_pred_retrieval"],
-            gold_path=self.paths[f"path_{split}_gold"],
+            pred_path=self.paths[f"{split}_pred_retrieval_path"],
+            gold_path=self.paths[f"{split}_gold_path"],
             inkb=True
         ))
 
@@ -798,7 +798,7 @@ class BlinkBiEncoderTrainer:
             return scores
 
         # Save the evaluation scores
-        utils.write_json(self.paths[f"path_{split}_eval"], scores)
+        utils.write_json(self.paths[f"{split}_eval_path"], scores)
         logger.info(utils.pretty_format_dict(scores))
         return scores
 

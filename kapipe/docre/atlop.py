@@ -47,7 +47,7 @@ class ATLOP:
     ) -> "ATLOP":
 
         # Resolve the public identifier to the corresponding local snapshot
-        path_snapshot = resolve_snapshot_path(
+        snapshot_path = resolve_snapshot_path(
             component_name="docre",
             method_name="atlop",
             identifier=identifier,
@@ -55,7 +55,7 @@ class ATLOP:
 
         # Load the extractor from the resolved snapshot
         extractor = cls.from_snapshot(
-            path_snapshot=path_snapshot,
+            snapshot_path=snapshot_path,
             device=device,
         )
 
@@ -67,31 +67,31 @@ class ATLOP:
     @classmethod
     def from_snapshot(
         cls,
-        path_snapshot: str,
+        snapshot_path: str,
         device: str = "cuda",
     ) -> "ATLOP":
 
         # Define the default paths for the resources in the snapshot
-        path_model = path_snapshot + "/model"
-        path_config = path_snapshot + "/config"
-        path_vocab = path_snapshot + "/relations.vocab.txt"
+        model_path = snapshot_path + "/model"
+        config_path = snapshot_path + "/config"
+        vocab_path = snapshot_path + "/relations.vocab.txt"
 
         # Initialize the extractor from explicit snapshot resources
         extractor = cls(
-            config=path_config,
-            vocab_relation=path_vocab,
+            config=config_path,
+            vocab_relation=vocab_path,
             device=device,
         )
 
         # Store the snapshot path for later inspection
-        extractor.path_snapshot = path_snapshot
+        extractor.snapshot_path = snapshot_path
 
         # Load trained model parameters from the snapshot
         extractor.model.load_state_dict(
-            torch.load(path_model, map_location=torch.device("cpu")),
+            torch.load(model_path, map_location=torch.device("cpu")),
             strict=False
         )
-        logger.info(f"Loaded model parameters from {path_model}")
+        logger.info(f"Loaded model parameters from {model_path}")
 
         # Move the model again after loading parameters
         extractor.model.to(extractor.model.device)
@@ -155,18 +155,18 @@ class ATLOP:
 
         logger.info("########## ATLOP Initialization Ends ##########")
 
-    def save(self, path_snapshot: str, model_only: bool = False) -> None:
+    def save(self, snapshot_path: str, model_only: bool = False) -> None:
         """Save the model, configuration, and relation vocabulary."""
 
-        path_model = path_snapshot + "/model"
-        path_config = path_snapshot + "/config"
-        path_vocab = path_snapshot + "/relations.vocab.txt"
+        model_path = snapshot_path + "/model"
+        config_path = snapshot_path + "/config"
+        vocab_path = snapshot_path + "/relations.vocab.txt"
 
-        torch.save(self.model.state_dict(), path_model)
+        torch.save(self.model.state_dict(), model_path)
         if not model_only:
-            utils.write_json(path_config, self.config)
+            utils.write_json(config_path, self.config)
             utils.write_vocab(
-                path_vocab,
+                vocab_path,
                 self.vocab_relation,
                 write_frequency=False
             )
@@ -314,19 +314,19 @@ class ATLOPTrainer:
         base = self.base_output_path
         return {
             # config, vocab, model
-            "path_snapshot": base,
+            "snapshot_path": base,
             # training outputs
-            "path_train_losses": f"{base}/train.losses.jsonl",
-            "path_dev_evals": f"{base}/dev.eval.jsonl",
+            "train_losses_path": f"{base}/train.losses.jsonl",
+            "dev_evals_path": f"{base}/dev.eval.jsonl",
             # evaluation outputs
-            "path_dev_gold": f"{base}/dev.gold.json",
-            "path_dev_pred": f"{base}/dev.pred.json",
-            "path_dev_eval": f"{base}/dev.eval.json",
-            "path_test_gold": f"{base}/test.gold.json",
-            "path_test_pred": f"{base}/test.pred.json",
-            "path_test_eval": f"{base}/test.eval.json",
+            "dev_gold_path": f"{base}/dev.gold.json",
+            "dev_pred_path": f"{base}/dev.pred.json",
+            "dev_eval_path": f"{base}/dev.eval.json",
+            "test_gold_path": f"{base}/test.gold.json",
+            "test_pred_path": f"{base}/test.pred.json",
+            "test_eval_path": f"{base}/test.eval.json",
             # required for Ign evaluation
-            "path_gold_train_triples": f"{base}/gold_train_triples.json",
+            "gold_train_triples_path": f"{base}/gold_train_triples.json",
         }
 
     def setup_dataset(
@@ -338,7 +338,7 @@ class ATLOPTrainer:
     ) -> None:
         if split == "train":
             # Cache the gold training triples for Ign evaluation
-            if not os.path.exists(self.paths["path_gold_train_triples"]):
+            if not os.path.exists(self.paths["gold_train_triples_path"]):
                 gold_train_triples: list[tuple[str, str, str]] = []
                 for document in tqdm(documents, desc="Generating gold training triples"):
                     entity_index_to_mention_names = {
@@ -368,15 +368,15 @@ class ATLOPTrainer:
                 gold_train_triples = list(set(gold_train_triples))
                 gold_train_triples = {"root": gold_train_triples}
                 utils.write_json(
-                    self.paths["path_gold_train_triples"],
+                    self.paths["gold_train_triples_path"],
                     gold_train_triples
                 )
-                logger.info(f"Saved the gold training triples for Ign evaluation in {self.paths['path_gold_train_triples']}")
+                logger.info(f"Saved the gold training triples for Ign evaluation in {self.paths['gold_train_triples_path']}")
 
         # Cache the gold annotations for evaluation
         if split != "train" and with_gold_annotations:
-            path_gold = self.paths[f"path_{split}_gold"]
-            if not os.path.exists(path_gold):
+            gold_path = self.paths[f"{split}_gold_path"]
+            if not os.path.exists(gold_path):
                 gold_documents = []
                 for document in tqdm(documents, desc="dataset setup"):
                     gold_doc = copy.deepcopy(document)
@@ -384,8 +384,8 @@ class ATLOPTrainer:
                         document=document
                     )
                     gold_documents.append(gold_doc)
-                utils.write_json(path_gold, gold_documents)
-                logger.info(f"Saved the gold annotations for evaluation in {path_gold}")
+                utils.write_json(gold_path, gold_documents)
+                logger.info(f"Saved the gold annotations for evaluation in {gold_path}")
 
     def train(
         self,
@@ -425,11 +425,11 @@ class ATLOPTrainer:
         )
 
         writer_train = jsonlines.Writer(
-            open(self.paths["path_train_losses"], "w"),
+            open(self.paths["train_losses_path"], "w"),
             flush=True
         )
         writer_dev = jsonlines.Writer(
-            open(self.paths["path_dev_evals"], "w"),
+            open(self.paths["dev_evals_path"], "w"),
             flush=True
         )
 
@@ -469,8 +469,8 @@ class ATLOPTrainer:
         bestscore_holder.compare_scores(scores["standard"]["f1"], 0)
 
         # Save
-        extractor.save(path_snapshot=self.paths["path_snapshot"])
-        logger.info(f"Saved config, vocab, and model to {self.paths['path_snapshot']}")
+        extractor.save(snapshot_path=self.paths["snapshot_path"])
+        logger.info(f"Saved config, vocab, and model to {self.paths['snapshot_path']}")
 
         ##################
         # Training Loop
@@ -653,10 +653,10 @@ class ATLOPTrainer:
                     # Save the model
                     if did_update:
                         extractor.save(
-                            path_snapshot=self.paths["path_snapshot"],
+                            snapshot_path=self.paths["snapshot_path"],
                             model_only=True
                         )
-                        logger.info(f"Saved model to {self.paths['path_snapshot']}")
+                        logger.info(f"Saved model to {self.paths['snapshot_path']}")
 
                     ##################
                     # Termination Check
@@ -686,25 +686,25 @@ class ATLOPTrainer:
     ) -> dict[str, Any] | None:
         # Apply the extractor
         result_documents = extractor.batch_extract(documents=documents)
-        utils.write_json(self.paths[f"path_{split}_pred"], result_documents)
+        utils.write_json(self.paths[f"{split}_pred_path"], result_documents)
 
         if prediction_only:
             return
 
         # Calculate the evaluation scores
         scores = evaluation.docre.fscore(
-            pred_path=self.paths[f"path_{split}_pred"],
-            gold_path=self.paths[f"path_{split}_gold"],
+            pred_path=self.paths[f"{split}_pred_path"],
+            gold_path=self.paths[f"{split}_gold_path"],
             skip_intra_inter=skip_intra_inter,
             skip_ign=skip_ign,
-            gold_train_triples_path=self.paths["path_gold_train_triples"]
+            gold_train_triples_path=self.paths["gold_train_triples_path"]
         )
 
         if get_scores_only:
             return scores
 
         # Save the evaluation scores
-        utils.write_json(self.paths[f"path_{split}_eval"], scores)
+        utils.write_json(self.paths[f"{split}_eval_path"], scores)
         logger.info(utils.pretty_format_dict(scores))
         return scores
 
@@ -720,10 +720,10 @@ class ATLOPTrainer:
     ) -> dict[str, Any]:
         # Apply the extractor
         result_documents = extractor.batch_extract(documents=documents)
-        utils.write_json(self.paths[f"path_{split}_pred"], result_documents)
+        utils.write_json(self.paths[f"{split}_pred_path"], result_documents)
         triples = evaluation.docre.to_official(
-            path_input=self.paths[f"path_{split}_pred"],
-            path_output=self.paths[f"path_{split}_pred"].replace(".json", ".official.json")
+            input_path=self.paths[f"{split}_pred_path"],
+            output_path=self.paths[f"{split}_pred_path"].replace(".json", ".official.json")
         )
 
         if prediction_only:
@@ -744,7 +744,7 @@ class ATLOPTrainer:
             return scores
 
         # Save the evaluation scores
-        utils.write_json(self.paths[f"path_{split}_eval"], scores)
+        utils.write_json(self.paths[f"{split}_eval_path"], scores)
         logger.info(utils.pretty_format_dict(scores))
         return scores
 

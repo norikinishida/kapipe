@@ -36,7 +36,7 @@ class LLMDocRE:
     ) -> "LLMDocRE":
 
         # Resolve the public identifier to the corresponding local snapshot
-        path_snapshot = resolve_snapshot_path(
+        snapshot_path = resolve_snapshot_path(
             component_name="docre",
             method_name="llm_docre",
             identifier=identifier,
@@ -45,7 +45,7 @@ class LLMDocRE:
         # Load the extractor from the resolved snapshot
         extractor = cls.from_snapshot(
             model=model,
-            path_snapshot=path_snapshot,
+            snapshot_path=snapshot_path,
         )
 
         # Store the public identifier for later inspection
@@ -57,37 +57,37 @@ class LLMDocRE:
     def from_snapshot(
         cls,
         model: HuggingFaceLLM | OpenAILLM,
-        path_snapshot: str,
+        snapshot_path: str,
     ) -> "LLMDocRE":
 
         # Define the default paths for the resources in the snapshot
-        path_config = path_snapshot + "/config"
-        path_vocab = path_snapshot + "/relations.vocab.txt"
-        path_meta_info = path_snapshot + "/rel_meta_info.json"
-        path_entity_dict = path_snapshot + "/entity_dict.json"
-        path_demonstration_documents = (
-            path_snapshot + "/demonstration_documents.json"
+        config_path = snapshot_path + "/config"
+        vocab_path = snapshot_path + "/relations.vocab.txt"
+        meta_info_path = snapshot_path + "/rel_meta_info.json"
+        entity_dict_path = snapshot_path + "/entity_dict.json"
+        demonstration_documents_path = (
+            snapshot_path + "/demonstration_documents.json"
         )
 
         # Use an empty list of demonstrations if the snapshot does not contain 
         # any demonstration documents.
-        if os.path.exists(path_demonstration_documents):
-            demonstration_documents = path_demonstration_documents
+        if os.path.exists(demonstration_documents_path):
+            demonstration_documents = demonstration_documents_path
         else:
             demonstration_documents = []
 
         # Initialize the extractor from explicit snapshot resources
         extractor = cls(
             model=model,
-            config=path_config,
-            vocab_relation=path_vocab,
-            rel_meta_info=path_meta_info,
-            path_entity_dict=path_entity_dict,
+            config=config_path,
+            vocab_relation=vocab_path,
+            rel_meta_info=meta_info_path,
+            entity_dict_path=entity_dict_path,
             demonstration_documents=demonstration_documents,
         )
 
         # Store the snapshot path for later inspection
-        extractor.path_snapshot = path_snapshot
+        extractor.snapshot_path = snapshot_path
 
         return extractor
 
@@ -97,7 +97,7 @@ class LLMDocRE:
         config: Config | str | None = None,
         vocab_relation: dict[str, int] | str | None = None,
         rel_meta_info: dict[str, dict[str, str]] | str | None = None,
-        path_entity_dict: str | None = None,
+        entity_dict_path: str | None = None,
         demonstration_documents: list[Document] | str | None = None,
     ):
         logger.info("########## LLMDocRE Initialization Starts ##########")
@@ -132,24 +132,24 @@ class LLMDocRE:
         self.rel_meta_info = rel_meta_info
 
         # Load the entity dictionary
-        logger.info(f"Loading entity dictionary from {path_entity_dict}")
+        logger.info(f"Loading entity dictionary from {entity_dict_path}")
         self.entity_dict = {
             epage["entity_id"]: epage
-            for epage in utils.read_json(path_entity_dict)
+            for epage in utils.read_json(entity_dict_path)
         }
         logger.info(
             "Completed loading of entity dictionary with "
             f"{len(self.entity_dict)} entities "
-            f"from {path_entity_dict}"
+            f"from {entity_dict_path}"
         )
 
         # Load the demonstration documents
         if isinstance(demonstration_documents, str):
-            path_demonstration_documents = demonstration_documents
-            demonstration_documents = utils.read_json(path_demonstration_documents)
+            demonstration_documents_path = demonstration_documents
+            demonstration_documents = utils.read_json(demonstration_documents_path)
             logger.info(
                 f"Loaded {len(demonstration_documents)} demonstration documents "
-                f"from {path_demonstration_documents}"
+                f"from {demonstration_documents_path}"
             )
         elif demonstration_documents is None:
             # Use an empty list for zero-shot setting
@@ -178,7 +178,7 @@ class LLMDocRE:
         #
         #     - [Entity0] | [relation name] | [Entity1]
         #
-        self.re_comp = re.compile("(.+?)\s*(.+?)\s*\|\s*(.+?)\s*\|\s*(.+?)$")
+        self.re_comp = re.compile(r"(.+?)\s*(.+?)\s*\|\s*(.+?)\s*\|\s*(.+?)$")
 
         # Create relation label mapping (normalized pretty name -> canonical name)
         # e.g., "chemical-induce-disease" -> "CID"
@@ -190,22 +190,22 @@ class LLMDocRE:
 
         logger.info("########## LLMDocRE Initialization Ends ##########")
 
-    def save(self, path_snapshot: str) -> None:
+    def save(self, snapshot_path: str) -> None:
         """Save the configuration, relation vocabulary, relation meta-information, entity dictionary, and demonstration pool to a specified snapshot path."""
 
-        path_config = path_snapshot + "/config"
-        path_vocab = path_snapshot + "/relations.vocab.txt"
-        path_meta_info = path_snapshot + "/rel_meta_info.json"
-        path_entity_dict = path_snapshot + "/entity_dict.json"
-        path_demonstration_documents = (
-            path_snapshot + "/demonstration_documents.json"
+        config_path = snapshot_path + "/config"
+        vocab_path = snapshot_path + "/relations.vocab.txt"
+        meta_info_path = snapshot_path + "/rel_meta_info.json"
+        entity_dict_path = snapshot_path + "/entity_dict.json"
+        demonstration_documents_path = (
+            snapshot_path + "/demonstration_documents.json"
         )
 
-        utils.write_json(path_config, self.config)
-        utils.write_vocab(path_vocab, self.vocab_relation, write_frequency=False)
-        utils.write_json(path_meta_info, self.rel_meta_info)
-        utils.write_json(path_entity_dict, list(self.entity_dict.values()))
-        utils.write_json(path_demonstration_documents, self.demonstration_documents)
+        utils.write_json(config_path, self.config)
+        utils.write_vocab(vocab_path, self.vocab_relation, write_frequency=False)
+        utils.write_json(meta_info_path, self.rel_meta_info)
+        utils.write_json(entity_dict_path, list(self.entity_dict.values()))
+        utils.write_json(demonstration_documents_path, self.demonstration_documents)
 
     def extract(
         self,
@@ -603,18 +603,18 @@ class LLMDocRETrainer:
         paths = {}
 
         # configurations
-        paths["path_snapshot"] = self.base_output_path
+        paths["snapshot_path"] = self.base_output_path
  
         # evaluation outputs
-        paths["path_dev_gold"] = self.base_output_path + "/dev.gold.json"
-        paths["path_dev_pred"] = self.base_output_path + "/dev.pred.json"
-        paths["path_dev_eval"] = self.base_output_path + "/dev.eval.json"
-        paths["path_test_gold"] = self.base_output_path + "/test.gold.json"
-        paths["path_test_pred"] = self.base_output_path + "/test.pred.json"
-        paths["path_test_eval"] = self.base_output_path + "/test.eval.json"
+        paths["dev_gold_path"] = self.base_output_path + "/dev.gold.json"
+        paths["dev_pred_path"] = self.base_output_path + "/dev.pred.json"
+        paths["dev_eval_path"] = self.base_output_path + "/dev.eval.json"
+        paths["test_gold_path"] = self.base_output_path + "/test.gold.json"
+        paths["test_pred_path"] = self.base_output_path + "/test.pred.json"
+        paths["test_eval_path"] = self.base_output_path + "/test.eval.json"
 
         # required for Ign evaluation
-        paths["path_gold_train_triples"] = self.base_output_path + "/gold_train_triples.json"
+        paths["gold_train_triples_path"] = self.base_output_path + "/gold_train_triples.json"
 
         return paths
 
@@ -627,7 +627,7 @@ class LLMDocRETrainer:
     ) -> None:
         # Cache the gold training triples for Ign evaluation
         if split == "train":
-            if not os.path.exists(self.paths["path_gold_train_triples"]):
+            if not os.path.exists(self.paths["gold_train_triples_path"]):
                 gold_train_triples = []
                 for document in tqdm(documents, desc="dataset setup"):
                     mentions = document["mentions"]
@@ -656,24 +656,24 @@ class LLMDocRETrainer:
                 gold_train_triples = list(set(gold_train_triples))
                 gold_train_triples = {"root": gold_train_triples}
                 utils.write_json(
-                    self.paths["path_gold_train_triples"],
+                    self.paths["gold_train_triples_path"],
                     gold_train_triples
                 )
-                logger.info(f"Saved the gold training triples for Ign evaluation in {self.paths['path_gold_train_triples']}")
+                logger.info(f"Saved the gold training triples for Ign evaluation in {self.paths['gold_train_triples_path']}")
 
         # Cache the gold annotations for evaluation
         if split != "train" and with_gold_annotations:
-            path_gold = self.paths[f"path_{split}_gold"]
-            if not os.path.exists(path_gold):
+            gold_path = self.paths[f"{split}_gold_path"]
+            if not os.path.exists(gold_path):
                 gold_documents = []
                 for document in tqdm(documents, desc="dataset setup"):
                     gold_doc = copy.deepcopy(document)
                     gold_documents.append(gold_doc)
-                utils.write_json(path_gold, gold_documents)
-                logger.info(f"Saved the gold annotations for evaluation in {path_gold}")
+                utils.write_json(gold_path, gold_documents)
+                logger.info(f"Saved the gold annotations for evaluation in {gold_path}")
 
     def save_extractor(self, extractor: LLMDocRE):
-        extractor.save(path_snapshot=self.paths["path_snapshot"])
+        extractor.save(snapshot_path=self.paths["snapshot_path"])
 
     def evaluate(
         self,
@@ -696,11 +696,11 @@ class LLMDocRETrainer:
         )
 
         # Save the prediction results
-        utils.write_json(self.paths[f"path_{split}_pred"], result_documents)
+        utils.write_json(self.paths[f"{split}_pred_path"], result_documents)
 
         # Save the prompt-response pairs in plain text
         with open(
-            self.paths[f"path_{split}_pred"].replace(".json", ".txt"), "w"
+            self.paths[f"{split}_pred_path"].replace(".json", ".txt"), "w"
         ) as f:
             for result_doc in result_documents:
                 doc_key = result_doc["doc_key"]
@@ -719,18 +719,18 @@ class LLMDocRETrainer:
 
         # Calculate the evaluation scores
         scores = evaluation.docre.fscore(
-            pred_path=self.paths[f"path_{split}_pred"],
-            gold_path=self.paths[f"path_{split}_gold"],
+            pred_path=self.paths[f"{split}_pred_path"],
+            gold_path=self.paths[f"{split}_gold_path"],
             skip_intra_inter=skip_intra_inter,
             skip_ign=skip_ign,
-            gold_train_triples_path=self.paths["path_gold_train_triples"]
+            gold_train_triples_path=self.paths["gold_train_triples_path"]
         )
 
         if get_scores_only:
             return scores
 
         # Save the evaluation scores
-        utils.write_json(self.paths[f"path_{split}_eval"], scores)
+        utils.write_json(self.paths[f"{split}_eval_path"], scores)
         logger.info(utils.pretty_format_dict(scores))
         return scores
 
@@ -751,10 +751,10 @@ class LLMDocRETrainer:
             documents=documents,
             contexts=contexts
         )
-        utils.write_json(self.paths[f"path_{split}_pred"], result_documents)
+        utils.write_json(self.paths[f"{split}_pred_path"], result_documents)
 
         with open(
-            self.paths[f"path_{split}_pred"].replace(".json", ".txt"), "w"
+            self.paths[f"{split}_pred_path"].replace(".json", ".txt"), "w"
         ) as f:
             for result_doc in result_documents:
                 doc_key = result_doc["doc_key"]
@@ -767,9 +767,9 @@ class LLMDocRETrainer:
                 f.flush()
 
         triples = evaluation.docre.to_official(
-            path_input=self.paths[f"path_{split}_pred"],
-            path_output=
-            self.paths[f"path_{split}_pred"].replace(".json", ".official.json")
+            input_path=self.paths[f"{split}_pred_path"],
+            output_path=
+            self.paths[f"{split}_pred_path"].replace(".json", ".official.json")
         )
 
         if prediction_only:
@@ -790,6 +790,6 @@ class LLMDocRETrainer:
             return scores
 
         # Save the evaluation scores
-        utils.write_json(self.paths[f"path_{split}_eval"], scores)
+        utils.write_json(self.paths[f"{split}_eval_path"], scores)
         logger.info(utils.pretty_format_dict(scores))
         return scores

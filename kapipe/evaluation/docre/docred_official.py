@@ -8,11 +8,11 @@ from ... import utils
 logger = logging.getLogger(__name__)
 
 
-def to_official(path_input, path_output):
+def to_official(input_path, output_path):
     """
         Modified from the code: https://github.com/wzhouad/ATLOP
     """
-    preds = utils.read_json(path_input)
+    preds = utils.read_json(input_path)
     triples = []
     for pred in preds:
         doc_key = pred["doc_key"]
@@ -25,15 +25,15 @@ def to_official(path_input, path_output):
                 "r": y["relation"],
             }
             triples.append(dct)
-    utils.write_json(path_output, triples)
+    utils.write_json(output_path, triples)
     return triples
 
 
-# def to_official_by_doc(path_input, path_output):
+# def to_official_by_doc(input_path, output_path):
 #     """
 #         Modified from the code at https://github.com/tonytan48/Re-DocRED
 #     """
-#     preds = utils.read_json(path_input)
+#     preds = utils.read_json(input_path)
 #     triples = []
 #     for doc_key in preds.keys():
 #         triples_local = preds[doc_key]["relations"]
@@ -47,7 +47,7 @@ def to_official(path_input, path_output):
 #             }
 #             new_triples_local.append(dct)
 #         triples.append(new_triples_local)
-#     utils.write_json(path_output, triples)
+#     utils.write_json(output_path, triples)
 #     return triples
 
 

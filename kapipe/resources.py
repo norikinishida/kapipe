@@ -22,7 +22,7 @@ def resolve_snapshot_path(
     # KAPipe stores the downloaded-resource configuration under the user's
     # home directory. Keep this path resolution in one place so that method
     # classes do not need to know the global resource layout.
-    path_resource_config = os.path.join(
+    resource_config_path = os.path.join(
         os.path.expanduser("~"),
         ".kapipe",
         "download",
@@ -31,7 +31,7 @@ def resolve_snapshot_path(
 
     # Load the complete resource configuration
     root_config: Config = utils.get_hocon_config(
-        config_path=path_resource_config
+        config_path=resource_config_path
     )
     resource_config: Config = root_config[component_name][identifier]
 
@@ -44,6 +44,6 @@ def resolve_snapshot_path(
         )
 
     # Only expose the resolved snapshot path
-    path_snapshot: str = resource_config["snapshot"]
+    snapshot_path: str = resource_config["snapshot"]
 
-    return path_snapshot
+    return snapshot_path

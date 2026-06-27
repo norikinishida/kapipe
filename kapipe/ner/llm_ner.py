@@ -35,7 +35,7 @@ class LLMNER:
     ) -> "LLMNER":
 
         # Resolve the public identifier to the corresponding local snapshot
-        path_snapshot = resolve_snapshot_path(
+        snapshot_path = resolve_snapshot_path(
             component_name="ner",
             method_name="llm_ner",
             identifier=identifier,
@@ -44,7 +44,7 @@ class LLMNER:
         # Load the extractor from the resolved snapshot
         extractor = cls.from_snapshot(
             model=model,
-            path_snapshot=path_snapshot,
+            snapshot_path=snapshot_path,
         )
 
         # Store the public identifier for later inspection
@@ -56,35 +56,35 @@ class LLMNER:
     def from_snapshot(
         cls,
         model: HuggingFaceLLM | OpenAILLM,
-        path_snapshot: str,
+        snapshot_path: str,
     ) -> "LLMNER":
 
         # Define the default paths for the resources in the snapshot
-        path_config = path_snapshot + "/config"
-        path_vocab = path_snapshot + "/entity_types.vocab.txt"
-        path_meta_info = path_snapshot + "/etype_meta_info.json"
-        path_demonstration_documents = (
-            path_snapshot + "/demonstration_documents.json"
+        config_path = snapshot_path + "/config"
+        vocab_path = snapshot_path + "/entity_types.vocab.txt"
+        meta_info_path = snapshot_path + "/etype_meta_info.json"
+        demonstration_documents_path = (
+            snapshot_path + "/demonstration_documents.json"
         )
 
         # Use an empty list of demonstrations if the snapshot does not contain 
         # any demonstration documents.
-        if os.path.exists(path_demonstration_documents):
-            demonstration_documents = path_demonstration_documents
+        if os.path.exists(demonstration_documents_path):
+            demonstration_documents = demonstration_documents_path
         else:
             demonstration_documents = []
 
         # Initialize the extractor from explicit snapshot resources
         extractor = cls(
             model=model,
-            config=path_config,
-            vocab_etype=path_vocab,
-            etype_meta_info=path_meta_info,
+            config=config_path,
+            vocab_etype=vocab_path,
+            etype_meta_info=meta_info_path,
             demonstration_documents=demonstration_documents,
         )
 
         # Store the snapshot path for later inspection
-        extractor.path_snapshot = path_snapshot
+        extractor.snapshot_path = snapshot_path
 
         return extractor
 
@@ -129,11 +129,11 @@ class LLMNER:
 
         # Load the demonstration documents
         if isinstance(demonstration_documents, str):
-            path_demonstration_documents = demonstration_documents
-            demonstration_documents = utils.read_json(path_demonstration_documents)
+            demonstration_documents_path = demonstration_documents
+            demonstration_documents = utils.read_json(demonstration_documents_path)
             logger.info(
                 f"Loaded {len(demonstration_documents)} demonstration documents "
-                f"from {path_demonstration_documents}"
+                f"from {demonstration_documents_path}"
             )
         elif demonstration_documents is None:
             # Use an empty list for zero-shot setting
@@ -160,7 +160,7 @@ class LLMNER:
         #
         #     - [mention text] | [entity type]
         #
-        self.re_comp = re.compile("(.+?)\s*(.+?)\s*\|\s*(.+?)$")
+        self.re_comp = re.compile(r"(.+?)\s*(.+?)\s*\|\s*(.+?)$")
 
         # Create entity type mapping (normalized pretty name -> canonical name)
         # e.g., "Location" -> "LOC"
@@ -172,18 +172,18 @@ class LLMNER:
 
         logger.info("########## LLMNER Initialization Ends ##########")
 
-    def save(self, path_snapshot: str) -> None:
+    def save(self, snapshot_path: str) -> None:
         """Save the configuration, entity-type vocabulary, meta-information, and demonstration documents to a snapshot."""
 
-        path_config = path_snapshot + "/config"
-        path_vocab = path_snapshot + "/entity_types.vocab.txt"
-        path_meta_info = path_snapshot + "/etype_meta_info.json"
-        path_demonstration_documents = path_snapshot + "/demonstration_documents.json"
+        config_path = snapshot_path + "/config"
+        vocab_path = snapshot_path + "/entity_types.vocab.txt"
+        meta_info_path = snapshot_path + "/etype_meta_info.json"
+        demonstration_documents_path = snapshot_path + "/demonstration_documents.json"
 
-        utils.write_json(path_config, self.config)
-        utils.write_vocab(path_vocab, self.vocab_etype, write_frequency=False)
-        utils.write_json(path_meta_info, self.etype_meta_info)
-        utils.write_json(path_demonstration_documents, self.demonstration_documents)
+        utils.write_json(config_path, self.config)
+        utils.write_vocab(vocab_path, self.vocab_etype, write_frequency=False)
+        utils.write_json(meta_info_path, self.etype_meta_info)
+        utils.write_json(demonstration_documents_path, self.demonstration_documents)
 
     def extract(
         self,
@@ -541,15 +541,15 @@ class LLMNERTrainer:
         paths = {}
 
         # configurations
-        paths["path_snapshot"] = self.base_output_path
+        paths["snapshot_path"] = self.base_output_path
 
         # evaluation outputs
-        paths["path_dev_gold"] = self.base_output_path + "/dev.gold.json"
-        paths["path_dev_pred"] = self.base_output_path + "/dev.pred.json"
-        paths["path_dev_eval"] = self.base_output_path + "/dev.eval.json"
-        paths["path_test_gold"] = self.base_output_path + "/test.gold.json"
-        paths["path_test_pred"] = self.base_output_path + "/test.pred.json"
-        paths["path_test_eval"] = self.base_output_path + "/test.eval.json"
+        paths["dev_gold_path"] = self.base_output_path + "/dev.gold.json"
+        paths["dev_pred_path"] = self.base_output_path + "/dev.pred.json"
+        paths["dev_eval_path"] = self.base_output_path + "/dev.eval.json"
+        paths["test_gold_path"] = self.base_output_path + "/test.gold.json"
+        paths["test_pred_path"] = self.base_output_path + "/test.pred.json"
+        paths["test_eval_path"] = self.base_output_path + "/test.eval.json"
 
         return paths
 
@@ -560,17 +560,17 @@ class LLMNERTrainer:
         split: str
     ) -> None:
         # Cache the gold annotations for evaluation
-        path_gold = self.paths[f"path_{split}_gold"]
-        if not os.path.exists(path_gold):
+        gold_path = self.paths[f"{split}_gold_path"]
+        if not os.path.exists(gold_path):
             gold_documents = []
             for document in tqdm(documents, desc="dataset setup"):
                 gold_doc = copy.deepcopy(document)
                 gold_documents.append(gold_doc)
-            utils.write_json(path_gold, gold_documents)
-            logger.info(f"Saved the gold annotations for evaluation in {path_gold}")
+            utils.write_json(gold_path, gold_documents)
+            logger.info(f"Saved the gold annotations for evaluation in {gold_path}")
 
     def save_extractor(self, extractor: LLMNER) -> None:
-        extractor.save(path_snapshot=self.paths["path_snapshot"])
+        extractor.save(snapshot_path=self.paths["snapshot_path"])
 
     def evaluate(
         self,
@@ -590,11 +590,11 @@ class LLMNERTrainer:
         )
 
         # Save the prediction results
-        utils.write_json(self.paths[f"path_{split}_pred"], result_documents)
+        utils.write_json(self.paths[f"{split}_pred_path"], result_documents)
 
         # Save the prompt-response pairs in plain text
         with open(
-            self.paths[f"path_{split}_pred"].replace(".json", ".txt"), "w"
+            self.paths[f"{split}_pred_path"].replace(".json", ".txt"), "w"
         ) as f:
             for result_doc in result_documents:
                 doc_key = result_doc["doc_key"]
@@ -613,14 +613,14 @@ class LLMNERTrainer:
 
         # Calculate the evaluation scores
         scores = evaluation.ner.fscore(
-            pred_path=self.paths[f"path_{split}_pred"],
-            gold_path=self.paths[f"path_{split}_gold"]
+            pred_path=self.paths[f"{split}_pred_path"],
+            gold_path=self.paths[f"{split}_gold_path"]
         )
 
         if get_scores_only:
             return scores
 
         # Save the evaluation scores
-        utils.write_json(self.paths[f"path_{split}_eval"], scores)
+        utils.write_json(self.paths[f"{split}_eval_path"], scores)
         logger.info(utils.pretty_format_dict(scores))
         return scores

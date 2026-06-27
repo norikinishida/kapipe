@@ -33,7 +33,7 @@ class LLMQA:
     ) -> "LLMQA":
 
         # Resolve the public identifier to the corresponding local snapshot
-        path_snapshot = resolve_snapshot_path(
+        snapshot_path = resolve_snapshot_path(
             component_name="qa",
             method_name="llm_qa",
             identifier=identifier,
@@ -42,7 +42,7 @@ class LLMQA:
         # Load the answerer from the resolved snapshot
         answerer = cls.from_snapshot(
             model=model,
-            path_snapshot=path_snapshot,
+            snapshot_path=snapshot_path,
         )
 
         # Store the public identifier for later inspection
@@ -54,20 +54,20 @@ class LLMQA:
     def from_snapshot(
         cls,
         model: HuggingFaceLLM | OpenAILLM,
-        path_snapshot: str,
+        snapshot_path: str,
     ) -> "LLMQA":
 
         # Define the default paths for the resources in the snapshot
-        path_config = path_snapshot + "/config"
+        config_path = snapshot_path + "/config"
 
         # Initialize the answerer from explicit snapshot resources
         answerer = cls(
             model=model,
-            config=path_config,
+            config=config_path,
         )
 
         # Store the snapshot path for later inspection
-        answerer.path_snapshot = path_snapshot
+        answerer.snapshot_path = snapshot_path
 
         return answerer
 
@@ -105,11 +105,11 @@ class LLMQA:
 
         logger.info("########## LLMQA Initialization Ends ##########")
 
-    def save(self, path_snapshot: str) -> None:
+    def save(self, snapshot_path: str) -> None:
         """Save the configuration."""
 
-        path_config = path_snapshot + "/config"
-        utils.write_json(path_config, self.config)
+        config_path = snapshot_path + "/config"
+        utils.write_json(config_path, self.config)
 
     def answer(
         self,
@@ -366,15 +366,15 @@ class LLMQATrainer:
         paths = {}
 
         # configurations
-        paths["path_snapshot"] = self.base_output_path
+        paths["snapshot_path"] = self.base_output_path
 
         # evaluation outputs
-        paths["path_dev_gold"] = os.path.join(self.base_output_path, "dev.gold.json")
-        paths["path_dev_pred"] = os.path.join(self.base_output_path, "dev.pred.json")
-        paths["path_dev_eval"] = os.path.join(self.base_output_path, "dev.eval.json")
-        paths["path_test_gold"] = os.path.join(self.base_output_path, "test.gold.json")
-        paths["path_test_pred"] = os.path.join(self.base_output_path, "test.pred.json")
-        paths["path_test_eval"] = os.path.join(self.base_output_path, "test.eval.json")
+        paths["dev_gold_path"] = os.path.join(self.base_output_path, "dev.gold.json")
+        paths["dev_pred_path"] = os.path.join(self.base_output_path, "dev.pred.json")
+        paths["dev_eval_path"] = os.path.join(self.base_output_path, "dev.eval.json")
+        paths["test_gold_path"] = os.path.join(self.base_output_path, "test.gold.json")
+        paths["test_pred_path"] = os.path.join(self.base_output_path, "test.pred.json")
+        paths["test_eval_path"] = os.path.join(self.base_output_path, "test.eval.json")
 
         return paths
 
@@ -385,17 +385,17 @@ class LLMQATrainer:
         split: str
     ) -> None:
         # Cache the gold annotations for evaluation
-        path_gold = self.paths[f"path_{split}_gold"]
-        if not os.path.exists(path_gold):
+        gold_path = self.paths[f"{split}_gold_path"]
+        if not os.path.exists(gold_path):
             gold_questions = []
             for question in tqdm(questions, desc="dataset setup"):
                 gold_question = copy.deepcopy(question)
                 gold_questions.append(gold_question)
-            utils.write_json(path_gold, gold_questions)
-            logger.info(f"Saved the gold annotations for evaluation in {path_gold}")
+            utils.write_json(gold_path, gold_questions)
+            logger.info(f"Saved the gold annotations for evaluation in {gold_path}")
 
     def save_answerer(self, answerer: LLMQA) -> None:
-        answerer.save(path_snapshot=self.paths["path_snapshot"])
+        answerer.save(snapshot_path=self.paths["snapshot_path"])
 
     def evaluate(
         self,
@@ -416,10 +416,10 @@ class LLMQATrainer:
         )
 
         # Save the prediction results
-        utils.write_json(self.paths[f"path_{split}_pred"], results)
+        utils.write_json(self.paths[f"{split}_pred_path"], results)
 
         # Save the prompt-response pairs in plain text
-        with open(self.paths[f"path_{split}_pred"].replace(".json", ".txt"), "w") as f:
+        with open(self.paths[f"{split}_pred_path"].replace(".json", ".txt"), "w") as f:
             for result in results:
                 question_key = result["question_key"]
                 prompt = result["qa_prompt"]
@@ -438,19 +438,19 @@ class LLMQATrainer:
         # Evaluate the predicted answers
         if metric == "recall":
              scores = evaluation.qa.recall(
-                pred_path=self.paths[f"path_{split}_pred"],
-                gold_path=self.paths[f"path_{split}_gold"],
+                pred_path=self.paths[f"{split}_pred_path"],
+                gold_path=self.paths[f"{split}_gold_path"],
                 exact_match=False
             )
         elif metric == "llm4eval":
              scores = evaluation.qa.llm4eval(
-                pred_path=self.paths[f"path_{split}_pred"],
-                gold_path=self.paths[f"path_{split}_gold"],
+                pred_path=self.paths[f"{split}_pred_path"],
+                gold_path=self.paths[f"{split}_gold_path"],
             )
         else:
             scores = evaluation.qa.accuracy(
-                pred_path=self.paths[f"path_{split}_pred"],
-                gold_path=self.paths[f"path_{split}_gold"],
+                pred_path=self.paths[f"{split}_pred_path"],
+                gold_path=self.paths[f"{split}_gold_path"],
                 exact_match=False
             )
 
@@ -458,6 +458,6 @@ class LLMQATrainer:
             return scores
 
         # Save the evaluation results
-        utils.write_json(self.paths[f"path_{split}_eval"], scores)
+        utils.write_json(self.paths[f"{split}_eval_path"], scores)
         logger.info(utils.pretty_format_dict(scores))
         return scores
