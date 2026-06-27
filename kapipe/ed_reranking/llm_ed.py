@@ -67,7 +67,7 @@ class LLMED:
     ) -> "LLMED":
 
         # Define the default paths for the resources in the snapshot
-        config_path = snapshot_path + "/config"
+        config_path = snapshot_path + "/config.json"
         entity_dict_path = snapshot_path + "/entity_dict.json"
         demonstration_documents_path = (
             snapshot_path + "/demonstration_documents.json"
@@ -76,26 +76,19 @@ class LLMED:
             snapshot_path + "/demonstration_candidate_entities.json"
         )
 
-        # Use an empty list of demonstrations if the snapshot does not contain 
-        # any demonstration documents.
-        if os.path.exists(demonstration_documents_path):
-            demonstration_documents = demonstration_documents_path
-        else:
-            demonstration_documents = []
-        if os.path.exists(demonstration_candidate_entities_path):
-            demonstration_candidate_entities = (
-                demonstration_candidate_entities_path
-            )
-        else:
-            demonstration_candidate_entities = []
+        # Set the demonstration documents to None if the file does not exist
+        if not os.path.exists(demonstration_documents_path):
+            demonstration_documents_path = None
+        if not os.path.exists(demonstration_candidate_entities_path):
+            demonstration_candidate_entities_path = None
 
         # Initialize the reranker from explicit snapshot resources
         reranker = cls(
             model=model,
             config=config_path,
             entity_dict_path=entity_dict_path,
-            demonstration_documents=demonstration_documents,
-            demonstration_candidate_entities=demonstration_candidate_entities,
+            demonstration_documents=demonstration_documents_path,
+            demonstration_candidate_entities=demonstration_candidate_entities_path,
         )
 
         # Store the snapshot path for later inspection
@@ -105,9 +98,12 @@ class LLMED:
 
     def __init__(
         self,
+        # External
         model: HuggingFaceLLM | OpenAILLM,
-        config: Config | str | None = None,
-        entity_dict_path: str | None = None,
+        # Internal
+        config: Config | str,
+        entity_dict_path: str,
+        # Optional
         demonstration_documents: list[Document] | str | None = None,
         demonstration_candidate_entities: (
             list[CandidateEntitiesForDocument] | str | None
@@ -120,7 +116,7 @@ class LLMED:
         # Load the configuration
         if isinstance(config, str):
             config_path = config
-            config = utils.get_hocon_config(config_path=config_path)
+            config = utils.read_json(config_path)
             logger.info(f"Loaded configuration from {config_path}")
         self.config = config
         logger.info(utils.pretty_format_dict(self.config))
@@ -201,7 +197,7 @@ class LLMED:
     def save(self, snapshot_path: str) -> None:
         """Save the configuration, entity dictionary, demonstration documents, and demonstration candidate entities to a snapshot directory."""
 
-        config_path = snapshot_path + "/config"
+        config_path = snapshot_path + "/config.json"
         entity_dict_path = snapshot_path + "/entity_dict.json"
         demonstration_documents_path = (
             snapshot_path + "/demonstration_documents.json"

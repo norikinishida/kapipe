@@ -60,19 +60,16 @@ class LLMNER:
     ) -> "LLMNER":
 
         # Define the default paths for the resources in the snapshot
-        config_path = snapshot_path + "/config"
+        config_path = snapshot_path + "/config.json"
         vocab_path = snapshot_path + "/entity_types.vocab.txt"
         meta_info_path = snapshot_path + "/etype_meta_info.json"
         demonstration_documents_path = (
             snapshot_path + "/demonstration_documents.json"
         )
 
-        # Use an empty list of demonstrations if the snapshot does not contain 
-        # any demonstration documents.
-        if os.path.exists(demonstration_documents_path):
-            demonstration_documents = demonstration_documents_path
-        else:
-            demonstration_documents = []
+        # Set the demonstration documents to None if the file does not exist
+        if not os.path.exists(demonstration_documents_path):
+            demonstration_documents_path = None
 
         # Initialize the extractor from explicit snapshot resources
         extractor = cls(
@@ -80,7 +77,7 @@ class LLMNER:
             config=config_path,
             vocab_etype=vocab_path,
             etype_meta_info=meta_info_path,
-            demonstration_documents=demonstration_documents,
+            demonstration_documents=demonstration_documents_path,
         )
 
         # Store the snapshot path for later inspection
@@ -90,10 +87,13 @@ class LLMNER:
 
     def __init__(
         self,
+        # External
         model: HuggingFaceLLM | OpenAILLM,
-        config: Config | str | None = None,
-        vocab_etype: dict[str, int] | str | None = None,
-        etype_meta_info: dict[str, dict[str, str]] | str | None = None,
+        # Internal
+        config: Config | str,
+        vocab_etype: dict[str, int] | str,
+        etype_meta_info: dict[str, dict[str, str]] | str,
+        # Optional
         demonstration_documents: list[Document] | str | None = None,
     ):
         logger.info("########## LLMNER Initialization Starts ##########")
@@ -103,7 +103,7 @@ class LLMNER:
         # Load the configuration
         if isinstance(config, str):
             config_path = config
-            config = utils.get_hocon_config(config_path=config_path)
+            config = utils.read_json(config_path)
             logger.info(f"Loaded configuration from {config_path}")
         self.config = config
         logger.info(utils.pretty_format_dict(self.config))
@@ -175,7 +175,7 @@ class LLMNER:
     def save(self, snapshot_path: str) -> None:
         """Save the configuration, entity-type vocabulary, meta-information, and demonstration documents to a snapshot."""
 
-        config_path = snapshot_path + "/config"
+        config_path = snapshot_path + "/config.json"
         vocab_path = snapshot_path + "/entity_types.vocab.txt"
         meta_info_path = snapshot_path + "/etype_meta_info.json"
         demonstration_documents_path = snapshot_path + "/demonstration_documents.json"

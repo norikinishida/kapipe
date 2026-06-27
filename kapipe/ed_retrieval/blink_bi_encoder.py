@@ -81,8 +81,8 @@ class BlinkBiEncoder:
     ) -> "BlinkBiEncoder":
 
         # Define the default paths for the resources in the snapshot
-        model_path = snapshot_path + "/model"
-        config_path = snapshot_path + "/config"
+        model_path = snapshot_path + "/model.pt"
+        config_path = snapshot_path + "/config.json"
         entity_dict_path = snapshot_path + "/entity_dict.json"
         entity_vectors_path = snapshot_path + "/entity_vectors.npy"
 
@@ -114,9 +114,10 @@ class BlinkBiEncoder:
 
     def __init__(
         self,
-        config: Config | str | None = None,
-        entity_dict_path: str | None = None,
-        # Misc.
+        # Internal
+        config: Config | str,
+        entity_dict_path: str,
+        # Optional
         device: str = "cuda",
     ):
         logger.info("########## BlinkBiEncoder Initialization Starts ##########")
@@ -124,7 +125,7 @@ class BlinkBiEncoder:
        # Load the configuration
         if isinstance(config, str):
             config_path = config
-            config = utils.get_hocon_config(config_path=config_path)
+            config = utils.read_json(config_path)
             logger.info(f"Loaded configuration from {config_path}")
         self.config = config
         logger.info(utils.pretty_format_dict(self.config))
@@ -172,8 +173,8 @@ class BlinkBiEncoder:
     def save(self, snapshot_path: str, model_only: bool = False) -> None:
         """Save the model, configuration, entity dictionary, and precomputed entity vectors."""
 
-        model_path = snapshot_path + "/model"
-        config_path = snapshot_path + "/config"
+        model_path = snapshot_path + "/model.pt"
+        config_path = snapshot_path + "/config.json"
         entity_dict_path = snapshot_path + "/entity_dict.json"
         entity_vectors_path = snapshot_path + "/entity_vectors.npy"
 

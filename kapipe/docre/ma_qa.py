@@ -84,8 +84,8 @@ class MAQA:
     ) -> "MAQA":
 
         # Define the default paths for the resources in the snapshot
-        model_path = snapshot_path + "/model"
-        config_path = snapshot_path + "/config"
+        model_path = snapshot_path + "/model.pt"
+        config_path = snapshot_path + "/config.json"
         vocab_path = snapshot_path + "/answers.vocab.txt"
         entity_dict_path = snapshot_path + "/entity_dict.json"
 
@@ -114,10 +114,11 @@ class MAQA:
 
     def __init__(
         self,
-        config: Config | str | None = None,
-        vocab_answer: dict[str, int] | str | None = None,
-        entity_dict_path: str | None = None,
-        # Misc.
+        # Internal
+        config: Config | str,
+        vocab_answer: dict[str, int] | str,
+        entity_dict_path: str,
+        # Optional
         device: str = "cuda",
     ):
         logger.info("########## MAQA Initialization Starts ##########")
@@ -125,7 +126,7 @@ class MAQA:
         # Load the configuration
         if isinstance(config, str):
             config_path = config
-            config = utils.get_hocon_config(config_path=config_path)
+            config = utils.read_json(config_path)
             logger.info(f"Loaded configuration from {config_path}")
         self.config = config
         logger.info(utils.pretty_format_dict(self.config))
@@ -197,8 +198,8 @@ class MAQA:
     ) -> None:
         """Save the model parameters, configuration, answer vocabulary, and entity dictionary to the specified snapshot path."""
 
-        model_path = snapshot_path + "/model"
-        config_path = snapshot_path + "/config"
+        model_path = snapshot_path + "/model.pt"
+        config_path = snapshot_path + "/config.json"
         vocab_path = snapshot_path + "/answers.vocab.txt"
         entity_dict_path = snapshot_path + "/entity_dict.json"
 

@@ -71,8 +71,8 @@ class MAATLOP:
     ) -> "MAATLOP":
 
         # Define the default paths for the resources in the snapshot
-        model_path = snapshot_path + "/model"
-        config_path = snapshot_path + "/config"
+        model_path = snapshot_path + "/model.pt"
+        config_path = snapshot_path + "/config.json"
         vocab_path = snapshot_path + "/relations.vocab.txt"
         entity_dict_path = snapshot_path + "/entity_dict.json"
 
@@ -101,10 +101,11 @@ class MAATLOP:
 
     def __init__(
         self,
-        config: Config | str | None = None,
-        vocab_relation: dict[str, int] | str | None = None,
-        entity_dict_path: str | None = None,
-        # Misc.
+        # Internal
+        config: Config | str,
+        vocab_relation: dict[str, int] | str,
+        entity_dict_path: str,
+        # Optional
         device: str = "cuda",
     ):
         logger.info("########## MAATLOP Initialization Starts ##########")
@@ -112,7 +113,7 @@ class MAATLOP:
         # Load the configuration
         if isinstance(config, str):
             config_path = config
-            config = utils.get_hocon_config(config_path=config_path)
+            config = utils.read_json(config_path)
             logger.info(f"Loaded configuration from {config_path}")
         self.config = config
         logger.info(utils.pretty_format_dict(self.config))
@@ -201,8 +202,8 @@ class MAATLOP:
     ) -> None:
         """Save the model parameters, configuration, relation vocabulary, and entity dictionary."""
 
-        model_path = snapshot_path + "/model"
-        config_path = snapshot_path + "/config"
+        model_path = snapshot_path + "/model.pt"
+        config_path = snapshot_path + "/config.json"
         vocab_path = snapshot_path + "/relations.vocab.txt"
         entity_dict_path = snapshot_path + "/entity_dict.json"
 

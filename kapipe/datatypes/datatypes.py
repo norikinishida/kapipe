@@ -1,12 +1,10 @@
 from typing import Any, TypeAlias
-from pyhocon import ConfigTree
 
 ##########
 # Config
 ##########
 
-# Configuration tree used throughout KAPipe
-Config : TypeAlias = ConfigTree 
+Config : TypeAlias = dict[str, Any]
 
 ##########
 # Data types for documents/passages

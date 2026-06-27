@@ -61,7 +61,7 @@ class LLMDocRE:
     ) -> "LLMDocRE":
 
         # Define the default paths for the resources in the snapshot
-        config_path = snapshot_path + "/config"
+        config_path = snapshot_path + "/config.json"
         vocab_path = snapshot_path + "/relations.vocab.txt"
         meta_info_path = snapshot_path + "/rel_meta_info.json"
         entity_dict_path = snapshot_path + "/entity_dict.json"
@@ -69,12 +69,9 @@ class LLMDocRE:
             snapshot_path + "/demonstration_documents.json"
         )
 
-        # Use an empty list of demonstrations if the snapshot does not contain 
-        # any demonstration documents.
-        if os.path.exists(demonstration_documents_path):
-            demonstration_documents = demonstration_documents_path
-        else:
-            demonstration_documents = []
+        # Set the demonstration documents to None if the file does not exist
+        if not os.path.exists(demonstration_documents_path):
+            demonstration_documents_path = None
 
         # Initialize the extractor from explicit snapshot resources
         extractor = cls(
@@ -83,7 +80,7 @@ class LLMDocRE:
             vocab_relation=vocab_path,
             rel_meta_info=meta_info_path,
             entity_dict_path=entity_dict_path,
-            demonstration_documents=demonstration_documents,
+            demonstration_documents=demonstration_documents_path,
         )
 
         # Store the snapshot path for later inspection
@@ -93,11 +90,14 @@ class LLMDocRE:
 
     def __init__(
         self,
+        # External
         model: HuggingFaceLLM | OpenAILLM,
-        config: Config | str | None = None,
-        vocab_relation: dict[str, int] | str | None = None,
-        rel_meta_info: dict[str, dict[str, str]] | str | None = None,
-        entity_dict_path: str | None = None,
+        # Internal
+        config: Config | str,
+        vocab_relation: dict[str, int] | str,
+        rel_meta_info: dict[str, dict[str, str]] | str,
+        entity_dict_path: str,
+        # Optional
         demonstration_documents: list[Document] | str | None = None,
     ):
         logger.info("########## LLMDocRE Initialization Starts ##########")
@@ -107,7 +107,7 @@ class LLMDocRE:
         # Load the configuration
         if isinstance(config, str):
             config_path = config
-            config = utils.get_hocon_config(config_path=config_path)
+            config = utils.read_json(config_path)
             logger.info(f"Loaded configuration from {config_path}")
         self.config = config
         logger.info(utils.pretty_format_dict(self.config))
@@ -193,7 +193,7 @@ class LLMDocRE:
     def save(self, snapshot_path: str) -> None:
         """Save the configuration, relation vocabulary, relation meta-information, entity dictionary, and demonstration pool to a specified snapshot path."""
 
-        config_path = snapshot_path + "/config"
+        config_path = snapshot_path + "/config.json"
         vocab_path = snapshot_path + "/relations.vocab.txt"
         meta_info_path = snapshot_path + "/rel_meta_info.json"
         entity_dict_path = snapshot_path + "/entity_dict.json"

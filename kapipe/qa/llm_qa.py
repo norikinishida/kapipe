@@ -58,7 +58,7 @@ class LLMQA:
     ) -> "LLMQA":
 
         # Define the default paths for the resources in the snapshot
-        config_path = snapshot_path + "/config"
+        config_path = snapshot_path + "/config.json"
 
         # Initialize the answerer from explicit snapshot resources
         answerer = cls(
@@ -74,8 +74,8 @@ class LLMQA:
     def __init__(
         self,
         model: HuggingFaceLLM | OpenAILLM,
-        # Initialization
-        config: Config | str | None = None,
+        # Internal
+        config: Config | str,
     ):
         logger.info("########## LLMQA Initialization Starts ##########")
 
@@ -84,7 +84,7 @@ class LLMQA:
         # Load the configuration
         if isinstance(config, str):
             config_path = config
-            config = utils.get_hocon_config(config_path=config_path)
+            config = utils.read_json(config_path)
             logger.info(f"Loaded configuration from {config_path}")
         self.config = config
         logger.info(utils.pretty_format_dict(self.config))
@@ -108,7 +108,7 @@ class LLMQA:
     def save(self, snapshot_path: str) -> None:
         """Save the configuration."""
 
-        config_path = snapshot_path + "/config"
+        config_path = snapshot_path + "/config.json"
         utils.write_json(config_path, self.config)
 
     def answer(

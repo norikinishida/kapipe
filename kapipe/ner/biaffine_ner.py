@@ -69,8 +69,8 @@ class BiaffineNER:
     ) -> "BiaffineNER":
 
         # Define the default paths for the resources in the snapshot
-        model_path = snapshot_path + "/model"
-        config_path = snapshot_path + "/config"
+        model_path = snapshot_path + "/model.pt"
+        config_path = snapshot_path + "/config.json"
         vocab_path = snapshot_path + "/entity_types.vocab.txt"
 
         # Initialize the extractor from explicit snapshot resources
@@ -97,8 +97,10 @@ class BiaffineNER:
 
     def __init__(
         self,
-        config: Config | str | None = None,
-        vocab_etype: dict[str, int] | str | None = None,
+        # Internal
+        config: Config | str,
+        vocab_etype: dict[str, int] | str,
+        # Optional
         device: str = "cuda",
     ):
         logger.info("########## BiaffineNER Initialization Starts ##########")
@@ -106,7 +108,7 @@ class BiaffineNER:
         # Load the configuration
         if isinstance(config, str):
             config_path = config
-            config = utils.get_hocon_config(config_path=config_path)
+            config = utils.read_json(config_path)
             logger.info(f"Loaded configuration from {config_path}")
         self.config = config
         logger.info(utils.pretty_format_dict(self.config))
@@ -159,8 +161,8 @@ class BiaffineNER:
     def save(self, snapshot_path: str, model_only: bool = False) -> None:
         """Save the model, configuration, and entity type vocabulary."""
 
-        model_path = snapshot_path + "/model"
-        config_path = snapshot_path + "/config"
+        model_path = snapshot_path + "/model.pt"
+        config_path = snapshot_path + "/config.json"
         vocab_path = snapshot_path + "/entity_types.vocab.txt"
 
         torch.save(self.model.state_dict(), model_path)
