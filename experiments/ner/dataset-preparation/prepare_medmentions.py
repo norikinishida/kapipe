@@ -4,8 +4,6 @@ import os
 from spacy_alignments import tokenizations
 from tqdm import tqdm
 
-import sys
-sys.path.insert(0, "../../..")
 from kapipe import utils
 from kapipe.chunking import Chunker
 
@@ -67,8 +65,8 @@ def main(args):
     # Adjust spans
     documents = adjust_spans(documents)
 
-    # Assign "entities" attributes to the documents
-    documents = assign_entities(documents)
+    # Remove Entity ID annotations
+    documents = remove_entity_id_annotations(documents)
 
     # Split the documents into splits 
     train_pmids = set(utils.read_lines(os.path.join(input_dir, "full", "data", "corpus_pubtator_pmids_trng.txt")))
@@ -96,7 +94,6 @@ def main(args):
 def read_documents_from_pubtator_corpus(path, semantic_types):
     # semantic_types = set([x["id"] for x in semantic_types])
     semantic_type_map = {d["id"]: d["name"] for d in semantic_types}
-
     documents = []
     document = {}
     n_lines = len(open(path).readlines())
@@ -173,13 +170,13 @@ def tokenize_title_and_abstract(documents):
     chunker = Chunker()
     for doc_i, doc in enumerate(documents):
         # Tokenize the title
-        sent0 = " ".join(chunker.split_to_tokens(insert_spaces(
+        sent0 = " ".join(chunker.split_text_to_tokens(insert_spaces(
             text=doc["title"],
             mentions=doc["mentions"],
             offset=0
         ))) # str
         # Tokenize the abstract
-        sents = chunker.split_to_tokenized_sentences(insert_spaces(
+        sents = chunker.split_text_to_tokenized_sentences(insert_spaces(
             text=doc["text"],
             mentions=doc["mentions"],
             offset=len(doc["title"]) + 1
@@ -213,6 +210,33 @@ def insert_spaces(text, mentions, offset):
     return text
 
 
+def postprocess_sentences(sentences, mentions):
+    # sentences = [s.split() for s in sentences]
+    while True:
+        need_change = False
+        token_index_to_sent_index = [] # list[int]
+        for sent_i, sent in enumerate(sentences):
+            token_index_to_sent_index.extend([sent_i for _ in range(len(sent))])
+
+        for mention in mentions:
+            (begin_token_index, end_token_index) = mention["span"]
+            begin_sent_index = token_index_to_sent_index[begin_token_index]
+            end_sent_index = token_index_to_sent_index[end_token_index]
+            if begin_sent_index != end_sent_index:
+                assert begin_sent_index + 1 == end_sent_index
+                s0 = sentences[:begin_sent_index]
+                s1 = sentences[begin_sent_index]
+                s2 = sentences[begin_sent_index + 1]
+                s3 = sentences[begin_sent_index + 1:]
+                sentences = s0 + [s1 + s2] + s3
+                need_change = True
+                break
+        if not need_change:
+            break
+    # sentences = [" ".join(s) for s in sentences]
+    return sentences
+
+
 def remove_duplicate_mentions(documents):
     for doc_i, doc in enumerate(documents):
         tuples = [(tuple(m["span"]), m["name"], m["entity_type"], m["entity_id"]) for m in doc["mentions"]]
@@ -235,7 +259,7 @@ def remove_duplicate_mentions(documents):
 
 
 def adjust_spans(documents):
-    for doc_i, doc in tqdm(enumerate(documents)):
+    for doc_i, doc in enumerate(documents):
         chars = list(doc["title"] + " " + doc["text"]) # list[str]
         tokens = " ".join(doc["sentences"]).split(" ") # list[str]
         char_to_tok, _ = tokenizations.get_alignments(chars, tokens)
@@ -260,7 +284,7 @@ def adjust_spans(documents):
         doc["sentences"] = adjust_sentence_splitting(
             doc["sentences"], doc["mentions"]
         )
-
+            
         documents[doc_i] = doc
     return documents
 
@@ -281,7 +305,7 @@ def adjust_sentence_splitting(sentences, mentions):
                 merged = [w for s in sentences[begin_sent_index: end_sent_index + 1] for w in s]
                 right = sentences[end_sent_index + 1:]
                 sentences = left + [merged] + right
-                print(f"Merged sentence[{begin_sent_index}](token[{begin_token_index}]) - sentence[{end_sent_index}](token[{end_token_index}])")
+                print(f"Merged sentence[{begin_sent_index}](for token[{begin_token_index}]) - sentence[{end_sent_index}](for token[{end_token_index}])")
                 need_change = True
                 break
         if not need_change:
@@ -289,14 +313,17 @@ def adjust_sentence_splitting(sentences, mentions):
     sentences = [" ".join(s) for s in sentences]
     return sentences
 
-    
-def assign_entities(documents):
+
+def remove_entity_id_annotations(documents):
     for doc_i, doc in enumerate(documents):
-        entities = utils.aggregate_mentions_to_entities(
-            document=doc,
-            mentions=doc["mentions"]
-        )
-        doc["entities"] = entities
+        new_mentions = []
+        for mention in doc["mentions"]:
+            new_mentions.append({
+                "span": mention["span"],
+                "name": mention["name"],
+                "entity_type": mention["entity_type"]
+            })
+        doc["mentions"] = new_mentions
         documents[doc_i] = doc
     return documents
 
@@ -307,13 +334,12 @@ def show_stats(documents, title):
     entities = set()
     for doc in documents:
         n_mentions += len(doc["mentions"])
-        ents = [m["entity_id"] for m in doc["mentions"]]
-        entities.update(ents)
+        # ents = [m["entity_id"] for m in doc["mentions"]]
+        # entities.update(ents)
     print(f"{title}:")
     print(f"Number of documents: {n_docs}")
     print(f"Number of mentions: {n_mentions}")
-    print(f"Number of entities: {len(entities)}")
-    
+    # print(f"Number of entities: {len(entities)}")
 
 
 if __name__ == "__main__":

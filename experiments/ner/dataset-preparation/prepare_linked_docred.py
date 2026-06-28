@@ -4,8 +4,6 @@ import os
 
 from tqdm import tqdm
 
-import sys
-sys.path.insert(0, "../../..")
 from kapipe import utils
 
 
@@ -17,7 +15,6 @@ def main(args):
     doc_key_list = []
     n_sentences = 0
     n_mentions = 0
-    n_entities = 0
 
     records = []
     with open(path_input_file, "r") as f:
@@ -41,16 +38,9 @@ def main(args):
                 local_shift_map=local_shift_map,
                 local_to_global_map=local_to_global_map
             )
-            record["entities"] = get_entities(
-                data=data,
-                local_shift_map=local_shift_map,
-                local_to_global_map=local_to_global_map,
-                mentions=record["mentions"]
-            )
 
             n_sentences += len(record["sentences"])
             n_mentions += len(record["mentions"])
-            n_entities += len(record["entities"])
                  
             records.append(record)
     utils.write_json(path_output_file, records)
@@ -58,7 +48,6 @@ def main(args):
     print(f"Processed {len(doc_key_list)} documents.")
     print(f"Average number of sentences per doc: {n_sentences}/{len(doc_key_list)} = {float(n_sentences) / len(doc_key_list)}")
     print(f"Average number of mentions per doc: {n_mentions}/{len(doc_key_list)} = {float(n_mentions) / len(doc_key_list)}")
-    print(f"Average number of entities per doc: {n_entities}/{len(doc_key_list)} = {float(n_entities) / len(doc_key_list)}")
 
 
 def process_spaces(data):
@@ -102,15 +91,14 @@ def get_mentions(data, local_shift_map, local_to_global_map):
         # Entity type
         entity_type = entity["type"]
         # Entity ID
-        wikipedia_id = entity["entity_linking"]["wikipedia_resource"]
-        wikidata_id = entity["entity_linking"]["wikidata_resource"]
-        entity_id = wikipedia_id
-        if entity_id == "#ignored#":
-            entity_id = f"{entity_id}-{n_ignored}"
-            n_ignored += 1
-        wikipedia_not_resource = entity["entity_linking"]["wikipedia_not_resource"]
-        method = entity["entity_linking"]["method"]
-        confidence = entity["entity_linking"]["confidence"]
+        # entity_id = entity["entity_linking"]["wikipedia_resource"]
+        # if entity_id == "#ignored#":
+        #     entity_id = f"{entity_id}-{n_ignored}"
+        #     n_ignored += 1
+        # wikidata_id = entity["entity_linking"]["wikidata_resource"]
+        # wikipedia_not_resource = entity["entity_linking"]["wikipedia_not_resource"]
+        # method = entity["entity_linking"]["method"]
+        # confidence = entity["entity_linking"]["confidence"]
         for mention in entity["mentions"]:
             # Sentence index
             sent_index = mention["sent_id"]
@@ -130,13 +118,13 @@ def get_mentions(data, local_shift_map, local_to_global_map):
                 "span": (mention_begin_token_index, mention_end_token_index),
                 "name": mention_name,
                 "entity_type": entity_type,
-                "entity_id": entity_id,
-                "entity_linking_detail": {
-                    "wikidata_id": wikidata_id,
-                    "wikipedia_not_resource": wikipedia_not_resource,
-                    "method": method,
-                    "confidence": confidence,
-                }
+                # "entity_id": entity_id,
+                # "entity_linking_detail": {
+                #     "wikidata_id": wikidata_id,
+                #     "wikipedia_not_resource": wikipedia_not_resource,
+                #     "method": method,
+                #     "confidence": confidence,
+                # }
             }
             mentions.append(dct)
     mentions = remove_duplicated_mentions(mentions=mentions)
@@ -153,80 +141,6 @@ def remove_duplicated_mentions(mentions):
         new_mentions.append(mention)
         keys.append(mention["span"])
     return new_mentions
-
-
-def get_entities(data, local_shift_map, local_to_global_map, mentions):
-    # Make a map from mention span (b, e) to mention index
-    span2index = create_span_to_mention_index_dict(mentions=mentions)
-    # Aggregate entities
-    entities = {}
-    n_ignored = 0
-    for entity_i, entity in enumerate(data["entities"]):
-        # Entity ID
-        wikipedia_id = entity["entity_linking"]["wikipedia_resource"]
-        wikidata_id = entity["entity_linking"]["wikidata_resource"]
-        entity_id = wikipedia_id
-        if entity_id == "#ignored#":
-            entity_id = f"{entity_id}-{n_ignored}"
-            n_ignored += 1
-        # Entity Type
-        entity_type = entity["type"]
-        # Mention indices
-        spans = []
-        for mention in entity["mentions"]:
-            sent_index = mention["sent_id"]
-            # original, local
-            mention_begin_token_index, mention_end_token_index = mention["pos"]
-            mention_end_token_index -= 1
-            # after space removal, local
-            mention_begin_token_index = local_shift_map[(sent_index, mention_begin_token_index)]
-            mention_end_token_index = local_shift_map[(sent_index, mention_end_token_index)]
-            # global
-            mention_begin_token_index = local_to_global_map[(sent_index, mention_begin_token_index)]
-            mention_end_token_index = local_to_global_map[(sent_index, mention_end_token_index)]
-            spans.append((mention_begin_token_index, mention_end_token_index))
-        mention_indices = [span2index[(b,e)] for b, e in spans]
-        mention_indices = sorted(mention_indices)
-        # Mention names
-        mention_names = [mentions[m_i]["name"] for m_i in mention_indices]
-        if not entity_id in entities:
-            entities[entity_id] = {
-                "entity_type": entity_type,
-                "mention_indices": mention_indices,
-                "mention_names": mention_names,
-            }
-        else:
-            assert entities[entity_id]["entity_type"] == entity_type, (entities, "@@@@@@", entity)
-            assert tuple(entities[entity_id]["mention_indices"]) == tuple(mention_indices)
-            assert tuple(entities[entity_id]["mention_names"]) == tuple(mention_names)
-
-    entities = transform_entities(dct=entities)
-    # entities = sorted(entities, key=lambda x: x["mention_indices"][0])
-    return entities
-
-
-def create_span_to_mention_index_dict(mentions):
-    dct = {}
-    for m_i, mention in enumerate(mentions):
-        dct[tuple(mention["span"])] = m_i
-    assert len(dct) == len(mentions)
-    return dct
-
-
-def transform_entities(dct):
-    entities = []
-    for entity_id in dct:
-        entity_type = dct[entity_id]["entity_type"]
-        mention_indices = dct[entity_id]["mention_indices"]
-        mention_names = dct[entity_id]["mention_names"]
-        entity = {
-            "mention_indices": mention_indices,
-            "mention_names": mention_names,
-            "entity_type": entity_type,
-            "entity_id": entity_id,
-        }
-        entities.append(entity)
-    return entities
 
 
 if __name__ == "__main__":

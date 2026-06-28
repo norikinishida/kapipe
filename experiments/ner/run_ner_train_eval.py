@@ -2,6 +2,7 @@ import argparse
 from collections import defaultdict
 import logging
 import os
+import sys
 
 import numpy as np
 import pandas as pd
@@ -10,107 +11,13 @@ import transformers
 import tabulate
 from tqdm import tqdm
 
-import sys
-sys.path.insert(0, "../..")
+from kapipe import utils
+from kapipe.llms import HuggingFaceLLM, OpenAILLM
 from kapipe.ner import (
     BiaffineNER, BiaffineNERTrainer,
     LLMNER, LLMNERTrainer
 )
-from kapipe import utils
 from kapipe.utils import StopWatch
-
-
-def set_logger(filename, overwrite=False):
-    """
-    Parameters
-    ----------
-    filename: str
-    overwrite: bool, default False
-    """
-    if os.path.exists(filename) and not overwrite:
-        logging.info("%s already exists." % filename)
-        do_remove = input("Delete the existing log file? [y/n]: ")
-        if (not do_remove.lower().startswith("y")) and (not len(do_remove) == 0):
-            logging.info("Done.")
-            sys.exit(0)
-
-    root_logger = logging.getLogger()
-    handler = logging.FileHandler(filename, "w")
-    root_logger.addHandler(handler)
-
-
-def pop_logger_handler():
-    root_logger = logging.getLogger()
-    assert len(root_logger.handlers) > 1
-    handler = root_logger.handlers.pop()
-    root_logger.removeHandler(handler)
-    handler.close()
-    logging.info(f"Removed {handler} from the root logger {root_logger}.")
-
-
-def show_ner_documents_statistics(documents, title):
-    """Show NER documents statistics
-
-    Parameters
-    ----------
-    documents : list[Document]
-    title: str
-
-    Summarize the following statistics
-        - Number of documents
-        - Number of sentences
-            - Average number of sentences per document
-        - Number of words
-            - Average number of words per document
-        - Number of mentions (without/with redundancy)
-            - Average number of mentions (without/with redundancy) per document
-        - Number of mentions (without/with redundancy) for each entity type
-    """
-    n_documents = len(documents)
-    n_sentences_list = []
-    n_words_list = []
-
-    n_mentions_list = []
-    n_mentions_dict = defaultdict(int)
-
-    for doc in tqdm(documents):
-        n_sentences_list.append(len(doc["sentences"]))
-
-        n_words_list.append(len(utils.flatten_lists(
-            [s.split() for s in doc["sentences"]]
-        )))
-
-        n_mentions_list.append(len(doc["mentions"]))
-        for mention in doc["mentions"]:
-            etype = mention["entity_type"]
-            n_mentions_dict[etype] += 1
-
-    results = {}
-
-    results["Number of documents"] = n_documents
-    results["Number of sentences"] = get_statistics_text(n_sentences_list)
-    results["Number of words"] = get_statistics_text(n_words_list)
-
-    results["Number of mentions"] = get_statistics_text(n_mentions_list)
-    for key, value in sorted(list(n_mentions_dict.items()), key=lambda tpl: tpl[0]):
-        results[f"\tNumber of mentions for {key}"] = value
-
-    table = {}
-    table[title] = results.keys()
-    table["Statistics"] = results.values()
-    df = pd.DataFrame.from_dict(table)
-    logging.info("\n" + tabulate.tabulate(df, headers="keys", tablefmt="psql", floatfmt=".1f"))
-
-
-def get_statistics_text(xs):
-    if len(xs) == 0:
-        sum_ = mean_ = max_ = min_ = 0
-    else:
-        sum_ = np.sum(xs)
-        mean_ = np.mean(xs)
-        max_ = np.max(xs)
-        min_ = np.min(xs)
-    return f"Total: {sum_} / Average per instance: {mean_} / Max: {max_} / Min: {min_}"
 
 
 def main(args):
@@ -124,22 +31,19 @@ def main(args):
     ##################
 
     # Method
-    device = torch.device(f"cuda:{args.gpu}")
     method_name = args.method
     config_path = args.config_path
     config_name = args.config_name
 
     # Input Data
     dataset_name = args.dataset_name
-    path_train_documents = args.train_documents
-    path_dev_documents = args.dev_documents
-    path_test_documents = args.test_documents
-    # path_train_demonstrations = args.train_demonstrations
-    path_dev_demonstrations = args.dev_demonstrations
-    path_test_demonstrations = args.test_demonstrations
+    train_documents_path = args.train_documents
+    dev_documents_path = args.dev_documents
+    test_documents_path = args.test_documents
+    demonstration_documents_path = args.demonstration_documents
 
     # Output Path
-    path_results_dir = args.results_dir
+    results_dir = args.results_dir
     prefix = args.prefix
     if prefix is None or prefix == "None":
         prefix = utils.get_current_time()
@@ -157,7 +61,7 @@ def main(args):
 
     # Set base output path
     base_output_path = os.path.join(
-        path_results_dir,
+        results_dir,
         "ner",
         method_name,
         config_name,
@@ -185,15 +89,16 @@ def main(args):
     ##################
 
     # Load documents
-    train_documents = utils.read_json(path_train_documents)
-    dev_documents = utils.read_json(path_dev_documents)
-    test_documents = utils.read_json(path_test_documents)
+    train_documents = utils.read_json(train_documents_path)
+    dev_documents = utils.read_json(dev_documents_path)
+    test_documents = utils.read_json(test_documents_path)
 
     # Load demonstrations (for LLM and in-context learning)
     if method_name == "llm_ner":
-        # train_demonstrations = utils.read_json(path_train_demonstrations)
-        dev_demonstrations = utils.read_json(path_dev_demonstrations)
-        test_demonstrations = utils.read_json(path_test_demonstrations)
+        if demonstration_documents_path is None:
+            demonstration_documents = None
+        else:
+            demonstration_documents = utils.read_json(demonstration_documents_path)
 
     # Create vocabulary of entity types
     if dataset_name == "cdr":
@@ -201,7 +106,7 @@ def main(args):
     elif dataset_name == "conll2003":
         vocab_etype = get_vocab_etype_for_conll2003(
             path=os.path.join(
-                os.path.dirname(path_train_documents),
+                os.path.dirname(train_documents_path),
                 "meta/entity_type_to_id.json"
             ),
             method_name=method_name
@@ -209,7 +114,7 @@ def main(args):
     elif dataset_name == "linked_docred":
         vocab_etype = get_vocab_etype_for_linked_docred(
             path=os.path.join(
-                os.path.dirname(path_train_documents),
+                os.path.dirname(train_documents_path),
                 "meta/ner2id.json"
             ),
             method_name=method_name
@@ -217,7 +122,7 @@ def main(args):
     elif dataset_name == "medmentions":
         vocab_etype = get_vocab_etype_for_medmentions(
             path=os.path.join(
-                os.path.dirname(path_train_documents),
+                os.path.dirname(train_documents_path),
                 "meta/st21pv_semantic_types.json"
             ),
             method_name=method_name
@@ -239,7 +144,9 @@ def main(args):
                 "Pretty Name": row["Pretty Name"],
                 "Definition": row["Definition"]
             }
-            for _, row in pd.read_csv(f"./dataset-meta-information/{dataset_name}_entity_types.csv").iterrows()
+            for _, row in pd.read_csv(
+                f"../common/dataset-meta-information/{dataset_name}/entity_types.csv"
+            ).iterrows()
         }
 
     # Show statistics
@@ -265,21 +172,20 @@ def main(args):
         trainer = BiaffineNERTrainer(base_output_path=base_output_path)
 
         if actiontype == "train" or actiontype == "check_preprocessing":
-            # Initialize the extractor
+            # Load the experiment configuration
             config = utils.get_hocon_config(
                 config_path=config_path,
                 config_name=config_name
             )
+
+            # Initialize the extractor
             extractor = BiaffineNER(
-                device=device,
                 config=config,
                 vocab_etype=vocab_etype
             )
         else: 
-            # Load the extractor
-            extractor = BiaffineNER(
-                device=device,
-                path_snapshot=trainer.paths["path_snapshot"]
+            extractor = BiaffineNER.from_snapshot(
+                snapshot_path=trainer.paths["snapshot_path"]
             )
 
     elif method_name == "llm_ner":
@@ -288,16 +194,34 @@ def main(args):
         # Initialize the trainer (evaluator)
         trainer = LLMNERTrainer(base_output_path=base_output_path)
 
-        # Load the configuration
-        config = utils.get_hocon_config(config_path=config_path, config_name=config_name)
+        # Load the experiment configuration
+        config = utils.get_hocon_config(
+            config_path=config_path,
+            config_name=config_name
+        )
+
+        # Initialize the LLM
+        if config["provider"] == "openai":
+            model = OpenAILLM(
+                model_name=config["model_name"],
+                max_new_tokens=config["max_new_tokens"],
+            )
+        elif config["provider"] == "hf":
+            model = HuggingFaceLLM(
+                model_name=config["model_name"],
+                max_new_tokens=config["max_new_tokens"],
+                quantization_bits=config["quantization_bits"],
+            )
+        else:
+            raise ValueError(f"Unknown LLM provider: {config['provider']}")
 
         # Initialize the extractor
         extractor = LLMNER(
-            device=device,
+            model=model,
             config=config,
             vocab_etype=vocab_etype,
             etype_meta_info=etype_meta_info,
-            path_demonstration_pool=path_train_documents
+            demonstration_documents=demonstration_documents
         )
 
     ##################
@@ -354,17 +278,12 @@ def main(args):
         if actiontype == "check_prompt":
             # Show prompts
             with torch.no_grad():
-                path_out = os.path.join(base_output_path, "output.txt")
-                with open(path_out, "w") as f:
-                    for i, (document, demos) in enumerate(
-                        zip(dev_documents, dev_demonstrations)
-                    ):
+                out_path = os.path.join(base_output_path, "output.txt")
+                with open(out_path, "w") as f:
+                    for i, document in enumerate(dev_documents):
                         doc_key = document["doc_key"]
                         logging.info(f"Processing {doc_key}")
-                        result_document = extractor.extract(
-                            document=document,
-                            demonstrations_for_doc=demos
-                        )
+                        result_document = extractor.extract(document=document)
                         f.write(f"--- DOC_KEY ({doc_key}) ---\n\n")
                         f.write("Prompt:\n")
                         f.write(result_document["ner_prompt"] + "\n\n")
@@ -405,14 +324,12 @@ def main(args):
             trainer.evaluate(
                 extractor=extractor,
                 documents=dev_documents,
-                demonstrations=dev_demonstrations,
                 contexts=None,
                 split="dev"
             )
             trainer.evaluate(
                 extractor=extractor,
                 documents=test_documents,
-                demonstrations=test_demonstrations,
                 contexts=None,
                 split="test"
             )
@@ -426,6 +343,45 @@ def main(args):
     logging.info("Time: %f min." % sw.get_time("main", minute=True))
 
     return prefix
+
+
+def set_logger(filename, overwrite=False):
+    """
+    Parameters
+    ----------
+    filename: str
+    overwrite: bool, default False
+    """
+    if os.path.exists(filename) and not overwrite:
+        logging.info("%s already exists." % filename)
+        do_remove = input("Delete the existing log file? [y/n]: ")
+        if (not do_remove.lower().startswith("y")) and (not len(do_remove) == 0):
+            logging.info("Done.")
+            sys.exit(0)
+
+    root_logger = logging.getLogger()
+    handler = logging.FileHandler(filename, "w")
+    root_logger.addHandler(handler)
+
+
+def pop_logger_handler():
+    root_logger = logging.getLogger()
+    assert len(root_logger.handlers) > 1
+    handler = root_logger.handlers.pop()
+    root_logger.removeHandler(handler)
+    handler.close()
+    logging.info(f"Removed {handler} from the root logger {root_logger}.")
+
+
+def get_statistics_text(xs):
+    if len(xs) == 0:
+        sum_ = mean_ = max_ = min_ = 0
+    else:
+        sum_ = np.sum(xs)
+        mean_ = np.mean(xs)
+        max_ = np.max(xs)
+        min_ = np.min(xs)
+    return f"Total: {sum_} / Average per instance: {mean_} / Max: {max_} / Min: {min_}"
 
 
 def get_vocab_etype(documents_list, method_name):
@@ -480,6 +436,60 @@ def get_vocab_etype_for_medmentions(path, method_name):
     return vocab_etype
 
 
+def show_ner_documents_statistics(documents, title):
+    """Show NER documents statistics
+
+    Parameters
+    ----------
+    documents : list[Document]
+    title: str
+
+    Summarize the following statistics
+        - Number of documents
+        - Number of sentences
+            - Average number of sentences per document
+        - Number of words
+            - Average number of words per document
+        - Number of mentions (without/with redundancy)
+            - Average number of mentions (without/with redundancy) per document
+        - Number of mentions (without/with redundancy) for each entity type
+    """
+    n_documents = len(documents)
+    n_sentences_list = []
+    n_words_list = []
+
+    n_mentions_list = []
+    n_mentions_dict = defaultdict(int)
+
+    for doc in tqdm(documents):
+        n_sentences_list.append(len(doc["sentences"]))
+
+        n_words_list.append(len(utils.flatten_lists(
+            [s.split() for s in doc["sentences"]]
+        )))
+
+        n_mentions_list.append(len(doc["mentions"]))
+        for mention in doc["mentions"]:
+            etype = mention["entity_type"]
+            n_mentions_dict[etype] += 1
+
+    results = {}
+
+    results["Number of documents"] = n_documents
+    results["Number of sentences"] = get_statistics_text(n_sentences_list)
+    results["Number of words"] = get_statistics_text(n_words_list)
+
+    results["Number of mentions"] = get_statistics_text(n_mentions_list)
+    for key, value in sorted(list(n_mentions_dict.items()), key=lambda tpl: tpl[0]):
+        results[f"\tNumber of mentions for {key}"] = value
+
+    table = {}
+    table[title] = results.keys()
+    table["Statistics"] = results.values()
+    df = pd.DataFrame.from_dict(table)
+    logging.info("\n" + tabulate.tabulate(df, headers="keys", tablefmt="psql", floatfmt=".1f"))
+
+
 if __name__ == "__main__":
     logging.basicConfig(
         format="%(asctime)s - %(levelname)s - %(name)s - %(message)s",
@@ -489,7 +499,6 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
     # Method
-    parser.add_argument("--gpu", type=int, default=0)
     parser.add_argument("--method", type=str, required=True)
     parser.add_argument("--config_path", type=str, required=True)
     parser.add_argument("--config_name", type=str, required=True)
@@ -499,9 +508,7 @@ if __name__ == "__main__":
     parser.add_argument("--train_documents", type=str, required=True)
     parser.add_argument("--dev_documents", type=str, required=True)
     parser.add_argument("--test_documents", type=str, required=True)
-    parser.add_argument("--train_demonstrations", type=str, default=None)
-    parser.add_argument("--dev_demonstrations", type=str, default=None)
-    parser.add_argument("--test_demonstrations", type=str, default=None)
+    parser.add_argument("--demonstration_documents", type=str, default=None)
 
     # Output Path
     parser.add_argument("--results_dir", type=str, required=True)

@@ -1,20 +1,33 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
 
-# STORAGE=/home/nishida/storage/projects/kapipe/experiments
-STORAGE=/home/nishida/projects/kapipe/experiments
+######
+# Storage paths
+######
+
+STORAGE=/home/nishida/projects/kapipe/experiments/ner
+# STORAGE=/home/nishida/storage/projects/kapipe/experiments/ner
 
 STORAGE_DATA=${STORAGE}/data
 STORAGE_RESULTS=${STORAGE}/results
 
-# Method
-# (Biaffine-NER)
+######
+# Experiment configuration
+######
+
 # METHOD=biaffine_ner
-# CONFIG_PATH=./config/biaffine_ner.conf
-# CONFIG_NAME=biaffine_ner_model_scibertuncased_cdr
-# (LLM-NER)
 METHOD=llm_ner
-CONFIG_PATH=./config/llm_ner.conf
-CONFIG_NAME=openai_gpt4omini_cdr_prompt13fewshot
+
+# Method
+if [ "${METHOD}" == "biaffine_ner" ]; then
+    CONFIG_PATH=./config/biaffine_ner.conf
+    CONFIG_NAME=biaffine_ner_model_scibertuncased_cdr
+elif [ "${METHOD}" == "llm_ner" ]; then
+    CONFIG_PATH=./config/llm_ner.conf
+    CONFIG_NAME=gpt4omini_cdr
+else
+    echo "Error: Invalid METHOD specified."
+    exit 1
+fi
 
 # Input Data
 # (In practice, use separate files for training, validation, and test data.
@@ -23,41 +36,42 @@ DATASET_NAME=cdr
 TRAIN_DOCS=${STORAGE_DATA}/examples/documents_with_triples.json
 DEV_DOCS=${STORAGE_DATA}/examples/documents_with_triples.json
 TEST_DOCS=${STORAGE_DATA}/examples/documents_with_triples.json
-#
-TRAIN_DEMOS=${STORAGE_DATA}/examples/documents_without_triples.demonstrations.3.random.json
-DEV_DEMOS=${STORAGE_DATA}/examples/documents_without_triples.demonstrations.3.random.json
-TEST_DEMOS=${STORAGE_DATA}/examples/documents_without_triples.demonstrations.3.random.json
+# Optionally, you can also provide demonstration documents for LLM-based NER.
+DEMO_DOCS=${STORAGE_DATA}/examples/demonstration_documents.json
 
 # Output Path
 RESULTS_DIR=${STORAGE_RESULTS}
 MYPREFIX=example
 
-# (Biaffine-NER)
-# python run_ner_train_eval.py \
-#     --method ${METHOD} \
-#     --config_path ${CONFIG_PATH} \
-#     --config_name ${CONFIG_NAME} \
-#     --dataset_name ${DATASET_NAME} \
-#     --train_documents ${TRAIN_DOCS} \
-#     --dev_documents ${DEV_DOCS} \
-#     --test_documents ${TEST_DOCS} \
-#     --results_dir ${STORAGE_RESULTS} \
-#     --prefix ${MYPREFIX} \
-#     --actiontype train_and_evaluate
+######
+# Experiment execution
+######
 
-# (LLM-NER)
-python run_ner_train_eval.py \
-    --method ${METHOD} \
-    --config_path ${CONFIG_PATH} \
-    --config_name ${CONFIG_NAME} \
-    --dataset_name ${DATASET_NAME} \
-    --train_documents ${TRAIN_DOCS} \
-    --dev_documents ${DEV_DOCS} \
-    --test_documents ${TEST_DOCS} \
-    --train_demonstrations ${TRAIN_DEMOS} \
-    --dev_demonstrations ${DEV_DEMOS} \
-    --test_demonstrations ${TEST_DEMOS} \
-    --results_dir ${STORAGE_RESULTS} \
-    --prefix ${MYPREFIX} \
-    --actiontype evaluate
+if [ "${METHOD}" == "biaffine_ner" ]; then
+    python run_ner_train_eval.py \
+        --method ${METHOD} \
+        --config_path ${CONFIG_PATH} \
+        --config_name ${CONFIG_NAME} \
+        --dataset_name ${DATASET_NAME} \
+        --train_documents ${TRAIN_DOCS} \
+        --dev_documents ${DEV_DOCS} \
+        --test_documents ${TEST_DOCS} \
+        --results_dir ${RESULTS_DIR} \
+        --prefix ${MYPREFIX} \
+        --actiontype train_and_evaluate
+fi
 
+if [ "${METHOD}" == "llm_ner" ]; then
+    python run_ner_train_eval.py \
+        --method ${METHOD} \
+        --config_path ${CONFIG_PATH} \
+        --config_name ${CONFIG_NAME} \
+        --dataset_name ${DATASET_NAME} \
+        --train_documents ${TRAIN_DOCS} \
+        --dev_documents ${DEV_DOCS} \
+        --test_documents ${TEST_DOCS} \
+        --demonstration_documents ${DEMO_DOCS} \
+        --results_dir ${RESULTS_DIR} \
+        --prefix ${MYPREFIX} \
+        --actiontype evaluate
+fi

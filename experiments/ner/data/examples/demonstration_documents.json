@@ -1,0 +1,1369 @@
+[
+    {
+        "doc_key": "10669626",
+        "sentences": [
+            "Warfarin - induced artery calcification is accelerated by growth and vitamin D .",
+            "The present studies demonstrate that growth and vitamin D treatment enhance the extent of artery calcification in rats given sufficient doses of Warfarin to inhibit gamma - carboxylation of matrix Gla protein , a calcification inhibitor known to be expressed by smooth muscle cells and macrophages in the artery wall .",
+            "The first series of experiments examined the influence of age and growth status on artery calcification in Warfarin - treated rats .",
+            "Treatment for 2 weeks with Warfarin caused massive focal calcification of the artery media in 20 - day - old rats and less extensive focal calcification in 42 - day - old rats .",
+            "In contrast , no artery calcification could be detected in 10 - month - old adult rats even after 4 weeks of Warfarin treatment .",
+            "To directly examine the importance of growth to Warfarin - induced artery calcification in animals of the same age , 20 - day - old rats were fed for 2 weeks either an ad libitum diet or a 6 - g / d restricted diet that maintains weight but prevents growth .",
+            "Concurrent treatment of both dietary groups with Warfarin produced massive focal calcification of the artery media in the ad libitum - fed rats but no detectable artery calcification in the restricted - diet , growth - inhibited group .",
+            "Although the explanation for the association between artery calcification and growth status can not be determined from the present study , there was a relationship between higher serum phosphate and susceptibility to artery calcification , with 30 % higher levels of serum phosphate in young , ad libitum - fed rats compared with either of the groups that was resistant to Warfarin - induced artery calcification , ie , the 10 - month - old rats and the restricted - diet , growth - inhibited young rats .",
+            "This observation suggests that increased susceptibility to Warfarin - induced artery calcification could be related to higher serum phosphate levels .",
+            "The second set of experiments examined the possible synergy between vitamin D and Warfarin in artery calcification .",
+            "High doses of vitamin D are known to cause calcification of the artery media in as little as 3 to 4 days .",
+            "High doses of the vitamin K antagonist Warfarin are also known to cause calcification of the artery media , but at treatment times of 2 weeks or longer yet not at 1 week .",
+            "In the current study , we investigated the synergy between these 2 treatments and found that concurrent Warfarin administration dramatically increased the extent of calcification in the media of vitamin D - treated rats at 3 and 4 days .",
+            "There was a close parallel between the effect of vitamin D dose on artery calcification and the effect of vitamin D dose on the elevation of serum calcium , which suggests that vitamin D may induce artery calcification through its effect on serum calcium .",
+            "Because Warfarin treatment had no effect on the elevation in serum calcium produced by vitamin D , the synergy between Warfarin and vitamin D is probably best explained by the hypothesis that Warfarin inhibits the activity of matrix Gla protein as a calcification inhibitor .",
+            "High levels of matrix Gla protein are found at sites of artery calcification in rats treated with vitamin D plus Warfarin , and chemical analysis showed that the protein that accumulated was indeed not gamma - carboxylated .",
+            "These observations indicate that although the gamma - carboxyglutamate residues of matrix Gla protein are apparently required for its function as a calcification inhibitor , they are not required for its accumulation at calcification sites ."
+        ],
+        "mentions": [
+            {
+                "span": [
+                    0,
+                    0
+                ],
+                "name": "Warfarin",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    3,
+                    4
+                ],
+                "name": "artery calcification",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    10,
+                    11
+                ],
+                "name": "vitamin D",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    20,
+                    21
+                ],
+                "name": "vitamin D",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    27,
+                    28
+                ],
+                "name": "artery calcification",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    35,
+                    35
+                ],
+                "name": "Warfarin",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    47,
+                    47
+                ],
+                "name": "calcification",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    78,
+                    79
+                ],
+                "name": "artery calcification",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    81,
+                    81
+                ],
+                "name": "Warfarin",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    91,
+                    91
+                ],
+                "name": "Warfarin",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    95,
+                    98
+                ],
+                "name": "calcification of the artery",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    111,
+                    111
+                ],
+                "name": "calcification",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    124,
+                    125
+                ],
+                "name": "artery calcification",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    142,
+                    142
+                ],
+                "name": "Warfarin",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    153,
+                    153
+                ],
+                "name": "Warfarin",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    156,
+                    157
+                ],
+                "name": "artery calcification",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    204,
+                    204
+                ],
+                "name": "Warfarin",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    208,
+                    211
+                ],
+                "name": "calcification of the artery",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    223,
+                    224
+                ],
+                "name": "artery calcification",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    243,
+                    244
+                ],
+                "name": "artery calcification",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    264,
+                    264
+                ],
+                "name": "phosphate",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    268,
+                    269
+                ],
+                "name": "artery calcification",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    278,
+                    278
+                ],
+                "name": "phosphate",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    297,
+                    297
+                ],
+                "name": "Warfarin",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    300,
+                    301
+                ],
+                "name": "artery calcification",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    331,
+                    331
+                ],
+                "name": "Warfarin",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    334,
+                    335
+                ],
+                "name": "artery calcification",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    342,
+                    342
+                ],
+                "name": "phosphate",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    355,
+                    356
+                ],
+                "name": "vitamin D",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    358,
+                    358
+                ],
+                "name": "Warfarin",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    360,
+                    361
+                ],
+                "name": "artery calcification",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    366,
+                    367
+                ],
+                "name": "vitamin D",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    372,
+                    375
+                ],
+                "name": "calcification of the artery",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    390,
+                    391
+                ],
+                "name": "vitamin K",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    393,
+                    393
+                ],
+                "name": "Warfarin",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    399,
+                    402
+                ],
+                "name": "calcification of the artery",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    437,
+                    437
+                ],
+                "name": "Warfarin",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    444,
+                    444
+                ],
+                "name": "calcification",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    449,
+                    450
+                ],
+                "name": "vitamin D",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    469,
+                    470
+                ],
+                "name": "vitamin D",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    473,
+                    474
+                ],
+                "name": "artery calcification",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    479,
+                    480
+                ],
+                "name": "vitamin D",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    487,
+                    487
+                ],
+                "name": "calcium",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    492,
+                    493
+                ],
+                "name": "vitamin D",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    496,
+                    497
+                ],
+                "name": "artery calcification",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    503,
+                    503
+                ],
+                "name": "calcium",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    506,
+                    506
+                ],
+                "name": "Warfarin",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    516,
+                    516
+                ],
+                "name": "calcium",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    519,
+                    520
+                ],
+                "name": "vitamin D",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    525,
+                    525
+                ],
+                "name": "Warfarin",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    527,
+                    528
+                ],
+                "name": "vitamin D",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    537,
+                    537
+                ],
+                "name": "Warfarin",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    547,
+                    547
+                ],
+                "name": "calcification",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    561,
+                    562
+                ],
+                "name": "artery calcification",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    567,
+                    568
+                ],
+                "name": "vitamin D",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    570,
+                    570
+                ],
+                "name": "Warfarin",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    584,
+                    586
+                ],
+                "name": "gamma - carboxylated",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    594,
+                    596
+                ],
+                "name": "gamma - carboxyglutamate",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    610,
+                    610
+                ],
+                "name": "calcification",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    621,
+                    621
+                ],
+                "name": "calcification",
+                "entity_type": "Disease"
+            }
+        ]
+    },
+    {
+        "doc_key": "12464714",
+        "sentences": [
+            "Crossover comparison of efficacy and preference for rizatriptan 10 mg versus ergotamine / caffeine in migraine .",
+            "Rizatriptan is a selective 5 - HT ( 1B / 1D ) receptor agonist with rapid oral absorption and early onset of action in the acute treatment of migraine .",
+            "This randomized double - blind crossover outpatient study assessed the preference for 1 rizatriptan 10 mg tablet to 2 ergotamine 1 mg / caffeine 100 mg tablets in 439 patients treating a single migraine attack with each therapy .",
+            "Of patients expressing a preference ( 89 . 1 % ) , more than twice as many preferred rizatriptan to ergotamine / caffeine ( 69 . 9 vs . 30 . 1 % , p < or = 0 . 001 ) .",
+            "Faster relief of headache was the most important reason for preference , cited by 67 . 3 % of patients preferring rizatriptan and 54 . 2 % of patients who preferred ergotamine / caffeine .",
+            "The co - primary endpoint of being pain free at 2 h was also in favor of rizatriptan .",
+            "Forty - nine percent of patients were pain free 2 h after rizatriptan , compared with 24 . 3 % treated with ergotamine / caffeine ( p < or = 0 . 001 ) , rizatriptan being superior within 1 h of treatment .",
+            "Headache relief at 2 h was 75 . 9 % for rizatriptan and 47 . 3 % for ergotamine / caffeine ( p < or = 0 . 001 ) , with rizatriptan being superior to ergotamine / caffeine within 30 min of dosing .",
+            "Almost 36 % of patients taking rizatriptan were pain free at 2 h and had no recurrence or need for additional medication within 24 h , compared to 20 % of patients on ergotamine / caffeine ( p < or = 0 . 001 ) .",
+            "Rizatriptan was also superior to ergotamine / caffeine in the proportions of patients with no nausea , vomiting , phonophobia or photophobia and for patients with normal function 2 h after drug intake ( p < or = 0 . 001 ) .",
+            "More patients were ( completely , very or somewhat ) satisfied 2 h after treatment with rizatriptan ( 69 . 8 % ) than at 2 h after treatment with ergotamine / caffeine ( 38 . 6 % , p < or = 0 . 001 ) .",
+            "Recurrence rates were 31 . 4 % with rizatriptan and 15 . 3 % with ergotamine / caffeine .",
+            "Both active treatments were well tolerated .",
+            "The most common adverse events ( incidence > or = 5 % in one group ) after rizatriptan and ergotamine / caffeine , respectively , were dizziness ( 6 . 7 and 5 . 3 % ) , nausea ( 4 . 2 and 8 . 5 % ) and somnolence ( 5 . 5 and 2 . 3 % ) ."
+        ],
+        "mentions": [
+            {
+                "span": [
+                    7,
+                    7
+                ],
+                "name": "rizatriptan",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    11,
+                    11
+                ],
+                "name": "ergotamine",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    13,
+                    13
+                ],
+                "name": "caffeine",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    15,
+                    15
+                ],
+                "name": "migraine",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    17,
+                    17
+                ],
+                "name": "Rizatriptan",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    21,
+                    23
+                ],
+                "name": "5 - HT",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    45,
+                    45
+                ],
+                "name": "migraine",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    60,
+                    60
+                ],
+                "name": "rizatriptan",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    66,
+                    66
+                ],
+                "name": "ergotamine",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    70,
+                    70
+                ],
+                "name": "caffeine",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    80,
+                    80
+                ],
+                "name": "migraine",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    104,
+                    104
+                ],
+                "name": "rizatriptan",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    106,
+                    106
+                ],
+                "name": "ergotamine",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    108,
+                    108
+                ],
+                "name": "caffeine",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    132,
+                    132
+                ],
+                "name": "headache",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    150,
+                    150
+                ],
+                "name": "rizatriptan",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    160,
+                    160
+                ],
+                "name": "ergotamine",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    162,
+                    162
+                ],
+                "name": "caffeine",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    171,
+                    171
+                ],
+                "name": "pain",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    181,
+                    181
+                ],
+                "name": "rizatriptan",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    190,
+                    190
+                ],
+                "name": "pain",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    195,
+                    195
+                ],
+                "name": "rizatriptan",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    205,
+                    205
+                ],
+                "name": "ergotamine",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    207,
+                    207
+                ],
+                "name": "caffeine",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    218,
+                    218
+                ],
+                "name": "rizatriptan",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    227,
+                    227
+                ],
+                "name": "Headache",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    238,
+                    238
+                ],
+                "name": "rizatriptan",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    245,
+                    245
+                ],
+                "name": "ergotamine",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    247,
+                    247
+                ],
+                "name": "caffeine",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    259,
+                    259
+                ],
+                "name": "rizatriptan",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    263,
+                    263
+                ],
+                "name": "ergotamine",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    265,
+                    265
+                ],
+                "name": "caffeine",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    278,
+                    278
+                ],
+                "name": "rizatriptan",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    280,
+                    280
+                ],
+                "name": "pain",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    305,
+                    305
+                ],
+                "name": "ergotamine",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    307,
+                    307
+                ],
+                "name": "caffeine",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    318,
+                    318
+                ],
+                "name": "Rizatriptan",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    323,
+                    323
+                ],
+                "name": "ergotamine",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    325,
+                    325
+                ],
+                "name": "caffeine",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    333,
+                    333
+                ],
+                "name": "nausea",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    335,
+                    335
+                ],
+                "name": "vomiting",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    337,
+                    337
+                ],
+                "name": "phonophobia",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    339,
+                    339
+                ],
+                "name": "photophobia",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    377,
+                    377
+                ],
+                "name": "rizatriptan",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    391,
+                    391
+                ],
+                "name": "ergotamine",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    393,
+                    393
+                ],
+                "name": "caffeine",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    417,
+                    417
+                ],
+                "name": "rizatriptan",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    424,
+                    424
+                ],
+                "name": "ergotamine",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    426,
+                    426
+                ],
+                "name": "caffeine",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    452,
+                    452
+                ],
+                "name": "rizatriptan",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    454,
+                    454
+                ],
+                "name": "ergotamine",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    456,
+                    456
+                ],
+                "name": "caffeine",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    461,
+                    461
+                ],
+                "name": "dizziness",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    473,
+                    473
+                ],
+                "name": "nausea",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    485,
+                    485
+                ],
+                "name": "somnolence",
+                "entity_type": "Disease"
+            }
+        ]
+    },
+    {
+        "doc_key": "15036754",
+        "sentences": [
+            "Organophosphate - induced convulsions and prevention of neuropathological damages .",
+            "Such organophosphorus ( OP ) compounds as diisopropylfluorophosphate ( DFP ) , sarin and soman are potent inhibitors of acetylcholinesterases ( AChEs ) and butyrylcholinesterases ( BChEs ) .",
+            "The acute toxicity of OPs is the result of their irreversible binding with AChEs in the central nervous system ( CNS ) , which elevates acetylcholine ( ACh ) levels .",
+            "The protective action of subcutaneously ( SC ) administered antidotes or their combinations in DFP ( 2 . 0 mg / kg BW ) intoxication was studied in 9 - 10 - weeks - old Han - Wistar male rats .",
+            "The rats received AChE reactivator pralidoxime - 2 - chloride ( 2PAM ) ( 30 . 0 mg / kg BW ) , anticonvulsant diazepam ( 2 . 0 mg / kg BW ) , A ( 1 ) - adenosine receptor agonist N ( 6 ) - cyclopentyl adenosine ( CPA ) ( 2 . 0 mg / kg BW ) , NMDA - receptor antagonist dizocilpine maleate ( + - MK801 hydrogen maleate ) ( 2 . 0 mg / kg BW ) or their combinations with cholinolytic drug atropine sulfate ( 50 . 0 mg / kg BW ) immediately or 30 min after the single SC injection of DFP .",
+            "The control rats received atropine sulfate , but also saline and olive oil instead of other antidotes and DFP , respectively .",
+            "All rats were terminated either 24 h or 3 weeks after the DFP injection .",
+            "The rats treated with DFP - atropine showed severe typical OP - induced toxicity signs .",
+            "When CPA , diazepam or 2PAM was given immediately after DFP - atropine , these treatments prevented , delayed or shortened the occurrence of serious signs of poisoning .",
+            "Atropine - MK801 did not offer any additional protection against DFP toxicity .",
+            "In conclusion , CPA , diazepam and 2PAM in combination with atropine prevented the occurrence of serious signs of poisoning and thus reduced the toxicity of DFP in rat ."
+        ],
+        "mentions": [
+            {
+                "span": [
+                    0,
+                    0
+                ],
+                "name": "Organophosphate",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    3,
+                    3
+                ],
+                "name": "convulsions",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    7,
+                    8
+                ],
+                "name": "neuropathological damages",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    11,
+                    11
+                ],
+                "name": "organophosphorus",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    13,
+                    13
+                ],
+                "name": "OP",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    17,
+                    17
+                ],
+                "name": "diisopropylfluorophosphate",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    19,
+                    19
+                ],
+                "name": "DFP",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    22,
+                    22
+                ],
+                "name": "sarin",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    24,
+                    24
+                ],
+                "name": "soman",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    41,
+                    41
+                ],
+                "name": "toxicity",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    43,
+                    43
+                ],
+                "name": "OPs",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    64,
+                    64
+                ],
+                "name": "acetylcholine",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    66,
+                    66
+                ],
+                "name": "ACh",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    84,
+                    84
+                ],
+                "name": "DFP",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    116,
+                    120
+                ],
+                "name": "pralidoxime - 2 - chloride",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    122,
+                    122
+                ],
+                "name": "2PAM",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    135,
+                    135
+                ],
+                "name": "diazepam",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    151,
+                    151
+                ],
+                "name": "adenosine",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    154,
+                    160
+                ],
+                "name": "N ( 6 ) - cyclopentyl adenosine",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    162,
+                    162
+                ],
+                "name": "CPA",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    174,
+                    174
+                ],
+                "name": "NMDA",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    178,
+                    179
+                ],
+                "name": "dizocilpine maleate",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    202,
+                    203
+                ],
+                "name": "atropine sulfate",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    223,
+                    223
+                ],
+                "name": "DFP",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    229,
+                    230
+                ],
+                "name": "atropine sulfate",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    243,
+                    243
+                ],
+                "name": "DFP",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    259,
+                    259
+                ],
+                "name": "DFP",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    266,
+                    266
+                ],
+                "name": "DFP",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    268,
+                    268
+                ],
+                "name": "atropine",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    272,
+                    272
+                ],
+                "name": "OP",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    275,
+                    275
+                ],
+                "name": "toxicity",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    279,
+                    279
+                ],
+                "name": "CPA",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    281,
+                    281
+                ],
+                "name": "diazepam",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    283,
+                    283
+                ],
+                "name": "2PAM",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    288,
+                    288
+                ],
+                "name": "DFP",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    290,
+                    290
+                ],
+                "name": "atropine",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    305,
+                    305
+                ],
+                "name": "poisoning",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    307,
+                    307
+                ],
+                "name": "Atropine",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    309,
+                    309
+                ],
+                "name": "MK801",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    317,
+                    317
+                ],
+                "name": "DFP",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    318,
+                    318
+                ],
+                "name": "toxicity",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    323,
+                    323
+                ],
+                "name": "CPA",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    325,
+                    325
+                ],
+                "name": "diazepam",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    327,
+                    327
+                ],
+                "name": "2PAM",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    331,
+                    331
+                ],
+                "name": "atropine",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    339,
+                    339
+                ],
+                "name": "poisoning",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    344,
+                    344
+                ],
+                "name": "toxicity",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    346,
+                    346
+                ],
+                "name": "DFP",
+                "entity_type": "Chemical"
+            }
+        ]
+    }
+]
