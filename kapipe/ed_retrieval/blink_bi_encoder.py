@@ -388,19 +388,30 @@ class BlinkBiEncoder:
                 mentions=mentions
             )
 
-            # Structurize the retrieved candidate entities for each mention in the document
+            # Use the actual number of retrieved entities because ANNS may reduce
+            # top_k when the index contains fewer entities than the requested
+            # retrieval size.
+            actual_retrieval_size: int = len(mention_pred_entity_ids[0])
+
+            # Structurize the retrieved candidate entities for each mention
+            # in the document.
             candidate_entities_for_mentions: list[list[CandEntKeyInfo]] = []
             n_mentions = len(mention_pred_entity_ids)
-            assert len(mention_pred_entity_ids[0]) == retrieval_size
+            # assert len(mention_pred_entity_ids[0]) == retrieval_size
             for m_i in range(n_mentions):
+                # Create candidate entities for the one mention
                 lst_cand_ent: list[CandEntKeyInfo] = []
-                for c_i in range(retrieval_size):
+
+                # Add all candidates that were actually returned by ANNS
+                for c_i in range(actual_retrieval_size):
                     cand_ent = {
                         "entity_id": mention_pred_entity_ids[m_i][c_i],
                         "canonical_name": mention_pred_entity_names[m_i][c_i],
                         "score": float(retrieval_scores[m_i][c_i]),
                     }
                     lst_cand_ent.append(cand_ent)
+
+                # Add the candidates for this mention
                 candidate_entities_for_mentions.append(lst_cand_ent)
 
             # Integrate the retrieved candidate entities into the document

@@ -53,7 +53,7 @@ def main(args):
     actiontype = args.actiontype
 
     assert method_name in ["biaffine_ner", "llm_ner"]
-    assert actiontype in ["train", "evaluate", "check_preprocessing", "check_prompt"]
+    assert actiontype in ["train", "evaluate", "check_prompt"]
 
     ##################
     # Logging Setup
@@ -171,19 +171,20 @@ def main(args):
         # Initialize the trainer (evaluator)
         trainer = BiaffineNERTrainer(base_output_path=base_output_path)
 
-        if actiontype == "train" or actiontype == "check_preprocessing":
+        if actiontype == "train":
             # Load the experiment configuration
             config = utils.get_hocon_config(
                 config_path=config_path,
                 config_name=config_name
             )
 
-            # Initialize the extractor
+            # Initialize the NER component
             extractor = BiaffineNER(
                 config=config,
                 vocab_etype=vocab_etype
             )
         else: 
+            # Load the NER component
             extractor = BiaffineNER.from_snapshot(
                 snapshot_path=trainer.paths["snapshot_path"]
             )
@@ -263,16 +264,6 @@ def main(args):
                 split="test"
             )
 
-        if actiontype == "check_preprocessing":
-            # Save preprocessed data
-            results = []
-            for document in tqdm(dev_documents):
-                preprocessed_data = extractor.model.preprocessor.preprocess(document)
-                for key in ["matrix_valid_span_mask", "matrix_gold_entity_type_labels"]:
-                    preprocessed_data[key] = preprocessed_data[key].tolist()
-                results.append(preprocessed_data)
-            utils.write_json(os.path.join(base_output_path, "dev.check_preprocessing.json"), results)
-        
     elif method_name == "llm_ner":
 
         if actiontype == "check_prompt":

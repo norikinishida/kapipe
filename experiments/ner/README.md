@@ -34,7 +34,7 @@ This directory already includes example data.
 
 ```bash
 experiments/ner/data/examples/documents.json
-experiments/ner/data/examples/documents_with_triples.json
+experiments/ner/data/examples/documents_with_supervision.json
 experiments/ner/data/examples/demonstration_documents.json
 ```
 
@@ -58,6 +58,7 @@ Example:
 experiments/ner/data/cdr/train.json
 experiments/ner/data/cdr/dev.json
 experiments/ner/data/cdr/test.json
+experiments/ner/data/cdr/demonstration_documents.json
 ```
 
 ## Step 3. Running the NER Component

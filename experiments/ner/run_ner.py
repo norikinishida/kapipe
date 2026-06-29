@@ -75,7 +75,7 @@ def main(args):
     # Method
     ##################
 
-    # Initialize the NER extractor
+    # Initialize the NER component
     if method_name == "biaffine_ner":
         extractor = BiaffineNER.from_identifier(identifier=identifier)
     elif method_name == "llm_ner":
@@ -103,7 +103,7 @@ def main(args):
     # Create the full output path
     output_documents_path = os.path.join(base_output_path, "documents.json")
 
-    # Apply the NER extractor to the documents
+    # Apply the NER component to the documents
     result_documents = []
     for document in tqdm(documents):
         result_document = extractor.extract(document=document)

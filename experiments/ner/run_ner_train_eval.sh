@@ -33,9 +33,9 @@ fi
 # (In practice, use separate files for training, validation, and test data.
 # This example checks whether the model can achieve near 100% accuracy (i.e., overfit) on the training data.)
 DATASET_NAME=cdr
-TRAIN_DOCS=${STORAGE_DATA}/examples/documents_with_triples.json
-DEV_DOCS=${STORAGE_DATA}/examples/documents_with_triples.json
-TEST_DOCS=${STORAGE_DATA}/examples/documents_with_triples.json
+TRAIN_DOCS=${STORAGE_DATA}/examples/documents_with_supervision.json
+DEV_DOCS=${STORAGE_DATA}/examples/documents_with_supervision.json
+TEST_DOCS=${STORAGE_DATA}/examples/documents_with_supervision.json
 # Optionally, you can also provide demonstration documents for LLM-based NER.
 DEMO_DOCS=${STORAGE_DATA}/examples/demonstration_documents.json
 
