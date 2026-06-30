@@ -35,35 +35,15 @@ This directory already includes example data.
 ```bash
 experiments/ner/data/examples/documents.json
 experiments/ner/data/examples/documents_with_supervision.json
-experiments/ner/data/examples/demonstration_documents.json
 ```
 
 ### Benchmark datasets
 
-If necessary, you can prepare benchmark datasets with the following commands.
-
-```bash
-cd experiments/ner/dataset-preparation
-
-bash ./prepare_conll2003.sh
-bash ./prepare_linked_docred.sh
-bash ./prepare_cdr.sh
-bash ./prepare_medmentions.sh
-```
-
-These commands extract each dataset under `experiments/ner/data/`.
-
-Example:
-```bash
-experiments/ner/data/cdr/train.json
-experiments/ner/data/cdr/dev.json
-experiments/ner/data/cdr/test.json
-experiments/ner/data/cdr/demonstration_documents.json
-```
+You can also prepare benchmark datasets (e.g., CDR, Linked-DocRED) with the scripts in `experiments/datasets/ner`.
 
 ## Step 3. Running the NER Component
 
-First, check `STORAGE` in each execution script and adjust it to your environment.
+First, check `STORAGE_DATA` and `STORAGE_RESULTS` in each execution script and adjust them to your environment.
 
 To apply an off-the-shelf NER component to documents, run:
 

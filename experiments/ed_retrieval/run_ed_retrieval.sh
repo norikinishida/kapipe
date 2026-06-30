@@ -4,11 +4,9 @@
 # Storage paths
 ######
 
-STORAGE=/home/nishida/projects/kapipe/experiments/ed_retrieval
-# STORAGE=/home/nishida/storage/projects/kapipe/experiments/ed_retrieval
-
-STORAGE_DATA=${STORAGE}/data
-STORAGE_RESULTS=${STORAGE}/results
+STORAGE_DATA=/home/nishida/projects/kapipe/experiments/ed_retrieval/data
+# STORAGE_DATA=/home/nishida/projects/kapipe/experiments/datasets/ed
+STORAGE_RESULTS=/home/nishida/projects/kapipe/experiments/ed_retrieval/results
 
 ######
 # Experiment configuration

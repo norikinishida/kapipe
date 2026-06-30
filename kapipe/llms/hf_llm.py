@@ -25,8 +25,8 @@ class HuggingFaceLLM:
         self.provider = "hf"
 
         self.model_name = model_name
-        self.quantization_bits = quantization_bits
         self.max_new_tokens = max_new_tokens
+        self.quantization_bits = quantization_bits
 
         # Build the optional bitsandbytes quantization configuration.
         # None means full precision loading with torch.bfloat16 weights.
@@ -39,6 +39,15 @@ class HuggingFaceLLM:
         # Load the model and tokenizer
         self.llm, self.tokenizer = self._initialize_llm_and_tokenizer(
             model_name=self.model_name
+        )
+
+    def __repr__(self) -> str:
+        return (
+            f"HuggingFaceLLM("
+            f"provider={self.provider}, "
+            f"model_name={self.model_name}, "
+            f"max_new_tokens={self.max_new_tokens}, "
+            f"quantization_bits={self.quantization_bits})"
         )
 
     def _set_quantization(

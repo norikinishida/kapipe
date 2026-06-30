@@ -3,8 +3,8 @@ import logging
 import os
 import sys
 
-import transformers
 from tqdm import tqdm
+import transformers
 
 from kapipe import utils
 from kapipe.ed_retrieval import BlinkBiEncoder

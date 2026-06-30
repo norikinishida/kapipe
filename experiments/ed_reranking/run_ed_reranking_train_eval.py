@@ -4,23 +4,440 @@ import copy
 import logging
 import os
 import random
+import sys
 
 import numpy as np
 import pandas as pd
-import torch
-import transformers
 import tabulate
+import torch
 from tqdm import tqdm
+import transformers
 
-import sys
-sys.path.insert(0, "../..")
+from kapipe import evaluation
+from kapipe import utils
 from kapipe.ed_reranking import (
     BlinkCrossEncoder, BlinkCrossEncoderTrainer,
     LLMED, LLMEDTrainer
 )
-from kapipe import evaluation
-from kapipe import utils
+from kapipe.llms import HuggingFaceLLM, OpenAILLM
 from kapipe.utils import StopWatch
+
+
+def main(args):
+    transformers.logging.set_verbosity_error()
+
+    sw = StopWatch()
+    sw.start("main")
+
+    ##################
+    # Arguments
+    ##################
+
+    # Method
+    method_name = args.method
+    config_path = args.config_path
+    config_name = args.config_name
+
+    # Input Data
+    train_documents_path = args.train_documents
+    dev_documents_path = args.dev_documents
+    test_documents_path = args.test_documents
+
+    train_candidate_entities_path = args.train_candidate_entities
+    dev_candidate_entities_path = args.dev_candidate_entities
+    test_candidate_entities_path = args.test_candidate_entities
+
+    entity_dict_path = args.entity_dict
+
+    n_demonstrations = args.n_demonstrations
+
+    # Output Path
+    results_dir = args.results_dir
+    prefix = args.prefix
+    if prefix is None or prefix == "None":
+        prefix = utils.get_current_time()
+        args.prefix = prefix
+
+    # Action
+    actiontype = args.actiontype
+
+    assert method_name in ["blink_cross_encoder", "llm_ed"]
+    assert actiontype in ["train", "evaluate", "check_prompt"]
+
+    ##################
+    # Logging Setup
+    ##################
+
+    # Set base output path
+    base_output_path = os.path.join(
+        results_dir,
+        "ed_reranking",
+        method_name,
+        config_name,
+        prefix
+    )
+    utils.mkdir(base_output_path)
+
+    # Set logger
+    if actiontype == "train":
+        set_logger(
+            os.path.join(base_output_path, "training.log"),
+            # overwrite=True
+        )
+    elif actiontype == "evaluate":
+        set_logger(
+            os.path.join(base_output_path, "evaluation.log"),
+            # overwrite=True
+        )
+
+    # Show arguments
+    logging.info(utils.pretty_format_dict(vars(args)))
+
+    ##################
+    # Data
+    ##################
+
+    # Load documents
+    train_documents = utils.read_json(train_documents_path)
+    dev_documents = utils.read_json(dev_documents_path)
+    test_documents = utils.read_json(test_documents_path)
+
+    # Load candidate entities
+    train_candidate_entities = utils.read_json(train_candidate_entities_path)
+    dev_candidate_entities = utils.read_json(dev_candidate_entities_path)
+    test_candidate_entities = utils.read_json(test_candidate_entities_path)
+
+    # Load demonstrations for LLM-based ED-Reranking
+    if method_name == "llm_ed":
+        demonstration_documents, demonstration_candidate_entities = (
+            create_demonstrations(
+                train_documents=train_documents,
+                train_candidate_entities=train_candidate_entities,
+                n_demonstrations=n_demonstrations,
+            )
+        )
+
+    # Show statistics
+    show_ed_documents_statistics(
+        documents=train_documents,
+        title="Training"
+    )
+    show_ed_documents_statistics(
+        documents=dev_documents,
+        title="Development"
+    )
+    show_ed_documents_statistics(
+        documents=test_documents,
+        title="Test"
+    )    
+
+    ##################
+    # Method
+    ##################
+
+    if method_name == "blink_cross_encoder":
+        # Initialize the trainer (evaluator)
+        trainer = BlinkCrossEncoderTrainer(base_output_path=base_output_path)
+
+        if actiontype == "train":
+            # Load the experiment configuration
+            config = utils.get_hocon_config(
+                config_path=config_path,
+                config_name=config_name
+            )
+
+            # Initialize the ED-Reranking component
+            reranker = BlinkCrossEncoder(
+                config=config,
+                entity_dict_path=entity_dict_path
+            )
+        else:
+            # Load the ED-Reranking component
+            reranker = BlinkCrossEncoder.from_snapshot(
+                snapshot_path=trainer.paths["snapshot_path"]
+            )
+
+    elif method_name == "llm_ed":
+        assert actiontype != "train"
+
+        # Initialize the trainer (evaluator)
+        trainer = LLMEDTrainer(base_output_path=base_output_path)
+
+        # Load the experiment configuration
+        config = utils.get_hocon_config(
+            config_path=config_path,
+            config_name=config_name
+        )
+
+        # Initialize the LLM
+        if config["provider"] == "openai":
+            model = OpenAILLM(
+                model_name=config["model_name"],
+                max_new_tokens=config["max_new_tokens"],
+            )
+        elif config["provider"] == "hf":
+            model = HuggingFaceLLM(
+                model_name=config["model_name"],
+                max_new_tokens=config["max_new_tokens"],
+                quantization_bits=config["quantization_bits"],
+            )
+        else:
+            raise ValueError(f"Unknown LLM provider: {config['provider']}")
+
+        # Initialize the ED-Reranking component
+        reranker = LLMED(
+            model=model,
+            config=config,
+            entity_dict_path=entity_dict_path,
+            demonstration_documents=demonstration_documents,
+            demonstration_candidate_entities=demonstration_candidate_entities,
+        )
+
+    else:
+        raise ValueError(f"Unknown method: {method_name}")
+
+    ##################
+    # Training, Evaluation
+    ##################
+
+    if method_name == "blink_cross_encoder":
+
+        # Remove out-of-kb mentions in the training dataset
+        (
+            processed_train_documents,
+            processed_train_candidate_entities
+        ) = remove_out_of_kb_mentions(
+            train_documents=train_documents,
+            train_candidate_entities=train_candidate_entities,
+            entity_dict=reranker.entity_dict
+        )
+        show_ed_documents_statistics(
+            documents=processed_train_documents,
+            title="Training after Out-of-Kb Removal"
+        )
+
+        # Evaluate the candidate entities for the training dataset
+        logging.info(utils.pretty_format_dict(
+            evaluation.ed.recall_at_k(
+                pred_path=processed_train_candidate_entities,
+                gold_path=processed_train_documents,
+                inkb=False
+            )
+        ))
+
+        # Add/move gold entities in the candidate entities for the training dataset
+        processed_train_candidate_entities = add_or_move_gold_entity_in_candidates(
+            documents=processed_train_documents,
+            candidate_entities=processed_train_candidate_entities
+        )
+
+        # Re-evaluate the candidate entities for the training dataset
+        logging.info(utils.pretty_format_dict(
+            evaluation.ed.recall_at_k(
+                pred_path=processed_train_candidate_entities,
+                gold_path=processed_train_documents,
+                inkb=False
+            )
+        ))
+
+        # Set up the datasets for evaluation
+        trainer.setup_dataset(
+            reranker=reranker,
+            documents=dev_documents,
+            candidate_entities=dev_candidate_entities,
+            split="dev"
+        )
+        trainer.setup_dataset(
+            reranker=reranker,
+            documents=test_documents,
+            candidate_entities=test_candidate_entities,
+            split="test"
+        )
+
+        # Evaluate the candidate entities for the development dataset
+        logging.info(utils.pretty_format_dict(
+            evaluation.ed.recall_at_k(
+                pred_path=dev_candidate_entities,
+                gold_path=trainer.paths["dev_gold_path"],
+                inkb=True
+            ) | evaluation.ed.accuracy(
+                pred_path=dev_candidate_entities_path.replace(
+                    ".pred_candidate_entities.", ".pred."
+                ),
+                gold_path=trainer.paths["dev_gold_path"],
+                inkb=True
+            ) | evaluation.ed.fscore(
+                pred_path=dev_candidate_entities_path.replace(
+                    ".pred_candidate_entities.", ".pred."
+                ),
+                gold_path=trainer.paths["dev_gold_path"],
+                inkb=True
+            )
+        ))
+
+        # Evaluate the candidate entities for the test dataset
+        logging.info(utils.pretty_format_dict(
+            evaluation.ed.recall_at_k(
+                pred_path=test_candidate_entities,
+                gold_path=trainer.paths["test_gold_path"],
+                inkb=True
+            ) | evaluation.ed.accuracy(
+                pred_path=test_candidate_entities_path.replace(
+                    ".pred_candidate_entities.", ".pred."
+                ),
+                gold_path=trainer.paths["test_gold_path"],
+                inkb=True
+            ) | evaluation.ed.fscore(
+                pred_path=test_candidate_entities_path.replace(
+                    ".pred_candidate_entities.", ".pred."
+                ),
+                gold_path=trainer.paths["test_gold_path"],
+                inkb=True
+            )
+        )) 
+
+        if actiontype == "train":
+            # Train the reranker
+            trainer.train(
+                reranker=reranker,
+                train_documents=processed_train_documents,
+                train_candidate_entities=processed_train_candidate_entities,
+                dev_documents=dev_documents,
+                dev_candidate_entities=dev_candidate_entities
+            )
+
+        if actiontype == "evaluate":
+            # Evaluate the reranker on the datasets
+            trainer.evaluate(
+                reranker=reranker,
+                documents=dev_documents,
+                candidate_entities=dev_candidate_entities,
+                split="dev"
+            )
+            trainer.evaluate(
+                reranker=reranker,
+                documents=test_documents,
+                candidate_entities=test_candidate_entities,
+                split="test"
+            )
+
+    if method_name == "llm_ed":
+
+        if actiontype == "check_prompt":
+            # Show prompts
+            with torch.no_grad():
+                out_path = os.path.join(base_output_path, "output.txt")
+                with open(out_path, "w") as f:
+                    for i, (document, cands) in enumerate(zip(
+                        dev_documents, dev_candidate_entities
+                    )):
+                        doc_key = document["doc_key"]
+                        logging.info(f"Processing {doc_key}")
+                        document = reranker.rerank(
+                            document=document,
+                            candidate_entities_for_doc=cands
+                        )
+                        f.write(f"--- DOC_KEY ({doc_key}) ---\n\n")
+                        f.write("Prompt:\n")
+                        f.write(document["ed_prompt"] + "\n\n")
+                        f.write("-----\n")
+                        f.write("Generated Text:\n")
+                        f.write(document["ed_generated_text"] + "\n\n")
+                        f.write("-----\n")
+                        f.write("Parsed mention-entity pairs:\n")
+                        for m in document["mentions"]:
+                            f.write(f"{m}\n")
+                        f.write("-----\n")
+                        f.flush()
+                        if i > 5:
+                            break
+                return
+
+        # Set up the datasets for evaluation
+        trainer.setup_dataset(
+            reranker=reranker,
+            documents=dev_documents,
+            candidate_entities=dev_candidate_entities,
+            split="dev"
+        )
+        trainer.setup_dataset(
+            reranker=reranker,
+            documents=test_documents,
+            candidate_entities=test_candidate_entities,
+            split="test"
+        )
+
+        # Evaluate the candidate entities for the development dataset
+        logging.info(utils.pretty_format_dict(
+            evaluation.ed.recall_at_k(
+                pred_path=dev_candidate_entities,
+                gold_path=trainer.paths["dev_gold_path"],
+                inkb=True
+            ) | evaluation.ed.accuracy(
+                pred_path=dev_candidate_entities_path.replace(
+                    ".pred_candidate_entities.", ".pred."
+                ),
+                gold_path=trainer.paths["dev_gold_path"],
+                inkb=True
+            ) | evaluation.ed.fscore(
+                pred_path=dev_candidate_entities_path.replace(
+                    ".pred_candidate_entities.", ".pred."
+                ),
+                gold_path=trainer.paths["dev_gold_path"],
+                inkb=True
+            )
+        ))
+
+        # Evaluate the candidate entities for the test dataset
+        logging.info(utils.pretty_format_dict(
+            evaluation.ed.recall_at_k(
+                pred_path=test_candidate_entities,
+                gold_path=trainer.paths["test_gold_path"],
+                inkb=True
+            ) | evaluation.ed.accuracy(
+                pred_path=test_candidate_entities_path.replace(
+                    ".pred_candidate_entities.", ".pred."
+                ),
+                gold_path=trainer.paths["test_gold_path"],
+                inkb=True
+            ) | evaluation.ed.fscore(
+                pred_path=test_candidate_entities_path.replace(
+                    ".pred_candidate_entities.", ".pred."
+                ),
+                gold_path=trainer.paths["test_gold_path"],
+                inkb=True
+            )
+        )) 
+
+        # Save the configurations of the reranker
+        trainer.save_reranker(reranker=reranker)
+
+        if actiontype == "evaluate":
+            # Evaluate the reranker on the datasets
+            trainer.evaluate(
+                reranker=reranker,
+                documents=dev_documents,
+                candidate_entities=dev_candidate_entities,
+                contexts=None,
+                split="dev"
+            )
+            trainer.evaluate(
+                reranker=reranker,
+                documents=test_documents,
+                candidate_entities=test_candidate_entities,
+                contexts=None,
+                split="test"
+            )
+
+    ##################
+    # Closing
+    ##################
+
+    logging.info("Done.")
+    sw.stop("main")
+    logging.info("Time: %f min." % sw.get_time("main", minute=True))
+
+    return prefix
 
 
 def set_logger(filename, overwrite=False):
@@ -148,412 +565,6 @@ def get_statistics_text(xs):
     return f"Total: {sum_} / Average per instance: {mean_} / Max: {max_} / Min: {min_}"
 
 
-def main(args):
-    transformers.logging.set_verbosity_error()
-
-    sw = StopWatch()
-    sw.start("main")
-
-    ##################
-    # Arguments
-    ##################
-
-    # Method
-    device = torch.device(f"cuda:{args.gpu}")
-    method_name = args.method
-    config_path = args.config_path
-    config_name = args.config_name
-
-    # Input Data
-    path_train_documents = args.train_documents
-    path_dev_documents = args.dev_documents
-    path_test_documents = args.test_documents
-    path_train_candidate_entities = args.train_candidate_entities
-    path_dev_candidate_entities = args.dev_candidate_entities
-    path_test_candidate_entities = args.test_candidate_entities
-    # path_train_demonstrations = args.train_demonstrations
-    path_dev_demonstrations = args.dev_demonstrations
-    path_test_demonstrations = args.test_demonstrations
-    path_entity_dict = args.entity_dict
-
-    # Output Path
-    path_results_dir = args.results_dir
-    prefix = args.prefix
-    if prefix is None or prefix == "None":
-        prefix = utils.get_current_time()
-        args.prefix = prefix
-
-    # Action
-    actiontype = args.actiontype
-
-    assert method_name in ["blink_cross_encoder", "llm_ed"]
-    assert actiontype in ["train", "evaluate", "check_preprocessing", "check_prompt"]
-
-    ##################
-    # Logging Setup
-    ##################
-
-    # Set base output path
-    base_output_path = os.path.join(
-        path_results_dir,
-        "ed_reranking",
-        method_name,
-        config_name,
-        prefix
-    )
-    utils.mkdir(base_output_path)
-
-    # Set logger
-    if actiontype == "train":
-        set_logger(
-            os.path.join(base_output_path, "training.log"),
-            # overwrite=True
-        )
-    elif actiontype == "evaluate":
-        set_logger(
-            os.path.join(base_output_path, "evaluation.log"),
-            # overwrite=True
-        )
-
-    # Show arguments
-    logging.info(utils.pretty_format_dict(vars(args)))
-
-    ##################
-    # Data
-    ##################
-
-    # Load documents
-    train_documents = utils.read_json(path_train_documents)
-    dev_documents = utils.read_json(path_dev_documents)
-    test_documents = utils.read_json(path_test_documents)
-
-    # Load candidate entities
-    train_candidate_entities = utils.read_json(path_train_candidate_entities)
-    dev_candidate_entities = utils.read_json(path_dev_candidate_entities)
-    test_candidate_entities = utils.read_json(path_test_candidate_entities)
-
-    # Load demonstrations (for LLM and in-context learning)
-    if method_name == "llm_ed":
-        # train_demonstrations = utils.read_json(path_train_demonstrations)
-        dev_demonstrations = utils.read_json(path_dev_demonstrations)
-        test_demonstrations = utils.read_json(path_test_demonstrations)
-
-    # Show statistics
-    show_ed_documents_statistics(
-        documents=train_documents,
-        title="Training"
-    )
-    show_ed_documents_statistics(
-        documents=dev_documents,
-        title="Development"
-    )
-    show_ed_documents_statistics(
-        documents=test_documents,
-        title="Test"
-    )    
-
-    ##################
-    # Method
-    ##################
-
-    if method_name == "blink_cross_encoder":
-        # Initialize the trainer (evaluator)
-        trainer = BlinkCrossEncoderTrainer(base_output_path=base_output_path)
-
-        if actiontype == "train" or actiontype == "check_preprocessing":
-            # Initialize the reranker
-            config = utils.get_hocon_config(
-                config_path=config_path,
-                config_name=config_name
-            )
-            reranker = BlinkCrossEncoder(
-                device=device,
-                config=config,
-                path_entity_dict=path_entity_dict
-            )
-        else:
-            # Load the reranker
-            reranker = BlinkCrossEncoder(
-                device=device,
-                path_snapshot=trainer.paths["path_snapshot"]
-            )
-
-    elif method_name == "llm_ed":
-        # Initialize the reranker
-        trainer = LLMEDTrainer(base_output_path=base_output_path)
-
-        # Initialize the reranker
-        config = utils.get_hocon_config(
-            config_path=config_path,
-            config_name=config_name
-        )
-        reranker = LLMED(
-            device=device,
-            config=config,
-            path_entity_dict=path_entity_dict,
-            path_demonstration_pool=path_train_documents,
-            path_candidate_entities_pool=path_train_candidate_entities
-        )
-
-    ##################
-    # Training, Evaluation
-    ##################
-
-    if method_name == "blink_cross_encoder":
-
-        # Remove out-of-kb mentions in the training dataset
-        (
-            processed_train_documents,
-            processed_train_candidate_entities
-        ) = remove_out_of_kb_mentions(
-            train_documents=train_documents,
-            train_candidate_entities=train_candidate_entities,
-            entity_dict=reranker.entity_dict
-        )
-        show_ed_documents_statistics(
-            documents=processed_train_documents,
-            title="Training after Out-of-Kb Removal"
-        )
-
-        # Evaluate the candidate entities for the training dataset
-        logging.info(utils.pretty_format_dict(
-            evaluation.ed.recall_at_k(
-                pred_path=processed_train_candidate_entities,
-                gold_path=processed_train_documents,
-                inkb=False
-            )
-        ))
-
-        # Add/move gold entities in the candidate entities for the training dataset
-        processed_train_candidate_entities = add_or_move_gold_entity_in_candidates(
-            documents=processed_train_documents,
-            candidate_entities=processed_train_candidate_entities
-        )
-
-        # Re-evaluate the candidate entities for the training dataset
-        logging.info(utils.pretty_format_dict(
-            evaluation.ed.recall_at_k(
-                pred_path=processed_train_candidate_entities,
-                gold_path=processed_train_documents,
-                inkb=False
-            )
-        ))
-
-        # Set up the datasets for evaluation
-        trainer.setup_dataset(
-            reranker=reranker,
-            documents=dev_documents,
-            candidate_entities=dev_candidate_entities,
-            split="dev"
-        )
-        trainer.setup_dataset(
-            reranker=reranker,
-            documents=test_documents,
-            candidate_entities=test_candidate_entities,
-            split="test"
-        )
-
-        # Evaluate the candidate entities for the development dataset
-        logging.info(utils.pretty_format_dict(
-            evaluation.ed.recall_at_k(
-                pred_path=dev_candidate_entities,
-                gold_path=trainer.paths["path_dev_gold"],
-                inkb=True
-            ) | evaluation.ed.accuracy(
-                pred_path=path_dev_candidate_entities.replace(
-                    ".pred_candidate_entities.", ".pred."
-                ),
-                gold_path=trainer.paths["path_dev_gold"],
-                inkb=True
-            ) | evaluation.ed.fscore(
-                pred_path=path_dev_candidate_entities.replace(
-                    ".pred_candidate_entities.", ".pred."
-                ),
-                gold_path=trainer.paths["path_dev_gold"],
-                inkb=True
-            )
-        ))
-
-        # Evaluate the candidate entities for the test dataset
-        logging.info(utils.pretty_format_dict(
-            evaluation.ed.recall_at_k(
-                pred_path=test_candidate_entities,
-                gold_path=trainer.paths["path_test_gold"],
-                inkb=True
-            ) | evaluation.ed.accuracy(
-                pred_path=path_test_candidate_entities.replace(
-                    ".pred_candidate_entities.", ".pred."
-                ),
-                gold_path=trainer.paths["path_test_gold"],
-                inkb=True
-            ) | evaluation.ed.fscore(
-                pred_path=path_test_candidate_entities.replace(
-                    ".pred_candidate_entities.", ".pred."
-                ),
-                gold_path=trainer.paths["path_test_gold"],
-                inkb=True
-            )
-        )) 
-
-        if actiontype == "train":
-            # Train the reranker
-            trainer.train(
-                reranker=reranker,
-                train_documents=processed_train_documents,
-                train_candidate_entities=processed_train_candidate_entities,
-                dev_documents=dev_documents,
-                dev_candidate_entities=dev_candidate_entities
-            )
-
-        elif actiontype == "evaluate":
-            # Evaluate the reranker on the datasets
-            trainer.evaluate(
-                reranker=reranker,
-                documents=dev_documents,
-                candidate_entities=dev_candidate_entities,
-                split="dev"
-            )
-            trainer.evaluate(
-                reranker=reranker,
-                documents=test_documents,
-                candidate_entities=test_candidate_entities,
-                split="test"
-            )
-
-        elif actiontype == "check_preprocessing":
-            # Save preprocessed data
-            results = []
-            for document, candidate_entities_for_doc in zip(dev_documents, dev_candidate_entities):
-                preprocessed_data = reranker.model.preprocessor.preprocess(
-                    document=document,
-                    candidate_entities_for_doc=candidate_entities_for_doc,
-                    max_n_candidates=3
-                )
-                results.append(preprocessed_data)
-            utils.write_json(base_output_path + "/dev.check_preprocessing.json", results)
-
-    elif method_name == "llm_ed":
-
-        if actiontype == "check_prompt":
-            # Show prompts
-            with torch.no_grad():
-                path_out = os.path.join(base_output_path, "output.txt")
-                with open(path_out, "w") as f:
-                    for i, (document, demos,cands) in enumerate(zip(
-                        dev_documents, dev_demonstrations, dev_candidate_entities
-                    )):
-                        doc_key = document["doc_key"]
-                        logging.info(f"Processing {doc_key}")
-                        document = reranker.rerank(
-                            document=document,
-                            demonstrations_for_doc=demos,
-                            candidate_entities_for_doc=cands
-                        )
-                        f.write(f"--- DOC_KEY ({doc_key}) ---\n\n")
-                        f.write("Prompt:\n")
-                        f.write(document["ed_prompt"] + "\n\n")
-                        f.write("-----\n")
-                        f.write("Generated Text:\n")
-                        f.write(document["ed_generated_text"] + "\n\n")
-                        f.write("-----\n")
-                        f.write("Parsed mention-entity pairs:\n")
-                        for m in document["mentions"]:
-                            f.write(f"{m}\n")
-                        f.write("-----\n")
-                        f.flush()
-                        if i > 5:
-                            break
-                return
-
-        # Set up the datasets for evaluation
-        trainer.setup_dataset(
-            reranker=reranker,
-            documents=dev_documents,
-            candidate_entities=dev_candidate_entities,
-            split="dev"
-        )
-        trainer.setup_dataset(
-            reranker=reranker,
-            documents=test_documents,
-            candidate_entities=test_candidate_entities,
-            split="test"
-        )
-
-        # Evaluate the candidate entities for the development dataset
-        logging.info(utils.pretty_format_dict(
-            evaluation.ed.recall_at_k(
-                pred_path=dev_candidate_entities,
-                gold_path=trainer.paths["path_dev_gold"],
-                inkb=True
-            ) | evaluation.ed.accuracy(
-                pred_path=path_dev_candidate_entities.replace(
-                    ".pred_candidate_entities.", ".pred."
-                ),
-                gold_path=trainer.paths["path_dev_gold"],
-                inkb=True
-            ) | evaluation.ed.fscore(
-                pred_path=path_dev_candidate_entities.replace(
-                    ".pred_candidate_entities.", ".pred."
-                ),
-                gold_path=trainer.paths["path_dev_gold"],
-                inkb=True
-            )
-        ))
-
-        # Evaluate the candidate entities for the test dataset
-        logging.info(utils.pretty_format_dict(
-            evaluation.ed.recall_at_k(
-                pred_path=test_candidate_entities,
-                gold_path=trainer.paths["path_test_gold"],
-                inkb=True
-            ) | evaluation.ed.accuracy(
-                pred_path=path_test_candidate_entities.replace(
-                    ".pred_candidate_entities.", ".pred."
-                ),
-                gold_path=trainer.paths["path_test_gold"],
-                inkb=True
-            ) | evaluation.ed.fscore(
-                pred_path=path_test_candidate_entities.replace(
-                    ".pred_candidate_entities.", ".pred."
-                ),
-                gold_path=trainer.paths["path_test_gold"],
-                inkb=True
-            )
-        )) 
-
-        # Save the configurations of the reranker
-        trainer.save_reranker(reranker=reranker)
-
-        if actiontype == "evaluate":
-            # Evaluate the reranker on the datasets
-            trainer.evaluate(
-                reranker=reranker,
-                documents=dev_documents,
-                candidate_entities=dev_candidate_entities,
-                demonstrations=dev_demonstrations,
-                contexts=None,
-                split="dev"
-            )
-            trainer.evaluate(
-                reranker=reranker,
-                documents=test_documents,
-                candidate_entities=test_candidate_entities,
-                demonstrations=test_demonstrations,
-                contexts=None,
-                split="test"
-            )
-
-    ##################
-    # Closing
-    ##################
-
-    logging.info("Done.")
-    sw.stop("main")
-    logging.info("Time: %f min." % sw.get_time("main", minute=True))
-
-    return prefix
-
-
 def remove_out_of_kb_mentions(
     train_documents,
     train_candidate_entities,
@@ -678,7 +689,70 @@ def add_or_move_gold_entity_in_candidates(
     logging.info(f"Added (or changed the position of) gold entities to the list of top-{top_k} candidate entities for {count_add} ({count_move}) / {count_mentions} mentions")
     return result_candidate_entities
 
- 
+
+def create_demonstrations(
+    train_documents: list[dict],
+    train_candidate_entities: list[dict],
+    n_demonstrations: int,
+) -> tuple[list[dict], list[dict]]:
+    # Keep scored document-candidate pairs
+    scored_items = []
+
+    # Score each training document with its retrieval candidates
+    for document, candidate_entities_for_doc in zip(
+        train_documents,
+        train_candidate_entities,
+    ):
+        # Check document alignment
+        assert document["doc_key"] == candidate_entities_for_doc["doc_key"]
+
+        # Check mention-candidate alignment
+        assert len(document["mentions"]) == len(
+            candidate_entities_for_doc["candidate_entities"]
+        )
+
+        # Count mentions whose gold entity appears in the retrieved candidates
+        n_covered_mentions = 0
+        for mention, candidate_entities_for_mention in zip(
+            document["mentions"],
+            candidate_entities_for_doc["candidate_entities"],
+        ):
+            # Collect candidate entity IDs
+            candidate_entity_ids = {
+                candidate_entity["entity_id"]
+                for candidate_entity in candidate_entities_for_mention
+            }
+
+            # Count usable ED demonstration mentions
+            if mention["entity_id"] in candidate_entity_ids:
+                n_covered_mentions += 1
+
+        # Keep documents with at least one usable ED demonstration mention
+        if n_covered_mentions > 0:
+            scored_items.append((
+                n_covered_mentions,
+                len(document["mentions"]),
+                document,
+                candidate_entities_for_doc,
+            ))
+
+    # Prefer documents with more covered mentions
+    scored_items = sorted(
+        scored_items,
+        key=lambda item: (-item[0], -item[1]),
+    )
+
+    # Select top-k aligned document-candidate pairs
+    selected_items = scored_items[:n_demonstrations]
+
+    # Extract demonstration documents
+    demonstration_documents = [item[2] for item in selected_items]
+
+    # Extract aligned demonstration candidate entities
+    demonstration_candidate_entities = [item[3] for item in selected_items]
+
+    return demonstration_documents, demonstration_candidate_entities
+
 
 if __name__ == "__main__":
     logging.basicConfig(
@@ -689,7 +763,6 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
     # Method
-    parser.add_argument("--gpu", type=int, default=0)
     parser.add_argument("--method", type=str, required=True)
     parser.add_argument("--config_path", type=str, required=True)
     parser.add_argument("--config_name", type=str, required=True)
@@ -698,13 +771,14 @@ if __name__ == "__main__":
     parser.add_argument("--train_documents", type=str, required=True)
     parser.add_argument("--dev_documents", type=str, required=True)
     parser.add_argument("--test_documents", type=str, required=True)
+
     parser.add_argument("--train_candidate_entities", type=str, required=True)
     parser.add_argument("--dev_candidate_entities", type=str, required=True)
     parser.add_argument("--test_candidate_entities", type=str, required=True)
-    parser.add_argument("--train_demonstrations", type=str, default=None)
-    parser.add_argument("--dev_demonstrations", type=str, default=None)
-    parser.add_argument("--test_demonstrations", type=str, default=None)
+
     parser.add_argument("--entity_dict", type=str, required=True)
+
+    parser.add_argument("--n_demonstrations", type=int, default=3)
 
     # Output Path
     parser.add_argument("--results_dir", type=str, required=True)

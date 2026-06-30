@@ -4,11 +4,9 @@
 # Storage paths
 ######
 
-STORAGE=/home/nishida/projects/kapipe/experiments/ner
-# STORAGE=/home/nishida/storage/projects/kapipe/experiments/ner
-
-STORAGE_DATA=${STORAGE}/data
-STORAGE_RESULTS=${STORAGE}/results
+STORAGE_DATA=/home/nishida/projects/kapipe/experiments/ner/data
+# STORAGE_DATA=/home/nishida/projects/kapipe/experiments/datasets/ner
+STORAGE_RESULTS=/home/nishida/projects/kapipe/experiments/ner/results
 
 ######
 # Experiment configuration
@@ -33,11 +31,10 @@ fi
 # (In practice, use separate files for training, validation, and test data.
 # This example checks whether the model can achieve near 100% accuracy (i.e., overfit) on the training data.)
 DATASET_NAME=cdr
-TRAIN_DOCS=${STORAGE_DATA}/examples/documents_with_supervision.json
-DEV_DOCS=${STORAGE_DATA}/examples/documents_with_supervision.json
-TEST_DOCS=${STORAGE_DATA}/examples/documents_with_supervision.json
-# Optionally, you can also provide demonstration documents for LLM-based NER.
-DEMO_DOCS=${STORAGE_DATA}/examples/demonstration_documents.json
+TRAIN_DOCUMENTS=${STORAGE_DATA}/examples/documents_with_supervision.json
+DEV_DOCUMENTS=${STORAGE_DATA}/examples/documents_with_supervision.json
+TEST_DOCUMENTS=${STORAGE_DATA}/examples/documents_with_supervision.json
+N_DEMONSTRATIONS=3
 
 # Output Path
 RESULTS_DIR=${STORAGE_RESULTS}
@@ -53,9 +50,9 @@ if [ "${METHOD}" == "biaffine_ner" ]; then
         --config_path ${CONFIG_PATH} \
         --config_name ${CONFIG_NAME} \
         --dataset_name ${DATASET_NAME} \
-        --train_documents ${TRAIN_DOCS} \
-        --dev_documents ${DEV_DOCS} \
-        --test_documents ${TEST_DOCS} \
+        --train_documents ${TRAIN_DOCUMENTS} \
+        --dev_documents ${DEV_DOCUMENTS} \
+        --test_documents ${TEST_DOCUMENTS} \
         --results_dir ${RESULTS_DIR} \
         --prefix ${MYPREFIX} \
         --actiontype train_and_evaluate
@@ -67,10 +64,10 @@ if [ "${METHOD}" == "llm_ner" ]; then
         --config_path ${CONFIG_PATH} \
         --config_name ${CONFIG_NAME} \
         --dataset_name ${DATASET_NAME} \
-        --train_documents ${TRAIN_DOCS} \
-        --dev_documents ${DEV_DOCS} \
-        --test_documents ${TEST_DOCS} \
-        --demonstration_documents ${DEMO_DOCS} \
+        --train_documents ${TRAIN_DOCUMENTS} \
+        --dev_documents ${DEV_DOCUMENTS} \
+        --test_documents ${TEST_DOCUMENTS} \
+        --n_demonstrations ${N_DEMONSTRATIONS} \
         --results_dir ${RESULTS_DIR} \
         --prefix ${MYPREFIX} \
         --actiontype evaluate

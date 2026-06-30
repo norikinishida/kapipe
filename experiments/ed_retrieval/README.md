@@ -33,40 +33,18 @@ python -m pip install -r requirements.txt
 This directory already includes example data.
 
 ```bash
-experiments/ed_retrieval/data/examples/entity_dict.json
-experiments/ed_retrieval/data/examples/documents.json
 experiments/ed_retrieval/data/examples/documents.ner.json
 experiments/ed_retrieval/data/examples/documents_with_supervision.json
+experiments/ed_retrieval/data/examples/entity_dict.json
 ```
 
 ### Benchmark datasets
 
-If necessary, you can prepare benchmark datasets with the following commands.
-
-```bash
-cd experiments/ed_retrieval/dataset-preparation
-
-bash ./prepare_wikidata.sh
-bash ./prepare_mesh.sh
-
-bash ./prepare_linked_docred.sh
-bash ./prepare_cdr.sh
-bash ./prepare_medmentions.sh
-```
-
-These commands extract each dataset under `experiments/ed_retrieval/data/`.
-
-Example:
-```bash
-experiments/ed_retrieval/data/mesh/mesh2015.entity_dict.json
-experiments/ed_retrieval/data/cdr/train.json
-experiments/ed_retrieval/data/cdr/dev.json
-experiments/ed_retrieval/data/cdr/test.json
-```
+You can also prepare benchmark datasets (e.g., CDR, Linked-DocRED) with the scripts in `experiments/datasets/ed`.
 
 ## Step 3. Running the ED-Retrieval Component
 
-First, check `STORAGE` in each execution script and adjust it to your environment.
+First, check `STORAGE_DATA` and `STORAGE_RESULTS` in each execution script and adjust them to your environment.
 
 To apply an off-the-shelf ED-Retrieval component to documents, run:
 

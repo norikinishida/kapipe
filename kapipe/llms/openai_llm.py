@@ -23,6 +23,14 @@ class OpenAILLM:
 
         self.client = OpenAI()
 
+    def __repr__(self) -> str:
+        return (
+            f"OpenAILLM("
+            f"provider={self.provider}, "
+            f"model_name={self.model_name}, "
+            f"max_new_tokens={self.max_new_tokens})"
+        )
+
     def generate(
         self,
         prompt: str | dict[str, str],

@@ -90,6 +90,9 @@ def main(args):
                 max_new_tokens=llm_max_new_tokens,
                 quantization_bits=llm_quantization_bits,
             )
+        else:
+            raise ValueError(f"Unknown LLM provider: {llm_provider}")
+        logging.info("Initialized the LLM model: %s" % repr(model))
         extractor = LLMNER.from_identifier(model=model, identifier=identifier)
     else:
         raise ValueError(f"Unknown method: {method_name}")

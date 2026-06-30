@@ -6,10 +6,10 @@ import sys
 
 import numpy as np
 import pandas as pd
-import torch
-import transformers
 import tabulate
+import torch
 from tqdm import tqdm
+import transformers
 
 from kapipe import utils
 from kapipe.llms import HuggingFaceLLM, OpenAILLM
@@ -40,7 +40,7 @@ def main(args):
     train_documents_path = args.train_documents
     dev_documents_path = args.dev_documents
     test_documents_path = args.test_documents
-    demonstration_documents_path = args.demonstration_documents
+    n_demonstrations = args.n_demonstrations
 
     # Output Path
     results_dir = args.results_dir
@@ -93,12 +93,12 @@ def main(args):
     dev_documents = utils.read_json(dev_documents_path)
     test_documents = utils.read_json(test_documents_path)
 
-    # Load demonstrations (for LLM and in-context learning)
+    # Load demonstrations for LLM-based NER
     if method_name == "llm_ner":
-        if demonstration_documents_path is None:
-            demonstration_documents = None
-        else:
-            demonstration_documents = utils.read_json(demonstration_documents_path)
+        demonstration_documents = create_demonstrations(
+            train_documents=train_documents,
+            n_demonstrations=n_demonstrations,
+        )
 
     # Create vocabulary of entity types
     if dataset_name == "cdr":
@@ -145,7 +145,7 @@ def main(args):
                 "Definition": row["Definition"]
             }
             for _, row in pd.read_csv(
-                f"../common/dataset-meta-information/{dataset_name}/entity_types.csv"
+                f"../datasets/meta/{dataset_name}/entity_types.csv"
             ).iterrows()
         }
 
@@ -216,7 +216,7 @@ def main(args):
         else:
             raise ValueError(f"Unknown LLM provider: {config['provider']}")
 
-        # Initialize the extractor
+        # Initialize the NER component
         extractor = LLMNER(
             model=model,
             config=config,
@@ -224,6 +224,9 @@ def main(args):
             etype_meta_info=etype_meta_info,
             demonstration_documents=demonstration_documents
         )
+
+    else:
+        raise ValueError(f"Unknown method: {method_name}")
 
     ##################
     # Training, Evaluation
@@ -264,7 +267,7 @@ def main(args):
                 split="test"
             )
 
-    elif method_name == "llm_ner":
+    if method_name == "llm_ner":
 
         if actiontype == "check_prompt":
             # Show prompts
@@ -427,6 +430,21 @@ def get_vocab_etype_for_medmentions(path, method_name):
     return vocab_etype
 
 
+def create_demonstrations(
+    train_documents: list[dict],
+    n_demonstrations: int,
+) -> list[dict]:
+    # Sort documents by the number of gold mentions
+    sorted_documents = sorted(
+        train_documents,
+        key=lambda document: -len(document["mentions"]),
+    )
+
+    # Select top-k documents as fixed few-shot demonstrations
+    demonstration_documents = sorted_documents[:n_demonstrations]
+    return demonstration_documents
+
+
 def show_ner_documents_statistics(documents, title):
     """Show NER documents statistics
 
@@ -499,7 +517,7 @@ if __name__ == "__main__":
     parser.add_argument("--train_documents", type=str, required=True)
     parser.add_argument("--dev_documents", type=str, required=True)
     parser.add_argument("--test_documents", type=str, required=True)
-    parser.add_argument("--demonstration_documents", type=str, default=None)
+    parser.add_argument("--n_demonstrations", type=int, default=3)
 
     # Output Path
     parser.add_argument("--results_dir", type=str, required=True)

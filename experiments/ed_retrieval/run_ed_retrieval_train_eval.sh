@@ -4,11 +4,9 @@
 # Storage paths
 ######
 
-STORAGE=/home/nishida/projects/kapipe/experiments/ed_retrieval
-# STORAGE=/home/nishida/storage/projects/kapipe/experiments/ed_retrieval
-
-STORAGE_DATA=${STORAGE}/data
-STORAGE_RESULTS=${STORAGE}/results
+STORAGE_DATA=/home/nishida/projects/kapipe/experiments/ed_retrieval/data
+# STORAGE_DATA=/home/nishida/projects/kapipe/experiments/datasets/ed
+STORAGE_RESULTS=/home/nishida/projects/kapipe/experiments/ed_retrieval/results
 
 ######
 # Experiment configuration
@@ -23,9 +21,9 @@ CONFIG_NAME=blink_bi_encoder_model_scibertuncased_cdr
 # Input Data
 # (In practice, use separate files for training, validation, and test data.
 # This example checks whether the model can achieve near 100% accuracy (i.e., overfit) on the training data.)
-TRAIN_DOCS=${STORAGE_DATA}/examples/documents_with_supervision.json
-DEV_DOCS=${STORAGE_DATA}/examples/documents_with_supervision.json
-TEST_DOCS=${STORAGE_DATA}/examples/documents_with_supervision.json
+TRAIN_DOCUMENTS=${STORAGE_DATA}/examples/documents_with_supervision.json
+DEV_DOCUMENTS=${STORAGE_DATA}/examples/documents_with_supervision.json
+TEST_DOCUMENTS=${STORAGE_DATA}/examples/documents_with_supervision.json
 ENTITY_DICT=${STORAGE_DATA}/examples/entity_dict.json
 
 # Output Path
@@ -40,9 +38,9 @@ python run_ed_retrieval_train_eval.py \
     --method ${METHOD} \
     --config_path ${CONFIG_PATH} \
     --config_name ${CONFIG_NAME} \
-    --train_documents ${TRAIN_DOCS} \
-    --dev_documents ${DEV_DOCS} \
-    --test_documents ${TEST_DOCS} \
+    --train_documents ${TRAIN_DOCUMENTS} \
+    --dev_documents ${DEV_DOCUMENTS} \
+    --test_documents ${TEST_DOCUMENTS} \
     --entity_dict ${ENTITY_DICT} \
     --results_dir ${RESULTS_DIR} \
     --prefix ${MYPREFIX} \

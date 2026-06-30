@@ -7,9 +7,9 @@ import sys
 
 import numpy as np
 import pandas as pd
-import transformers
 import tabulate
 from tqdm import tqdm
+import transformers
 
 from kapipe import utils
 from kapipe.ed_retrieval import (
@@ -134,6 +134,9 @@ def main(args):
 
             # Re-build index
             retriever.make_index(use_precomputed_entity_vectors=True)
+
+    else:
+        raise ValueError(f"Unknown method: {method_name}")
 
     ##################
     # Training, Evaluation
