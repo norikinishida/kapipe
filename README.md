@@ -2,6 +2,11 @@
 
 # KAPipe: A Modular Pipeline for Knowledge Acquisition
 
+[!NOTE]
+This repository is currently under active development.
+Major updates are planned soon, including changes to APIs, component interfaces, model loading, and datasets.
+The current implementation should be considered unstable until the update is complete.
+
 **KAPipe** is a modular pipeline for comprehensive **knowledge acquisition** from unstructured documents.  
 It supports **extraction**, **organization**, **retrieval**, and **utilization** of knowledge, serving as a core framework for building intelligent systems that reason over structured knowledge.  
 It is the framework used in our TACL'26 paper (Nishida et al.; to appear).
