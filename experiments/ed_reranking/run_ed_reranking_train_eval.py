@@ -255,46 +255,60 @@ def main(args):
         )
 
         # Evaluate the candidate entities for the development dataset
-        logging.info(utils.pretty_format_dict(
-            evaluation.ed.recall_at_k(
-                pred_path=dev_candidate_entities,
-                gold_path=trainer.paths["dev_gold_path"],
-                inkb=True
-            ) | evaluation.ed.accuracy(
-                pred_path=dev_candidate_entities_path.replace(
-                    ".pred_candidate_entities.", ".pred."
-                ),
-                gold_path=trainer.paths["dev_gold_path"],
-                inkb=True
-            ) | evaluation.ed.fscore(
-                pred_path=dev_candidate_entities_path.replace(
-                    ".pred_candidate_entities.", ".pred."
-                ),
-                gold_path=trainer.paths["dev_gold_path"],
-                inkb=True
-            )
-        ))
+        if (
+            ".pred_candidate_entities." in dev_candidate_entities_path
+            and
+            os.path.exists(dev_candidate_entities_path.replace(
+                ".pred_candidate_entities.", ".pred."
+            ))
+        ):
+            logging.info(utils.pretty_format_dict(
+                evaluation.ed.recall_at_k(
+                    pred_path=dev_candidate_entities,
+                    gold_path=trainer.paths["dev_gold_path"],
+                    inkb=True
+                ) | evaluation.ed.accuracy(
+                    pred_path=dev_candidate_entities_path.replace(
+                        ".pred_candidate_entities.", ".pred."
+                    ),
+                    gold_path=trainer.paths["dev_gold_path"],
+                    inkb=True
+                ) | evaluation.ed.fscore(
+                    pred_path=dev_candidate_entities_path.replace(
+                        ".pred_candidate_entities.", ".pred."
+                    ),
+                    gold_path=trainer.paths["dev_gold_path"],
+                    inkb=True
+                )
+            ))
 
         # Evaluate the candidate entities for the test dataset
-        logging.info(utils.pretty_format_dict(
-            evaluation.ed.recall_at_k(
-                pred_path=test_candidate_entities,
-                gold_path=trainer.paths["test_gold_path"],
-                inkb=True
-            ) | evaluation.ed.accuracy(
-                pred_path=test_candidate_entities_path.replace(
-                    ".pred_candidate_entities.", ".pred."
-                ),
-                gold_path=trainer.paths["test_gold_path"],
-                inkb=True
-            ) | evaluation.ed.fscore(
-                pred_path=test_candidate_entities_path.replace(
-                    ".pred_candidate_entities.", ".pred."
-                ),
-                gold_path=trainer.paths["test_gold_path"],
-                inkb=True
-            )
-        )) 
+        if (
+            ".pred_candidate_entities." in test_candidate_entities_path
+            and
+            os.path.exists(test_candidate_entities_path.replace(
+                ".pred_candidate_entities.", ".pred."
+            ))
+        ):
+            logging.info(utils.pretty_format_dict(
+                evaluation.ed.recall_at_k(
+                    pred_path=test_candidate_entities,
+                    gold_path=trainer.paths["test_gold_path"],
+                    inkb=True
+                ) | evaluation.ed.accuracy(
+                    pred_path=test_candidate_entities_path.replace(
+                        ".pred_candidate_entities.", ".pred."
+                    ),
+                    gold_path=trainer.paths["test_gold_path"],
+                    inkb=True
+                ) | evaluation.ed.fscore(
+                    pred_path=test_candidate_entities_path.replace(
+                        ".pred_candidate_entities.", ".pred."
+                    ),
+                    gold_path=trainer.paths["test_gold_path"],
+                    inkb=True
+                )
+            )) 
 
         if actiontype == "train":
             # Train the reranker
@@ -368,46 +382,60 @@ def main(args):
         )
 
         # Evaluate the candidate entities for the development dataset
-        logging.info(utils.pretty_format_dict(
-            evaluation.ed.recall_at_k(
-                pred_path=dev_candidate_entities,
-                gold_path=trainer.paths["dev_gold_path"],
-                inkb=True
-            ) | evaluation.ed.accuracy(
-                pred_path=dev_candidate_entities_path.replace(
-                    ".pred_candidate_entities.", ".pred."
-                ),
-                gold_path=trainer.paths["dev_gold_path"],
-                inkb=True
-            ) | evaluation.ed.fscore(
-                pred_path=dev_candidate_entities_path.replace(
-                    ".pred_candidate_entities.", ".pred."
-                ),
-                gold_path=trainer.paths["dev_gold_path"],
-                inkb=True
-            )
-        ))
+        if (
+            ".pred_candidate_entities." in dev_candidate_entities_path
+            and
+            os.path.exists(dev_candidate_entities_path.replace(
+                ".pred_candidate_entities.", ".pred."
+            ))
+        ):
+            logging.info(utils.pretty_format_dict(
+                evaluation.ed.recall_at_k(
+                    pred_path=dev_candidate_entities,
+                    gold_path=trainer.paths["dev_gold_path"],
+                    inkb=True
+                ) | evaluation.ed.accuracy(
+                    pred_path=dev_candidate_entities_path.replace(
+                        ".pred_candidate_entities.", ".pred."
+                    ),
+                    gold_path=trainer.paths["dev_gold_path"],
+                    inkb=True
+                ) | evaluation.ed.fscore(
+                    pred_path=dev_candidate_entities_path.replace(
+                        ".pred_candidate_entities.", ".pred."
+                    ),
+                    gold_path=trainer.paths["dev_gold_path"],
+                    inkb=True
+                )
+            ))
 
         # Evaluate the candidate entities for the test dataset
-        logging.info(utils.pretty_format_dict(
-            evaluation.ed.recall_at_k(
-                pred_path=test_candidate_entities,
-                gold_path=trainer.paths["test_gold_path"],
-                inkb=True
-            ) | evaluation.ed.accuracy(
-                pred_path=test_candidate_entities_path.replace(
-                    ".pred_candidate_entities.", ".pred."
-                ),
-                gold_path=trainer.paths["test_gold_path"],
-                inkb=True
-            ) | evaluation.ed.fscore(
-                pred_path=test_candidate_entities_path.replace(
-                    ".pred_candidate_entities.", ".pred."
-                ),
-                gold_path=trainer.paths["test_gold_path"],
-                inkb=True
-            )
-        )) 
+        if (
+            ".pred_candidate_entities." in test_candidate_entities_path
+            and
+            os.path.exists(test_candidate_entities_path.replace(
+                ".pred_candidate_entities.", ".pred."
+            ))
+        ):
+            logging.info(utils.pretty_format_dict(
+                evaluation.ed.recall_at_k(
+                    pred_path=test_candidate_entities,
+                    gold_path=trainer.paths["test_gold_path"],
+                    inkb=True
+                ) | evaluation.ed.accuracy(
+                    pred_path=test_candidate_entities_path.replace(
+                        ".pred_candidate_entities.", ".pred."
+                    ),
+                    gold_path=trainer.paths["test_gold_path"],
+                    inkb=True
+                ) | evaluation.ed.fscore(
+                    pred_path=test_candidate_entities_path.replace(
+                        ".pred_candidate_entities.", ".pred."
+                    ),
+                    gold_path=trainer.paths["test_gold_path"],
+                    inkb=True
+                )
+            )) 
 
         # Save the configurations of the reranker
         trainer.save_reranker(reranker=reranker)
