@@ -1,0 +1,403 @@
+[
+    {
+        "doc_key": "d1",
+        "source_passage": {
+            "title": "Alice's Life.",
+            "text": "Alice was born in Tokyo, but now she lives in New York. She works at a technology company in Manhattan. Her old friend Bob still lives in Tokyo and works as a teacher. Alice and Bob studied together at the University of Tokyo. Charlie, who was once Bob's roommate, decided to move to Paris after living in London. Diana, who once shared a house with Charlie in London, now happily lives in Sydney and works at a hospital. Although Alice and Diana live far apart, they remain close friends through frequent video calls."
+        },
+        "sentences": [
+            "Alice 's Life .",
+            "Alice was born in Tokyo , but now she lives in New York .",
+            "She works at a technology company in Manhattan .",
+            "Her old friend Bob still lives in Tokyo and works as a teacher .",
+            "Alice and Bob studied together at the University of Tokyo .",
+            "Charlie , who was once Bob 's roommate , decided to move to Paris after living in London .",
+            "Diana , who once shared a house with Charlie in London , now happily lives in Sydney and works at a hospital .",
+            "Although Alice and Diana live far apart , they remain close friends through frequent video calls ."
+        ],
+        "mentions": [
+            {
+                "span": [
+                    0,
+                    0
+                ],
+                "name": "Alice",
+                "entity_type": "Person",
+                "entity_id": "alice"
+            },
+            {
+                "span": [
+                    4,
+                    4
+                ],
+                "name": "Alice",
+                "entity_type": "Person",
+                "entity_id": "alice"
+            },
+            {
+                "span": [
+                    8,
+                    8
+                ],
+                "name": "Tokyo",
+                "entity_type": "Location",
+                "entity_id": "tokyo"
+            },
+            {
+                "span": [
+                    15,
+                    16
+                ],
+                "name": "New York",
+                "entity_type": "Location",
+                "entity_id": "new york"
+            },
+            {
+                "span": [
+                    25,
+                    25
+                ],
+                "name": "Manhattan",
+                "entity_type": "Location",
+                "entity_id": "manhattan"
+            },
+            {
+                "span": [
+                    30,
+                    30
+                ],
+                "name": "Bob",
+                "entity_type": "Person",
+                "entity_id": "bob"
+            },
+            {
+                "span": [
+                    34,
+                    34
+                ],
+                "name": "Tokyo",
+                "entity_type": "Location",
+                "entity_id": "tokyo"
+            },
+            {
+                "span": [
+                    41,
+                    41
+                ],
+                "name": "Alice",
+                "entity_type": "Person",
+                "entity_id": "alice"
+            },
+            {
+                "span": [
+                    43,
+                    43
+                ],
+                "name": "Bob",
+                "entity_type": "Person",
+                "entity_id": "bob"
+            },
+            {
+                "span": [
+                    48,
+                    50
+                ],
+                "name": "University of Tokyo",
+                "entity_type": "Location",
+                "entity_id": "university of tokyo"
+            },
+            {
+                "span": [
+                    50,
+                    50
+                ],
+                "name": "Tokyo",
+                "entity_type": "Location",
+                "entity_id": "tokyo"
+            },
+            {
+                "span": [
+                    52,
+                    52
+                ],
+                "name": "Charlie",
+                "entity_type": "Person",
+                "entity_id": "charlie"
+            },
+            {
+                "span": [
+                    57,
+                    57
+                ],
+                "name": "Bob",
+                "entity_type": "Person",
+                "entity_id": "bob"
+            },
+            {
+                "span": [
+                    65,
+                    65
+                ],
+                "name": "Paris",
+                "entity_type": "Location",
+                "entity_id": "paris"
+            },
+            {
+                "span": [
+                    69,
+                    69
+                ],
+                "name": "London",
+                "entity_type": "Location",
+                "entity_id": "london"
+            },
+            {
+                "span": [
+                    71,
+                    71
+                ],
+                "name": "Diana",
+                "entity_type": "Person",
+                "entity_id": "diana"
+            },
+            {
+                "span": [
+                    79,
+                    79
+                ],
+                "name": "Charlie",
+                "entity_type": "Person",
+                "entity_id": "charlie"
+            },
+            {
+                "span": [
+                    81,
+                    81
+                ],
+                "name": "London",
+                "entity_type": "Location",
+                "entity_id": "london"
+            },
+            {
+                "span": [
+                    87,
+                    87
+                ],
+                "name": "Sydney",
+                "entity_type": "Location",
+                "entity_id": "sydney"
+            },
+            {
+                "span": [
+                    95,
+                    95
+                ],
+                "name": "Alice",
+                "entity_type": "Person",
+                "entity_id": "alice"
+            },
+            {
+                "span": [
+                    97,
+                    97
+                ],
+                "name": "Diana",
+                "entity_type": "Person",
+                "entity_id": "diana"
+            }
+        ],
+        "ner_prompt": "### Task\n\nYou are given a piece of text.\n\nYour task is to:\n\n1. **Identify all entity mentions** in the text \u2014 short spans that refer to specific concepts or instances.\n2. **Assign an appropriate entity type** to each mention, selecting from the predefined set below.\n\n### Guidelines\n\n- Each entity mention must be an **exact span** from the original text \u2014 do **not paraphrase, shorten, or extend** it.\n- Assign **only one type** per mention.\n- Choose from the following predefined entity types:\n\n- Person: A human.\n- Location: A place.\n\n- If no entities are present, output nothing.\n\n### Output Format\n\nFor each identified entity mention, output a line in this format:\n\n- Mention Text | Entity Type\n\nUse bullet points (`-`) for each line. Example:\n\n- Aspirin | Chemical  \n- breast cancer | Disease  \n- light therapy | Treatment\n\n### Test Case\n\nNow, identify all entity mentions in the following text and assign them appropriate types.\n\nText: Alice 's Life . Alice was born in Tokyo , but now she lives in New York . She works at a technology company in Manhattan . Her old friend Bob still lives in Tokyo and works as a teacher . Alice and Bob studied together at the University of Tokyo . Charlie , who was once Bob 's roommate , decided to move to Paris after living in London . Diana , who once shared a house with Charlie in London , now happily lives in Sydney and works at a hospital . Although Alice and Diana live far apart , they remain close friends through frequent video calls .\n\nProvide the output in the bullet-point format specified above.",
+        "ner_generated_text": "- Alice | Person  \n- Tokyo | Location  \n- New York | Location  \n- Manhattan | Location  \n- Bob | Person  \n- Tokyo | Location  \n- University of Tokyo | Location  \n- Charlie | Person  \n- Paris | Location  \n- London | Location  \n- Diana | Person  \n- London | Location  \n- Sydney | Location  ",
+        "entities": [
+            {
+                "mention_indices": [
+                    0,
+                    1,
+                    7,
+                    19
+                ],
+                "mention_names": [
+                    "Alice",
+                    "Alice",
+                    "Alice",
+                    "Alice"
+                ],
+                "entity_type": "Person",
+                "entity_id": "alice"
+            },
+            {
+                "mention_indices": [
+                    2,
+                    6,
+                    10
+                ],
+                "mention_names": [
+                    "Tokyo",
+                    "Tokyo",
+                    "Tokyo"
+                ],
+                "entity_type": "Location",
+                "entity_id": "tokyo"
+            },
+            {
+                "mention_indices": [
+                    3
+                ],
+                "mention_names": [
+                    "New York"
+                ],
+                "entity_type": "Location",
+                "entity_id": "new york"
+            },
+            {
+                "mention_indices": [
+                    4
+                ],
+                "mention_names": [
+                    "Manhattan"
+                ],
+                "entity_type": "Location",
+                "entity_id": "manhattan"
+            },
+            {
+                "mention_indices": [
+                    5,
+                    8,
+                    12
+                ],
+                "mention_names": [
+                    "Bob",
+                    "Bob",
+                    "Bob"
+                ],
+                "entity_type": "Person",
+                "entity_id": "bob"
+            },
+            {
+                "mention_indices": [
+                    9
+                ],
+                "mention_names": [
+                    "University of Tokyo"
+                ],
+                "entity_type": "Location",
+                "entity_id": "university of tokyo"
+            },
+            {
+                "mention_indices": [
+                    11,
+                    16
+                ],
+                "mention_names": [
+                    "Charlie",
+                    "Charlie"
+                ],
+                "entity_type": "Person",
+                "entity_id": "charlie"
+            },
+            {
+                "mention_indices": [
+                    13
+                ],
+                "mention_names": [
+                    "Paris"
+                ],
+                "entity_type": "Location",
+                "entity_id": "paris"
+            },
+            {
+                "mention_indices": [
+                    14,
+                    17
+                ],
+                "mention_names": [
+                    "London",
+                    "London"
+                ],
+                "entity_type": "Location",
+                "entity_id": "london"
+            },
+            {
+                "mention_indices": [
+                    15,
+                    20
+                ],
+                "mention_names": [
+                    "Diana",
+                    "Diana"
+                ],
+                "entity_type": "Person",
+                "entity_id": "diana"
+            },
+            {
+                "mention_indices": [
+                    18
+                ],
+                "mention_names": [
+                    "Sydney"
+                ],
+                "entity_type": "Location",
+                "entity_id": "sydney"
+            }
+        ],
+        "relations": [
+            {
+                "arg1": 0,
+                "relation": "born_in",
+                "arg2": 1
+            },
+            {
+                "arg1": 0,
+                "relation": "lives_in",
+                "arg2": 2
+            },
+            {
+                "arg1": 0,
+                "relation": "works_at",
+                "arg2": 3
+            },
+            {
+                "arg1": 0,
+                "relation": "studied_in",
+                "arg2": 5
+            },
+            {
+                "arg1": 0,
+                "relation": "friends_with",
+                "arg2": 9
+            },
+            {
+                "arg1": 4,
+                "relation": "lives_in",
+                "arg2": 1
+            },
+            {
+                "arg1": 4,
+                "relation": "works_at",
+                "arg2": 5
+            },
+            {
+                "arg1": 6,
+                "relation": "roommate_of",
+                "arg2": 4
+            },
+            {
+                "arg1": 9,
+                "relation": "roommate_of",
+                "arg2": 6
+            },
+            {
+                "arg1": 9,
+                "relation": "works_at",
+                "arg2": 8
+            },
+            {
+                "arg1": 9,
+                "relation": "lives_in",
+                "arg2": 10
+            }
+        ],
+        "docre_prompt": "### Task\n\nYou are given a piece of text and a list of **detected entities**, each mapped to a concept in the original knowledge base.\n\nYour task is to:\n\n1. **Identify relationships** between these entities based on the **context of the text**.\n2. For each entity pair that holds a relation, assign the most appropriate **relationship label** from the predefined set below.\n\n### Guidelines\n\n- Use the **full document context** to decide whether a relationship exists between a pair of entities.\n- You must select the relationship label from the following predefined set:\n\n- lives_in: The subject person lives in the object location now.\n- born_in: The subject person was born in the object location.\n- works_at: The subject person works at the object organization or workplace.\n- studied_in: The subject person studied at the object educational institution.\n- friends_with: The subject person has a friendship relationship with the object person.\n- roommate_of: The subject person once shared a house or apartment with the object person.\n\n- If **no meaningful relation** exists between two entities, do **not output** anything for that pair.\n- Each output must use the **entity IDs** of the subject and object entities, **not** their surface forms or canonical names.\n\n### Output Format\n\nFor each identified relationship, output a line in this format:\n\n- Subject Entity ID | Relationship Label | Object Entity ID\n\nUse bullet points (`-`) for each line. Example:\n\n- Entity2 | associated_with | Entity3\n- Entity5 | regulates | Entity7\n\n### Test Case\n\nNow, identify all valid relationships between the detected entities in the following text.\n\nText: Alice 's Life . Alice was born in Tokyo , but now she lives in New York . She works at a technology company in Manhattan . Her old friend Bob still lives in Tokyo and works as a teacher . Alice and Bob studied together at the University of Tokyo . Charlie , who was once Bob 's roommate , decided to move to Paris after living in London . Diana , who once shared a house with Charlie in London , now happily lives in Sydney and works at a hospital . Although Alice and Diana live far apart , they remain close friends through frequent video calls .\nEntities:\n- Entity0: \"Alice\" (Person)\n- Entity1: \"Tokyo\" (Location)\n- Entity2: \"New York\" (Location)\n- Entity3: \"Manhattan\" (Location)\n- Entity4: \"Bob\" (Person)\n- Entity5: \"University of Tokyo\" (Location)\n- Entity6: \"Charlie\" (Person)\n- Entity7: \"Paris\" (Location)\n- Entity8: \"London\" (Location)\n- Entity9: \"Diana\" (Person)\n- Entity10: \"Sydney\" (Location)\n\nProvide the output in the bullet-point format specified above.",
+        "docre_generated_text": "- Entity0 | born_in | Entity1\n- Entity0 | lives_in | Entity2\n- Entity0 | works_at | Entity3\n- Entity4 | lives_in | Entity1\n- Entity4 | works_at | Entity5\n- Entity0 | studied_in | Entity5\n- Entity6 | roommate_of | Entity4\n- Entity9 | roommate_of | Entity6\n- Entity9 | lives_in | Entity10\n- Entity9 | works_at | Entity8\n- Entity0 | friends_with | Entity9"
+    }
+]

@@ -3,6 +3,7 @@ from __future__ import annotations
 import logging
 
 import networkx as nx
+import torch
 
 from .. import utils
 from ..datatypes import (
@@ -20,15 +21,11 @@ class LLMBasedReportGenerator:
     def __init__(
         self,
         model: HuggingFaceLLM | OpenAILLM,
-        prompt_template_name_or_path: str | None = None,
+        prompt_template_name_or_path: str = "report_generation_01_zeroshot",
         relation_map: dict[str, str] | None = None,
     ):
         self.model = model
-
-        if prompt_template_name_or_path is None:
-            self.prompt_template_name_or_path = "report_generation_01_zeroshot"
-        else:
-            self.prompt_template_name_or_path = prompt_template_name_or_path
+        self.prompt_template_name_or_path = prompt_template_name_or_path
 
         # Load the prompt template for report generation
         self.prompt_template = utils.read_prompt_template(
@@ -143,19 +140,26 @@ class LLMBasedReportGenerator:
         # Show progress
         logger.info(f"[{self.count}/{self.n_total}] Generating a report for community (ID:{community['community_id']}) with {len(direct_nodes)} direct nodes and {len(child_reports)} sub communities (IDs:{[c['community_id'] for c in child_reports]})...")
 
-        # Generate a prompt
-        prompt = self.generate_prompt(
-            direct_nodes=direct_nodes,
-            child_reports=child_reports,
-        )
+        with torch.no_grad():
+            # Switch to inference mode for Hugging Face models
+            if self.model.provider == "hf":
+                self.model.llm.eval()
 
-        # Generate a plain-text report based on the prompt
-        generated_text = self.model.generate(prompt)
+            # Generate a prompt
+            prompt = self.generate_prompt(
+                direct_nodes=direct_nodes,
+                child_reports=child_reports,
+            )
 
-        # Parse the generated report
-        processed_title, processed_text = self.parse_generated_text_fn(generated_text)
+            # Generate a plain-text report based on the prompt
+            generated_text = self.model.generate(prompt)
 
-        return {"title": processed_title, "text": processed_text} | community
+            # Parse the generated report
+            processed_title, processed_text = self.parse_generated_text_fn(
+                generated_text
+            )
+
+            return {"title": processed_title, "text": processed_text} | community
 
     def generate_prompt(
         self,

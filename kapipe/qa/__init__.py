@@ -4,13 +4,11 @@ from typing import Any
 
 __all__ = [
     "LLMQA",
-    "LLMQATrainer",
 ]
 
 
 _NAME_TO_MODULE = {
     "LLMQA": "llm_qa",
-    "LLMQATrainer": "llm_qa",
 }
 
 

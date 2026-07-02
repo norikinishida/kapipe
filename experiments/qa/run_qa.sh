@@ -1,13 +1,23 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
 
-# STORAGE=/home/nishida/storage/projects/kapipe/experiments
-STORAGE=/home/nishida/projects/kapipe/experiments
+######
+# Storage paths
+######
 
-STORAGE_DATA=${STORAGE}/data
-STORAGE_RESULTS=${STORAGE}/results
+STORAGE_DATA=/home/nishida/projects/kapipe/experiments/qa/data
+STORAGE_RESULTS=/home/nishida/projects/kapipe/experiments/qa/results
+
+# STORAGE_DATA=/home/nishida/storage/projects/kapipe/experiments/datasets/qa
+# STORAGE_RESULTS=/home/nishida/storage/projects/kapipe/experiments/qa/results
+
+######
+# Experiment configuration
+######
 
 # Method
-IDENTIFIER=gpt4o_with_context
+METHOD=llm_qa
+CONFIG_PATH=./config/llm_qa.conf
+CONFIG_NAME=gpt4o_with_context
 
 # Input Data
 INPUT_QUESTIONS=${STORAGE_DATA}/examples/questions.json
@@ -17,9 +27,19 @@ INPUT_CONTEXTS=${STORAGE_DATA}/examples/questions.contexts.json
 RESULTS_DIR=${STORAGE_RESULTS}
 MYPREFIX=example
 
+GOLD_ANSWERS=${STORAGE_DATA}/examples/questions_with_answers.json
+
+######
+# Experiment execution
+######
+
 python run_qa.py \
-    --identifier ${IDENTIFIER} \
+    --method ${METHOD} \
+    --config_path ${CONFIG_PATH} \
+    --config_name ${CONFIG_NAME} \
     --input_questions ${INPUT_QUESTIONS} \
     --input_contexts ${INPUT_CONTEXTS} \
     --results_dir ${RESULTS_DIR} \
-    --prefix ${MYPREFIX}
+    --prefix ${MYPREFIX} \
+    --do_evaluation \
+    --gold_answers ${GOLD_ANSWERS}

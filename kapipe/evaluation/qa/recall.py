@@ -44,25 +44,38 @@ def recall(pred_path, gold_path, exact_match=False):
     
 def _recall(pred_questions, gold_questions, exact_match):
     scores = {}
-    
+
+    # Initialize accumulators
     total_count = 0
     total_count_correct = 0
 
     for pred_question, gold_question in zip(pred_questions, gold_questions):
+        # Normalize the predicted answer
         pred_ans_str = pred_question["output_answer"].lower()
-        index_to_synonyms = {} # dict[int, list[str]]
+
+        # Collect synonyms for each gold answer
+        index_to_synonyms: dict[int, list[str]] = {}
         for gold_ans in gold_question["answers"]:
             if gold_ans["answer_type"] == "list":
+                # Normalize the gold-answer synonym
                 gold_ans_str = gold_ans["answer"].lower()
+
+                # Initialize the list of synonyms for this gold answer
                 list_index = gold_ans["list_index"]
-                if not list_index in index_to_synonyms:
+                if list_index not in index_to_synonyms:
                     index_to_synonyms[list_index] = []
+
+                # Append the normalized synonym to the list
                 index_to_synonyms[list_index].append(gold_ans_str)
-            else:
-                pass
+
         for list_index, synonyms in index_to_synonyms.items():
+            # Count one gold answer
             total_count += 1
+
+            # Match against each gold-answer synonym
             for gold_ans_str in synonyms:
+
+                # Compute an exact-match/paratial-match score
                 if exact_match:
                     if pred_ans_str == gold_ans_str:
                         total_count_correct += 1
