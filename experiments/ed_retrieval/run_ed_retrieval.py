@@ -23,9 +23,8 @@ def main(args):
 
     # Method
     method_name = args.method
-    identifier = args.identifier
-
-    retrieval_size = args.retrieval_size
+    config_path = args.config_path
+    config_name = args.config_name
 
     # Input Data
     input_documents_path = args.input_documents
@@ -48,11 +47,11 @@ def main(args):
         results_dir,
         "ed_retrieval",
         method_name,
-        identifier,
+        config_name,
         prefix
     )
     utils.mkdir(base_output_path)
-
+    
     # Set logger
     set_logger(
         os.path.join(base_output_path, "ed_retrieval.log"),
@@ -73,8 +72,16 @@ def main(args):
     # Method
     ##################
 
+    # Load the experiment configuration
+    config = utils.get_hocon_config(config_path=config_path, config_name=config_name)
+
+    # Save the experiment configuration to the output path
+    utils.write_json(os.path.join(base_output_path, "config.json"), config)
+
     # Initialize the ED-Retrieval component
-    retriever = BlinkBiEncoder.from_identifier(identifier=identifier)
+    retriever = BlinkBiEncoder.from_identifier(
+        identifier=config["identifier"]
+    )
 
     # Build the ANN index from precomputed entity vectors
     retriever.make_index(use_precomputed_entity_vectors=True)
@@ -101,7 +108,7 @@ def main(args):
     for document in tqdm(documents):
         result_document, candidate_entities_for_doc = retriever.search(
             document=document,
-            retrieval_size=retrieval_size
+            retrieval_size=config["retrieval_size"]
         )
         result_documents.append(result_document)
         candidate_entities.append(candidate_entities_for_doc)
@@ -145,8 +152,8 @@ if __name__ == "__main__":
 
     # Method
     parser.add_argument("--method", type=str, required=True)
-    parser.add_argument("--identifier", type=str, required=True)
-    parser.add_argument("--retrieval_size", type=int, default=10)
+    parser.add_argument("--config_path", type=str, required=True)
+    parser.add_argument("--config_name", type=str, required=True)
 
     # Input Data
     parser.add_argument("--input_documents", type=str, required=True)

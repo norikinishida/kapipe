@@ -1,38 +1,18 @@
 import argparse
 import logging
 import os
+import sys
 
 import networkx as nx
 import numpy as np
 
-import sys
-sys.path.insert(0, "../..")
+from kapipe import utils
 from kapipe.community_clustering import (
     HierarchicalLeiden,
     NeighborhoodAggregation,
     TripleLevelFactorization
 )
-from kapipe import utils
 from kapipe.utils import StopWatch
-
-
-def set_logger(filename, overwrite=False):
-    """
-    Parameters
-    ----------
-    filename: str
-    overwrite: bool, default False
-    """
-    if os.path.exists(filename) and not overwrite:
-        logging.info("%s already exists." % filename)
-        do_remove = input("Delete the existing log file? [y/n]: ")
-        if (not do_remove.lower().startswith("y")) and (not len(do_remove) == 0):
-            logging.info("Done.")
-            sys.exit(0)
-
-    root_logger = logging.getLogger()
-    handler = logging.FileHandler(filename, "w")
-    root_logger.addHandler(handler)
 
 
 def main(args):
@@ -44,13 +24,15 @@ def main(args):
     ##################
 
     # Method
-    clustering_method = args.method
+    method_name = args.method
+    config_path = args.config_path
+    config_name = args.config_name
 
     # Input Data
-    path_input_graph = args.input_graph
+    input_graph_path = args.input_graph
 
     # Output Path
-    path_results_dir = args.results_dir
+    results_dir = args.results_dir
     prefix = args.prefix
     if prefix is None or prefix == "None":
         prefix = utils.get_current_time()
@@ -62,8 +44,10 @@ def main(args):
 
     # Set base output path
     base_output_path = os.path.join(
-        path_results_dir,
+        results_dir,
         "community_clustering",
+        method_name,
+        config_name,
         prefix
     )
     utils.mkdir(base_output_path)
@@ -83,39 +67,46 @@ def main(args):
 
     # Load knowledge graph
     logging.info("Loading knowledge graph ...")
-    graph = nx.read_graphml(path_input_graph)
+    graph = nx.read_graphml(input_graph_path)
 
     ##################
     # Method
     ##################
 
+    # Load the experiment configuration
+    config = utils.get_hocon_config(config_path=config_path, config_name=config_name)
+
+    # Save the experiment configuration to the output path
+    utils.write_json(os.path.join(base_output_path, "config.json"), config)
+
     # Initialize the Community Clustering component 
-    if clustering_method == "hierarchical_leiden":
-        clusterer = HierarchicalLeiden()
-    elif clustering_method == "neighborhood_aggregation":
-        clusterer = NeighborhoodAggregation()
-    elif clustering_method == "triple_level_factorization":
+    if method_name == "hierarchical_leiden":
+        clusterer = HierarchicalLeiden(
+            max_cluster_size=config["max_cluster_size"],
+            use_lcc=config["use_lcc"]
+        )
+    elif method_name == "neighborhood_aggregation":
+        clusterer = NeighborhoodAggregation(
+            hop_size=config["hop_size"],
+        )
+    elif method_name == "triple_level_factorization":
         clusterer = TripleLevelFactorization()
     else:
-        raise Exception(f"Invalid clustering_method: {clustering_method}")
+        raise Exception(f"Invalid method_name: {method_name}")
 
     ##################
     # Community Clustering
     ##################
 
-    logging.info(f"Applying the Community Clustering component to knowledge graph in {path_input_graph} ...")
+    logging.info(f"Applying the Community Clustering component to knowledge graph in {input_graph_path} ...")
 
     # Apply the Community Clustering component to the graph
-    if clustering_method == "hierarchical_leiden":
-        communities = clusterer.cluster_communities(graph=graph, max_cluster_size=10, use_lcc=False)
-        # communities = clusterer.cluster_communities(graph=graph, max_cluster_size=10, use_lcc=True)
-    else:
-        communities = clusterer.cluster_communities(graph=graph)
+    communities = clusterer.cluster_communities(graph=graph)
 
     # Save the results
-    path_output_communities = os.path.join(base_output_path, "communities.json")
-    utils.write_json(path_output_communities, communities)
-    logging.info(f"Saved communities to {path_output_communities}")
+    output_communities_path = os.path.join(base_output_path, "communities.json")
+    utils.write_json(output_communities_path, communities)
+    logging.info(f"Saved communities to {output_communities_path}")
 
     # Show statistics
     cluster_size_list = []
@@ -137,6 +128,19 @@ def main(args):
     logging.info("Time: %f min." % sw.get_time("main", minute=True))
 
 
+def set_logger(filename: str, overwrite: bool = False) -> None:
+    if os.path.exists(filename) and not overwrite:
+        logging.info("%s already exists." % filename)
+        do_remove = input("Delete the existing log file? [y/n]: ")
+        if (not do_remove.lower().startswith("y")) and (not len(do_remove) == 0):
+            logging.info("Done.")
+            sys.exit(0)
+
+    root_logger = logging.getLogger()
+    handler = logging.FileHandler(filename, "w")
+    root_logger.addHandler(handler)
+
+
 if __name__ == "__main__":
     logging.basicConfig(
         format="%(asctime)s - %(levelname)s - %(name)s - %(message)s",
@@ -147,6 +151,8 @@ if __name__ == "__main__":
 
     # Method
     parser.add_argument("--method", type=str, required=True)
+    parser.add_argument("--config_path", type=str, required=True)
+    parser.add_argument("--config_name", type=str, required=True)
 
     # Input Data
     parser.add_argument("--input_graph", type=str, required=True)

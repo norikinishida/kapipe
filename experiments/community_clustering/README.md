@@ -1,6 +1,6 @@
-# Chunking
+# community_clustering
 
-This directory contains example experiments for text chunking.
+This directory contains example experiments for Community Clustering.
 
 ## Step 1. Installation
 
@@ -14,7 +14,7 @@ pyenv install 3.11.14
 pyenv virtualenv 3.11.14 <your-favorite-env-name>
 
 # 2. Activate the Python environment in this directory
-cd experiments/chunking
+cd experiments/community_clustering
 pyenv local <your-favorite-env-name>
 
 # 3. Install the KAPipe library
@@ -23,14 +23,6 @@ python -m pip install -U kapipe
 python -m pip install -e ../..
 ```
 
-If you use a spaCy model, install it in the same environment.
-
-```bash
-python -m spacy download en_core_web_md
-```
-
-If you use SciSpaCy, install the model required by your configuration.
-
 ## Step 2. Dataset Preparation
 
 ### Example dataset
@@ -38,29 +30,21 @@ If you use SciSpaCy, install the model required by your configuration.
 This directory already includes example data.
 
 ```bash
-experiments/chunking/data/examples/articles.jsonl
+experiments/community_clustering/data/examples/graph.graphml
 ```
 
-Each input passage should be a JSON object with a `text` field.
-
-```json
-{"title": "Example title", "text": "Example passage text."}
-```
-
-The `title` field is optional.
+The input graph must be a GraphML file readable by `networkx.read_graphml`.
 
 ## Step 3. Running the experiments
 
 First, check `STORAGE_DATA` and `STORAGE_RESULTS` in the execution script and adjust them to your environment.
 
-To split passages into chunks, run:
+Then run:
 
 ```bash
-bash ./run_chunking.sh
+bash ./run_community_clustering.sh
 ```
 
-By default, the script uses:
+By default, the script uses Neighborhood Aggregation method (with hop-size=1).
 
-```bash
-CONFIG_NAME=en_core_sci_md_w100
-```
+To use different methods (e.g., Hierarchical Leiden, Triple-Level Factorization), change `METHOD` in the script.

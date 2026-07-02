@@ -24,12 +24,8 @@ def main(args):
 
     # Method
     method_name = args.method
-    identifier = args.identifier
-
-    llm_provider = args.llm_provider
-    llm_model_name = args.llm_model_name
-    llm_max_new_tokens = args.llm_max_new_tokens
-    llm_quantization_bits = args.llm_quantization_bits
+    config_path = args.config_path
+    config_name = args.config_name
 
     # Input Data
     input_documents_path = args.input_documents
@@ -50,7 +46,7 @@ def main(args):
         results_dir,
         "ner",
         method_name,
-        identifier,
+        config_name,
         prefix
     )
     utils.mkdir(base_output_path)
@@ -75,25 +71,36 @@ def main(args):
     # Method
     ##################
 
+    # Load the experiment configuration
+    config = utils.get_hocon_config(config_path=config_path, config_name=config_name)
+
+    # Save the experiment configuration to the output path
+    utils.write_json(os.path.join(base_output_path, "config.json"), config)
+
     # Initialize the NER component
     if method_name == "biaffine_ner":
-        extractor = BiaffineNER.from_identifier(identifier=identifier)
+        extractor = BiaffineNER.from_identifier(
+            identifier=config["identifier"]
+        )
     elif method_name == "llm_ner":
-        if llm_provider == "openai":
+        if config["llm_provider"] == "openai":
             model = OpenAILLM(
-                model_name=llm_model_name,
-                max_new_tokens=llm_max_new_tokens,
+                model_name=config["llm_model_name"],
+                max_new_tokens=config["llm_max_new_tokens"],
             )
-        elif llm_provider == "hf":
+        elif config["llm_provider"] == "hf":
             model = HuggingFaceLLM(
-                model_name=llm_model_name,
-                max_new_tokens=llm_max_new_tokens,
-                quantization_bits=llm_quantization_bits,
+                model_name=config["llm_model_name"],
+                max_new_tokens=config["llm_max_new_tokens"],
+                quantization_bits=config["llm_quantization_bits"],
             )
         else:
-            raise ValueError(f"Unknown LLM provider: {llm_provider}")
+            raise ValueError(f"Unknown LLM provider: {config['llm_provider']}")
         logging.info("Initialized the LLM model: %s" % repr(model))
-        extractor = LLMNER.from_identifier(model=model, identifier=identifier)
+        extractor = LLMNER.from_identifier(
+            model=model,
+            identifier=config["identifier"]
+        )
     else:
         raise ValueError(f"Unknown method: {method_name}")
 
@@ -166,12 +173,8 @@ if __name__ == "__main__":
 
     # Method
     parser.add_argument("--method", type=str, required=True)
-    parser.add_argument("--identifier", type=str, required=True)
-
-    parser.add_argument("--llm_provider", type=str, default="openai")
-    parser.add_argument("--llm_model_name", type=str, default="gpt-4o-mini")
-    parser.add_argument("--llm_max_new_tokens", type=int, default=1024)
-    parser.add_argument("--llm_quantization_bits", type=int, default=None)
+    parser.add_argument("--config_path", type=str, required=True)
+    parser.add_argument("--config_name", type=str, required=True)
 
     # Input Data
     parser.add_argument("--input_documents", type=str, required=True)

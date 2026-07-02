@@ -16,22 +16,22 @@ tar -zxvf v1.tar.gz
 
 
 # Results:
-#   - STORAGE_DATA/docre/hoip-v1/{train,dev,test}.json
+#   - STORAGE_DATA/docre/hoip_v1/{train,dev,test}.json
 for split in train dev test
 do
     python prepare_hoip_dataset.py \
         --input_file ${HOIP}/hoip-dataset/releases/v1/${split}.json \
-        --output_file ${STORAGE_DATA}/hoip-v1/${split}.json
+        --output_file ${STORAGE_DATA}/hoip_v1/${split}.json
 done
 
 
 # # Results:
-# #   - STORAGE_DATA/docre/hoip-v1/{train,dev,test}.filtered.json
+# #   - STORAGE_DATA/docre/hoip_v1/{train,dev,test}.filtered.json
 # for split in train dev test
 # do
 #     python filter_hoip.py \
-#         --input_file ${STORAGE_DATA}/hoip-v1/${split}.json \
-#         --output_file ${STORAGE_DATA}/hoip-v1/${split}.filtered.json \
+#         --input_file ${STORAGE_DATA}/hoip_v1/${split}.json \
+#         --output_file ${STORAGE_DATA}/hoip_v1/${split}.filtered.json \
 #         --target_relations "has result"
 # done
 

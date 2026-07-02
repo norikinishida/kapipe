@@ -19,8 +19,15 @@ class NeighborhoodAggregation:
     with a flat hierarchy under a ROOT community.
     """ 
 
-    def __init__(self):
-        pass
+    def __init__(
+        self,
+        hop_size: int = 1
+    ):
+        # Validate the hop size
+        if hop_size < 1:
+            raise ValueError(f"hop_size must be >= 1: {hop_size}")
+
+        self.hop_size = hop_size
 
     def cluster_communities(
         self,
@@ -35,17 +42,33 @@ class NeighborhoodAggregation:
         # Initialize the community records
         communities: list[CommunityRecord] = []
 
-        # undirected_graph = graph.to_undirected()
+        # Convert the directed graph to an undirected graph to preserve the current both-direction behavior
+        undirected_graph = graph.to_undirected()
 
         for center_node in graph.nodes:
-            # Get in- and out-neighbor nodes
-            out_neighbor_nodes = set(graph.neighbors(center_node))
-            in_neighbor_nodes = set(graph.predecessors(center_node))
-            # nodes_within_k = nx.single_source_shortest_path_length(undirected_graph, center_node, cutoff=1).keys()
+            #-----
+            # [old implication] Get in- and out-neighbor nodes
+            # out_neighbor_nodes = set(graph.neighbors(center_node))
+            # in_neighbor_nodes = set(graph.predecessors(center_node))
 
             # Merge the neighbor nodes
-            neighbor_nodes = list(out_neighbor_nodes | in_neighbor_nodes)
-            # neighbor_nodes = set(nodes_within_k) - {center_node}
+            # neighbor_nodes = list(out_neighbor_nodes | in_neighbor_nodes)
+            #-----
+
+            #-----
+            # Collect nodes reachable within the specified number of hops
+            nodes_within_k_hops = nx.single_source_shortest_path_length(
+                undirected_graph,
+                center_node,
+                cutoff=self.hop_size
+            ).keys()
+
+            # Remove the center node from the neighbor nodes
+            neighbor_nodes = set(nodes_within_k_hops) - {center_node}
+
+            # Sort the neighbor nodes to make the output deterministic
+            neighbor_nodes = sorted(neighbor_nodes)
+            #-----
 
             # Add a new community record
             communities.append({

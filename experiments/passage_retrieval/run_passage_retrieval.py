@@ -98,7 +98,7 @@ def main(args):
         utils.mkdir(os.path.join(
             index_root,
             method_name,
-            "search-results",
+            "search_results",
             index_name
         ))
         # Set logger
@@ -106,7 +106,7 @@ def main(args):
             os.path.join(
                 index_root,
                 method_name,
-                "search-results",
+                "search_results",
                 index_name,
                 os.path.splitext(os.path.basename(path_input_file))[0] + ".log"
             ),
@@ -117,7 +117,7 @@ def main(args):
     logging.info(utils.pretty_format_dict(vars(args)))
 
     # Index will be saved to index_root/method_name/indexes/index_name/...
-    # Search results will be saved to index_root/method_name/search-results/index_name/...
+    # Search results will be saved to index_root/method_name/search_results/index_name/...
     # Logs will be saved to index_root/method_name/{indexing,search}.log
 
     logging.info(f"index_root: {index_root}")
@@ -201,7 +201,7 @@ def main(args):
         search_output = os.path.join(
             index_root,
             method_name,
-            "search-results",
+            "search_results",
             index_name,
             os.path.splitext(os.path.basename(path_input_file))[0] + ".contexts.json"
         )

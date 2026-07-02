@@ -66,6 +66,9 @@ def main(args):
     # Load the experiment configuration
     config = utils.get_hocon_config(config_path=config_path, config_name=config_name)
 
+    # Save the experiment configuration to the output path
+    utils.write_json(os.path.join(base_output_path, "config.json"), config)
+
     # Initialize the Chunking component
     chunker = Chunker(model_name=config["spacy_model_name"])
 

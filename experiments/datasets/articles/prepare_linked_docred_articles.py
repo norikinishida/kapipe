@@ -25,7 +25,7 @@ def main(args):
                 passage = {
                     "title": title,
                     "text": text,
-                    "source_document": f"linked-docred/{split}/{doc['doc_key']}"
+                    "source_document": f"linked_docred/{split}/{doc['doc_key']}"
                 }
                 json_str = json.dumps(passage)
                 f.write(json_str + "\n")

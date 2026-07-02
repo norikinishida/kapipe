@@ -16,7 +16,8 @@ STORAGE_RESULTS=/home/nishida/projects/kapipe/experiments/ed_retrieval/results
 
 # Method
 METHOD=blink_bi_encoder
-IDENTIFIER=blink_bi_encoder_cdr
+CONFIG_PATH=./config/blink_bi_encoder.conf
+CONFIG_NAME=blink_bi_encoder_cdr
 
 # Input Data
 DOCUMENTS=${STORAGE_DATA}/examples/documents.ner.json
@@ -31,7 +32,8 @@ MYPREFIX=example
 
 python run_ed_retrieval.py \
     --method ${METHOD} \
-    --identifier ${IDENTIFIER} \
+    --config_path ${CONFIG_PATH} \
+    --config_name ${CONFIG_NAME} \
     --input_documents ${DOCUMENTS} \
     --results_dir ${RESULTS_DIR} \
     --prefix ${MYPREFIX}

@@ -68,8 +68,11 @@ def main(args):
     # Load the experiment configuration
     config = utils.get_hocon_config(config_path=config_path, config_name=config_name)
 
+    # Save the experiment configuration to the output path
+    utils.write_json(os.path.join(base_output_path, "config.json"), config)
+
     # Initialize the COMPONENT_NAME component
-    if method_name == "METHOD_NAME_A":
+    if method_name == "default":
         WORKER = COMPONENT_WORKER_A(hoge=config["hoge"])
     else:
         raise Exception(f"Unknown method: {method_name}")

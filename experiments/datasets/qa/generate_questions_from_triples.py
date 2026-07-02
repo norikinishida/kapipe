@@ -116,7 +116,7 @@ def main(args):
     # )
 
     # templatesの読み込み
-    df = pd.read_csv("../meta/cdr-qa-and-docred-qa/question_templates_v2.csv")
+    df = pd.read_csv("../meta/cdr_qa_and_docred_qa/question_templates_v2.csv")
     question_type_to_relation_to_template = df.groupby("Question Type").apply(lambda g: dict(zip(g["Relation"], g["Template"]))).to_dict()
     relation_to_template = question_type_to_relation_to_template[question_type]
 

@@ -19,12 +19,11 @@ STORAGE_RESULTS=/home/nishida/projects/kapipe/experiments/ed_reranking/results
 METHOD=llm_ed
 
 if [ "${METHOD}" == "blink_cross_encoder" ]; then
-    IDENTIFIER=blink_cross_encoder_cdr
+    CONFIG_PATH=./config/blink_cross_encoder.conf
+    CONFIG_NAME=blink_cross_encoder_cdr
 elif [ "${METHOD}" == "llm_ed" ]; then
-    IDENTIFIER=llm_ed_cdr
-    LLM_PROVIDER=openai
-    LLM_MODEL_NAME=gpt-5.4-nano
-    LLM_MAX_NEW_TOKENS=1024
+    CONFIG_PATH=./config/llm_ed.conf
+    CONFIG_NAME=llm_ed_cdr
 else
     echo "Error: Invalid METHOD specified."
     exit 1
@@ -44,7 +43,8 @@ MYPREFIX=example
 
 python run_ed_reranking.py \
     --method ${METHOD} \
-    --identifier ${IDENTIFIER} \
+    --config_path ${CONFIG_PATH} \
+    --config_name ${CONFIG_NAME} \
     --input_documents ${DOCUMENTS} \
     --input_candidate_entities ${CANDIDATE_ENTITIES} \
     --results_dir ${RESULTS_DIR} \

@@ -65,6 +65,9 @@ def main(args):
     # Load the experiment configuration
     config = utils.get_hocon_config(config_path=config_path, config_name=config_name)
 
+    # Save the experiment configuration to the output path
+    utils.write_json(os.path.join(base_output_path, "config.json"), config)
+
     # Initialize the Entity Graph Construction component
     constructor = EntityGraphConstructor(
         missing_entity_policy=config["missing_entity_policy"],

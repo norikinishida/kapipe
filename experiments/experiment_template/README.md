@@ -30,23 +30,23 @@ python -m pip install -e ../..
 This directory already includes example data.
 
 ```bash
-TBA.
+experiments/EXPERIMENT_NAME/data/examples/SOMETHING
 ```
 
 ### Benchmark datasets
 
 You can also prepare benchmark datasets with the scripts in `TBA`. 
 
-## Step 3. Running the Chunking component
+## Step 3. Running the experiments
 
 First, check `STORAGE_DATA` and `STORAGE_RESULTS` in the execution script and adjust them to your environment.
 
-To TBA, run:
+Then run:
 
 ```bash
 bash ./run_experiment.sh
 ```
 
-By default, the script uses:
+By default, the script uses TBA.
 
-TBA.
+To use different methods, change `METHOD` in the script.

@@ -15,8 +15,8 @@ STORAGE_RESULTS=/home/nishida/projects/kapipe/experiments/EXPERIMENT_NAME/result
 ######
 
 # Method
-METHOD=METHOD_NAME_A
-CONFIG_PATH=./config/METHOD_NAME_A.conf
+METHOD=default
+CONFIG_PATH=./config/default.conf
 CONFIG_NAME=CONFIG_NAME_A
 
 # Input Data

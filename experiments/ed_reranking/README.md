@@ -43,7 +43,7 @@ experiments/ed_reranking/data/examples/entity_dict.json
 
 You can also prepare benchmark datasets (e.g., CDR, Linked-DocRED) with the scripts in `experiments/datasets/ed`.
 
-## Step 3. Running the ED-Reranking component
+## Step 3. Running the experiments
 
 First, check `STORAGE_DATA` and `STORAGE_RESULTS` in each execution script and adjust them to your environment.
 

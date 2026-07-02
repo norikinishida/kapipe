@@ -37,7 +37,7 @@ TBA.
 
 You can also prepare benchmark datasets with the scripts in `TBA`. 
 
-## Step 3. Running the Entity Graph Construction component
+## Step 3. Running the experiments
 
 First, check `STORAGE_DATA` and `STORAGE_RESULTS` in the execution script and adjust them to your environment.
 

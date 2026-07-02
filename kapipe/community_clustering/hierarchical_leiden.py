@@ -21,14 +21,17 @@ class HierarchicalLeiden:
     This results in a hierarchical structure of communities under a ROOT community.
     """
     
-    def __init__(self):
-        pass
+    def __init__(
+        self,
+        max_cluster_size: int = 10,
+        use_lcc: bool = False ,
+    ):
+        self.max_cluster_size = max_cluster_size
+        self.use_lcc = use_lcc
 
     def cluster_communities(
         self,
         graph: nx.MultiDiGraph,
-        max_cluster_size: int = 10,
-        use_lcc: bool = False 
     ) -> list[CommunityRecord]:
         """Apply the Hierarchical Leiden algorithm to cluster communities in a directed graph."""
 
@@ -38,13 +41,13 @@ class HierarchicalLeiden:
         modified_graph = nx.DiGraph(graph).to_undirected()
 
         # If requested, extract the largest connected component
-        if use_lcc:
+        if self.use_lcc:
             modified_graph = self._stable_largest_connected_component(graph=modified_graph)
 
         # Apply Hierarchical Leiden algorithm
         community_mapping = hierarchical_leiden(
             graph=modified_graph,
-            max_cluster_size=max_cluster_size
+            max_cluster_size=self.max_cluster_size
         )
         logger.info(f"Obtained {len(community_mapping)} communities")
 
@@ -121,17 +124,6 @@ class HierarchicalLeiden:
         sorted_nodes = graph.nodes(data=True)
         sorted_nodes = sorted(sorted_nodes, key=lambda x: x[0])
         fixed_graph.add_nodes_from(sorted_nodes)
-
-        # If the graph is undirected, we create the edges in a stable way, so we get the same results
-        # for example:
-        # A -> B
-        # in graph theory is the same as
-        # B -> A
-        # in an undirected graph
-        # however, this can lead to downstream issues because sometimes
-        # consumers read graph.nodes() which ends up being [A, B] and sometimes it's [B, A]
-        # but they base some of their logic on the order of the nodes, so the order ends up being important
-        # so we sort the nodes in the edge in a stable way, so that we always get the same order
 
         def _sort_edge(edge: tuple[Any, Any, Any]) -> tuple[Any, Any, Any]:
             """Sort the nodes in an edge to ensure consistent ordering."""
