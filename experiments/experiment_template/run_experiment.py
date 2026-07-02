@@ -17,6 +17,8 @@ def main(args):
 
     # Method
     method_name = args.method
+    config_path = args.config_path
+    config_name = args.config_name
 
     # Input Data
     INPUT_SOMETHING_PATH = args.input_SOMETHING
@@ -37,7 +39,7 @@ def main(args):
         results_dir,
         "COMPONENT_NAME",
         method_name,
-        # config_name_or_identifier,
+        config_name,
         prefix
     )
     utils.mkdir(base_output_path)
@@ -65,9 +67,8 @@ def main(args):
 
     # Initialize the COMPONENT_NAME component
     if method_name == "METHOD_A":
-        WORKER = COMPONENT_WORKER_A()
-    elif method_name == "METHOD_B":
-        WORKER = COMPONENT_WORKER_B()
+        config = utils.get_hocon_config(config_path=config_path, config_name=config_name)
+        WORKER = COMPONENT_WORKER_A(hoge=config["hoge"])
     else:
         raise Exception(f"Unknown method: {method_name}")
 
@@ -117,6 +118,8 @@ if __name__ == "__main__":
 
     # Method
     parser.add_argument("--method", type=str, required=True)
+    parser.add_argument("--config_path", type=str, required=True)
+    parser.add_argument("--config_name", type=str, required=True)
 
     # Input Data
     parser.add_argument("--input_SOMETHING", type=str, required=True)
