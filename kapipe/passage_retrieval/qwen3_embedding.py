@@ -44,16 +44,28 @@ class Qwen3Embedding:
             padding_side="left",
         )
 
-        # Load the model with FlashAttention 2 on CUDA
+        # Define the common model-loading arguments
+        model_kwargs: dict[str, object] = {
+            "dtype": torch.float16,
+        }
+
+        # Enable Flash Attention 2 when the environment supports it
+        attn_impl = self._get_attn_implementation()
+        if attn_impl is not None:
+            model_kwargs["attn_implementation"] = attn_impl
+            logger.info(
+                "Flash Attention 2 is enabled."
+            )
+ 
+        # Load the model on CUDA
         if self.device.startswith("cuda"):
             self.model = AutoModel.from_pretrained(
                 self.model_name,
-                attn_implementation="flash_attention_2",
-                dtype=torch.float16,
+                **model_kwargs,
             ).to(self.device)
         else:
             self.model = AutoModel.from_pretrained(
-                self.model_name
+                self.model_name,
             ).to(self.device)
 
         # Switch model to evaluation mode
@@ -68,11 +80,37 @@ class Qwen3Embedding:
         # Cache passages after creating or loading an index
         self.passages: list[Passage] | None = None
 
+    def _get_attn_implementation(self) -> str | None:
+        """Return Flash Attention 2 only when it is available and useful."""
+
+        # Disable Flash Attention when CUDA is unavailable
+        if not torch.cuda.is_available():
+            logger.info("CUDA is not available. Disable Flash Attention.")
+            return None
+
+        # Disable Flash Attention 2 on GPUs older than the Ampere generation
+        major, _ = torch.cuda.get_device_capability()
+        if major < 8:
+            logger.info(
+                "GPU does not support Flash Attention 2 (requires SM80+)."
+            )
+            return None
+
+        # Check whether the optional flash-attn package is installed
+        try:
+            import flash_attn  # noqa: F401
+        except Exception as error:
+            logger.info(f"flash-attn is not available: {error}")
+            return None
+
+        # Use the implementation name expected by Transformers
+        logger.info("Flash Attention 2 is enabled.")
+        return "flash_attention_2"
+
     def make_index(
         self,
         passages: list[Passage],
-        index_root: str,
-        index_name: str,
+        index_dir: str,
         batch_size: int = 8,
     ) -> None:
         """Encode passages and construct an ANN index."""
@@ -156,8 +194,7 @@ class Qwen3Embedding:
         self.save_index(
             passages=passages,
             passage_embeddings=passage_embeddings,
-            index_root=index_root,
-            index_name=index_name,
+            index_dir=index_dir,
         )
 
         # Cache passages for retrieval without reloading the index
@@ -255,63 +292,47 @@ class Qwen3Embedding:
         self,
         passages: list[Passage],
         passage_embeddings: np.ndarray,
-        index_root: str,
-        index_name: str,
+        index_dir: str,
     ) -> None:
         """Save passages, embeddings, and an ANN index."""
 
-        # Construct the index path and create necessary directories
-        index_path = os.path.join(
-            index_root,
-            "qwen3_embedding",
-            "indexes",
-            index_name,
-        )
-        utils.mkdir(index_path)
+        utils.mkdir(index_dir)
 
         # Save passages, passage embeddings, and the ANN index
         logger.info(
             "Saving %d passages, passage embeddings, and index to %s",
             len(passages),
-            index_path,
+            index_dir,
         )
         utils.write_json(
-            os.path.join(index_path, "passages.json"),
+            os.path.join(index_dir, "passages.json"),
             passages,
         )
         np.save(
-            os.path.join(index_path, "passage_embeddings.npy"),
+            os.path.join(index_dir, "passage_embeddings.npy"),
             passage_embeddings,
         )
         self.anns.save(
-            os.path.join(index_path, "index.faiss"),
+            os.path.join(index_dir, "index.faiss"),
         )
 
         logger.info("Completed saving")
 
     def load_index(
         self,
-        index_root: str,
-        index_name: str,
+        index_dir: str,
     ) -> None:
         """Load an ANN index and associated passages."""
 
-        # Construct the index directory path
-        index_path = os.path.join(
-            index_root,
-            "qwen3_embedding",
-            "indexes",
-            index_name,
-        )
-        logger.info("Loading passages and index from %s", index_path)
+        logger.info("Loading passages and index from %s", index_dir)
 
         # Load the passages
         self.passages = utils.read_json(
-            os.path.join(index_path, "passages.json")
+            os.path.join(index_dir, "passages.json")
         )
 
         # Load the saved ANN index if it exists
-        index_file = os.path.join(index_path, "index.faiss")
+        index_file = os.path.join(index_dir, "index.faiss")
         if os.path.exists(index_file):
             self.anns.load(index_file)
         else:
@@ -321,10 +342,10 @@ class Qwen3Embedding:
             # Load the passage embeddings
             logger.info(
                 "Loading passage embeddings from %s",
-                index_path,
+                index_dir,
             )
             passage_embeddings = np.load(
-                os.path.join(index_path, "passage_embeddings.npy")
+                os.path.join(index_dir, "passage_embeddings.npy")
             )
             logger.info(
                 "Loaded %d passage embeddings",

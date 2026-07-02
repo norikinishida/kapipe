@@ -61,8 +61,7 @@ class Contriever:
     def make_index(
         self,
         passages: list[Passage],
-        index_root: str,
-        index_name: str,
+        index_dir: str,
         batch_size: int = 1024,
     ) -> None:
         """Encode passages and construct an ANN index."""
@@ -138,8 +137,7 @@ class Contriever:
         self.save_index(
             passages=passages,
             passage_embeddings=passage_embeddings,
-            index_root=index_root,
-            index_name=index_name,
+            index_dir=index_dir,
         )
 
        # Cache passages for retrieval without reloading the index
@@ -196,67 +194,51 @@ class Contriever:
         self,
         passages: list[Passage],
         passage_embeddings: np.ndarray,
-        index_root: str,
-        index_name: str,
+        index_dir: str,
     ) -> None:
         """Save passages, embeddings, and an ANN index."""
 
-        # Construct the index path and create necessary directories
-        index_path = os.path.join(
-            index_root,
-            "contriever",
-            "indexes",
-            index_name,
-        )
-        utils.mkdir(index_path)
+        utils.mkdir(index_dir)
 
         # Save passages, passage embeddings, and the ANN index
         logger.info(
             "Saving %d passages, passage embeddings, and index to %s",
             len(passages),
-            index_path,
+            index_dir,
         )
 
         utils.write_json(
-            os.path.join(index_path, "passages.json"),
+            os.path.join(index_dir, "passages.json"),
             passages,
         )
 
         np.save(
-            os.path.join(index_path, "passage_embeddings.npy"), 
+            os.path.join(index_dir, "passage_embeddings.npy"), 
             passage_embeddings,
         )
 
         self.anns.save(
-            os.path.join(index_path, "index.faiss"),
+            os.path.join(index_dir, "index.faiss"),
         )
 
         logger.info("Completed saving")
 
     def load_index(
         self,
-        index_root: str,
-        index_name: str,
+        index_dir: str,
     ) -> None:
         """Load an ANN index and associated passages."""
 
-        # Construct the index directory path
-        index_path = os.path.join(
-            index_root,
-            "contriever",
-            "indexes",
-            index_name,
-        )
-        logger.info(f"Loading passages and index from {index_path}")
+        logger.info(f"Loading passages and index from {index_dir}")
 
         # Load the passages
         self.passages = utils.read_json(
-            os.path.join(index_path, "passages.json")
+            os.path.join(index_dir, "passages.json")
         )
 
         # Load the saved ANN index if it exists;
         # otherwise, build it from passage embeddings
-        index_file = os.path.join(index_path, "index.faiss")
+        index_file = os.path.join(index_dir, "index.faiss")
         if os.path.exists(index_file):
             self.anns.load(index_file)
         else:
@@ -264,9 +246,9 @@ class Contriever:
             logger.info(f"Index not found: {index_file}")
 
             # Load the passage embeddings
-            logger.info(f"Loading passages embeddings from {index_path}") 
+            logger.info(f"Loading passages embeddings from {index_dir}") 
             passage_embeddings = np.load(
-                os.path.join(index_path, "passage_embeddings.npy")
+                os.path.join(index_dir, "passage_embeddings.npy")
             )
             logger.info(f"Loaded {len(passage_embeddings)} passage embeddings")
 
@@ -279,7 +261,7 @@ class Contriever:
             logger.info("Completed indexing")
 
             # Save the ANN index
-            logger.info(f"Saving index to {index_path}")
+            logger.info(f"Saving index to {index_dir}")
             self.anns.save(index_file)
             logger.info("Completed saving")
 
