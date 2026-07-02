@@ -101,9 +101,7 @@ def main(args):
         )
 
     # Create vocabulary of entity types
-    if dataset_name == "cdr":
-        vocab_etype = get_vocab_etype_for_cdr(method_name=method_name)
-    elif dataset_name == "conll2003":
+    if dataset_name == "conll2003":
         vocab_etype = get_vocab_etype_for_conll2003(
             path=os.path.join(
                 os.path.dirname(train_documents_path),
@@ -119,6 +117,8 @@ def main(args):
             ),
             method_name=method_name
         )
+    elif dataset_name == "cdr":
+        vocab_etype = get_vocab_etype_for_cdr(method_name=method_name)
     elif dataset_name == "medmentions":
         vocab_etype = get_vocab_etype_for_medmentions(
             path=os.path.join(
@@ -367,15 +367,19 @@ def pop_logger_handler():
     logging.info(f"Removed {handler} from the root logger {root_logger}.")
 
 
-def get_statistics_text(xs):
-    if len(xs) == 0:
-        sum_ = mean_ = max_ = min_ = 0
-    else:
-        sum_ = np.sum(xs)
-        mean_ = np.mean(xs)
-        max_ = np.max(xs)
-        min_ = np.min(xs)
-    return f"Total: {sum_} / Average per instance: {mean_} / Max: {max_} / Min: {min_}"
+def create_demonstrations(
+    train_documents: list[dict],
+    n_demonstrations: int,
+) -> list[dict]:
+    # Sort documents by the number of gold mentions
+    sorted_documents = sorted(
+        train_documents,
+        key=lambda document: -len(document["mentions"]),
+    )
+
+    # Select top-k documents as fixed few-shot demonstrations
+    demonstration_documents = sorted_documents[:n_demonstrations]
+    return demonstration_documents
 
 
 def get_vocab_etype(documents_list, method_name):
@@ -385,14 +389,6 @@ def get_vocab_etype(documents_list, method_name):
             for mention in document["mentions"]:
                 entity_types.add(mention["entity_type"])
     entity_types = sorted(list(entity_types))
-    if method_name == "biaffine_ner":
-        entity_types = ["NO-ENT"] + entity_types
-    vocab_etype = {e_type: e_id for e_id, e_type in enumerate(entity_types)}
-    return vocab_etype
-
-
-def get_vocab_etype_for_cdr(method_name):
-    entity_types = ["Chemical", "Disease"]
     if method_name == "biaffine_ner":
         entity_types = ["NO-ENT"] + entity_types
     vocab_etype = {e_type: e_id for e_id, e_type in enumerate(entity_types)}
@@ -421,6 +417,14 @@ def get_vocab_etype_for_linked_docred(path, method_name):
     return vocab_etype
 
 
+def get_vocab_etype_for_cdr(method_name):
+    entity_types = ["Chemical", "Disease"]
+    if method_name == "biaffine_ner":
+        entity_types = ["NO-ENT"] + entity_types
+    vocab_etype = {e_type: e_id for e_id, e_type in enumerate(entity_types)}
+    return vocab_etype
+
+
 def get_vocab_etype_for_medmentions(path, method_name):
     entity_types = utils.read_json(path)
     entity_types = [x["name"] for x in entity_types]
@@ -428,21 +432,6 @@ def get_vocab_etype_for_medmentions(path, method_name):
         entity_types = ["NO-ENT"] + entity_types
     vocab_etype = {e_type: e_id for e_id, e_type in enumerate(entity_types)}
     return vocab_etype
-
-
-def create_demonstrations(
-    train_documents: list[dict],
-    n_demonstrations: int,
-) -> list[dict]:
-    # Sort documents by the number of gold mentions
-    sorted_documents = sorted(
-        train_documents,
-        key=lambda document: -len(document["mentions"]),
-    )
-
-    # Select top-k documents as fixed few-shot demonstrations
-    demonstration_documents = sorted_documents[:n_demonstrations]
-    return demonstration_documents
 
 
 def show_ner_documents_statistics(documents, title):
@@ -497,6 +486,17 @@ def show_ner_documents_statistics(documents, title):
     table["Statistics"] = results.values()
     df = pd.DataFrame.from_dict(table)
     logging.info("\n" + tabulate.tabulate(df, headers="keys", tablefmt="psql", floatfmt=".1f"))
+
+
+def get_statistics_text(xs):
+    if len(xs) == 0:
+        sum_ = mean_ = max_ = min_ = 0
+    else:
+        sum_ = np.sum(xs)
+        mean_ = np.mean(xs)
+        max_ = np.max(xs)
+        min_ = np.min(xs)
+    return f"Total: {sum_} / Average per instance: {mean_} / Max: {max_} / Min: {min_}"
 
 
 if __name__ == "__main__":

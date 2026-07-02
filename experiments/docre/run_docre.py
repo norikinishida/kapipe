@@ -1,35 +1,15 @@
 import argparse
 import logging
 import os
-
-# import torch
-import transformers
-from tqdm import tqdm
-
 import sys
-sys.path.insert(0, "../..")
-from kapipe.docre import DocRE
+
+from tqdm import tqdm
+import transformers
+
 from kapipe import utils
+from kapipe.docre import ATLOP, LLMDocRE
+from kapipe.llms import HuggingFaceLLM, OpenAILLM
 from kapipe.utils import StopWatch
-
-
-def set_logger(filename, overwrite=False):
-    """
-    Parameters
-    ----------
-    filename: str
-    overwrite: bool, default False
-    """
-    if os.path.exists(filename) and not overwrite:
-        logging.info("%s already exists." % filename)
-        do_remove = input("Delete the existing log file? [y/n]: ")
-        if (not do_remove.lower().startswith("y")) and (not len(do_remove) == 0):
-            logging.info("Done.")
-            sys.exit(0)
-
-    root_logger = logging.getLogger()
-    handler = logging.FileHandler(filename, "w")
-    root_logger.addHandler(handler)
 
 
 def main(args):
@@ -44,14 +24,19 @@ def main(args):
     ##################
 
     # Method
-    gpu = args.gpu
+    method_name = args.method
     identifier = args.identifier
 
+    llm_provider = args.llm_provider
+    llm_model_name = args.llm_model_name
+    llm_max_new_tokens = args.llm_max_new_tokens
+    llm_quantization_bits = args.llm_quantization_bits
+
     # Input Data
-    path_input_documents = args.input_documents
+    input_documents_path = args.input_documents
 
     # Output Path
-    path_results_dir = args.results_dir
+    results_dir = args.results_dir
     prefix = args.prefix
     if prefix is None or prefix == "None":
         prefix = utils.get_current_time()
@@ -63,9 +48,9 @@ def main(args):
 
     # Set base output path
     base_output_path = os.path.join(
-        path_results_dir,
+        results_dir,
         "docre",
-        "docre",
+        method_name,
         identifier,
         prefix
     )
@@ -73,7 +58,7 @@ def main(args):
 
     # Set logger
     set_logger(
-        os.path.join(base_output_path, f"extraction.log"),
+        os.path.join(base_output_path, "extraction.log"),
         # overwrite=True
     )
 
@@ -85,40 +70,57 @@ def main(args):
     ##################
 
     # Load documents
-    documents = utils.read_json(path_input_documents)
+    documents = utils.read_json(input_documents_path)
 
     ##################
     # Method
     ##################
 
-    # Initialize the DocRE extractor
-    extractor = DocRE(identifier=identifier, gpu=gpu)
+    # Initialize the DocRE component
+    if method_name == "atlop":
+        extractor = ATLOP.from_identifier(identifier=identifier)
+    elif method_name == "llm_docre":
+        if llm_provider == "openai":
+            model = OpenAILLM(
+                model_name=llm_model_name,
+                max_new_tokens=llm_max_new_tokens
+            )
+        elif llm_provider == "hf":
+            model = HuggingFaceLLM(
+                model_name=llm_model_name,
+                max_new_tokens=llm_max_new_tokens,
+                quantization_bits=llm_quantization_bits
+            )
+        else:
+            raise ValueError(f"Unknown LLM provider: {llm_provider}")
+        logging.info("Initialized the LLM model: %s" % repr(model))
+        extractor = LLMDocRE.from_identifier(model=model, identifier=identifier)
+    else:
+        raise ValueError(f"Unknown method: {method_name}")
 
     ##################
     # DocRE
     ##################
 
-    logging.info(f"Applying the DocRE component to {len(documents)} documents in {path_input_documents} ...")
+    logging.info(f"Applying the DocRE component to {len(documents)} documents in {input_documents_path} ...")
 
     # Create the full output path
-    path_output_documents = os.path.join(base_output_path, f"documents.json")
+    output_documents_path = os.path.join(base_output_path, "documents.json")
 
-    # Apply the DocRE extractor to the documents
+    # Apply the DocRE component to the documents
     result_documents = []
     for document in tqdm(documents):
         result_document = extractor.extract(document=document)
         result_documents.append(result_document)
-        if len(result_documents) % 500 == 0:
-            utils.write_json(path_output_documents.replace(".json", f".until_{len(result_documents)}.json"), result_documents)
 
     # Save the results
-    utils.write_json(path_output_documents, result_documents)
-    logging.info(f"Saved the prediction results to {path_output_documents}")
+    utils.write_json(output_documents_path, result_documents)
+    logging.info(f"Saved the prediction results to {output_documents_path}")
 
     # Save the prompt-response pairs visually in plain text
     if "docre_prompt" in result_documents[0] and "docre_generated_text" in result_documents[0]:
-        path_output_text = os.path.join(base_output_path, "prompt_and_response.txt")
-        with open(path_output_text, "w") as f:
+        output_text_path = os.path.join(base_output_path, "prompt_and_response.txt")
+        with open(output_text_path, "w") as f:
             for doc in result_documents:
                 doc_key = doc["doc_key"]
                 prompt = doc["docre_prompt"]
@@ -142,6 +144,25 @@ def main(args):
     return prefix
 
 
+def set_logger(filename, overwrite=False):
+    """
+    Parameters
+    ----------
+    filename: str
+    overwrite: bool, default False
+    """
+    if os.path.exists(filename) and not overwrite:
+        logging.info("%s already exists." % filename)
+        do_remove = input("Delete the existing log file? [y/n]: ")
+        if (not do_remove.lower().startswith("y")) and (not len(do_remove) == 0):
+            logging.info("Done.")
+            sys.exit(0)
+
+    root_logger = logging.getLogger()
+    handler = logging.FileHandler(filename, "w")
+    root_logger.addHandler(handler)
+
+
 if __name__ == "__main__":
     logging.basicConfig(
         format="%(asctime)s - %(levelname)s - %(name)s - %(message)s",
@@ -151,8 +172,13 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
     # Method
-    parser.add_argument("--gpu", type=int, default=0)
+    parser.add_argument("--method", type=str, required=True)
     parser.add_argument("--identifier", type=str, required=True)
+
+    parser.add_argument("--llm_provider", type=str, default="openai")
+    parser.add_argument("--llm_model_name", type=str, default="gpt-4o-mini")
+    parser.add_argument("--llm_max_new_tokens", type=int, default=1024)
+    parser.add_argument("--llm_quantization_bits", type=int, default=None)
 
     # Input Data
     parser.add_argument("--input_documents", type=str, required=True)

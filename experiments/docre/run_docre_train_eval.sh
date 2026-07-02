@@ -1,65 +1,81 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
 
-# STORAGE=/home/nishida/storage/projects/kapipe/experiments
-STORAGE=/home/nishida/projects/kapipe/experiments
+######
+# Storage paths
+######
 
-STORAGE_DATA=${STORAGE}/data
-STORAGE_RESULTS=${STORAGE}/results
+STORAGE_DATA=/home/nishida/projects/kapipe/experiments/docre/data
+STORAGE_RESULTS=/home/nishida/projects/kapipe/experiments/docre/results
+
+# STORAGE_DATA=/home/nishida/storage/projects/kapipe/experiments/datasets/docre
+# STORAGE_RESULTS=/home/nishida/storage/projects/kapipe/experiments/docre/results
+
+######
+# Experiment configuration
+######
 
 # Method
-# (ATLOP)
-# METHOD=atlop
-# CONFIG_PATH=./config/atlop.conf
-# CONFIG_NAME=atlop_model_scibertcased_cdr_overlap
-# (LLM-DocRE)
-METHOD=llm_docre
-CONFIG_PATH=./config/llm_docre.conf
-CONFIG_NAME=openai_gpt4omini_cdr_prompt08fewshot
+METHOD=atlop
+# METHOD=llm_docre
 
-# Input Data
+if [ "${METHOD}" == "atlop" ]; then
+    CONFIG_PATH=./config/atlop.conf
+    CONFIG_NAME=atlop_model_scibertcased_cdr_overlap
+elif [ "${METHOD}" == "llm_docre" ]; then
+    CONFIG_PATH=./config/llm_docre.conf
+    CONFIG_NAME=gpt4omini_cdr
+else
+    echo "Error: Invalid METHOD specified."
+    exit 1
+fi
+
+## Input Data
 # (In practice, use separate files for training, validation, and test data.
 # This example checks whether the model can achieve near 100% accuracy (i.e., overfit) on the training data.)
 DATASET_NAME=cdr
-TRAIN_DOCS=${STORAGE_DATA}/examples/documents_with_triples.json
-DEV_DOCS=${STORAGE_DATA}/examples/documents_with_triples.json
-TEST_DOCS=${STORAGE_DATA}/examples/documents_with_triples.json
-#
-TRAIN_DEMOS=${STORAGE_DATA}/examples/documents_without_triples.demonstrations.3.random.json
-DEV_DEMOS=${STORAGE_DATA}/examples/documents_without_triples.demonstrations.3.random.json
-TEST_DEMOS=${STORAGE_DATA}/examples/documents_without_triples.demonstrations.3.random.json
+TRAIN_DOCUMENTS=${STORAGE_DATA}/examples/documents_with_supervision.json
+DEV_DOCUMENTS=${STORAGE_DATA}/examples/documents_with_supervision.json
+TEST_DOCUMENTS=${STORAGE_DATA}/examples/documents_with_supervision.json
 #
 ENTITY_DICT=${STORAGE_DATA}/examples/entity_dict.json
+#
+N_DEMONSTRATIONS=3
 
 # Output Path
 RESULTS_DIR=${STORAGE_RESULTS}
 MYPREFIX=example
 
-# (ATLOP)
-# python run_docre_train_eval.py \
-#     --method ${METHOD} \
-#     --config_path ${CONFIG_PATH} \
-#     --config_name ${CONFIG_NAME} \
-#     --dataset_name ${DATASET_NAME} \
-#     --train_documents ${TRAIN_DOCS} \
-#     --dev_documents ${DEV_DOCS} \
-#     --test_documents ${TEST_DOCS} \
-#     --results_dir ${RESULTS_DIR} \
-#     --prefix ${MYPREFIX} \
-#     --actiontype train_and_evaluate
+######
+# Experiment execution
+######
 
-# (LLM-DocRE)
-python run_docre_train_eval.py \
-    --method llm_docre \
-    --config_path ${CONFIG_PATH} \
-    --config_name ${CONFIG_NAME} \
-    --dataset_name ${DATASET_NAME} \
-    --train_documents ${TRAIN_DOCS} \
-    --dev_documents ${DEV_DOCS} \
-    --test_documents ${TEST_DOCS} \
-    --train_demonstrations ${TRAIN_DEMOS} \
-    --dev_demonstrations ${DEV_DEMOS} \
-    --test_demonstrations ${TEST_DEMOS} \
-    --entity_dict ${ENTITY_DICT} \
-    --results_dir ${STORAGE_RESULTS} \
-    --prefix ${MYPREFIX} \
-    --actiontype evaluate
+if [ "${METHOD}" == "atlop" ]; then
+    python run_docre_train_eval.py \
+        --method ${METHOD} \
+        --config_path ${CONFIG_PATH} \
+        --config_name ${CONFIG_NAME} \
+        --dataset_name ${DATASET_NAME} \
+        --train_documents ${TRAIN_DOCUMENTS} \
+        --dev_documents ${DEV_DOCUMENTS} \
+        --test_documents ${TEST_DOCUMENTS} \
+        --results_dir ${RESULTS_DIR} \
+        --prefix ${MYPREFIX} \
+        --actiontype train_and_evaluate
+fi
+
+if [ "${METHOD}" == "llm_docre" ]; then
+    python run_docre_train_eval.py \
+        --method ${METHOD} \
+        --config_path ${CONFIG_PATH} \
+        --config_name ${CONFIG_NAME} \
+        --dataset_name ${DATASET_NAME} \
+        --train_documents ${TRAIN_DOCUMENTS} \
+        --dev_documents ${DEV_DOCUMENTS} \
+        --test_documents ${TEST_DOCUMENTS} \
+        --n_demonstrations ${N_DEMONSTRATIONS} \
+        --entity_dict ${ENTITY_DICT} \
+        --results_dir ${RESULTS_DIR} \
+        --prefix ${MYPREFIX} \
+        --actiontype evaluate
+fi
+

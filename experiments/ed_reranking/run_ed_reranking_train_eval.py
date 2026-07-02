@@ -496,6 +496,70 @@ def pop_logger_handler():
     logging.info(f"Removed {handler} from the root logger {root_logger}.")
 
 
+def create_demonstrations(
+    train_documents: list[dict],
+    train_candidate_entities: list[dict],
+    n_demonstrations: int,
+) -> tuple[list[dict], list[dict]]:
+    # Keep scored document-candidate pairs
+    scored_items = []
+
+    # Score each training document with its retrieval candidates
+    for document, candidate_entities_for_doc in zip(
+        train_documents,
+        train_candidate_entities,
+    ):
+        # Check document alignment
+        assert document["doc_key"] == candidate_entities_for_doc["doc_key"]
+
+        # Check mention-candidate alignment
+        assert len(document["mentions"]) == len(
+            candidate_entities_for_doc["candidate_entities"]
+        )
+
+        # Count mentions whose gold entity appears in the retrieved candidates
+        n_covered_mentions = 0
+        for mention, candidate_entities_for_mention in zip(
+            document["mentions"],
+            candidate_entities_for_doc["candidate_entities"],
+        ):
+            # Collect candidate entity IDs
+            candidate_entity_ids = {
+                candidate_entity["entity_id"]
+                for candidate_entity in candidate_entities_for_mention
+            }
+
+            # Count usable ED demonstration mentions
+            if mention["entity_id"] in candidate_entity_ids:
+                n_covered_mentions += 1
+
+        # Keep documents with at least one usable ED demonstration mention
+        if n_covered_mentions > 0:
+            scored_items.append((
+                n_covered_mentions,
+                len(document["mentions"]),
+                document,
+                candidate_entities_for_doc,
+            ))
+
+    # Prefer documents with more covered mentions
+    scored_items = sorted(
+        scored_items,
+        key=lambda item: (-item[0], -item[1]),
+    )
+
+    # Select top-k aligned document-candidate pairs
+    selected_items = scored_items[:n_demonstrations]
+
+    # Extract demonstration documents
+    demonstration_documents = [item[2] for item in selected_items]
+
+    # Extract aligned demonstration candidate entities
+    demonstration_candidate_entities = [item[3] for item in selected_items]
+
+    return demonstration_documents, demonstration_candidate_entities
+
+
 def show_ed_documents_statistics(
     documents,
     title
@@ -716,70 +780,6 @@ def add_or_move_gold_entity_in_candidates(
 
     logging.info(f"Added (or changed the position of) gold entities to the list of top-{top_k} candidate entities for {count_add} ({count_move}) / {count_mentions} mentions")
     return result_candidate_entities
-
-
-def create_demonstrations(
-    train_documents: list[dict],
-    train_candidate_entities: list[dict],
-    n_demonstrations: int,
-) -> tuple[list[dict], list[dict]]:
-    # Keep scored document-candidate pairs
-    scored_items = []
-
-    # Score each training document with its retrieval candidates
-    for document, candidate_entities_for_doc in zip(
-        train_documents,
-        train_candidate_entities,
-    ):
-        # Check document alignment
-        assert document["doc_key"] == candidate_entities_for_doc["doc_key"]
-
-        # Check mention-candidate alignment
-        assert len(document["mentions"]) == len(
-            candidate_entities_for_doc["candidate_entities"]
-        )
-
-        # Count mentions whose gold entity appears in the retrieved candidates
-        n_covered_mentions = 0
-        for mention, candidate_entities_for_mention in zip(
-            document["mentions"],
-            candidate_entities_for_doc["candidate_entities"],
-        ):
-            # Collect candidate entity IDs
-            candidate_entity_ids = {
-                candidate_entity["entity_id"]
-                for candidate_entity in candidate_entities_for_mention
-            }
-
-            # Count usable ED demonstration mentions
-            if mention["entity_id"] in candidate_entity_ids:
-                n_covered_mentions += 1
-
-        # Keep documents with at least one usable ED demonstration mention
-        if n_covered_mentions > 0:
-            scored_items.append((
-                n_covered_mentions,
-                len(document["mentions"]),
-                document,
-                candidate_entities_for_doc,
-            ))
-
-    # Prefer documents with more covered mentions
-    scored_items = sorted(
-        scored_items,
-        key=lambda item: (-item[0], -item[1]),
-    )
-
-    # Select top-k aligned document-candidate pairs
-    selected_items = scored_items[:n_demonstrations]
-
-    # Extract demonstration documents
-    demonstration_documents = [item[2] for item in selected_items]
-
-    # Extract aligned demonstration candidate entities
-    demonstration_candidate_entities = [item[3] for item in selected_items]
-
-    return demonstration_documents, demonstration_candidate_entities
 
 
 if __name__ == "__main__":

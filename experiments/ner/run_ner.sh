@@ -5,8 +5,10 @@
 ######
 
 STORAGE_DATA=/home/nishida/projects/kapipe/experiments/ner/data
-# STORAGE_DATA=/home/nishida/projects/kapipe/experiments/datasets/ner
 STORAGE_RESULTS=/home/nishida/projects/kapipe/experiments/ner/results
+
+# STORAGE_DATA=/home/nishida/storage/projects/kapipe/experiments/datasets/ner
+# STORAGE_RESULTS=/home/nishida/storage/projects/kapipe/experiments/ner/results
 
 ######
 # Experiment configuration

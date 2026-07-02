@@ -1,6 +1,6 @@
-# NER
+# DocRE
 
-This directory contains example experiments for Named Entity Recognition (NER).
+This directory contains example experiments for Document-level Relation Extraction (DocRE).
 
 ## Step 1. Installation
 
@@ -14,7 +14,7 @@ pyenv install 3.11.14
 pyenv virtualenv 3.11.14 <your-favorite-env-name>
 
 # 2. Activate the Python environment in this directory
-cd experiments/ner
+cd experiments/docre
 pyenv local <your-favorite-env-name>
 
 # 3. Install the KAPipe library
@@ -33,35 +33,36 @@ python -m pip install -r requirements.txt
 This directory already includes example data.
 
 ```bash
-experiments/ner/data/examples/documents.json
-experiments/ner/data/examples/documents_with_supervision.json
+experiments/docre/data/examples/documents.ner.ed_ret.ed_rank.json
+experiments/docre/data/examples/documents_with_supervision.json
+experiments/docre/data/examples/entity_dict.json
 ```
 
 ### Benchmark datasets
 
-You can also prepare benchmark datasets (e.g., CDR, Linked-DocRED) with the scripts in `experiments/datasets/ner`.
+You can also prepare benchmark datasets (e.g., CDR, Linked-DocRED) with the scripts in `experiments/datasets/docre`.
 
 ## Step 3. Running the NER Component
 
 First, check `STORAGE_DATA` and `STORAGE_RESULTS` in each execution script and adjust them to your environment.
 
-To apply an off-the-shelf NER component to documents, run:
+To apply an off-the-shelf DocRE component to documents, run:
 
 ```bash
-bash ./run_ner.sh
+bash ./run_docre.sh
 ```
 
-To train or evaluate an NER component, run:
+To train or evaluate an DocRE component, run:
 
 ```bash
-bash ./run_ner_train_eval.sh
+bash ./run_docre_train_eval.sh
 ```
 
-By default, both scripts use the LLM-NER method (`method_name = llm_ner`).
+By default, both scripts use the LLM-DocRE method (`method_name = llm_docre`).
 If you use the OpenAI API, set your API key in advance.
 
 ```bash
 export OPENAI_API_KEY=<your-openai-api-key>
 ```
 
-To use Biaffine-NER (`method_name = biaffine_ner`), change `METHOD` in each script to `biaffine_ner`.
+To use ATLOP or other methods (e.g., `method_name = atlop`), change `METHOD` in each script to the corresponding method names (e.g., `atlop`)`.

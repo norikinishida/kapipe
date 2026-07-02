@@ -1,30 +1,10 @@
 import argparse
 import logging
 import os
-
 import sys
-sys.path.insert(0, "../..")
+
 from kapipe import utils
 from kapipe.utils import StopWatch
-
-
-def set_logger(filename, overwrite=False):
-    """
-    Parameters
-    ----------
-    filename: str
-    overwrite: bool, default False
-    """
-    if os.path.exists(filename) and not overwrite:
-        logging.info("%s already exists." % filename)
-        do_remove = input("Delete the existing log file? [y/n]: ")
-        if (not do_remove.lower().startswith("y")) and (not len(do_remove) == 0):
-            logging.info("Done.")
-            sys.exit(0)
-
-    root_logger = logging.getLogger()
-    handler = logging.FileHandler(filename, "w")
-    root_logger.addHandler(handler)
 
 
 def main(args):
@@ -36,13 +16,13 @@ def main(args):
     ##################
 
     # Method
-    METHOD_NAME = args.METHOD_NAME
+    method_name = args.method
 
     # Input Data
-    path_input_SOMETHING = args.input_SOMETHING
+    INPUT_SOMETHING_PATH = args.input_SOMETHING
 
     # Output Path
-    path_results_dir = args.results_dir
+    results_dir = args.results_dir
     prefix = args.prefix
     if prefix is None or prefix == "None":
         prefix = utils.get_current_time()
@@ -54,8 +34,10 @@ def main(args):
 
     # Set base output path
     base_output_path = os.path.join(
-        path_results_dir,
+        results_dir,
         "COMPONENT_NAME",
+        method_name,
+        # config_name_or_identifier,
         prefix
     )
     utils.mkdir(base_output_path)
@@ -75,33 +57,33 @@ def main(args):
 
     # Load SOMETHING
     logging.info("Loading SOMETHING ...")
-    SOMETHING = LOAD_FUNCTIONS(PATH_SOMETHING)
+    SOMETHING = LOAD_FUNCTIONS(INPUT_SOMETHING_PATH)
  
     ##################
     # Method
     ##################
 
     # Initialize the COMPONENT_NAME component
-    if METHOD_NAME == "METHOD_A":
+    if method_name == "METHOD_A":
         WORKER = COMPONENT_WORKER_A()
-    elif METHOD_NAME == "METHOD_B":
+    elif method_name == "METHOD_B":
         WORKER = COMPONENT_WORKER_B()
     else:
-        raise Exception(f"Invalid METHOD_NAME: {METHOD_NAME}")
+        raise Exception(f"Unknown method: {method_name}")
 
     ##################
     # COMPONENT_NAME
     ##################
 
-    logging.info(f"Applying the COMPONENT_NAME component to SOMETHING in {path_input_SOMETHING} ...")
+    logging.info(f"Applying the COMPONENT_NAME component to SOMETHING in {INPUT_SOMETHING_PATH} ...")
 
     # Apply the COMPONENT_NAME component to the SOMETHING
     RESULTS = WORKER.WORK_SOMETHING(SOMETHING)
 
-    # Save the COMPONENT_NAME results
-    path_output_RESULTS = os.path.join(base_output_path, "RESULTS")
-    SAVE_SOMETHING(path_output_RESULTS, RESULTS)
-    logging.info(f"Saved RESULTS to {path_output_RESULTS}")
+    # Save the results
+    OUTPUT_RESULTS_PATH = os.path.join(base_output_path, "RESULTS")
+    SAVE_SOMETHING(OUTPUT_RESULTS_PATH, RESULTS)
+    logging.info(f"Saved the results to {OUTPUT_RESULTS_PATH}")
 
     ##################
     # Closing
@@ -110,6 +92,19 @@ def main(args):
     logging.info("Done.")
     sw.stop("main")
     logging.info("Time: %f min." % sw.get_time("main", minute=True))
+
+
+def set_logger(filename: str, overwrite: bool = False):
+    if os.path.exists(filename) and not overwrite:
+        logging.info("%s already exists." % filename)
+        do_remove = input("Delete the existing log file? [y/n]: ")
+        if (not do_remove.lower().startswith("y")) and (not len(do_remove) == 0):
+            logging.info("Done.")
+            sys.exit(0)
+
+    root_logger = logging.getLogger()
+    handler = logging.FileHandler(filename, "w")
+    root_logger.addHandler(handler)
 
 
 if __name__ == "__main__":

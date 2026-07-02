@@ -5,8 +5,10 @@
 ######
 
 STORAGE_DATA=/home/nishida/projects/kapipe/experiments/ed_reranking/data
-# STORAGE_DATA=/home/nishida/projects/kapipe/experiments/datasets/ed
 STORAGE_RESULTS=/home/nishida/projects/kapipe/experiments/ed_reranking/results
+
+# STORAGE_DATA=/home/nishida/storage/projects/kapipe/experiments/datasets/ed
+# STORAGE_RESULTS=/home/nishida/storage/projects/kapipe/experiments/ed_reranking/results
 
 ######
 # Experiment configuration
