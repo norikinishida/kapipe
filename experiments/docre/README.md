@@ -58,11 +58,8 @@ To train or evaluate an DocRE component, run:
 bash ./run_docre_train_eval.sh
 ```
 
-By default, both scripts use the LLM-DocRE method (`method_name = llm_docre`).
+By default, the script uses LLM-based DocRE (`METHOD=llm_docre`).
+
+To use ATLOP (`METHOD=atlop`), change `METHOD` in the script to `atlop`.
+
 If you use the OpenAI API, set your API key in advance.
-
-```bash
-export OPENAI_API_KEY=<your-openai-api-key>
-```
-
-To use ATLOP or other methods (e.g., `method_name = atlop`), change `METHOD` in each script to the corresponding method names (e.g., `atlop`)`.

@@ -59,11 +59,8 @@ To train or evaluate an ED-Reranking component, run:
 bash ./run_ed_reranking_train_eval.sh
 ```
 
-By default, both scripts use the LLM-ed_reranking method (`method_name = llm_ed`).
+By default, the script uses the LLM-based ED-Reranking (`METHOD=llm_ed`).
+
+To use BLINK Cross-Encoder (`METHOD=blink_corss_encoder`), change `METHOD` in the script to `blink_cross_encoder`.
+
 If you use the OpenAI API, set your API key in advance.
-
-```bash
-export OPENAI_API_KEY=<your-openai-api-key>
-```
-
-To use BLINK-Cross-Encoder (`method_name = blink_cross_encoder`), change `METHOD` in each script to `blink_cross_encoder`.

@@ -21,6 +21,7 @@ class LLMBasedReportGenerator:
         self,
         model: HuggingFaceLLM | OpenAILLM,
         prompt_template_name_or_path: str | None = None,
+        relation_map: dict[str, str] | None = None,
     ):
         self.model = model
 
@@ -35,6 +36,10 @@ class LLMBasedReportGenerator:
             prompt_template_package_name="kapipe.report_generation.prompt_templates"
         )
 
+        if relation_map is None:
+            relation_map = {}
+        self.relation_map = relation_map
+
     def generate_community_reports(
         self,
         # Input
@@ -43,17 +48,13 @@ class LLMBasedReportGenerator:
         node_attr_keys: tuple[str, ...],
         edge_attr_keys: tuple[str, ...],
         # Misc.
-        relation_map: dict[str, str] | None = None,
-        parse_generated_text_fn = None
+        parse_generated_text_fn = None,
     ) -> list[Passage]:
         """Generate reports for each community."""
 
         assert len(node_attr_keys) > 0
         assert len(edge_attr_keys) > 0
-
-        if relation_map is None:
-            relation_map = {}
-    
+   
         if parse_generated_text_fn is None:
             parse_generated_text_fn = parse_generated_text
 
@@ -61,7 +62,6 @@ class LLMBasedReportGenerator:
         self.graph = graph
         self.node_attr_keys = node_attr_keys
         self.edge_attr_keys = edge_attr_keys
-        self.relation_map = relation_map
         self.parse_generated_text_fn = parse_generated_text_fn
         self.n_total = len(communities) - 1 # Exclude ROOT
         self.count = 0

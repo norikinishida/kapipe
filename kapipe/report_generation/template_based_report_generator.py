@@ -15,8 +15,13 @@ logger = logging.getLogger(__name__)
 
 class TemplateBasedReportGenerator:
     
-    def __init__(self):
-        pass
+    def __init__(
+        self,
+        relation_map: dict[str, str] | None = None,
+    ):
+        if relation_map is None:
+            relation_map = {}
+        self.relation_map = relation_map
 
     def generate_community_reports(
         self,
@@ -25,17 +30,12 @@ class TemplateBasedReportGenerator:
         communities: list[CommunityRecord],
         node_attr_keys: tuple[str, ...],
         edge_attr_keys: tuple[str, ...],
-        # Misc.
-        relation_map: dict[str, str] | None = None
     ) -> list[Passage]:
         """Generate reports using a deterministic template instead of LLM."""
 
         assert len(node_attr_keys) > 0
         assert len(edge_attr_keys) > 0
 
-        if relation_map is None:
-            relation_map = {}
-    
         n_total = len(communities) - 1 # Exclude ROOT
         count = 0
 
@@ -131,7 +131,7 @@ class TemplateBasedReportGenerator:
                     head_name = graph.nodes[head][node_attr_keys[0]].replace("|", " ").replace("\n", " ").strip()
                     tail_name = graph.nodes[tail][node_attr_keys[0]].replace("|", " ").replace("\n", " ").strip()
                     relation = props[edge_attr_keys[0]]
-                    relation = relation_map.get(relation, relation).replace("|", " ").replace("\n", " ").strip()
+                    relation = self.relation_map.get(relation, relation).replace("|", " ").replace("\n", " ").strip()
                     values = [head_name, relation, tail_name]
                     if len(edge_attr_keys) > 1:
                         for key in edge_attr_keys[1:]:

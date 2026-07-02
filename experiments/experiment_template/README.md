@@ -21,6 +21,9 @@ pyenv local <your-favorite-env-name>
 python -m pip install -U kapipe
 # or
 python -m pip install -e ../..
+
+# 4. Install dependencies specific to this directory
+python -m pip install -r requirements.txt
 ```
 
 ## Step 2. Dataset Preparation
@@ -47,6 +50,8 @@ Then run:
 bash ./run_experiment.sh
 ```
 
-By default, the script uses TBA.
+By default, the script uses METHOD_NAME_A (`METHOD=METHOD_NAME_A`).
 
-To use different methods, change `METHOD` in the script.
+To use METHOD_NAME_B (`METHOD=METHOD_NAME_B`), change `METHOD` in the script to `METHOD_NAME_B`.
+
+If you use the OpenAI API, set your API key in advance.

@@ -2,45 +2,19 @@ import argparse
 import json
 import logging
 import os
+import sys
 
 import networkx as nx
 import torch
 import transformers
 
-import sys
-sys.path.insert(0, "../..")
+from kapipe import utils
+from kapipe.llms import HuggingFaceLLM, OpenAILLM
 from kapipe.report_generation import (
     LLMBasedReportGenerator,
     TemplateBasedReportGenerator
 )
-from kapipe import utils
 from kapipe.utils import StopWatch
-
-
-RELATION_MAP = {
-    "CID": "Chemical-Induce-Disease"
-}
-
-
-
-def set_logger(filename, overwrite=False):
-    """
-    Parameters
-    ----------
-    filename: str
-    overwrite: bool, default False
-    """
-    if os.path.exists(filename) and not overwrite:
-        logging.info("%s already exists." % filename)
-        do_remove = input("Delete the existing log file? [y/n]: ")
-        if (not do_remove.lower().startswith("y")) and (not len(do_remove) == 0):
-            logging.info("Done.")
-            sys.exit(0)
-
-    root_logger = logging.getLogger()
-    handler = logging.FileHandler(filename, "w")
-    root_logger.addHandler(handler)
-
 
 
 def main(args):
@@ -55,16 +29,18 @@ def main(args):
     ##################
 
     # Method
-    reporting_method = args.method
+    method_name = args.method
+    config_path = args.config_path
+    config_name = args.config_name
 
     # Input Data
-    path_input_graph = args.input_graph
-    path_input_communities = args.input_communities
+    input_graph_path = args.input_graph
+    input_communities_path = args.input_communities
     node_attr_keys = args.node_attr_keys
     edge_attr_keys = args.edge_attr_keys
 
     # Output Path
-    path_results_dir = args.results_dir
+    results_dir = args.results_dir
     prefix = args.prefix
     if prefix is None or prefix == "None":
         prefix = utils.get_current_time()
@@ -76,8 +52,10 @@ def main(args):
 
     # Set base output path
     base_output_path = os.path.join(
-        path_results_dir,
+        results_dir,
         "report_generation",
+        method_name,
+        config_name,
         prefix
     )
     utils.mkdir(base_output_path)
@@ -97,44 +75,55 @@ def main(args):
 
     # Load the knowledge graph
     logging.info("Loading knowledge graph ...")
-    graph = nx.read_graphml(path_input_graph)
+    graph = nx.read_graphml(input_graph_path)
 
     # Load the community records
     logging.info("Loading community records ...")
-    communities = utils.read_json(path_input_communities)
+    communities = utils.read_json(input_communities_path)
 
     ##################
     # Method
     ##################
 
+    # Load the experiment configuration
+    config = utils.get_hocon_config(config_path=config_path, config_name=config_name)
+
+    # Save the experiment configuration to the output path
+    utils.write_json(os.path.join(base_output_path, "config.json"), config)
+ 
     # Initialize the Report Generation component
-    if reporting_method == "llm":
+    if method_name == "llm":
+        if config["llm_provider"] == "openai":
+            model = OpenAILLM(
+                model_name=config["llm_model_name"],
+                max_new_tokens=config["llm_max_new_tokens"],
+            )
+        elif config["llm_provider"] == "hf":
+            model = HuggingFaceLLM(
+                model_name=config["llm_model_name"],
+                max_new_tokens=config["llm_max_new_tokens"],
+                quantization_bits=config["llm_quantization_bits"],
+            )
+        else:
+            raise ValueError(f"Unknown LLM provider: {config['llm_provider']}")
+        logging.info("Initialized the LLM model: %s" % repr(model))
         generator = LLMBasedReportGenerator(
-            llm_backend="openai",
-            llm_kwargs={
-                "openai_model_name": "gpt-4o-mini",
-                "max_new_tokens": 2048
-            }
+            model=model,
+            prompt_template_name_or_path=config["prompt_template_name_or_path"],
+            relation_map=config["relation_map"],
         )
-        # OR
-        # generator = LLMBasedReportGenerator(
-        #     llm_backend="huggingface",
-        #     llm_kwargs={
-        #         "llm_name_or_path": "Qwen/Qwen2.5-7B-Instruct",
-        #         "max_new_tokens": 2048,
-        #         "quantization_bits": -1,
-        #     }
-        # )
-    elif reporting_method == "template":
-        generator = TemplateBasedReportGenerator()
+    elif method_name == "template":
+        generator = TemplateBasedReportGenerator(
+            relation_map=config["relation_map"],
+        )
     else:
-        raise Exception(f"Invalid reporting_method: {reporting_method}")
+        raise Exception(f"Invalid method: {method_name}")
 
     ##################
     # Report Generation
     ##################
 
-    logging.info(f"Applying the Report Generation component to {len(communities)} communities in {path_input_communities} ...")
+    logging.info(f"Applying the Report Generation component to {len(communities)} communities in {input_communities_path} ...")
 
     # Apply the report generator to the communities
     reports = generator.generate_community_reports(
@@ -143,8 +132,6 @@ def main(args):
         communities=communities,
         node_attr_keys=node_attr_keys,
         edge_attr_keys=edge_attr_keys,
-        # Misc.
-        relation_map=RELATION_MAP
     )
 
     # Save the Report Generation results
@@ -164,6 +151,19 @@ def main(args):
     logging.info("Time: %f min." % sw.get_time("main", minute=True))
 
 
+def set_logger(filename: str, overwrite: bool = False) -> None:
+    if os.path.exists(filename) and not overwrite:
+        logging.info("%s already exists." % filename)
+        do_remove = input("Delete the existing log file? [y/n]: ")
+        if (not do_remove.lower().startswith("y")) and (not len(do_remove) == 0):
+            logging.info("Done.")
+            sys.exit(0)
+
+    root_logger = logging.getLogger()
+    handler = logging.FileHandler(filename, "w")
+    root_logger.addHandler(handler)
+
+
 if __name__ == "__main__":
     logging.basicConfig(
         format="%(asctime)s - %(levelname)s - %(name)s - %(message)s",
@@ -174,6 +174,8 @@ if __name__ == "__main__":
 
     # Method
     parser.add_argument("--method", type=str, required=True)
+    parser.add_argument("--config_path", type=str, required=True)
+    parser.add_argument("--config_name", type=str, required=True)
 
     # Input Data
     parser.add_argument("--input_graph", type=str, required=True)

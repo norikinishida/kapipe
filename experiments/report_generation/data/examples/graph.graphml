@@ -1,0 +1,258 @@
+<?xml version='1.0' encoding='utf-8'?>
+<graphml xmlns="http://graphml.graphdrawing.org/xmlns" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://graphml.graphdrawing.org/xmlns http://graphml.graphdrawing.org/xmlns/1.0/graphml.xsd">
+  <key id="d6" for="edge" attr.name="doc_key_list" attr.type="string" />
+  <key id="d5" for="edge" attr.name="relation" attr.type="string" />
+  <key id="d4" for="node" attr.name="doc_key_list" attr.type="string" />
+  <key id="d3" for="node" attr.name="description" attr.type="string" />
+  <key id="d2" for="node" attr.name="name" attr.type="string" />
+  <key id="d1" for="node" attr.name="entity_type" attr.type="string" />
+  <key id="d0" for="node" attr.name="entity_id" attr.type="string" />
+  <graph edgedefault="directed">
+    <node id="D016651">
+      <data key="d0">D016651</data>
+      <data key="d1">Chemical</data>
+      <data key="d2">Lithium Carbonate</data>
+      <data key="d3">A lithium salt, classified as a mood-stabilizing agent. Lithium ion alters the metabolism of BIOGENIC MONOAMINES in the CENTRAL NERVOUS SYSTEM, and affects multiple neurotransmission systems.</data>
+      <data key="d4">6794356|ExistingKG</data>
+    </node>
+    <node id="D014262">
+      <data key="d0">D014262</data>
+      <data key="d1">Disease</data>
+      <data key="d2">Tricuspid Valve Insufficiency</data>
+      <data key="d3">Backflow of blood from the RIGHT VENTRICLE into the RIGHT ATRIUM due to imperfect closure of the TRICUSPID VALVE.</data>
+      <data key="d4">ExistingKG</data>
+    </node>
+    <node id="D003866">
+      <data key="d0">D003866</data>
+      <data key="d1">Disease</data>
+      <data key="d2">Depressive Disorder</data>
+      <data key="d3">do not confuse with DEPRESSION: see note there; depression lasting over 2 years = DYSTHYMIC DISORDER An affective disorder manifested by either a dysphoric mood or loss of interest or pleasure in usual activities. The mood disturbance is prominent and relatively persistent.</data>
+      <data key="d4">6794356</data>
+    </node>
+    <node id="D003490">
+      <data key="d0">D003490</data>
+      <data key="d1">Disease</data>
+      <data key="d2">Cyanosis</data>
+      <data key="d3">do not use for cyanotic heart disease unless particularly discussed (=probably HEART DEFECTS, CONGENITAL) A bluish or purplish discoloration of the skin and mucous membranes due to an increase in the amount of deoxygenated hemoglobin in the blood or a structural defect in the hemoglobin molecule.</data>
+      <data key="d4">6794356</data>
+    </node>
+    <node id="D001145">
+      <data key="d0">D001145</data>
+      <data key="d1">Disease</data>
+      <data key="d2">Arrhythmias, Cardiac</data>
+      <data key="d3">general: prefer specifics Any disturbances of the normal rhythmic beating of the heart or MYOCARDIAL CONTRACTION. Cardiac arrhythmias can be classified by the abnormalities in HEART RATE, disorders of electrical impulse generation, or impulse conduction.</data>
+      <data key="d4">6794356</data>
+    </node>
+    <node id="D010634">
+      <data key="d0">D010634</data>
+      <data key="d1">Chemical</data>
+      <data key="d2">Phenobarbital</data>
+      <data key="d3">A barbituric acid derivative that acts as a nonselective central nervous system depressant. It potentiates GAMMA-AMINOBUTYRIC ACID action on GABA-A RECEPTORS, and modulates chloride currents through receptor channels. It also inhibits glutamate induced depolarizations.</data>
+      <data key="d4">6504332</data>
+    </node>
+    <node id="D004409">
+      <data key="d0">D004409</data>
+      <data key="d1">Disease</data>
+      <data key="d2">Dyskinesia, Drug-Induced</data>
+      <data key="d3">do not confuse with AKATHISIA, DRUG-INDUCED Abnormal movements, including HYPERKINESIS; HYPOKINESIA; TREMOR; and DYSTONIA, associated with the use of certain medications or drugs. Muscles of the face, trunk, neck, and extremities are most commonly affected. Tardive dyskinesia refers to abnormal hyperkinetic movements of the muscles of the face, tongue, and neck associated with the use of neuroleptic agents (see ANTIPSYCHOTIC AGENTS). (Adams et al., Principles of Neurology, 6th ed, p1199)</data>
+      <data key="d4">6504332</data>
+    </node>
+    <node id="D000641">
+      <data key="d0">D000641</data>
+      <data key="d1">Chemical</data>
+      <data key="d2">Ammonia</data>
+      <data key="d3">A colorless alkaline gas. It is formed in the body during decomposition of organic materials during a large number of metabolically important reactions. Note that the aqueous form of ammonia is referred to as AMMONIUM HYDROXIDE.</data>
+      <data key="d4">6436733</data>
+    </node>
+    <node id="D006970">
+      <data key="d0">D006970</data>
+      <data key="d1">Disease</data>
+      <data key="d2">Disorders of Excessive Somnolence</data>
+      <data key="d3">Disorders characterized by hypersomnolence during normal waking hours that may impair cognitive functioning. Subtypes include primary hypersomnia disorders (e.g., IDIOPATHIC HYPERSOMNOLENCE; NARCOLEPSY; and KLEINE-LEVIN SYNDROME) and secondary hypersomnia disorders where excessive somnolence can be attributed to a known cause (e.g., drug affect, MENTAL DISORDERS, and SLEEP APNEA SYNDROME). (From J Neurol Sci 1998 Jan 8;153(2):192-202; Thorpy, Principles and Practice of Sleep Medicine, 2nd ed, p320)</data>
+      <data key="d4">6436733</data>
+    </node>
+    <node id="D014635">
+      <data key="d0">D014635</data>
+      <data key="d1">Chemical</data>
+      <data key="d2">Valproic Acid</data>
+      <data key="d3">A fatty acid with anticonvulsant properties used in the treatment of epilepsy. The mechanisms of its therapeutic actions are not well understood. It may act by increasing GAMMA-AMINOBUTYRIC ACID levels in the brain or by altering the properties of voltage dependent sodium channels.</data>
+      <data key="d4">6436733</data>
+    </node>
+    <node id="D006220">
+      <data key="d0">D006220</data>
+      <data key="d1">Chemical</data>
+      <data key="d2">Haloperidol</data>
+      <data key="d3">A phenyl-piperidinyl-butyrophenone that is used primarily to treat SCHIZOPHRENIA and other PSYCHOSES. It is also used in schizoaffective disorder, DELUSIONAL DISORDERS, ballism, and TOURETTE SYNDROME (a drug of choice) and occasionally as adjunctive therapy in INTELLECTUAL DISABILITY and the chorea of HUNTINGTON DISEASE. It is a potent antiemetic and is used in the treatment of intractable HICCUPS. (From AMA Drug Evaluations Annual, 1994, p279)</data>
+      <data key="d4">6293644</data>
+    </node>
+    <node id="D002375">
+      <data key="d0">D002375</data>
+      <data key="d1">Disease</data>
+      <data key="d2">Catalepsy</data>
+      <data key="d3">do not confuse with CATAPLEXY A condition characterized by inactivity, decreased responsiveness to stimuli, and a tendency to maintain an immobile posture. The limbs tend to remain in whatever position they are placed (waxy flexibility). Catalepsy may be associated with PSYCHOTIC DISORDERS (e.g., SCHIZOPHRENIA, CATATONIC), nervous system drug toxicity, and other conditions.</data>
+      <data key="d4">6293644</data>
+    </node>
+    <node id="D001058">
+      <data key="d0">D001058</data>
+      <data key="d1">Chemical</data>
+      <data key="d2">Apomorphine</data>
+      <data key="d3">apomorphine derivatives = APOMORPHINE/analogs A derivative of morphine that is a dopamine D2 agonist. It is a powerful emetic and has been used for that effect in acute poisoning. It has also been used in the diagnosis and treatment of parkinsonism, but its adverse effects limit its use.</data>
+      <data key="d4">6293644</data>
+    </node>
+    <node id="D006948">
+      <data key="d0">D006948</data>
+      <data key="d1">Disease</data>
+      <data key="d2">Hyperkinesis</data>
+      <data key="d3">human &amp; animal; MOTOR ACTIVITY is also available: see note there; do not confuse with MYOKYMIA or ISAACS SYNDROME Excessive movement of muscles of the body as a whole, which may be associated with organic or psychological disorders.</data>
+      <data key="d4">6293644</data>
+    </node>
+    <node id="D007545">
+      <data key="d0">D007545</data>
+      <data key="d1">Chemical</data>
+      <data key="d2">Isoproterenol</data>
+      <data key="d3">Isopropyl analog of EPINEPHRINE; beta-sympathomimetic that acts on the heart, bronchi, skeletal muscle, alimentary tract, etc. It is used mainly as bronchodilator and heart stimulant.</data>
+      <data key="d4">6203632</data>
+    </node>
+    <node id="D006332">
+      <data key="d0">D006332</data>
+      <data key="d1">Disease</data>
+      <data key="d2">Cardiomegaly</data>
+      <data key="d3">general or unspecified; prefer HYPERTROPHY, LEFT VENTRICULAR or HYPERTROPHY, RIGHT VENTRICULAR; note entry term CARDIAC HYPERTROPHY: do not confuse with CARDIOMYOPATHY, HYPERTROPHIC; CARDIOMEGALY, EXERCISE-INDUCED is also available Enlargement of the HEART, usually indicated by a cardiothoracic ratio above 0.50. Heart enlargement may involve the right, the left, or both HEART VENTRICLES or HEART ATRIA. Cardiomegaly is a nonspecific symptom seen in patients with chronic systolic heart failure (HEART FAILURE) or several forms of CARDIOMYOPATHIES.</data>
+      <data key="d4">6203632</data>
+    </node>
+    <node id="D006965">
+      <data key="d0">D006965</data>
+      <data key="d1">Disease</data>
+      <data key="d2">Hyperplasia</data>
+      <data key="d3">general or unspecified; coordinate NIM with organ /pathol (IM); many specific precoordinated hyperplasia terms are available; congen adrenal hyperplasia = ADRENAL HYPERPLASIA, CONGENITAL but non-congenital adrenal hyperplasia = ADRENAL GLANDS /pathol (IM) + HYPERPLASIA (NIM) An increase in the number of cells in a tissue or organ without tumor formation. It differs from HYPERTROPHY, which is an increase in bulk without an increase in the number of cells.</data>
+      <data key="d4">6203632</data>
+    </node>
+    <node id="D002083">
+      <data key="d0">D002083</data>
+      <data key="d1">Chemical</data>
+      <data key="d2">Butylated Hydroxyanisole</data>
+      <data key="d3">D25-26 qualif; DF: BHA Mixture of 2- and 3-tert-butyl-4-methoxyphenols that is used as an antioxidant in foods, cosmetics, and pharmaceuticals.</data>
+      <data key="d4">3131282</data>
+    </node>
+    <node id="D013274">
+      <data key="d0">D013274</data>
+      <data key="d1">Disease</data>
+      <data key="d2">Stomach Neoplasms</data>
+      <data key="d3">coord IM with histol type of neopl (IM); neopl of ruminant stomach or its parts: coord STOMACH, RUMINANT or indention (IM) with STOMACH NEOPLASMS /vet (IM) + histol type of neopl /vet (IM) Tumors or cancer of the STOMACH.</data>
+      <data key="d4">3131282</data>
+    </node>
+    <node id="D015760">
+      <data key="d0">D015760</data>
+      <data key="d1">Chemical</data>
+      <data key="d2">Alfentanil</data>
+      <data key="d3">A short-acting opioid anesthetic and analgesic derivative of FENTANYL. It produces an early peak analgesic effect and fast recovery of consciousness. Alfentanil is effective as an anesthetic during surgery, for supplementation of analgesia during surgical procedures, and as an analgesic for critically ill patients.</data>
+      <data key="d4">3115150</data>
+    </node>
+    <node id="D009127">
+      <data key="d0">D009127</data>
+      <data key="d1">Disease</data>
+      <data key="d2">Muscle Rigidity</data>
+      <data key="d3">Continuous involuntary sustained muscle contraction which is often a manifestation of BASAL GANGLIA DISEASES. When an affected muscle is passively stretched, the degree of resistance remains constant regardless of the rate at which the muscle is stretched. This feature helps to distinguish rigidity from MUSCLE SPASTICITY. (From Adams et al., Principles of Neurology, 6th ed, p73)</data>
+      <data key="d4">2564649|3115150</data>
+    </node>
+    <node id="D004491">
+      <data key="d0">D004491</data>
+      <data key="d1">Chemical</data>
+      <data key="d2">Edrophonium</data>
+      <data key="d3">A rapid-onset, short-acting cholinesterase inhibitor used in cardiac arrhythmias and in the diagnosis of myasthenia gravis. It has also been used as an antidote to curare principles.</data>
+      <data key="d4">2917114</data>
+    </node>
+    <node id="D001919">
+      <data key="d0">D001919</data>
+      <data key="d1">Disease</data>
+      <data key="d2">Bradycardia</data>
+      <data key="d3">Cardiac arrhythmias that are characterized by excessively slow HEART RATE, usually below 50 beats per minute in human adults. They can be classified broadly into SINOATRIAL NODE dysfunction and ATRIOVENTRICULAR BLOCK.</data>
+      <data key="d4">2917114</data>
+    </node>
+    <node id="D005283">
+      <data key="d0">D005283</data>
+      <data key="d1">Chemical</data>
+      <data key="d2">Fentanyl</data>
+      <data key="d3">A potent narcotic analgesic, abuse of which leads to habituation or addiction. It is primarily a mu-opioid agonist. Fentanyl is also used as an adjunct to general anesthetics, and as an anesthetic for induction and maintenance. (From Martindale, The Extra Pharmacopoeia, 30th ed, p1078)</data>
+      <data key="d4">2564649</data>
+    </node>
+    <node id="D015119">
+      <data key="d0">D015119</data>
+      <data key="d1">Chemical</data>
+      <data key="d2">Aminocaproic Acid</data>
+      <data key="d3">An antifibrinolytic agent that acts by inhibiting plasminogen activators which have fibrinolytic properties.</data>
+      <data key="d4">2339463</data>
+    </node>
+    <node id="D020225">
+      <data key="d0">D020225</data>
+      <data key="d1">Disease</data>
+      <data key="d2">Sagittal Sinus Thrombosis</data>
+      <data key="d3">Formation or presence of a blood clot (THROMBUS) in the SUPERIOR SAGITTAL SINUS or the inferior sagittal sinus. Sagittal sinus thrombosis can result from infections, hematological disorders, CRANIOCEREBRAL TRAUMA; and NEUROSURGICAL PROCEDURES. Clinical features are primarily related to the increased intracranial pressure causing HEADACHE; NAUSEA; and VOMITING. Severe cases can evolve to SEIZURES or COMA.</data>
+      <data key="d4">2339463</data>
+    </node>
+    <edge source="D016651" target="D014262" id="DummyRelation">
+      <data key="d5">DummyRelation</data>
+      <data key="d6">ExistingKG</data>
+    </edge>
+    <edge source="D016651" target="D003866" id="CID">
+      <data key="d5">CID</data>
+      <data key="d6">6794356</data>
+    </edge>
+    <edge source="D016651" target="D003490" id="CID">
+      <data key="d5">CID</data>
+      <data key="d6">6794356</data>
+    </edge>
+    <edge source="D016651" target="D001145" id="CID">
+      <data key="d5">CID</data>
+      <data key="d6">6794356</data>
+    </edge>
+    <edge source="D010634" target="D004409" id="CID">
+      <data key="d5">CID</data>
+      <data key="d6">6504332</data>
+    </edge>
+    <edge source="D000641" target="D006970" id="CID">
+      <data key="d5">CID</data>
+      <data key="d6">6436733</data>
+    </edge>
+    <edge source="D014635" target="D006970" id="CID">
+      <data key="d5">CID</data>
+      <data key="d6">6436733</data>
+    </edge>
+    <edge source="D006220" target="D002375" id="CID">
+      <data key="d5">CID</data>
+      <data key="d6">6293644</data>
+    </edge>
+    <edge source="D001058" target="D006948" id="CID">
+      <data key="d5">CID</data>
+      <data key="d6">6293644</data>
+    </edge>
+    <edge source="D007545" target="D006332" id="CID">
+      <data key="d5">CID</data>
+      <data key="d6">6203632</data>
+    </edge>
+    <edge source="D007545" target="D006965" id="CID">
+      <data key="d5">CID</data>
+      <data key="d6">6203632</data>
+    </edge>
+    <edge source="D002083" target="D013274" id="CID">
+      <data key="d5">CID</data>
+      <data key="d6">3131282</data>
+    </edge>
+    <edge source="D015760" target="D009127" id="CID">
+      <data key="d5">CID</data>
+      <data key="d6">3115150</data>
+    </edge>
+    <edge source="D004491" target="D001919" id="CID">
+      <data key="d5">CID</data>
+      <data key="d6">2917114</data>
+    </edge>
+    <edge source="D005283" target="D009127" id="CID">
+      <data key="d5">CID</data>
+      <data key="d6">2564649</data>
+    </edge>
+    <edge source="D015119" target="D020225" id="CID">
+      <data key="d5">CID</data>
+      <data key="d6">2339463</data>
+    </edge>
+  </graph>
+</graphml>

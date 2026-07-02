@@ -1,6 +1,6 @@
-# entity-graph-construction
+# report_generation
 
-This directory contains example experiments for Entity Garph Construction.
+This directory contains example experiments for Report Generation.
 
 ## Step 1. Installation
 
@@ -14,7 +14,7 @@ pyenv install 3.11.14
 pyenv virtualenv 3.11.14 <your-favorite-env-name>
 
 # 2. Activate the Python environment in this directory
-cd experiments/entity-graph-construction
+cd experiments/report_generation
 pyenv local <your-favorite-env-name>
 
 # 3. Install the KAPipe library
@@ -33,19 +33,22 @@ python -m pip install -r requirements.txt
 This directory already includes example data.
 
 ```bash
-TBA.
+experiments/report_generation/data/examples/graph.graphml
+experiments/report_generation/data/examples/communities.json
 ```
-
-### Benchmark datasets
-
-You can also prepare benchmark datasets with the scripts in `TBA`. 
 
 ## Step 3. Running the experiments
 
 First, check `STORAGE_DATA` and `STORAGE_RESULTS` in the execution script and adjust them to your environment.
 
-To TBA, run:
+Then run:
 
 ```bash
-bash ./run_entity_graph_construction.sh
+bash ./run_report_generation.sh
 ```
+
+By default, the script uses Template-based Report Generation (`METHOD=template`).
+
+To use LLM-based Report Generation (`METHOD=llm`), change `METHOD` in the script to `llm`.
+
+If you use the OpenAI API, set your API key in advance.

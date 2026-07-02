@@ -21,6 +21,9 @@ pyenv local <your-favorite-env-name>
 python -m pip install -U kapipe
 # or
 python -m pip install -e ../..
+
+# 4. Install dependencies specific to this directory
+python -m pip install -r requirements.txt
 ```
 
 If you use a spaCy model, install it in the same environment.
@@ -53,14 +56,8 @@ The `title` field is optional.
 
 First, check `STORAGE_DATA` and `STORAGE_RESULTS` in the execution script and adjust them to your environment.
 
-To split passages into chunks, run:
+Then run:
 
 ```bash
 bash ./run_chunking.sh
-```
-
-By default, the script uses:
-
-```bash
-CONFIG_NAME=en_core_sci_md_w100
 ```

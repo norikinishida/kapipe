@@ -21,6 +21,9 @@ pyenv local <your-favorite-env-name>
 python -m pip install -U kapipe
 # or
 python -m pip install -e ../..
+
+# 4. Install dependencies specific to this directory
+python -m pip install -r requirements.txt
 ```
 
 ## Step 2. Dataset Preparation
@@ -45,6 +48,8 @@ Then run:
 bash ./run_community_clustering.sh
 ```
 
-By default, the script uses Neighborhood Aggregation method (with hop-size=1).
+By default, the script uses Neighborhood Aggregation (`METHOD=neighborhood_aggregation`).
 
-To use different methods (e.g., Hierarchical Leiden, Triple-Level Factorization), change `METHOD` in the script.
+To use Hierarchical Leiden or Triple-level Factorization, change `METHOD` in the script to `hierarchical_leiden` or `triple_level_factorization`, respectively.
+
+If you use the OpenAI API, set your API key in advance.

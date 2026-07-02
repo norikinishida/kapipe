@@ -24,7 +24,7 @@ elif [ "${METHOD}" = "neighborhood_aggregation" ]; then
     CONFIG_NAME=hop1
 elif [ "${METHOD}" = "triple_level_factorization" ]; then
     CONFIG_PATH=./config/triple_level_factorization.conf
-    CONFIG_NAME=none
+    CONFIG_NAME=default
 else
     echo "Unknown method: ${METHOD}"
     exit 1

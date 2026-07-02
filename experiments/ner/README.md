@@ -58,10 +58,12 @@ bash ./run_ner_train_eval.sh
 ```
 
 By default, both scripts use the LLM-NER method (`method_name = llm_ner`).
+
+To use Biaffine-NER (`method_name = biaffine_ner`), change `METHOD` in each script to `biaffine_ner`.
+
 If you use the OpenAI API, set your API key in advance.
 
 ```bash
 export OPENAI_API_KEY=<your-openai-api-key>
 ```
 
-To use Biaffine-NER (`method_name = biaffine_ner`), change `METHOD` in each script to `biaffine_ner`.

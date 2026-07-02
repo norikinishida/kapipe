@@ -58,4 +58,4 @@ To train or evaluate an ED-Retrieval component, run:
 bash ./run_ed_retrieval_train_eval.sh
 ```
 
-By default, both scripts use the BLINK Bi-Encoder method (`method_name = blink_bi_encoder`).
+By default, the script uses BLINK Bi-Encoder (`METHOD=blink_bi_encoder`).
