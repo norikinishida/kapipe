@@ -1,4 +1,4 @@
-# NER
+# ner
 
 This directory contains example experiments for Named Entity Recognition (NER).
 
@@ -41,7 +41,7 @@ experiments/ner/data/examples/documents_with_supervision.json
 
 You can also prepare benchmark datasets (e.g., CDR, Linked-DocRED) with the scripts in `experiments/datasets/ner`.
 
-## Step 3. Running the NER Component
+## Step 3. Running the NER component
 
 First, check `STORAGE_DATA` and `STORAGE_RESULTS` in each execution script and adjust them to your environment.
 

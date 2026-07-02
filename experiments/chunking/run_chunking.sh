@@ -12,8 +12,8 @@ STORAGE_RESULTS=/home/nishida/projects/kapipe/experiments/chunking/results
 ######
 
 # Method
-METHOD=chunker
-CONFIG_PATH=config/chunker.conf
+METHOD=default
+CONFIG_PATH=config/default.conf
 CONFIG_NAME=en_core_sci_md_w100
 
 # Input Data

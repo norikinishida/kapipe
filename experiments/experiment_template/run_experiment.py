@@ -65,9 +65,11 @@ def main(args):
     # Method
     ##################
 
+    # Load the experiment configuration
+    config = utils.get_hocon_config(config_path=config_path, config_name=config_name)
+
     # Initialize the COMPONENT_NAME component
-    if method_name == "METHOD_A":
-        config = utils.get_hocon_config(config_path=config_path, config_name=config_name)
+    if method_name == "METHOD_NAME_A":
         WORKER = COMPONENT_WORKER_A(hoge=config["hoge"])
     else:
         raise Exception(f"Unknown method: {method_name}")
@@ -95,7 +97,7 @@ def main(args):
     logging.info("Time: %f min." % sw.get_time("main", minute=True))
 
 
-def set_logger(filename: str, overwrite: bool = False):
+def set_logger(filename: str, overwrite: bool = False) -> None:
     if os.path.exists(filename) and not overwrite:
         logging.info("%s already exists." % filename)
         do_remove = input("Delete the existing log file? [y/n]: ")

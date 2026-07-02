@@ -1,0 +1,2151 @@
+[
+    {
+        "doc_key": "6794356",
+        "sentences": [
+            "Tricuspid valve regurgitation and lithium carbonate toxicity in a newborn infant .",
+            "A newborn with massive tricuspid regurgitation , atrial flutter , congestive heart failure , and a high serum lithium level is described .",
+            "This is the first patient to initially manifest tricuspid regurgitation and atrial flutter , and the 11th described patient with cardiac disease among infants exposed to lithium compounds in the first trimester of pregnancy .",
+            "Sixty - three percent of these infants had tricuspid valve involvement .",
+            "Lithium carbonate may be a factor in the increasing incidence of congenital heart disease when taken during early pregnancy .",
+            "It also causes neurologic depression , cyanosis , and cardiac arrhythmia when consumed prior to delivery ."
+        ],
+        "mentions": [
+            {
+                "span": [
+                    0,
+                    2
+                ],
+                "name": "Tricuspid valve regurgitation",
+                "entity_type": "Disease",
+                "entity_id": "D014262"
+            },
+            {
+                "span": [
+                    4,
+                    5
+                ],
+                "name": "lithium carbonate",
+                "entity_type": "Chemical",
+                "entity_id": "D016651"
+            },
+            {
+                "span": [
+                    6,
+                    6
+                ],
+                "name": "toxicity",
+                "entity_type": "Disease",
+                "entity_id": "D064420"
+            },
+            {
+                "span": [
+                    16,
+                    17
+                ],
+                "name": "tricuspid regurgitation",
+                "entity_type": "Disease",
+                "entity_id": "D014262"
+            },
+            {
+                "span": [
+                    19,
+                    20
+                ],
+                "name": "atrial flutter",
+                "entity_type": "Disease",
+                "entity_id": "D001282"
+            },
+            {
+                "span": [
+                    22,
+                    24
+                ],
+                "name": "congestive heart failure",
+                "entity_type": "Disease",
+                "entity_id": "D006333"
+            },
+            {
+                "span": [
+                    30,
+                    30
+                ],
+                "name": "lithium",
+                "entity_type": "Chemical",
+                "entity_id": "D008094"
+            },
+            {
+                "span": [
+                    43,
+                    44
+                ],
+                "name": "tricuspid regurgitation",
+                "entity_type": "Disease",
+                "entity_id": "D014262"
+            },
+            {
+                "span": [
+                    46,
+                    47
+                ],
+                "name": "atrial flutter",
+                "entity_type": "Disease",
+                "entity_id": "D001282"
+            },
+            {
+                "span": [
+                    55,
+                    56
+                ],
+                "name": "cardiac disease",
+                "entity_type": "Disease",
+                "entity_id": "D006331"
+            },
+            {
+                "span": [
+                    61,
+                    61
+                ],
+                "name": "lithium",
+                "entity_type": "Chemical",
+                "entity_id": "D008094"
+            },
+            {
+                "span": [
+                    82,
+                    83
+                ],
+                "name": "Lithium carbonate",
+                "entity_type": "Chemical",
+                "entity_id": "D016651"
+            },
+            {
+                "span": [
+                    93,
+                    95
+                ],
+                "name": "congenital heart disease",
+                "entity_type": "Disease",
+                "entity_id": "D006331"
+            },
+            {
+                "span": [
+                    105,
+                    106
+                ],
+                "name": "neurologic depression",
+                "entity_type": "Disease",
+                "entity_id": "D003866"
+            },
+            {
+                "span": [
+                    108,
+                    108
+                ],
+                "name": "cyanosis",
+                "entity_type": "Disease",
+                "entity_id": "D003490"
+            },
+            {
+                "span": [
+                    111,
+                    112
+                ],
+                "name": "cardiac arrhythmia",
+                "entity_type": "Disease",
+                "entity_id": "D001145"
+            }
+        ],
+        "entities": [
+            {
+                "mention_indices": [
+                    0,
+                    3,
+                    7
+                ],
+                "entity_type": "Disease",
+                "entity_id": "D014262"
+            },
+            {
+                "mention_indices": [
+                    1,
+                    11
+                ],
+                "entity_type": "Chemical",
+                "entity_id": "D016651"
+            },
+            {
+                "mention_indices": [
+                    2
+                ],
+                "entity_type": "Disease",
+                "entity_id": "D064420"
+            },
+            {
+                "mention_indices": [
+                    4,
+                    8
+                ],
+                "entity_type": "Disease",
+                "entity_id": "D001282"
+            },
+            {
+                "mention_indices": [
+                    5
+                ],
+                "entity_type": "Disease",
+                "entity_id": "D006333"
+            },
+            {
+                "mention_indices": [
+                    6,
+                    10
+                ],
+                "entity_type": "Chemical",
+                "entity_id": "D008094"
+            },
+            {
+                "mention_indices": [
+                    9,
+                    12
+                ],
+                "entity_type": "Disease",
+                "entity_id": "D006331"
+            },
+            {
+                "mention_indices": [
+                    13
+                ],
+                "entity_type": "Disease",
+                "entity_id": "D003866"
+            },
+            {
+                "mention_indices": [
+                    14
+                ],
+                "entity_type": "Disease",
+                "entity_id": "D003490"
+            },
+            {
+                "mention_indices": [
+                    15
+                ],
+                "entity_type": "Disease",
+                "entity_id": "D001145"
+            }
+        ],
+        "relations": [
+            {
+                "arg1": 1,
+                "relation": "CID",
+                "arg2": 7
+            },
+            {
+                "arg1": 1,
+                "relation": "CID",
+                "arg2": 8
+            },
+            {
+                "arg1": 1,
+                "relation": "CID",
+                "arg2": 9
+            }
+        ],
+        "not_include_pairs": [
+            {
+                "arg1": 1,
+                "arg2": 6
+            }
+        ]
+    },
+    {
+        "doc_key": "6504332",
+        "sentences": [
+            "Phenobarbital - induced dyskinesia in a neurologically - impaired child .",
+            "A 2 - year - old child with known neurologic impairment developed a dyskinesia soon after starting phenobarbital therapy for seizures .",
+            "Known causes of movement disorders were eliminated after evaluation .",
+            "On repeat challenge with phenobarbital , the dyskinesia recurred .",
+            "Phenobarbital should be added to the list of anticonvulsant drugs that can cause movement disorders ."
+        ],
+        "mentions": [
+            {
+                "span": [
+                    0,
+                    0
+                ],
+                "name": "Phenobarbital",
+                "entity_type": "Chemical",
+                "entity_id": "D010634"
+            },
+            {
+                "span": [
+                    3,
+                    3
+                ],
+                "name": "dyskinesia",
+                "entity_type": "Disease",
+                "entity_id": "D004409"
+            },
+            {
+                "span": [
+                    6,
+                    8
+                ],
+                "name": "neurologically - impaired",
+                "entity_type": "Disease",
+                "entity_id": "D009422"
+            },
+            {
+                "span": [
+                    20,
+                    21
+                ],
+                "name": "neurologic impairment",
+                "entity_type": "Disease",
+                "entity_id": "D009422"
+            },
+            {
+                "span": [
+                    24,
+                    24
+                ],
+                "name": "dyskinesia",
+                "entity_type": "Disease",
+                "entity_id": "D004409"
+            },
+            {
+                "span": [
+                    28,
+                    28
+                ],
+                "name": "phenobarbital",
+                "entity_type": "Chemical",
+                "entity_id": "D010634"
+            },
+            {
+                "span": [
+                    31,
+                    31
+                ],
+                "name": "seizures",
+                "entity_type": "Disease",
+                "entity_id": "D012640"
+            },
+            {
+                "span": [
+                    36,
+                    37
+                ],
+                "name": "movement disorders",
+                "entity_type": "Disease",
+                "entity_id": "D009069"
+            },
+            {
+                "span": [
+                    47,
+                    47
+                ],
+                "name": "phenobarbital",
+                "entity_type": "Chemical",
+                "entity_id": "D010634"
+            },
+            {
+                "span": [
+                    50,
+                    50
+                ],
+                "name": "dyskinesia",
+                "entity_type": "Disease",
+                "entity_id": "D004409"
+            },
+            {
+                "span": [
+                    53,
+                    53
+                ],
+                "name": "Phenobarbital",
+                "entity_type": "Chemical",
+                "entity_id": "D010634"
+            },
+            {
+                "span": [
+                    66,
+                    67
+                ],
+                "name": "movement disorders",
+                "entity_type": "Disease",
+                "entity_id": "D009069"
+            }
+        ],
+        "entities": [
+            {
+                "mention_indices": [
+                    0,
+                    5,
+                    8,
+                    10
+                ],
+                "entity_type": "Chemical",
+                "entity_id": "D010634"
+            },
+            {
+                "mention_indices": [
+                    1,
+                    4,
+                    9
+                ],
+                "entity_type": "Disease",
+                "entity_id": "D004409"
+            },
+            {
+                "mention_indices": [
+                    2,
+                    3
+                ],
+                "entity_type": "Disease",
+                "entity_id": "D009422"
+            },
+            {
+                "mention_indices": [
+                    6
+                ],
+                "entity_type": "Disease",
+                "entity_id": "D012640"
+            },
+            {
+                "mention_indices": [
+                    7,
+                    11
+                ],
+                "entity_type": "Disease",
+                "entity_id": "D009069"
+            }
+        ],
+        "relations": [
+            {
+                "arg1": 0,
+                "relation": "CID",
+                "arg2": 1
+            }
+        ],
+        "not_include_pairs": [
+            {
+                "arg1": 0,
+                "arg2": 2
+            },
+            {
+                "arg1": 0,
+                "arg2": 4
+            }
+        ]
+    },
+    {
+        "doc_key": "6436733",
+        "sentences": [
+            "Acute changes of blood ammonia may predict short - term adverse effects of valproic acid .",
+            "Valproic acid ( VPA ) was given to 24 epileptic patients who were already being treated with other antiepileptic drugs .",
+            "A standardized loading dose of VPA was administered , and venous blood was sampled at 0 , 1 , 2 , 3 , and 4 hours .",
+            "Ammonia ( NH3 ) was higher in patients who , during continuous therapy , complained of drowsiness ( 7 patients ) than in those who were symptom - free ( 17 patients ) , although VPA plasma levels were similar in both groups .",
+            "By measuring VPA - induced changes of blood NH3 content , it may be possible to identify patients at higher risk of obtundation when VPA is given chronically ."
+        ],
+        "mentions": [
+            {
+                "span": [
+                    4,
+                    4
+                ],
+                "name": "ammonia",
+                "entity_type": "Chemical",
+                "entity_id": "D000641"
+            },
+            {
+                "span": [
+                    13,
+                    14
+                ],
+                "name": "valproic acid",
+                "entity_type": "Chemical",
+                "entity_id": "D014635"
+            },
+            {
+                "span": [
+                    16,
+                    17
+                ],
+                "name": "Valproic acid",
+                "entity_type": "Chemical",
+                "entity_id": "D014635"
+            },
+            {
+                "span": [
+                    19,
+                    19
+                ],
+                "name": "VPA",
+                "entity_type": "Chemical",
+                "entity_id": "D014635"
+            },
+            {
+                "span": [
+                    25,
+                    25
+                ],
+                "name": "epileptic",
+                "entity_type": "Disease",
+                "entity_id": "D004827"
+            },
+            {
+                "span": [
+                    42,
+                    42
+                ],
+                "name": "VPA",
+                "entity_type": "Chemical",
+                "entity_id": "D014635"
+            },
+            {
+                "span": [
+                    64,
+                    64
+                ],
+                "name": "Ammonia",
+                "entity_type": "Chemical",
+                "entity_id": "D000641"
+            },
+            {
+                "span": [
+                    66,
+                    66
+                ],
+                "name": "NH3",
+                "entity_type": "Chemical",
+                "entity_id": "D000641"
+            },
+            {
+                "span": [
+                    80,
+                    80
+                ],
+                "name": "drowsiness",
+                "entity_type": "Disease",
+                "entity_id": "D006970"
+            },
+            {
+                "span": [
+                    99,
+                    99
+                ],
+                "name": "VPA",
+                "entity_type": "Chemical",
+                "entity_id": "D014635"
+            },
+            {
+                "span": [
+                    110,
+                    110
+                ],
+                "name": "VPA",
+                "entity_type": "Chemical",
+                "entity_id": "D014635"
+            },
+            {
+                "span": [
+                    116,
+                    116
+                ],
+                "name": "NH3",
+                "entity_type": "Chemical",
+                "entity_id": "D000641"
+            },
+            {
+                "span": [
+                    132,
+                    132
+                ],
+                "name": "VPA",
+                "entity_type": "Chemical",
+                "entity_id": "D014635"
+            }
+        ],
+        "entities": [
+            {
+                "mention_indices": [
+                    0,
+                    6,
+                    7,
+                    11
+                ],
+                "entity_type": "Chemical",
+                "entity_id": "D000641"
+            },
+            {
+                "mention_indices": [
+                    1,
+                    2,
+                    3,
+                    5,
+                    9,
+                    10,
+                    12
+                ],
+                "entity_type": "Chemical",
+                "entity_id": "D014635"
+            },
+            {
+                "mention_indices": [
+                    4
+                ],
+                "entity_type": "Disease",
+                "entity_id": "D004827"
+            },
+            {
+                "mention_indices": [
+                    8
+                ],
+                "entity_type": "Disease",
+                "entity_id": "D006970"
+            }
+        ],
+        "relations": [
+            {
+                "arg1": 0,
+                "relation": "CID",
+                "arg2": 3
+            },
+            {
+                "arg1": 1,
+                "relation": "CID",
+                "arg2": 3
+            }
+        ],
+        "not_include_pairs": []
+    },
+    {
+        "doc_key": "6293644",
+        "sentences": [
+            "Effects of calcitonin on rat extrapyramidal motor system : behavioral and biochemical data .",
+            "The effects of i . v . c .",
+            "injection of human and salmon calcitonin on biochemical and behavioral parameters related to the extrapyramidal motor system , were investigated in male rats .",
+            "Calcitonin injection resulted in a potentiation of haloperidol - induced catalepsy and a partial prevention of apomorphine - induced hyperactivity .",
+            "Moreover calcitonin induced a significant decrease in nigral GAD activity but no change in striatal DA and DOPAC concentration or GAD activity .",
+            "The results are discussed in view of a primary action of calcitonin on the striatonigral GABAergic pathway mediating the DA - related behavioral messages of striatal origin ."
+        ],
+        "mentions": [
+            {
+                "span": [
+                    54,
+                    54
+                ],
+                "name": "haloperidol",
+                "entity_type": "Chemical",
+                "entity_id": "D006220"
+            },
+            {
+                "span": [
+                    57,
+                    57
+                ],
+                "name": "catalepsy",
+                "entity_type": "Disease",
+                "entity_id": "D002375"
+            },
+            {
+                "span": [
+                    63,
+                    63
+                ],
+                "name": "apomorphine",
+                "entity_type": "Chemical",
+                "entity_id": "D001058"
+            },
+            {
+                "span": [
+                    66,
+                    66
+                ],
+                "name": "hyperactivity",
+                "entity_type": "Disease",
+                "entity_id": "D006948"
+            },
+            {
+                "span": [
+                    83,
+                    83
+                ],
+                "name": "DA",
+                "entity_type": "Chemical",
+                "entity_id": "D004298"
+            },
+            {
+                "span": [
+                    85,
+                    85
+                ],
+                "name": "DOPAC",
+                "entity_type": "Chemical",
+                "entity_id": "D015102"
+            },
+            {
+                "span": [
+                    110,
+                    110
+                ],
+                "name": "DA",
+                "entity_type": "Chemical",
+                "entity_id": "D004298"
+            }
+        ],
+        "entities": [
+            {
+                "mention_indices": [
+                    0
+                ],
+                "entity_type": "Chemical",
+                "entity_id": "D006220"
+            },
+            {
+                "mention_indices": [
+                    1
+                ],
+                "entity_type": "Disease",
+                "entity_id": "D002375"
+            },
+            {
+                "mention_indices": [
+                    2
+                ],
+                "entity_type": "Chemical",
+                "entity_id": "D001058"
+            },
+            {
+                "mention_indices": [
+                    3
+                ],
+                "entity_type": "Disease",
+                "entity_id": "D006948"
+            },
+            {
+                "mention_indices": [
+                    4,
+                    6
+                ],
+                "entity_type": "Chemical",
+                "entity_id": "D004298"
+            },
+            {
+                "mention_indices": [
+                    5
+                ],
+                "entity_type": "Chemical",
+                "entity_id": "D015102"
+            }
+        ],
+        "relations": [
+            {
+                "arg1": 0,
+                "relation": "CID",
+                "arg2": 1
+            },
+            {
+                "arg1": 2,
+                "relation": "CID",
+                "arg2": 3
+            }
+        ],
+        "not_include_pairs": []
+    },
+    {
+        "doc_key": "6203632",
+        "sentences": [
+            "Development of isoproterenol - induced cardiac hypertrophy .",
+            "The development of cardiac hypertrophy was studied in adult female Wistar rats following daily subcutaneous injections of isoproterenol ( ISO ) ( 0 . 3 mg / kg body weight ) .",
+            "A time course was established for the change in tissue mass , RNA and DNA content , as well as hydroxyproline content .",
+            "Heart weight increased 44 % after 8 days of treatment with a half time of 3 . 4 days .",
+            "Ventricular RNA content was elevated 26 % after 24 h of a single injection and reached a maximal level following 8 days of therapy .",
+            "The half time for RNA accumulation was 2 . 0 days .",
+            "The total content of hydroxyproline remained stable during the first 2 days of treatment but increased 46 % after 4 days of therapy .",
+            "Ventricular DNA content was unchanged during the early stage ( 1 - 4 days ) of hypertrophic growth but increased to a new steady - state level 19 % above the controls after 8 days of treatment .",
+            "Intraventricular pressures and coronary flow measures were similar for control and experimental animals following 4 days of developed hypertrophy .",
+            "However , dP / dt in the ISO - treated hearts was slightly but significantly ( P less than 0 . 05 ) elevated .",
+            "These data indicate that the adaptive response to ISO shows an early hypertrophic phase ( 1 - 4 days ) characterized by a substantial increase in RNA content and cardiac mass in the absence of changes in DNA .",
+            "However , prolonged stimulation ( 8 - 12 days ) appears to represent a complex integration of both cellular hypertrophy and hyperplasia within the heart ."
+        ],
+        "mentions": [
+            {
+                "span": [
+                    2,
+                    2
+                ],
+                "name": "isoproterenol",
+                "entity_type": "Chemical",
+                "entity_id": "D007545"
+            },
+            {
+                "span": [
+                    5,
+                    6
+                ],
+                "name": "cardiac hypertrophy",
+                "entity_type": "Disease",
+                "entity_id": "D006332"
+            },
+            {
+                "span": [
+                    11,
+                    12
+                ],
+                "name": "cardiac hypertrophy",
+                "entity_type": "Disease",
+                "entity_id": "D006332"
+            },
+            {
+                "span": [
+                    25,
+                    25
+                ],
+                "name": "isoproterenol",
+                "entity_type": "Chemical",
+                "entity_id": "D007545"
+            },
+            {
+                "span": [
+                    27,
+                    27
+                ],
+                "name": "ISO",
+                "entity_type": "Chemical",
+                "entity_id": "D007545"
+            },
+            {
+                "span": [
+                    60,
+                    60
+                ],
+                "name": "hydroxyproline",
+                "entity_type": "Chemical",
+                "entity_id": "D006909"
+            },
+            {
+                "span": [
+                    124,
+                    124
+                ],
+                "name": "hydroxyproline",
+                "entity_type": "Chemical",
+                "entity_id": "D006909"
+            },
+            {
+                "span": [
+                    160,
+                    160
+                ],
+                "name": "hypertrophic",
+                "entity_type": "Disease",
+                "entity_id": "D006984"
+            },
+            {
+                "span": [
+                    200,
+                    200
+                ],
+                "name": "hypertrophy",
+                "entity_type": "Disease",
+                "entity_id": "D006984"
+            },
+            {
+                "span": [
+                    209,
+                    209
+                ],
+                "name": "ISO",
+                "entity_type": "Chemical",
+                "entity_id": "D007545"
+            },
+            {
+                "span": [
+                    235,
+                    235
+                ],
+                "name": "ISO",
+                "entity_type": "Chemical",
+                "entity_id": "D007545"
+            },
+            {
+                "span": [
+                    239,
+                    239
+                ],
+                "name": "hypertrophic",
+                "entity_type": "Disease",
+                "entity_id": "D006984"
+            },
+            {
+                "span": [
+                    285,
+                    285
+                ],
+                "name": "hypertrophy",
+                "entity_type": "Disease",
+                "entity_id": "D006984"
+            },
+            {
+                "span": [
+                    287,
+                    287
+                ],
+                "name": "hyperplasia",
+                "entity_type": "Disease",
+                "entity_id": "D006965"
+            }
+        ],
+        "entities": [
+            {
+                "mention_indices": [
+                    0,
+                    3,
+                    4,
+                    9,
+                    10
+                ],
+                "entity_type": "Chemical",
+                "entity_id": "D007545"
+            },
+            {
+                "mention_indices": [
+                    1,
+                    2
+                ],
+                "entity_type": "Disease",
+                "entity_id": "D006332"
+            },
+            {
+                "mention_indices": [
+                    5,
+                    6
+                ],
+                "entity_type": "Chemical",
+                "entity_id": "D006909"
+            },
+            {
+                "mention_indices": [
+                    7,
+                    8,
+                    11,
+                    12
+                ],
+                "entity_type": "Disease",
+                "entity_id": "D006984"
+            },
+            {
+                "mention_indices": [
+                    13
+                ],
+                "entity_type": "Disease",
+                "entity_id": "D006965"
+            }
+        ],
+        "relations": [
+            {
+                "arg1": 0,
+                "relation": "CID",
+                "arg2": 1
+            },
+            {
+                "arg1": 0,
+                "relation": "CID",
+                "arg2": 4
+            }
+        ],
+        "not_include_pairs": [
+            {
+                "arg1": 0,
+                "arg2": 3
+            }
+        ]
+    },
+    {
+        "doc_key": "3131282",
+        "sentences": [
+            "Co - carcinogenic effect of retinyl acetate on forestomach carcinogenesis of male F344 rats induced with butylated hydroxyanisole .",
+            "The potential modifying effect of retinyl acetate ( RA ) on butylated hydroxyanisole ( BHA ) - induced rat forestomach tumorigenesis was examined .",
+            "Male F344 rats , 5 weeks of age , were maintained on diet containing 1 % or 2 % BHA by weight and simultaneously on drinking water supplemented with RA at various concentrations ( w / v ) for 52 weeks .",
+            "In groups given 2 % BHA , although marked hyperplastic changes of the forestomach epithelium were observed in all animals , co - administration of 0 . 25 % RA significantly ( P less than 0 . 05 ) increased the incidence of forestomach tumors ( squamous cell papilloma and carcinoma ) to 60 % ( 9 / 15 , 2 rats with carcinoma ) from 15 % ( 3 / 20 , one rat with carcinoma ) in the group given RA - free water .",
+            "In rats given 1 % BHA , RA co - administered at a dose of 0 . 05 , 0 . 1 , 0 . 2 or 0 . 25 % showed a dose - dependent enhancing effect on the development of the BHA - induced epithelial hyperplasia .",
+            "Tumors , all papillomas , were induced in 3 rats ( 17 % ) with 0 . 25 % RA and in one rat ( 10 % ) with 0 . 05 % RA co - administration .",
+            "RA alone did not induce hyperplastic changes in the forestomach .",
+            "These findings indicate that RA acted as a co - carcinogen in the BHA forestomach carcinogenesis of the rat ."
+        ],
+        "mentions": [
+            {
+                "span": [
+                    2,
+                    2
+                ],
+                "name": "carcinogenic",
+                "entity_type": "Disease",
+                "entity_id": "D063646"
+            },
+            {
+                "span": [
+                    5,
+                    6
+                ],
+                "name": "retinyl acetate",
+                "entity_type": "Chemical",
+                "entity_id": "C009166"
+            },
+            {
+                "span": [
+                    8,
+                    9
+                ],
+                "name": "forestomach carcinogenesis",
+                "entity_type": "Disease",
+                "entity_id": "D013274"
+            },
+            {
+                "span": [
+                    16,
+                    17
+                ],
+                "name": "butylated hydroxyanisole",
+                "entity_type": "Chemical",
+                "entity_id": "D002083"
+            },
+            {
+                "span": [
+                    24,
+                    25
+                ],
+                "name": "retinyl acetate",
+                "entity_type": "Chemical",
+                "entity_id": "C009166"
+            },
+            {
+                "span": [
+                    27,
+                    27
+                ],
+                "name": "RA",
+                "entity_type": "Chemical",
+                "entity_id": "C009166"
+            },
+            {
+                "span": [
+                    30,
+                    31
+                ],
+                "name": "butylated hydroxyanisole",
+                "entity_type": "Chemical",
+                "entity_id": "D002083"
+            },
+            {
+                "span": [
+                    33,
+                    33
+                ],
+                "name": "BHA",
+                "entity_type": "Chemical",
+                "entity_id": "D002083"
+            },
+            {
+                "span": [
+                    38,
+                    39
+                ],
+                "name": "forestomach tumorigenesis",
+                "entity_type": "Disease",
+                "entity_id": "D013274"
+            },
+            {
+                "span": [
+                    62,
+                    62
+                ],
+                "name": "BHA",
+                "entity_type": "Chemical",
+                "entity_id": "D002083"
+            },
+            {
+                "span": [
+                    72,
+                    72
+                ],
+                "name": "RA",
+                "entity_type": "Chemical",
+                "entity_id": "C009166"
+            },
+            {
+                "span": [
+                    90,
+                    90
+                ],
+                "name": "BHA",
+                "entity_type": "Chemical",
+                "entity_id": "D002083"
+            },
+            {
+                "span": [
+                    114,
+                    114
+                ],
+                "name": "RA",
+                "entity_type": "Chemical",
+                "entity_id": "C009166"
+            },
+            {
+                "span": [
+                    128,
+                    129
+                ],
+                "name": "forestomach tumors",
+                "entity_type": "Disease",
+                "entity_id": "D013274"
+            },
+            {
+                "span": [
+                    131,
+                    133
+                ],
+                "name": "squamous cell papilloma",
+                "entity_type": "Disease",
+                "entity_id": "D010212"
+            },
+            {
+                "span": [
+                    135,
+                    135
+                ],
+                "name": "carcinoma",
+                "entity_type": "Disease",
+                "entity_id": "D002277"
+            },
+            {
+                "span": [
+                    148,
+                    148
+                ],
+                "name": "carcinoma",
+                "entity_type": "Disease",
+                "entity_id": "D002277"
+            },
+            {
+                "span": [
+                    161,
+                    161
+                ],
+                "name": "carcinoma",
+                "entity_type": "Disease",
+                "entity_id": "D002277"
+            },
+            {
+                "span": [
+                    167,
+                    167
+                ],
+                "name": "RA",
+                "entity_type": "Chemical",
+                "entity_id": "C009166"
+            },
+            {
+                "span": [
+                    177,
+                    177
+                ],
+                "name": "BHA",
+                "entity_type": "Chemical",
+                "entity_id": "D002083"
+            },
+            {
+                "span": [
+                    179,
+                    179
+                ],
+                "name": "RA",
+                "entity_type": "Chemical",
+                "entity_id": "C009166"
+            },
+            {
+                "span": [
+                    215,
+                    215
+                ],
+                "name": "BHA",
+                "entity_type": "Chemical",
+                "entity_id": "D002083"
+            },
+            {
+                "span": [
+                    218,
+                    219
+                ],
+                "name": "epithelial hyperplasia",
+                "entity_type": "Disease",
+                "entity_id": "D017573"
+            },
+            {
+                "span": [
+                    221,
+                    221
+                ],
+                "name": "Tumors",
+                "entity_type": "Disease",
+                "entity_id": "D009369"
+            },
+            {
+                "span": [
+                    224,
+                    224
+                ],
+                "name": "papillomas",
+                "entity_type": "Disease",
+                "entity_id": "D010212"
+            },
+            {
+                "span": [
+                    240,
+                    240
+                ],
+                "name": "RA",
+                "entity_type": "Chemical",
+                "entity_id": "C009166"
+            },
+            {
+                "span": [
+                    254,
+                    254
+                ],
+                "name": "RA",
+                "entity_type": "Chemical",
+                "entity_id": "C009166"
+            },
+            {
+                "span": [
+                    259,
+                    259
+                ],
+                "name": "RA",
+                "entity_type": "Chemical",
+                "entity_id": "C009166"
+            },
+            {
+                "span": [
+                    274,
+                    274
+                ],
+                "name": "RA",
+                "entity_type": "Chemical",
+                "entity_id": "C009166"
+            },
+            {
+                "span": [
+                    283,
+                    283
+                ],
+                "name": "BHA",
+                "entity_type": "Chemical",
+                "entity_id": "D002083"
+            },
+            {
+                "span": [
+                    284,
+                    285
+                ],
+                "name": "forestomach carcinogenesis",
+                "entity_type": "Disease",
+                "entity_id": "D013274"
+            }
+        ],
+        "entities": [
+            {
+                "mention_indices": [
+                    0
+                ],
+                "entity_type": "Disease",
+                "entity_id": "D063646"
+            },
+            {
+                "mention_indices": [
+                    1,
+                    4,
+                    5,
+                    10,
+                    12,
+                    18,
+                    20,
+                    25,
+                    26,
+                    27,
+                    28
+                ],
+                "entity_type": "Chemical",
+                "entity_id": "C009166"
+            },
+            {
+                "mention_indices": [
+                    2,
+                    8,
+                    13,
+                    30
+                ],
+                "entity_type": "Disease",
+                "entity_id": "D013274"
+            },
+            {
+                "mention_indices": [
+                    3,
+                    6,
+                    7,
+                    9,
+                    11,
+                    19,
+                    21,
+                    29
+                ],
+                "entity_type": "Chemical",
+                "entity_id": "D002083"
+            },
+            {
+                "mention_indices": [
+                    14,
+                    24
+                ],
+                "entity_type": "Disease",
+                "entity_id": "D010212"
+            },
+            {
+                "mention_indices": [
+                    15,
+                    16,
+                    17
+                ],
+                "entity_type": "Disease",
+                "entity_id": "D002277"
+            },
+            {
+                "mention_indices": [
+                    22
+                ],
+                "entity_type": "Disease",
+                "entity_id": "D017573"
+            },
+            {
+                "mention_indices": [
+                    23
+                ],
+                "entity_type": "Disease",
+                "entity_id": "D009369"
+            }
+        ],
+        "relations": [
+            {
+                "arg1": 3,
+                "relation": "CID",
+                "arg2": 2
+            }
+        ],
+        "not_include_pairs": [
+            {
+                "arg1": 3,
+                "arg2": 7
+            }
+        ]
+    },
+    {
+        "doc_key": "3115150",
+        "sentences": [
+            "Ketanserin pretreatment reverses alfentanil - induced muscle rigidity .",
+            "Systemic pretreatment with ketanserin , a relatively specific type - 2 serotonin receptor antagonist , significantly attenuated the muscle rigidity produced in rats by the potent short - acting opiate agonist alfentanil .",
+            "Following placement of subcutaneous electrodes in each animal 's left gastrocnemius muscle , rigidity was assessed by analyzing root - mean - square electromyographic activity .",
+            "Intraperitoneal ketanserin administration at doses of 0 . 63 and 2 . 5 mg / kg prevented the alfentanil - induced increase in electromyographic activity compared with animals pretreated with saline .",
+            "Chlordiazepoxide at doses up to 10 mg / kg failed to significantly influence the rigidity produced by alfentanil .",
+            "Despite the absence of rigidity , animals that received ketanserin ( greater than 0 . 31 mg / kg i . p . ) followed by alfentanil were motionless , flaccid , and less responsive to external stimuli than were animals receiving alfentanil alone .",
+            "Rats that received ketanserin and alfentanil exhibited less rearing and exploratory behavior at the end of the 60 - min recording period than did animals that received ketanserin alone .",
+            "These results , in combination with previous work , suggest that muscle rigidity , a clinically relevant side - effect of parenteral narcotic administration , may be partly mediated via serotonergic pathways .",
+            "Pretreatment with type - 2 serotonin antagonists may be clinically useful in attenuating opiate - induced rigidity , although further studies will be necessary to assess the interaction of possibly enhanced CNS , cardiovascular , and respiratory depression ."
+        ],
+        "mentions": [
+            {
+                "span": [
+                    0,
+                    0
+                ],
+                "name": "Ketanserin",
+                "entity_type": "Chemical",
+                "entity_id": "D007650"
+            },
+            {
+                "span": [
+                    3,
+                    3
+                ],
+                "name": "alfentanil",
+                "entity_type": "Chemical",
+                "entity_id": "D015760"
+            },
+            {
+                "span": [
+                    6,
+                    7
+                ],
+                "name": "muscle rigidity",
+                "entity_type": "Disease",
+                "entity_id": "D009127"
+            },
+            {
+                "span": [
+                    12,
+                    12
+                ],
+                "name": "ketanserin",
+                "entity_type": "Chemical",
+                "entity_id": "D007650"
+            },
+            {
+                "span": [
+                    20,
+                    20
+                ],
+                "name": "serotonin",
+                "entity_type": "Chemical",
+                "entity_id": "D012701"
+            },
+            {
+                "span": [
+                    27,
+                    28
+                ],
+                "name": "muscle rigidity",
+                "entity_type": "Disease",
+                "entity_id": "D009127"
+            },
+            {
+                "span": [
+                    40,
+                    40
+                ],
+                "name": "alfentanil",
+                "entity_type": "Chemical",
+                "entity_id": "D015760"
+            },
+            {
+                "span": [
+                    55,
+                    55
+                ],
+                "name": "rigidity",
+                "entity_type": "Disease",
+                "entity_id": "D009127"
+            },
+            {
+                "span": [
+                    69,
+                    69
+                ],
+                "name": "ketanserin",
+                "entity_type": "Chemical",
+                "entity_id": "D007650"
+            },
+            {
+                "span": [
+                    86,
+                    86
+                ],
+                "name": "alfentanil",
+                "entity_type": "Chemical",
+                "entity_id": "D015760"
+            },
+            {
+                "span": [
+                    100,
+                    100
+                ],
+                "name": "Chlordiazepoxide",
+                "entity_type": "Chemical",
+                "entity_id": "D002707"
+            },
+            {
+                "span": [
+                    114,
+                    114
+                ],
+                "name": "rigidity",
+                "entity_type": "Disease",
+                "entity_id": "D009127"
+            },
+            {
+                "span": [
+                    117,
+                    117
+                ],
+                "name": "alfentanil",
+                "entity_type": "Chemical",
+                "entity_id": "D015760"
+            },
+            {
+                "span": [
+                    123,
+                    123
+                ],
+                "name": "rigidity",
+                "entity_type": "Disease",
+                "entity_id": "D009127"
+            },
+            {
+                "span": [
+                    128,
+                    128
+                ],
+                "name": "ketanserin",
+                "entity_type": "Chemical",
+                "entity_id": "D007650"
+            },
+            {
+                "span": [
+                    145,
+                    145
+                ],
+                "name": "alfentanil",
+                "entity_type": "Chemical",
+                "entity_id": "D015760"
+            },
+            {
+                "span": [
+                    161,
+                    161
+                ],
+                "name": "alfentanil",
+                "entity_type": "Chemical",
+                "entity_id": "D015760"
+            },
+            {
+                "span": [
+                    167,
+                    167
+                ],
+                "name": "ketanserin",
+                "entity_type": "Chemical",
+                "entity_id": "D007650"
+            },
+            {
+                "span": [
+                    169,
+                    169
+                ],
+                "name": "alfentanil",
+                "entity_type": "Chemical",
+                "entity_id": "D015760"
+            },
+            {
+                "span": [
+                    191,
+                    191
+                ],
+                "name": "ketanserin",
+                "entity_type": "Chemical",
+                "entity_id": "D007650"
+            },
+            {
+                "span": [
+                    205,
+                    206
+                ],
+                "name": "muscle rigidity",
+                "entity_type": "Disease",
+                "entity_id": "D009127"
+            },
+            {
+                "span": [
+                    232,
+                    232
+                ],
+                "name": "serotonin",
+                "entity_type": "Chemical",
+                "entity_id": "D012701"
+            },
+            {
+                "span": [
+                    243,
+                    243
+                ],
+                "name": "rigidity",
+                "entity_type": "Disease",
+                "entity_id": "D009127"
+            },
+            {
+                "span": [
+                    260,
+                    264
+                ],
+                "name": "cardiovascular , and respiratory depression",
+                "entity_type": "Disease",
+                "entity_id": "D002318"
+            }
+        ],
+        "entities": [
+            {
+                "mention_indices": [
+                    0,
+                    3,
+                    8,
+                    14,
+                    17,
+                    19
+                ],
+                "entity_type": "Chemical",
+                "entity_id": "D007650"
+            },
+            {
+                "mention_indices": [
+                    1,
+                    6,
+                    9,
+                    12,
+                    15,
+                    16,
+                    18
+                ],
+                "entity_type": "Chemical",
+                "entity_id": "D015760"
+            },
+            {
+                "mention_indices": [
+                    2,
+                    5,
+                    7,
+                    11,
+                    13,
+                    20,
+                    22
+                ],
+                "entity_type": "Disease",
+                "entity_id": "D009127"
+            },
+            {
+                "mention_indices": [
+                    4,
+                    21
+                ],
+                "entity_type": "Chemical",
+                "entity_id": "D012701"
+            },
+            {
+                "mention_indices": [
+                    10
+                ],
+                "entity_type": "Chemical",
+                "entity_id": "D002707"
+            },
+            {
+                "mention_indices": [
+                    23
+                ],
+                "entity_type": "Disease",
+                "entity_id": "D002318"
+            },
+            {
+                "mention_indices": [
+                    23
+                ],
+                "entity_type": "Disease",
+                "entity_id": "D012131"
+            }
+        ],
+        "relations": [
+            {
+                "arg1": 1,
+                "relation": "CID",
+                "arg2": 2
+            }
+        ],
+        "not_include_pairs": []
+    },
+    {
+        "doc_key": "2917114",
+        "sentences": [
+            "Glycopyrronium requirements for antagonism of the muscarinic side effects of edrophonium .",
+            "We have compared , in 60 adult patients , the cardiovascular effects of glycopyrronium 5 micrograms kg - 1 and 10 micrograms kg - 1 given either simultaneously or 1 min before edrophonium 1 mg kg - 1 .",
+            "Significant differences between the four groups were detected ( P less than 0 . 001 ) .",
+            "Both groups receiving 10 micrograms kg - 1 showed increases in heart rate of up to 30 beat min - 1 ( 95 % confidence limits 28 - 32 beat min - 1 ) .",
+            "Use of glycopyrronium 5 micrograms kg - 1 provided greater cardiovascular stability and , given 1 min before the edrophonium , was sufficient to minimize early , edrophonium - induced bradycardias .",
+            "This low dose of glycopyrronium provided good control of oropharyngeal secretions ."
+        ],
+        "mentions": [
+            {
+                "span": [
+                    0,
+                    0
+                ],
+                "name": "Glycopyrronium",
+                "entity_type": "Chemical",
+                "entity_id": "D006024"
+            },
+            {
+                "span": [
+                    10,
+                    10
+                ],
+                "name": "edrophonium",
+                "entity_type": "Chemical",
+                "entity_id": "D004491"
+            },
+            {
+                "span": [
+                    25,
+                    25
+                ],
+                "name": "glycopyrronium",
+                "entity_type": "Chemical",
+                "entity_id": "D006024"
+            },
+            {
+                "span": [
+                    44,
+                    44
+                ],
+                "name": "edrophonium",
+                "entity_type": "Chemical",
+                "entity_id": "D004491"
+            },
+            {
+                "span": [
+                    105,
+                    105
+                ],
+                "name": "glycopyrronium",
+                "entity_type": "Chemical",
+                "entity_id": "D006024"
+            },
+            {
+                "span": [
+                    122,
+                    122
+                ],
+                "name": "edrophonium",
+                "entity_type": "Chemical",
+                "entity_id": "D004491"
+            },
+            {
+                "span": [
+                    130,
+                    130
+                ],
+                "name": "edrophonium",
+                "entity_type": "Chemical",
+                "entity_id": "D004491"
+            },
+            {
+                "span": [
+                    133,
+                    133
+                ],
+                "name": "bradycardias",
+                "entity_type": "Disease",
+                "entity_id": "D001919"
+            },
+            {
+                "span": [
+                    139,
+                    139
+                ],
+                "name": "glycopyrronium",
+                "entity_type": "Chemical",
+                "entity_id": "D006024"
+            }
+        ],
+        "entities": [
+            {
+                "mention_indices": [
+                    0,
+                    2,
+                    4,
+                    8
+                ],
+                "entity_type": "Chemical",
+                "entity_id": "D006024"
+            },
+            {
+                "mention_indices": [
+                    1,
+                    3,
+                    5,
+                    6
+                ],
+                "entity_type": "Chemical",
+                "entity_id": "D004491"
+            },
+            {
+                "mention_indices": [
+                    7
+                ],
+                "entity_type": "Disease",
+                "entity_id": "D001919"
+            }
+        ],
+        "relations": [
+            {
+                "arg1": 1,
+                "relation": "CID",
+                "arg2": 2
+            }
+        ],
+        "not_include_pairs": []
+    },
+    {
+        "doc_key": "2564649",
+        "sentences": [
+            "Involvement of locus coeruleus and noradrenergic neurotransmission in fentanyl - induced muscular rigidity in the rat .",
+            "Whereas muscular rigidity is a well - known side effect that is associated with high - dose fentanyl anesthesia , a paucity of information exists with regard to its underlying mechanism ( s ) .",
+            "We investigated in this study the possible engagement of locus coeruleus of the pons in this phenomenon , using male Sprague - Dawley rats anesthetized with ketamine .",
+            "Under proper control of respiration , body temperature and end - tidal CO2 , intravenous administration of fentanyl ( 50 or 100 micrograms / kg ) consistently promoted an increase in electromyographic activity recorded from the gastrocnemius and abdominal rectus muscles .",
+            "Such an induced muscular rigidity by the narcotic agent was significantly antagonized or even reduced by prior electrolytic lesions of the locus coeruleus or pretreatment with the alpha - adrenoceptor blocker , prazosin .",
+            "Microinjection of fentanyl ( 2 . 5 micrograms / 50 nl ) directly into this pontine nucleus , on the other hand , elicited discernible electromyographic excitation .",
+            "It is speculated that the induction of muscular rigidity by fentanyl may involve the coerulospinal noradrenergic fibers to the spinal motoneurons ."
+        ],
+        "mentions": [
+            {
+                "span": [
+                    8,
+                    8
+                ],
+                "name": "fentanyl",
+                "entity_type": "Chemical",
+                "entity_id": "D005283"
+            },
+            {
+                "span": [
+                    11,
+                    12
+                ],
+                "name": "muscular rigidity",
+                "entity_type": "Disease",
+                "entity_id": "D009127"
+            },
+            {
+                "span": [
+                    18,
+                    19
+                ],
+                "name": "muscular rigidity",
+                "entity_type": "Disease",
+                "entity_id": "D009127"
+            },
+            {
+                "span": [
+                    34,
+                    34
+                ],
+                "name": "fentanyl",
+                "entity_type": "Chemical",
+                "entity_id": "D005283"
+            },
+            {
+                "span": [
+                    78,
+                    78
+                ],
+                "name": "ketamine",
+                "entity_type": "Chemical",
+                "entity_id": "D007649"
+            },
+            {
+                "span": [
+                    92,
+                    92
+                ],
+                "name": "CO2",
+                "entity_type": "Chemical",
+                "entity_id": "D002245"
+            },
+            {
+                "span": [
+                    97,
+                    97
+                ],
+                "name": "fentanyl",
+                "entity_type": "Chemical",
+                "entity_id": "D005283"
+            },
+            {
+                "span": [
+                    125,
+                    126
+                ],
+                "name": "muscular rigidity",
+                "entity_type": "Disease",
+                "entity_id": "D009127"
+            },
+            {
+                "span": [
+                    154,
+                    154
+                ],
+                "name": "prazosin",
+                "entity_type": "Chemical",
+                "entity_id": "D011224"
+            },
+            {
+                "span": [
+                    158,
+                    158
+                ],
+                "name": "fentanyl",
+                "entity_type": "Chemical",
+                "entity_id": "D005283"
+            },
+            {
+                "span": [
+                    191,
+                    192
+                ],
+                "name": "muscular rigidity",
+                "entity_type": "Disease",
+                "entity_id": "D009127"
+            },
+            {
+                "span": [
+                    194,
+                    194
+                ],
+                "name": "fentanyl",
+                "entity_type": "Chemical",
+                "entity_id": "D005283"
+            }
+        ],
+        "entities": [
+            {
+                "mention_indices": [
+                    0,
+                    3,
+                    6,
+                    9,
+                    11
+                ],
+                "entity_type": "Chemical",
+                "entity_id": "D005283"
+            },
+            {
+                "mention_indices": [
+                    1,
+                    2,
+                    7,
+                    10
+                ],
+                "entity_type": "Disease",
+                "entity_id": "D009127"
+            },
+            {
+                "mention_indices": [
+                    4
+                ],
+                "entity_type": "Chemical",
+                "entity_id": "D007649"
+            },
+            {
+                "mention_indices": [
+                    5
+                ],
+                "entity_type": "Chemical",
+                "entity_id": "D002245"
+            },
+            {
+                "mention_indices": [
+                    8
+                ],
+                "entity_type": "Chemical",
+                "entity_id": "D011224"
+            }
+        ],
+        "relations": [
+            {
+                "arg1": 0,
+                "relation": "CID",
+                "arg2": 1
+            }
+        ],
+        "not_include_pairs": []
+    },
+    {
+        "doc_key": "2339463",
+        "sentences": [
+            "Cerebral sinus thrombosis as a potential hazard of antifibrinolytic treatment in menorrhagia .",
+            "We describe a 42 - year - old woman who developed superior sagittal and left transverse sinus thrombosis associated with prolonged epsilon - aminocaproic acid therapy for menorrhagia .",
+            "This antifibrinolytic agent has been used in women with menorrhagia to promote clotting and reduce blood loss .",
+            "Although increased risk of thromboembolic disease has been reported during treatment with epsilon - aminocaproic acid , cerebral sinus thrombosis has not been previously described .",
+            "Careful use of epsilon - aminocaproic acid therapy is recommended ."
+        ],
+        "mentions": [
+            {
+                "span": [
+                    0,
+                    2
+                ],
+                "name": "Cerebral sinus thrombosis",
+                "entity_type": "Disease",
+                "entity_id": "D012851"
+            },
+            {
+                "span": [
+                    11,
+                    11
+                ],
+                "name": "menorrhagia",
+                "entity_type": "Disease",
+                "entity_id": "D008595"
+            },
+            {
+                "span": [
+                    25,
+                    30
+                ],
+                "name": "sagittal and left transverse sinus thrombosis",
+                "entity_type": "Disease",
+                "entity_id": "D020225"
+            },
+            {
+                "span": [
+                    34,
+                    37
+                ],
+                "name": "epsilon - aminocaproic acid",
+                "entity_type": "Chemical",
+                "entity_id": "D015119"
+            },
+            {
+                "span": [
+                    40,
+                    40
+                ],
+                "name": "menorrhagia",
+                "entity_type": "Disease",
+                "entity_id": "D008595"
+            },
+            {
+                "span": [
+                    51,
+                    51
+                ],
+                "name": "menorrhagia",
+                "entity_type": "Disease",
+                "entity_id": "D008595"
+            },
+            {
+                "span": [
+                    57,
+                    58
+                ],
+                "name": "blood loss",
+                "entity_type": "Disease",
+                "entity_id": "D006473"
+            },
+            {
+                "span": [
+                    64,
+                    65
+                ],
+                "name": "thromboembolic disease",
+                "entity_type": "Disease",
+                "entity_id": "D013923"
+            },
+            {
+                "span": [
+                    72,
+                    75
+                ],
+                "name": "epsilon - aminocaproic acid",
+                "entity_type": "Chemical",
+                "entity_id": "D015119"
+            },
+            {
+                "span": [
+                    77,
+                    79
+                ],
+                "name": "cerebral sinus thrombosis",
+                "entity_type": "Disease",
+                "entity_id": "D012851"
+            },
+            {
+                "span": [
+                    89,
+                    92
+                ],
+                "name": "epsilon - aminocaproic acid",
+                "entity_type": "Chemical",
+                "entity_id": "D015119"
+            }
+        ],
+        "entities": [
+            {
+                "mention_indices": [
+                    0,
+                    9
+                ],
+                "entity_type": "Disease",
+                "entity_id": "D012851"
+            },
+            {
+                "mention_indices": [
+                    1,
+                    4,
+                    5
+                ],
+                "entity_type": "Disease",
+                "entity_id": "D008595"
+            },
+            {
+                "mention_indices": [
+                    2
+                ],
+                "entity_type": "Disease",
+                "entity_id": "D020225"
+            },
+            {
+                "mention_indices": [
+                    2
+                ],
+                "entity_type": "Disease",
+                "entity_id": "D020227"
+            },
+            {
+                "mention_indices": [
+                    3,
+                    8,
+                    10
+                ],
+                "entity_type": "Chemical",
+                "entity_id": "D015119"
+            },
+            {
+                "mention_indices": [
+                    6
+                ],
+                "entity_type": "Disease",
+                "entity_id": "D006473"
+            },
+            {
+                "mention_indices": [
+                    7
+                ],
+                "entity_type": "Disease",
+                "entity_id": "D013923"
+            }
+        ],
+        "relations": [
+            {
+                "arg1": 4,
+                "relation": "CID",
+                "arg2": 2
+            }
+        ],
+        "not_include_pairs": [
+            {
+                "arg1": 4,
+                "arg2": 0
+            },
+            {
+                "arg1": 4,
+                "arg2": 6
+            }
+        ]
+    }
+]

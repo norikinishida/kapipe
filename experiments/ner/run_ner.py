@@ -57,7 +57,7 @@ def main(args):
 
     # Set logger
     set_logger(
-        os.path.join(base_output_path, "extraction.log"),
+        os.path.join(base_output_path, "ner.log"),
         # overwrite=True
     )
 
@@ -143,13 +143,7 @@ def main(args):
     return prefix
 
 
-def set_logger(filename, overwrite=False):
-    """
-    Parameters
-    ----------
-    filename: str
-    overwrite: bool, default False
-    """
+def set_logger(filename: str, overwrite: bool = False) -> None:
     if os.path.exists(filename) and not overwrite:
         logging.info("%s already exists." % filename)
         do_remove = input("Delete the existing log file? [y/n]: ")

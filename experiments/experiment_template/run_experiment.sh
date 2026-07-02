@@ -4,23 +4,20 @@
 # Storage paths
 ######
 
-EXPERIMENT_NAME="EXPERIMENT_PROJECT_NAME"
-DATASET_CATEGORY_NAME="DATASET_CATEGORY_NAME"
+STORAGE_DATA=/home/nishida/projects/kapipe/experiments/EXPERIMENT_NAME/data
+STORAGE_RESULTS=/home/nishida/projects/kapipe/experiments/EXPERIMENT_NAME/results
 
-STORAGE_DATA=/home/nishida/projects/kapipe/experiments/${EXPERIMENT_NAME}/data
-STORAGE_RESULTS=/home/nishida/projects/kapipe/experiments/${EXPERIMENT_NAME}/results
-
-# STORAGE_DATA=/home/nishida/storage/projects/kapipe/experiments/datasets/${DATASET_CATEGORY_NAME}
-# STORAGE_RESULTS=/home/nishida/storage/projects/kapipe/experiments/${EXPERIMENT_NAME}/results
+# STORAGE_DATA=/home/nishida/storage/projects/kapipe/experiments/datasets/DATASET_CATEGORY_NAME
+# STORAGE_RESULTS=/home/nishida/storage/projects/kapipe/experiments/EXPERIMENT_NAME/results
 
 ######
 # Experiment configuration
 ######
 
 # Method
-METHOD=METHOD_NAME
-CONFIG_PATH=./config/METHOD_NAME.conf
-CONFIG_NAME=FAVORITE_CONFIG_NAME
+METHOD=METHOD_NAME_A
+CONFIG_PATH=./config/METHOD_NAME_A.conf
+CONFIG_NAME=CONFIG_NAME_A
 
 # Input Data
 INPUT_SOMETHING=${STORAGE_DATA}/SOMETHING

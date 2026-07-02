@@ -1,4 +1,4 @@
-# DocRE
+# docre
 
 This directory contains example experiments for Document-level Relation Extraction (DocRE).
 
@@ -42,7 +42,7 @@ experiments/docre/data/examples/entity_dict.json
 
 You can also prepare benchmark datasets (e.g., CDR, Linked-DocRED) with the scripts in `experiments/datasets/docre`.
 
-## Step 3. Running the NER Component
+## Step 3. Running the NER component
 
 First, check `STORAGE_DATA` and `STORAGE_RESULTS` in each execution script and adjust them to your environment.
 

@@ -1,13 +1,12 @@
 import argparse
-import json
 import logging
 import os
 import sys
 
-from tqdm import tqdm
+import networkx as nx
 
 from kapipe import utils
-from kapipe.chunking import Chunker
+from kapipe.entity_graph_construction import EntityGraphConstructor
 from kapipe.utils import StopWatch
 
 
@@ -25,7 +24,9 @@ def main(args):
     config_name = args.config_name
 
     # Input Data
-    input_passages_path = args.input_passages
+    input_documents_path_list = args.input_documents_list
+    input_additional_triples_path = args.input_additional_triples
+    input_entity_dict_path = args.input_entity_dict
 
     # Output Path
     results_dir = args.results_dir
@@ -33,9 +34,7 @@ def main(args):
     if prefix is None or prefix == "None":
         prefix = utils.get_current_time()
         args.prefix = prefix
-
-    assert method_name in ["default"], f"Unknown method: {method_name}"
-
+ 
     ##################
     # Logging Setup
     ##################
@@ -43,7 +42,7 @@ def main(args):
     # Set base output path
     base_output_path = os.path.join(
         results_dir,
-        "chunking",
+        "entity_graph_construction",
         method_name,
         config_name,
         prefix
@@ -52,7 +51,7 @@ def main(args):
 
     # Set logger
     set_logger(
-        os.path.join(base_output_path, "chunking.log"),
+        os.path.join(base_output_path, "entity_graph_construction.log"),
         # overwrite=True
     )
 
@@ -66,49 +65,32 @@ def main(args):
     # Load the experiment configuration
     config = utils.get_hocon_config(config_path=config_path, config_name=config_name)
 
-    # Initialize the Chunking component
-    chunker = Chunker(model_name=config["spacy_model_name"])
+    # Initialize the Entity Graph Construction component
+    constructor = EntityGraphConstructor(
+        missing_entity_policy=config["missing_entity_policy"],
+        missing_entity_description=config["missing_entity_description"],
+    )
 
     ##################
-    # Chunking
+    # Entity Graph Construction
     ##################
+    
+    logging.info(f"Applying the Entity Graph Construction component to extracted triples ({input_documents_path_list}) and additional triples ({input_additional_triples_path}) ...")
 
-    # Count the input passages
-    with open(input_passages_path) as fin:
-        n_lines = sum(1 for _ in fin)
-    logging.info(f"Applying the Chunking component to {n_lines} passages in {input_passages_path} ...")
+    # Apply the Entity Graph Construction component to extracted triples and
+    # additional triples (optional).
+    # The entity dictionary is used to label canonical names, synonyms, entity types,
+    # and definitions to each node as their attributes.
+    graph = constructor.construct_entity_graph(
+        documents_path_list=input_documents_path_list,
+        entity_dict_path=input_entity_dict_path,
+        additional_triples_path=input_additional_triples_path,
+    )
 
-    # Create the output file path
-    input_file_name = os.path.splitext(os.path.basename(input_passages_path))[0]
-    output_file_name = f"{input_file_name}.chunked_w{config['window_size']}.jsonl"
-    output_file_path = os.path.join(base_output_path, output_file_name)
-
-    # Apply the Chunking component to the passages
-    n_input_passages = 0
-    n_output_passages = 0
-    with open(output_file_path, "w") as fout:
-        with open(input_passages_path) as fin:
-            for line in tqdm(fin, total=n_lines):
-                # Load the passage
-                passage = json.loads(line.strip())
-
-                # Split the passage into chunked passages
-                chunked_passages = chunker.split_passage_to_chunked_passages(
-                    passage=passage,
-                    window_size=config["window_size"],
-                )
-
-                # Save the chunked passages
-                for chunked_passage in chunked_passages:
-                    json_str = json.dumps(chunked_passage)
-                    fout.write(json_str + "\n")
-
-                # Count the processed/produced passages
-                n_input_passages += 1
-                n_output_passages += len(chunked_passages)
-
-    logging.info(f"Split {n_input_passages} passages into {n_output_passages} chunked passages")
-    logging.info(f"Saved the chunked passages to {output_file_path}")
+    # Save the `networkx.MultiDiGraph` in GraphML format
+    output_graph_path = os.path.join(base_output_path, "graph.graphml")
+    nx.write_graphml(graph, output_graph_path)
+    logging.info(f"Saved graph to {output_graph_path}")
 
     ##################
     # Closing
@@ -137,6 +119,7 @@ if __name__ == "__main__":
         format="%(asctime)s - %(levelname)s - %(name)s - %(message)s",
         level=logging.INFO
     )
+
     parser = argparse.ArgumentParser()
 
     # Method
@@ -145,11 +128,14 @@ if __name__ == "__main__":
     parser.add_argument("--config_name", type=str, required=True)
 
     # Input Data
-    parser.add_argument("--input_passages", type=str, required=True)
+    parser.add_argument("--input_documents_list", nargs="*")
+    parser.add_argument("--input_additional_triples", type=str, default=None)
+    parser.add_argument("--input_entity_dict", type=str, default=None)
 
     # Output Path
     parser.add_argument("--results_dir", type=str, required=True)
     parser.add_argument("--prefix", type=str, default=None)
 
     args = parser.parse_args()
+
     main(args) 

@@ -14,20 +14,27 @@ logger = logging.getLogger(__name__)
 
 class EntityGraphConstructor:
 
-    def __init__(self):
-        pass
+    def __init__(
+        self,
+        missing_entity_policy: str = "keep",
+        missing_entity_description: str = "NO DESCRIPTION.",
+    ):
+        # Validate how triples with missing entity pages should be handled
+        if missing_entity_policy not in ["keep", "drop"]:
+            raise ValueError(
+                f"Invalid missing_entity_policy: {missing_entity_policy}"
+            )
+
+        self.missing_entity_policy = missing_entity_policy
+        self.missing_entity_description = missing_entity_description
     
     def construct_entity_graph(
         self,
-        documents_paths: list[str] | None,
+        documents_path_list: list[str] | None,
         entity_dict_path: str | None,
         additional_triples_path: str | None = None,
-        excluded_filenames: list[str] | None = None
     ) -> nx.MultiDiGraph:
         """Construct a directed, multi-edge graph from the provided documents and entity dictionary."""
-
-        if excluded_filenames is None:
-            excluded_filenames = []
 
         # Load the entity dictionary (if provided).
         # Entity dictionary is a mapping from an entity ID (str) to the corresponding
@@ -59,9 +66,9 @@ class EntityGraphConstructor:
                 )
 
         # Add triples from documents
-        if documents_paths is None:
-            documents_paths = []
-        for documents_path in documents_paths:
+        if documents_path_list is None:
+            documents_path_list = []
+        for documents_path in documents_path_list:
             # Load the documents
             documents = utils.read_json(documents_path)
             logger.info(
@@ -130,23 +137,27 @@ class EntityGraphConstructor:
         head_page = entity_dict.get(head_id, None)
         tail_page = entity_dict.get(tail_id, None)
 
-        # if head_page is None or tail_page is None:
-        #     return
-        # If no entity_dict, fallback to dummy entity pages
+        # Drop the triple when missing entity pages are not allowed
+        if self.missing_entity_policy == "drop":
+            if head_page is None or tail_page is None:
+                return
+
+        # Create fallback entity pages for missing head/tail entities
         if head_page is None:
             head_page = {
                 "entity_id": head_id,
                 "canonical_name": head_id, # mention name (normalized)
-                "description": "NO DESCRIPTION."
+                "description": self.missing_entity_description,
             }
         if tail_page is None:
             tail_page = {
                 "entity_id": tail_id,
                 "canonical_name": tail_id,
-                "description": "NO DESCRIPTION."
+                "description": self.missing_entity_description,
             }
 
-        # Get types for the head/tail entities
+        # Use the explicit types when the triple provides it.
+        # Otherwise, infer the entity type from the entity page.
         head_type = triple.get("head_type") or self._infer_entity_type(epage=head_page)
         tail_type = triple.get("tail_type") or self._infer_entity_type(epage=tail_page)
 
@@ -155,6 +166,7 @@ class EntityGraphConstructor:
             (head_id, head_page, head_type),
             (tail_id, tail_page, tail_type)
         ]:
+            # Add a new node when the entity is unseen
             if entity_id not in graph:
                 graph.add_node(
                     entity_id,
@@ -164,10 +176,11 @@ class EntityGraphConstructor:
                     description=entity_page["description"],
                     doc_key_list=[doc_key]
                 )
+            # Append provenance when the entity already exists
             else:
                 graph.nodes[entity_id]["doc_key_list"].append(doc_key)
 
-        # Add the relation as an edge
+        # Add a new labeled edge when the relation is unseen for this node pair
         if not graph.has_edge(head_id, tail_id, relation):
             graph.add_edge(
                 head_id,
