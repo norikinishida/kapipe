@@ -59,3 +59,6 @@ bash ./run_ed_retrieval_train_eval.sh
 ```
 
 By default, the script uses BLINK Bi-Encoder (`METHOD=blink_bi_encoder`).
+
+To use MentionNameEntityRetriever (`METHOD=mention_name_entity_retriever`), change `METHOD` in the script to `mention_name_entity_retriever`.
+

@@ -21,9 +21,12 @@ METHOD=llm_docre
 if [ "${METHOD}" == "atlop" ]; then
     CONFIG_PATH=./config/atlop.conf
     CONFIG_NAME=atlop_cdr
+    # CONFIG_NAME=atlop_linked_docred
 elif [ "${METHOD}" == "llm_docre" ]; then
     CONFIG_PATH=./config/llm_docre.conf
-    CONFIG_NAME=llm_docre_cdr
+    # CONFIG_NAME=llm_docre_cdr
+    # CONFIG_NAME=llm_docre_linked_docred
+    CONFIG_NAME=llm_docre_user_defined
 else
     echo "Error: Invalid METHOD specified."
     exit 1

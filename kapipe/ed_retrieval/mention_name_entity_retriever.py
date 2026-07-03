@@ -18,18 +18,21 @@ from .base import BaseEDRetriever
 logger = logging.getLogger(__name__)
 
 
-class DummyEntityRetriever(BaseEDRetriever):
+class MentionNameEntityRetriever(BaseEDRetriever):
 
     def __init__(self) -> None:
-        logger.info("########## DummyEntityRetriever Initialization Starts ##########")
-        logger.info("########## DummyEntityRetriever Initialization Ends ##########")
+        logger.info("########## MentionNameEntityRetriever Initialization Starts ##########")
+        logger.info("########## MentionNameEntityRetriever Initialization Ends ##########")
+
+    def make_index(self) -> None:
+        pass
 
     def search(
         self,
         document: Document,
         retrieval_size: int = 1
     ) -> tuple[Document, CandidateEntitiesForDocument]:
-        """Retrieve candidate entities for each mention in a single document using a dummy retriever."""
+        """Retrieve candidate entities for each mention in a single document."""
 
         # Skip prediction if no mention appears
         if len(document["mentions"]) == 0:
@@ -75,7 +78,7 @@ class DummyEntityRetriever(BaseEDRetriever):
         documents: list[Document],
         retrieval_size: int = 1
     ) -> tuple[list[Document], list[CandidateEntitiesForDocument]]:
-        """Retrieve candidate entities for each mention in a batch of documents using a dummy retriever."""
+        """Retrieve candidate entities for each mention in a batch of documents."""
 
         result_documents: list[Document] = []
         candidate_entities: list[CandidateEntitiesForDocument] = []

@@ -119,9 +119,6 @@ def main(args):
 
     logging.info(f"Applying the QA component to {len(questions)} questions (+ contexts) in {input_questions_path} ({input_contexts_path}) ...")
 
-    # Create the full output path
-    output_questions_path = os.path.join(base_output_path, f"{base_filename}.pred.json")
-
     # Apply the QA component to the questions
     result_questions = []
     for question, contexts_for_q in tqdm(
@@ -135,8 +132,9 @@ def main(args):
         result_questions.append(result_question)
 
     # Save the QA results
+    output_questions_path = os.path.join(base_output_path, f"{base_filename}.pred.json")
     utils.write_json(output_questions_path, result_questions)
-    logging.info(f"Saved the results to {output_questions_path}")
+    logging.info(f"Saved the prediction results to {output_questions_path}")
 
     # Save the prompt-response pairs in plain text
     if "qa_prompt" in result_questions[0] and "qa_generated_text" in result_questions[0]:
@@ -163,10 +161,7 @@ def main(args):
         if gold_questions_path is None:
             raise ValueError("--gold_answers is required when --do_evaluation is set")
 
-        # Create the full evaluation-output path
-        output_evaluation_path = os.path.join(base_output_path, f"{base_filename}.eval.json")
-
-        # Compute evaulation scores
+        # Evaluate the prediction results
         scores = accuracy(
             pred_path=output_questions_path,
             gold_path=gold_questions_path,
@@ -181,6 +176,7 @@ def main(args):
         )
 
         # Save the evaluation result
+        output_evaluation_path = os.path.join(base_output_path, f"{base_filename}.eval.json")
         utils.write_json(output_evaluation_path, scores)
 
         # Log the evaluation result

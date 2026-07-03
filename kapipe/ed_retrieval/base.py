@@ -9,6 +9,10 @@ class BaseEDRetriever(ABC):
     """Base class for entity disambiguation retrieval components."""
 
     @abstractmethod
+    def make_index(self) -> None:
+        """Build the index."""
+ 
+    @abstractmethod
     def search(
         self,
         document: Document,

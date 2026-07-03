@@ -7,7 +7,7 @@ from tqdm import tqdm
 import transformers
 
 from kapipe import utils
-from kapipe.ed_retrieval import BlinkBiEncoder
+from kapipe.ed_retrieval import MentionNameEntityRetriever, BlinkBiEncoder
 from kapipe.utils import StopWatch
 
 
@@ -36,7 +36,7 @@ def main(args):
         prefix = utils.get_current_time()
         args.prefix = prefix
 
-    assert method_name in ["blink_bi_encoder"]
+    assert method_name in ["mention_name_entity_retriever", "blink_bi_encoder"]
 
     ##################
     # Logging Setup
@@ -78,13 +78,18 @@ def main(args):
     # Save the experiment configuration to the output path
     utils.write_json(os.path.join(base_output_path, "config.json"), config)
 
-    # Initialize the ED-Retrieval component
-    retriever = BlinkBiEncoder.from_identifier(
-        identifier=config["identifier"]
-    )
-
-    # Build the ANN index from precomputed entity vectors
-    retriever.make_index(use_precomputed_entity_vectors=True)
+    # Initialize the ED-Retrieval component.
+    # Also build the ANN index from precomputed entity vectors.
+    if method_name == "mention_name_entity_retriever":
+        retriever = MentionNameEntityRetriever()
+        retriever.make_index()
+    elif method_name == "blink_bi_encoder":
+        retriever = BlinkBiEncoder.from_identifier(
+            identifier=config["identifier"]
+        )
+        retriever.make_index(use_precomputed_entity_vectors=True)
+    else:
+        raise ValueError(f"Unknown method: {method_name}")
 
     ##################
     # ED-Retrieval

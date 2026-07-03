@@ -15,10 +15,14 @@ STORAGE_RESULTS=/home/nishida/projects/kapipe/experiments/ed_reranking/results
 ######
 
 # Method
+METHOD=identical_entity_reranker
 # METHOD=blink_cross_encoder
-METHOD=llm_ed
+# METHOD=llm_ed
 
-if [ "${METHOD}" == "blink_cross_encoder" ]; then
+if [ "${METHOD}" == "identical_entity_reranker" ]; then
+    CONFIG_PATH=./config/identical_entity_reranker.conf
+    CONFIG_NAME=default
+elif [ "${METHOD}" == "blink_cross_encoder" ]; then
     CONFIG_PATH=./config/blink_cross_encoder.conf
     CONFIG_NAME=blink_cross_encoder_cdr
 elif [ "${METHOD}" == "llm_ed" ]; then

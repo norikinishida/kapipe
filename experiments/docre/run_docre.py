@@ -98,10 +98,37 @@ def main(args):
         else:
             raise ValueError(f"Unknown LLM provider: {config['llm_provider']}")
         logging.info("Initialized the LLM model: %s" % repr(model))
-        extractor = LLMDocRE.from_identifier(
-            model=model,
-            identifier=config["identifier"]
-        )
+
+        if "identifier" in config: 
+            # Load the component from the public snapshot via the identifier
+            extractor = LLMDocRE.from_identifier(
+                model=model,
+                identifier=config["identifier"]
+            )
+        else:
+            # Load the user-defined schema
+            possible_head_entity_types = config["possible_head_entity_types"]
+            possible_tail_entity_types = config["possible_tail_entity_types"]
+            vocab_relation: dict[str, int] = {
+                rel: rel_i
+                for rel_i, rel in enumerate(config["relations"])
+            }
+            rel_meta_info: dict[str, dict[str, str]] = config["rel_meta_info"]
+            entity_dict_path = config.get("entity_dict_path", None)
+
+            # Initialize the component based on the user-defined schema
+            extractor = LLMDocRE(
+                model=model,
+                prompt_template_name_or_path=config["prompt_template_name_or_path"],
+                knowledge_base_name=config["knowledge_base_name"],
+                mention_style=config["mention_style"],
+                with_span_annotation=config["with_span_annotation"],
+                possible_head_entity_types=possible_head_entity_types,
+                possible_tail_entity_types=possible_tail_entity_types,
+                vocab_relation=vocab_relation,
+                rel_meta_info=rel_meta_info,
+                entity_dict_path=entity_dict_path,
+            )
     else:
         raise ValueError(f"Unknown method: {method_name}")
 

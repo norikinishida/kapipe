@@ -69,6 +69,10 @@ class LLMDocRE(BaseDocRE):
             snapshot_path + "/demonstration_documents.json"
         )
 
+        # Use the entity dictionary only when the snapshot provides it
+        if not os.path.exists(entity_dict_path):
+            entity_dict_path = None
+
         # Set the demonstration documents to None if the file does not exist
         if not os.path.exists(demonstration_documents_path):
             demonstration_documents_path = None
@@ -109,8 +113,8 @@ class LLMDocRE(BaseDocRE):
         possible_tail_entity_types: list[str] | None,
         vocab_relation: dict[str, int] | str,
         rel_meta_info: dict[str, dict[str, str]] | str,
-        entity_dict_path: str,
         # Optional (Internal)
+        entity_dict_path: str | None = None,
         demonstration_documents: list[Document] | str | None = None,
         # Optional
         **unused_kwargs: object,
@@ -144,17 +148,26 @@ class LLMDocRE(BaseDocRE):
             logger.info(f"Loaded relation meta-information from {meta_path}")
         self.rel_meta_info = rel_meta_info
 
-        # Load the entity dictionary
-        logger.info(f"Loading entity dictionary from {entity_dict_path}")
-        self.entity_dict = {
-            epage["entity_id"]: epage
-            for epage in utils.read_json(entity_dict_path)
-        }
-        logger.info(
-            "Completed loading of entity dictionary with "
-            f"{len(self.entity_dict)} entities "
-            f"from {entity_dict_path}"
-        )
+        # Require entity dictionary only when canonical entity names are used
+        if self.mention_style == "canonical_name" and entity_dict_path is None:
+            raise ValueError(
+                "entity_dict_path is required when mention_style is canonical_name"
+            )
+
+        # Load the entity dictionary only when it is provided
+        if entity_dict_path is not None:
+            logger.info(f"Loading entity dictionary from {entity_dict_path}")
+            self.entity_dict = {
+                epage["entity_id"]: epage
+                for epage in utils.read_json(entity_dict_path)
+            }
+            logger.info(
+                "Completed loading of entity dictionary with "
+                f"{len(self.entity_dict)} entities "
+                f"from {entity_dict_path}"
+            )
+        else:
+            self.entity_dict = None
 
         # Load the demonstration documents
         if isinstance(demonstration_documents, str):
@@ -220,7 +233,8 @@ class LLMDocRE(BaseDocRE):
         utils.write_json(component_config_path, component_config)
         utils.write_vocab(vocab_path, self.vocab_relation, write_frequency=False)
         utils.write_json(meta_info_path, self.rel_meta_info)
-        utils.write_json(entity_dict_path, list(self.entity_dict.values()))
+        if self.entity_dict is not None:
+            utils.write_json(entity_dict_path, list(self.entity_dict.values()))
         utils.write_json(demonstration_documents_path, self.demonstration_documents)
 
     def extract(
@@ -381,9 +395,9 @@ class PromptProcessor:
         knowledge_base_name_prompt: str,
         vocab_relation: dict[str, int],
         rel_meta_info: dict[str, dict[str, str]],
-        entity_dict: dict[str, EntityPage],
         mention_style: str,
-        # misc.
+        # Optional
+        entity_dict: dict[str, EntityPage] | None = None,
         with_span_annotation: bool = True
     ) -> None:
 

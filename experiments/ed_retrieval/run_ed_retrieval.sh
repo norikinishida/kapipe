@@ -15,9 +15,20 @@ STORAGE_RESULTS=/home/nishida/projects/kapipe/experiments/ed_retrieval/results
 ######
 
 # Method
-METHOD=blink_bi_encoder
-CONFIG_PATH=./config/blink_bi_encoder.conf
-CONFIG_NAME=blink_bi_encoder_cdr
+METHOD=mention_name_entity_retriever
+# METHOD=blink_bi_encoder
+
+if [ "${METHOD}" == "mention_name_entity_retriever" ]; then
+    CONFIG_PATH=./config/mention_name_entity_retriever.conf
+    CONFIG_NAME=default
+elif [ "${METHOD}" == "blink_bi_encoder" ]; then
+    CONFIG_PATH=./config/blink_bi_encoder.conf
+    CONFIG_NAME=blink_bi_encoder_cdr
+    # CONFIG_NAME=blink_bi_encoder_linked_docred
+else
+    echo "Error: Invalid METHOD specified."
+    exit 1
+fi
 
 # Input Data
 DOCUMENTS=${STORAGE_DATA}/examples/documents.ner.json

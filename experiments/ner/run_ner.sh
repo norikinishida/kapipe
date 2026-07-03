@@ -21,9 +21,12 @@ METHOD=llm_ner
 if [ "${METHOD}" == "biaffine_ner" ]; then
     CONFIG_PATH=./config/biaffine_ner.conf
     CONFIG_NAME=biaffine_ner_cdr
+    # CONFIG_NAME=biaffine_ner_linked_docred
 elif [ "${METHOD}" == "llm_ner" ]; then
     CONFIG_PATH=./config/llm_ner.conf
     CONFIG_NAME=llm_ner_cdr
+    # CONFIG_NAME=llm_ner_linked_docred
+    # CONFIG_NAME=llm_ner_user_defined
 else
     echo "Error: Invalid METHOD specified."
     exit 1

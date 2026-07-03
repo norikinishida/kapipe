@@ -8,7 +8,7 @@ from tqdm import tqdm
 import transformers
 
 from kapipe import utils
-from kapipe.ed_reranking import BlinkCrossEncoder, LLMED
+from kapipe.ed_reranking import IdenticalEntityReranker, BlinkCrossEncoder, LLMED
 from kapipe.llms import HuggingFaceLLM, OpenAILLM
 from kapipe.utils import StopWatch
 
@@ -88,7 +88,9 @@ def main(args):
     utils.write_json(os.path.join(base_output_path, "config.json"), config)
 
     # Initialize the ED-Reranking component
-    if method_name == "blink_cross_encoder":
+    if method_name == "identical_entity_reranker":
+        reranker = IdenticalEntityReranker()
+    elif method_name == "blink_cross_encoder":
         reranker = BlinkCrossEncoder.from_identifier(
             identifier=config["identifier"]
         )

@@ -1,6 +1,6 @@
-# ner
+# EXPERIMENT_NAME
 
-This directory contains example experiments for Named Entity Recognition (NER).
+This directory contains example experiments for EXPERIMENT_NAME.
 
 ## Step 1. Installation
 
@@ -14,7 +14,7 @@ pyenv install 3.11.14
 pyenv virtualenv 3.11.14 <your-favorite-env-name>
 
 # 2. Activate the Python environment in this directory
-cd experiments/ner
+cd experiments/EXPERIMENT_NAME
 pyenv local <your-favorite-env-name>
 
 # 3. Install the KAPipe library
@@ -33,37 +33,25 @@ python -m pip install -r requirements.txt
 This directory already includes example data.
 
 ```bash
-experiments/ner/data/examples/documents.json
-experiments/ner/data/examples/documents_with_supervision.json
+experiments/EXPERIMENT_NAME/data/examples/SOMETHING
 ```
 
 ### Benchmark datasets
 
-You can also prepare benchmark datasets (e.g., CDR, Linked-DocRED) with the scripts in `experiments/datasets/ner`.
+You can also prepare benchmark datasets with the scripts in `TBA`. 
 
 ## Step 3. Running the experiments
 
-First, check `STORAGE_DATA` and `STORAGE_RESULTS` in each execution script and adjust them to your environment.
+First, check `STORAGE_DATA` and `STORAGE_RESULTS` in the execution script and adjust them to your environment.
 
-To apply an off-the-shelf NER component to documents, run:
-
-```bash
-bash ./run_ner.sh
-```
-
-To train or evaluate an NER component, run:
+Then run:
 
 ```bash
-bash ./run_ner_train_eval.sh
+bash ./run_experiment.sh
 ```
 
-By default, both scripts use the LLM-NER method (`METHOD=llm_ner`).
+By default, the script uses METHOD_NAME_A (`METHOD=METHOD_NAME_A`).
 
-To use Biaffine-NER (`METHOD=biaffine_ner`), change `METHOD` in each script to `biaffine_ner`.
+To use METHOD_NAME_B (`METHOD=METHOD_NAME_B`), change `METHOD` in the script to `METHOD_NAME_B`.
 
 If you use the OpenAI API, set your API key in advance.
-
-```bash
-export OPENAI_API_KEY=<your-openai-api-key>
-```
-

@@ -6,7 +6,7 @@ __all__ = [
     "BaseEDRetriever",
     "BlinkBiEncoder",
     "BlinkBiEncoderTrainer",
-    "DummyEntityRetriever",
+    "MentionNameEntityRetriever",
 ]
 
 
@@ -14,7 +14,7 @@ _NAME_TO_MODULE = {
     "BaseEDRetriever": "base",
     "BlinkBiEncoder": "blink_bi_encoder",
     "BlinkBiEncoderTrainer": "blink_bi_encoder",
-    "DummyEntityRetriever": "dummy_entity_retriever",
+    "MentionNameEntityRetriever": "mention_name_entity_retriever",
 }
 
 

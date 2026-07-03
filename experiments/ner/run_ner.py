@@ -83,6 +83,7 @@ def main(args):
             identifier=config["identifier"]
         )
     elif method_name == "llm_ner":
+        # Initialize the LLM
         if config["llm_provider"] == "openai":
             model = OpenAILLM(
                 model_name=config["llm_model_name"],
@@ -97,10 +98,28 @@ def main(args):
         else:
             raise ValueError(f"Unknown LLM provider: {config['llm_provider']}")
         logging.info("Initialized the LLM model: %s" % repr(model))
-        extractor = LLMNER.from_identifier(
-            model=model,
-            identifier=config["identifier"]
-        )
+
+        if "identifier" in config:
+            # Load the component from the public snapshot via the identifier
+            extractor = LLMNER.from_identifier(
+                model=model,
+                identifier=config["identifier"]
+            )
+        else:
+            # Load the user-defined schema
+            vocab_etype: dict[str, int] = {
+                etype: etype_i
+                for etype_i, etype in enumerate(config["entity_types"])
+            }
+            etype_meta_info: dict[str, dict[str, str]] = config["etype_meta_info"]
+
+            # Initialize the component based on the user-defined schema
+            extractor = LLMNER(
+                model=model,
+                prompt_template_name_or_path=config["prompt_template_name_or_path"],
+                vocab_etype=vocab_etype,
+                etype_meta_info=etype_meta_info,
+            )
     else:
         raise ValueError(f"Unknown method: {method_name}")
 
