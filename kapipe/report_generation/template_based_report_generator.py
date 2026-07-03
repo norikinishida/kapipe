@@ -8,12 +8,13 @@ from ..datatypes import (
     CommunityRecord,
     Passage
 )
+from .base import BaseReportGenerator
 
 
 logger = logging.getLogger(__name__)
 
 
-class TemplateBasedReportGenerator:
+class TemplateBasedReportGenerator(BaseReportGenerator):
     
     def __init__(
         self,
