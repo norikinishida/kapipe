@@ -68,3 +68,9 @@ zip-safe = false
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["kapipe*"]
+exclude = [
+  "kapipe._legacy",
+  "kapipe._legacy.*",
+  "kapipe.*._legacy",
+  "kapipe.*._legacy.*"
+]
