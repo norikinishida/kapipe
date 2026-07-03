@@ -16,7 +16,7 @@ KAPipe decomposes knowledge acquisition into four main stages:
 3. **Retrieval**: retrieving relevant knowledge for a given query or task.
 4. **Utilization**: using retrieved structured knowledge for downstream tasks such as question answering.
 
-![An overview of knowledge acquisition system](./images/inverviews_figure008.png)
+![An overview of knowledge acquisition system](./images/interviews_figure008.png)
 
 KAPipe is used in the following papers:
 
