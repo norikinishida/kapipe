@@ -8,7 +8,10 @@ from torch.optim import Optimizer, Adam, AdamW
 
 def get_optimizer(
     model: Any,
-    config: dict[str, Any],
+    bert_learning_rate: float,
+    task_learning_rate: float,
+    adam_weight_decay: float,
+    adam_eps: float,
 ) -> list[Optimizer]:
     """Return a list of optimizers for the model parameters, separating BERT and task-specific parameters."""
 
@@ -27,8 +30,8 @@ def get_optimizer(
                 for n, p in bert_param
                 if not any(nd in n for nd in no_decay)
             ],
-            "lr": config["bert_learning_rate"],
-            "weight_decay": config["adam_weight_decay"],
+            "lr": bert_learning_rate,
+            "weight_decay": adam_weight_decay,
         },
         # Parameters excluded from weight decay
         {
@@ -37,7 +40,7 @@ def get_optimizer(
                 for n, p in bert_param
                 if any(nd in n for nd in no_decay)
             ],
-            "lr": config["bert_learning_rate"],
+            "lr": bert_learning_rate,
             "weight_decay": 0.0,
         }
     ]
@@ -47,14 +50,14 @@ def get_optimizer(
         # AdamW optimizer for BERT parameters
         AdamW(
             grouped_bert_param,
-            lr=config["bert_learning_rate"],
-            eps=config["adam_eps"]
+            lr=bert_learning_rate,
+            eps=adam_eps
         ),
         # Adam optimizer for task parameters
         Adam(
             model.get_params()[1],
-            lr=config["task_learning_rate"],
-            eps=config["adam_eps"],
+            lr=task_learning_rate,
+            eps=adam_eps,
             weight_decay=0
         )
     ]
@@ -64,7 +67,9 @@ def get_optimizer(
 
 def get_optimizer2(
     model: Any,
-    config: dict[str, Any],
+    bert_learning_rate: float,
+    task_learning_rate: float,
+    adam_eps: float,
 ) -> Optimizer:
     """Return a single optimizer for the model parameters, with separate learning rates for BERT and task-specific parameters."""
 
@@ -80,15 +85,15 @@ def get_optimizer2(
         # Use the task-specific learning rate for task parameters
         {
             "params": task_param,
-            "lr": config["task_learning_rate"]
+            "lr": task_learning_rate
         },
     ]
 
     # Create one AdamW optimizer for both parameter groups
     optimizer = AdamW(
         grouped_param,
-        lr=config["bert_learning_rate"],
-        eps=config["adam_eps"]
+        lr=bert_learning_rate,
+        eps=adam_eps
     )
 
     return optimizer

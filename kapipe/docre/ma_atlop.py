@@ -20,7 +20,7 @@ import jsonlines
 
 from .. import evaluation
 from .. import utils
-from ..datatypes import Config, Document, Triple
+from ..datatypes import Document, Triple
 from ..nn_utils import (
     AdaptiveThresholdingLoss,
     get_optimizer2,
@@ -72,15 +72,22 @@ class MAATLOP:
 
         # Define the default paths for the resources in the snapshot
         model_path = snapshot_path + "/model.pt"
-        config_path = snapshot_path + "/config.json"
+        component_config_path = snapshot_path + "/component_config.json"
         vocab_path = snapshot_path + "/relations.vocab.txt"
         entity_dict_path = snapshot_path + "/entity_dict.json"
 
+        # Load the component configuration
+        component_config: dict[str, Any] = utils.read_json(component_config_path)
+        logger.info(f"Loaded component configuration from {component_config_path}")
+        logger.info(utils.pretty_format_dict(component_config))
+
         # Initialize the extractor from explicit snapshot resources
         extractor = cls(
-            config=config_path,
+            # Internal
+            **component_config,
             vocab_relation=vocab_path,
             entity_dict_path=entity_dict_path,
+            # Optional
             device=device,
         )
 
@@ -102,21 +109,41 @@ class MAATLOP:
     def __init__(
         self,
         # Internal
-        config: Config | str,
+        model_name: str,
+        bert_pretrained_model_name_or_path: str,
+        max_seg_len: int,
+        entity_seq_length: int,
+        bilinear_block_size: int,
+        use_localized_context_pooling: bool,
+        possible_head_entity_types: list[str] | None,
+        possible_tail_entity_types: list[str] | None,
+        top_k_labels: int,
+        #
+        use_mention_as_canonical_name: bool,
+        do_negative_entity_sampling: bool,
+        negative_entity_ratio: float | None,
+        #
         vocab_relation: dict[str, int] | str,
         entity_dict_path: str,
         # Optional
         device: str = "cuda",
+        **unused_kwargs: object,
     ):
         logger.info("########## MAATLOP Initialization Starts ##########")
 
-        # Load the configuration
-        if isinstance(config, str):
-            config_path = config
-            config = utils.read_json(config_path)
-            logger.info(f"Loaded configuration from {config_path}")
-        self.config = config
-        logger.info(utils.pretty_format_dict(self.config))
+        self.model_name = model_name
+        self.bert_pretrained_model_name_or_path = bert_pretrained_model_name_or_path
+        self.max_seg_len = max_seg_len
+        self.entity_seq_length = entity_seq_length
+        self.bilinear_block_size = bilinear_block_size
+        self.use_localized_context_pooling = use_localized_context_pooling
+        self.possible_head_entity_types = possible_head_entity_types
+        self.possible_tail_entity_types = possible_tail_entity_types
+        self.top_k_labels = top_k_labels
+
+        self.use_mention_as_canonical_name = use_mention_as_canonical_name
+        self.do_negative_entity_sampling = do_negative_entity_sampling
+        self.negative_entity_ratio = negative_entity_ratio
 
         # Load the relation vocabulary
         if isinstance(vocab_relation, str):
@@ -144,26 +171,24 @@ class MAATLOP:
         self.kb_entity_ids = list(self.entity_dict.keys())
 
         # Initialize the model
-        self.model_name = self.config["model_name"]
-        self.top_k_labels = self.config["top_k_labels"]
         if self.model_name == "ma_atlop_model":
             self.model = MAATLOPModel(
                 bert_pretrained_model_name_or_path=(
-                    self.config["bert_pretrained_model_name_or_path"]
+                    self.bert_pretrained_model_name_or_path
                 ),
-                max_seg_len=self.config["max_seg_len"],
+                max_seg_len=self.max_seg_len,
                 entity_dict=self.entity_dict,
-                entity_seq_length=self.config["entity_seq_length"],
+                entity_seq_length=self.entity_seq_length,
                 use_localized_context_pooling=(
-                    self.config["use_localized_context_pooling"]
+                    self.use_localized_context_pooling
                 ),
-                bilinear_block_size=self.config["bilinear_block_size"],
-                use_entity_loss=self.config["do_negative_entity_sampling"],
+                bilinear_block_size=self.bilinear_block_size,
+                use_entity_loss=self.do_negative_entity_sampling,
                 vocab_relation=self.vocab_relation,
-                possible_head_entity_types=self.config["possible_head_entity_types"],
-                possible_tail_entity_types=self.config["possible_tail_entity_types"],
+                possible_head_entity_types=self.possible_head_entity_types,
+                possible_tail_entity_types=self.possible_tail_entity_types,
                 use_mention_as_canonical_name=(
-                    self.config["use_mention_as_canonical_name"]
+                    self.use_mention_as_canonical_name
                 ),
                 device=device,
             )
@@ -203,19 +228,36 @@ class MAATLOP:
         """Save the model parameters, configuration, relation vocabulary, and entity dictionary."""
 
         model_path = snapshot_path + "/model.pt"
-        config_path = snapshot_path + "/config.json"
+        component_config_path = snapshot_path + "/component_config.json"
         vocab_path = snapshot_path + "/relations.vocab.txt"
         entity_dict_path = snapshot_path + "/entity_dict.json"
 
+        component_config: dict[str, Any] = {
+            "model_name": self.model_name,
+            "bert_pretrained_model_name_or_path": (
+                self.bert_pretrained_model_name_or_path
+            ),
+            "max_seg_len": self.max_seg_len,
+            "entity_seq_length": self.entity_seq_length,
+            "bilinear_block_size": self.bilinear_block_size,
+            "use_localized_context_pooling": self.use_localized_context_pooling,
+            "possible_head_entity_types": self.possible_head_entity_types,
+            "possible_tail_entity_types": self.possible_tail_entity_types,
+            "top_k_labels": self.top_k_labels,
+            "use_mention_as_canonical_name": self.use_mention_as_canonical_name,
+            "do_negative_entity_sampling": self.do_negative_entity_sampling,
+            "negative_entity_ratio": self.negative_entity_ratio,
+        }
+ 
         torch.save(self.model.state_dict(), model_path)
         if not model_only:
-            utils.write_json(config_path, self.config)
+            utils.write_json(component_config_path, component_config)
             utils.write_vocab(
                 vocab_path,
                 self.vocab_relation,
                 write_frequency=False
             )
-            utils.write_json(entity_dict_path, self.entity_dict)
+            utils.write_json(entity_dict_path, list(self.entity_dict.values()))
 
     def compute_loss(self, document: Document) -> (
         tuple[torch.Tensor, torch.Tensor, int, int, torch.Tensor, int]
@@ -225,11 +267,11 @@ class MAATLOP:
         self.model.train()
 
         # Perform negative entity sampling if enabled
-        if self.config["do_negative_entity_sampling"]:
+        if self.do_negative_entity_sampling:
             document = self.sample_negative_entities_randomly(
                 document=document,
                 sample_size=round(
-                    len(document["entities"]) * self.config["negative_entity_ratio"]
+                    len(document["entities"]) * self.negative_entity_ratio
                 )
             )
 
@@ -245,7 +287,7 @@ class MAATLOP:
         # Forward pass through the model
         model_output = self.model.forward(**model_input)
 
-        if self.config["do_negative_entity_sampling"]:
+        if self.do_negative_entity_sampling:
             return (
                 model_output.pair_loss,
                 model_output.pair_acc,
@@ -543,7 +585,21 @@ class MAATLOPTrainer:
         extractor: MAATLOP,
         train_documents: list[Document],
         dev_documents: list[Document],
-        supplemental_info: dict[str, Any]
+        supplemental_info: dict[str, Any],
+        #
+        max_epoch: int,
+        batch_size: int,
+        gradient_accumulation_steps: int,
+        warmup_ratio: float,
+        bert_learning_rate: float,
+        task_learning_rate: float,
+        adam_eps: float,
+        max_grad_norm: float,
+        n_steps_for_monitoring: int,
+        n_steps_for_validation: int,
+        max_patience: int,
+        use_official_evaluation: bool = False,
+        **unused_kwargs: object,
     ) -> None:
         ##################
         # Setup
@@ -552,11 +608,8 @@ class MAATLOPTrainer:
         train_doc_indices = np.arange(len(train_documents))
 
         n_train = len(train_doc_indices)
-        max_epoch = extractor.config["max_epoch"]
-        batch_size = extractor.config["batch_size"]
-        gradient_accumulation_steps = extractor.config["gradient_accumulation_steps"]
         total_update_steps = n_train * max_epoch // (batch_size * gradient_accumulation_steps)
-        warmup_steps = int(total_update_steps * extractor.config["warmup_ratio"])
+        warmup_steps = int(total_update_steps * warmup_ratio)
 
         logger.info("Number of training documents: %d" % n_train)
         logger.info("Number of epochs: %d" % max_epoch)
@@ -567,7 +620,9 @@ class MAATLOPTrainer:
 
         optimizer = get_optimizer2(
             model=extractor.model,
-            config=extractor.config
+            bert_learning_rate=bert_learning_rate,
+            task_learning_rate=task_learning_rate,
+            adam_eps=adam_eps,
         )
         scheduler = get_scheduler2(
             optimizer=optimizer,
@@ -592,7 +647,7 @@ class MAATLOPTrainer:
         ##################
 
         # Evaluate the extractor
-        if extractor.config["use_official_evaluation"]:
+        if use_official_evaluation:
             scores = self.official_evaluate(
                 extractor=extractor,
                 documents=dev_documents,
@@ -669,7 +724,7 @@ class MAATLOPTrainer:
                     extractor_output = extractor.compute_loss(
                         document=train_documents[doc_i]
                     )
-                    if extractor.config["do_negative_entity_sampling"]:
+                    if extractor.do_negative_entity_sampling:
                         (
                             one_loss,
                             one_acc,
@@ -692,7 +747,7 @@ class MAATLOPTrainer:
                     actual_batchsize += 1
                     actual_total_pairs += n_valid_pairs
                     actual_total_triples += n_valid_triples
-                    if extractor.config["do_negative_entity_sampling"]:
+                    if extractor.do_negative_entity_sampling:
                         batch_entity_loss = batch_entity_loss + one_entity_loss
                         actual_total_entities += n_entities
 
@@ -702,7 +757,7 @@ class MAATLOPTrainer:
                 actual_total_triples = float(actual_total_triples)
                 batch_loss = batch_loss / actual_total_pairs # loss per pair
                 batch_acc = batch_acc / actual_total_triples
-                if extractor.config["do_negative_entity_sampling"]:
+                if extractor.do_negative_entity_sampling:
                     actual_total_entities = float(actual_total_entities)
                     batch_entity_loss = batch_entity_loss / actual_total_entities # loss per entity
 
@@ -726,14 +781,14 @@ class MAATLOPTrainer:
                     # Update
                     ##################
 
-                    if extractor.config["max_grad_norm"] > 0:
+                    if max_grad_norm > 0:
                         torch.nn.utils.clip_grad_norm_(
                             bert_param,
-                            extractor.config["max_grad_norm"]
+                            max_grad_norm,
                         )
                         torch.nn.utils.clip_grad_norm_(
                             task_param,
-                            extractor.config["max_grad_norm"]
+                            max_grad_norm,
                         )
 
                     optimizer.step()
@@ -751,7 +806,7 @@ class MAATLOPTrainer:
                     (
                         (batch_i % gradient_accumulation_steps == 0)
                         and
-                        (step % extractor.config["n_steps_for_monitoring"] == 0)
+                        (step % n_steps_for_monitoring == 0)
                     )
                 ):
 
@@ -783,9 +838,9 @@ class MAATLOPTrainer:
                     (
                         (batch_i % gradient_accumulation_steps == 0)
                         and
-                        (extractor.config["n_steps_for_validation"] > 0)
+                        (n_steps_for_validation > 0)
                         and
-                        (step % extractor.config["n_steps_for_validation"] == 0)
+                        (step % n_steps_for_validation == 0)
                     )
                 ):
 
@@ -794,7 +849,7 @@ class MAATLOPTrainer:
                     ##################
 
                     # Evaluate the extractor
-                    if extractor.config["use_official_evaluation"]:
+                    if use_official_evaluation:
                         scores = self.official_evaluate(
                             extractor=extractor,
                             documents=dev_documents,
@@ -837,10 +892,7 @@ class MAATLOPTrainer:
                     # Termination Check
                     ##################
 
-                    if (
-                        bestscore_holder.patience
-                        >= extractor.config["max_patience"]
-                    ):
+                    if bestscore_holder.patience >= max_patience:
                         writer_train.close()
                         writer_dev.close()
                         progress_bar.close()

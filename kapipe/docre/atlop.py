@@ -21,7 +21,7 @@ import jsonlines
 
 from .. import evaluation
 from .. import utils
-from ..datatypes import Config, Document, Triple
+from ..datatypes import Document, Triple
 from ..nn_utils import (
     AdaptiveThresholdingLoss,
     get_optimizer2,
@@ -73,13 +73,20 @@ class ATLOP:
 
         # Define the default paths for the resources in the snapshot
         model_path = snapshot_path + "/model.pt"
-        config_path = snapshot_path + "/config.json"
+        component_config_path = snapshot_path + "/component_config.json"
         vocab_path = snapshot_path + "/relations.vocab.txt"
+
+        # Load the component configuration
+        component_config: dict[str, Any] = utils.read_json(component_config_path)
+        logger.info(f"Loaded component configuration from {component_config_path}")
+        logger.info(utils.pretty_format_dict(component_config))
 
         # Initialize the extractor from explicit snapshot resources
         extractor = cls(
-            config=config_path,
+            # Internal
+            **component_config,
             vocab_relation=vocab_path,
+            # Optional
             device=device,
         )
 
@@ -101,20 +108,35 @@ class ATLOP:
     def __init__(
         self,
         # Internal
-        config: Config | str,
+        model_name: str,
+        bert_pretrained_model_name_or_path: str,
+        max_seg_len: int,
+        token_embedding_method: str,
+        entity_pooling_method: str,
+        use_localized_context_pooling: bool,
+        bilinear_block_size: int,
+        loss_function_name: str,
+        possible_head_entity_types: list[str] | None,
+        possible_tail_entity_types: list[str] | None,
+        top_k_labels: int,
         vocab_relation: dict[str, int] | str,
         # Optional
         device: str = "cuda",
+        **unused_kwargs: object,
     ):
         logger.info("########## ATLOP Initialization Starts ##########")
 
-        # Load the configuration
-        if isinstance(config, str):
-            config_path = config
-            config = utils.read_json(config_path)
-            logger.info(f"Loaded configuration from {config_path}")
-        self.config = config
-        logger.info(utils.pretty_format_dict(self.config))
+        self.model_name = model_name
+        self.bert_pretrained_model_name_or_path = bert_pretrained_model_name_or_path
+        self.max_seg_len = max_seg_len
+        self.token_embedding_method = token_embedding_method
+        self.entity_pooling_method = entity_pooling_method
+        self.use_localized_context_pooling = use_localized_context_pooling
+        self.bilinear_block_size = bilinear_block_size
+        self.loss_function_name = loss_function_name
+        self.possible_head_entity_types = possible_head_entity_types
+        self.possible_tail_entity_types = possible_tail_entity_types
+        self.top_k_labels = top_k_labels
 
         # Load the relation vocabulary
         if isinstance(vocab_relation, str):
@@ -128,24 +150,22 @@ class ATLOP:
         }
 
         # Initialize the model
-        self.model_name = self.config["model_name"]
-        self.top_k_labels = self.config["top_k_labels"]
         if self.model_name == "atlop_model":
             self.model = ATLOPModel(
                 bert_pretrained_model_name_or_path=(
-                    self.config["bert_pretrained_model_name_or_path"]
+                    self.bert_pretrained_model_name_or_path
                 ),
-                max_seg_len=self.config["max_seg_len"],
-                token_embedding_method=self.config["token_embedding_method"],
-                entity_pooling_method=self.config["entity_pooling_method"],
+                max_seg_len=self.max_seg_len,
+                token_embedding_method=self.token_embedding_method,
+                entity_pooling_method=self.entity_pooling_method,
                 use_localized_context_pooling=(
-                    self.config["use_localized_context_pooling"]
+                    self.use_localized_context_pooling
                 ),
-                bilinear_block_size=self.config["bilinear_block_size"],
+                bilinear_block_size=self.bilinear_block_size,
                 vocab_relation=self.vocab_relation,
-                loss_function_name=self.config["loss_function"],
-                possible_head_entity_types=self.config["possible_head_entity_types"],
-                possible_tail_entity_types=self.config["possible_tail_entity_types"],
+                loss_function_name=self.loss_function_name,
+                possible_head_entity_types=self.possible_head_entity_types,
+                possible_tail_entity_types=self.possible_tail_entity_types,
                 device=device,
             )
         else:
@@ -160,12 +180,30 @@ class ATLOP:
         """Save the model, configuration, and relation vocabulary."""
 
         model_path = snapshot_path + "/model.pt"
-        config_path = snapshot_path + "/config.json"
+        component_config_path = snapshot_path + "/component_config.json"
         vocab_path = snapshot_path + "/relations.vocab.txt"
+
+        component_config: dict[str, Any] = {
+            "model_name": self.model_name,
+            "bert_pretrained_model_name_or_path": (
+                self.bert_pretrained_model_name_or_path
+            ),
+            "max_seg_len": self.max_seg_len,
+            "token_embedding_method": self.token_embedding_method,
+            "entity_pooling_method": self.entity_pooling_method,
+            "use_localized_context_pooling": (
+                self.use_localized_context_pooling
+            ),
+            "bilinear_block_size": self.bilinear_block_size,
+            "loss_function_name": self.loss_function_name,
+            "possible_head_entity_types": self.possible_head_entity_types,
+            "possible_tail_entity_types": self.possible_tail_entity_types,
+            "top_k_labels": self.top_k_labels,
+        }
 
         torch.save(self.model.state_dict(), model_path)
         if not model_only:
-            utils.write_json(config_path, self.config)
+            utils.write_json(component_config_path, component_config)
             utils.write_vocab(
                 vocab_path,
                 self.vocab_relation,
@@ -393,7 +431,21 @@ class ATLOPTrainer:
         extractor: ATLOP,
         train_documents: list[Document],
         dev_documents: list[Document],
-        supplemental_info: dict[str, Any]
+        supplemental_info: dict[str, Any],
+        #
+        max_epoch: int,
+        batch_size: int,
+        gradient_accumulation_steps: int,
+        warmup_ratio: float,
+        bert_learning_rate: float,
+        task_learning_rate: float,
+        adam_eps: float,
+        max_grad_norm: float,
+        n_steps_for_monitoring: int,
+        n_steps_for_validation: int,
+        max_patience: int,
+        use_official_evaluation: bool = False,
+        **unused_kwargs: object,
     ) -> None:
         ##################
         # Setup
@@ -402,11 +454,8 @@ class ATLOPTrainer:
         train_doc_indices = np.arange(len(train_documents))
 
         n_train = len(train_doc_indices)
-        max_epoch = extractor.config["max_epoch"]
-        batch_size = extractor.config["batch_size"]
-        gradient_accumulation_steps = extractor.config["gradient_accumulation_steps"]
         total_update_steps = n_train * max_epoch // (batch_size * gradient_accumulation_steps)
-        warmup_steps = int(total_update_steps * extractor.config["warmup_ratio"])
+        warmup_steps = int(total_update_steps * warmup_ratio)
 
         logger.info("Number of training documents: %d" % n_train)
         logger.info("Number of epochs: %d" % max_epoch)
@@ -417,12 +466,14 @@ class ATLOPTrainer:
 
         optimizer = get_optimizer2(
             model=extractor.model,
-            config=extractor.config
+            bert_learning_rate=bert_learning_rate,
+            task_learning_rate=task_learning_rate,
+            adam_eps=adam_eps,
         )
         scheduler = get_scheduler2(
             optimizer=optimizer,
             total_update_steps=total_update_steps,
-            warmup_steps=warmup_steps
+            warmup_steps=warmup_steps,
         )
 
         writer_train = jsonlines.Writer(
@@ -442,7 +493,7 @@ class ATLOPTrainer:
         ##################
 
         # Evaluate the extractor
-        if extractor.config["use_official_evaluation"]:
+        if use_official_evaluation:
             scores = self.official_evaluate(
                 extractor=extractor,
                 documents=dev_documents,
@@ -553,14 +604,14 @@ class ATLOPTrainer:
                     # Update
                     ##################
 
-                    if extractor.config["max_grad_norm"] > 0:
+                    if max_grad_norm > 0:
                         torch.nn.utils.clip_grad_norm_(
                             bert_param,
-                            extractor.config["max_grad_norm"]
+                            max_grad_norm,
                         )
                         torch.nn.utils.clip_grad_norm_(
                             task_param,
-                            extractor.config["max_grad_norm"]
+                            max_grad_norm,
                         )
 
                     optimizer.step()
@@ -578,7 +629,7 @@ class ATLOPTrainer:
                     (
                         (batch_i % gradient_accumulation_steps == 0)
                         and
-                        (step % extractor.config["n_steps_for_monitoring"] == 0)
+                        (step % n_steps_for_monitoring == 0)
                     )
                 ):
 
@@ -610,9 +661,9 @@ class ATLOPTrainer:
                     (
                         (batch_i % gradient_accumulation_steps == 0)
                         and
-                        (extractor.config["n_steps_for_validation"] > 0)
+                        (n_steps_for_validation > 0)
                         and
-                        (step % extractor.config["n_steps_for_validation"] == 0)
+                        (step % n_steps_for_validation == 0)
                     )
                 ):
                     ##################
@@ -620,7 +671,7 @@ class ATLOPTrainer:
                     ##################
 
                     # Evaluate the extractor
-                    if extractor.config["use_official_evaluation"]:
+                    if use_official_evaluation:
                         scores = self.official_evaluate(
                             extractor=extractor,
                             documents=dev_documents,
@@ -663,7 +714,7 @@ class ATLOPTrainer:
                     # Termination Check
                     ##################
 
-                    if bestscore_holder.patience >= extractor.config["max_patience"]:
+                    if bestscore_holder.patience >= max_patience:
                         writer_train.close()
                         writer_dev.close()
                         progress_bar.close()

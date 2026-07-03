@@ -135,20 +135,20 @@ def main(args):
     # Method
     ##################
 
+    # Load the experiment configuration
+    config = utils.get_hocon_config(config_path=config_path, config_name=config_name)
+
+    # Save the experiment configuration to the output path
+    utils.write_json(os.path.join(base_output_path, "config.json"), config)
+
     if method_name == "blink_cross_encoder":
         # Initialize the trainer (evaluator)
         trainer = BlinkCrossEncoderTrainer(base_output_path=base_output_path)
 
         if actiontype == "train":
-            # Load the experiment configuration
-            config = utils.get_hocon_config(
-                config_path=config_path,
-                config_name=config_name
-            )
-
             # Initialize the ED-Reranking component
             reranker = BlinkCrossEncoder(
-                config=config,
+                **config,
                 entity_dict_path=entity_dict_path
             )
         else:
@@ -162,12 +162,6 @@ def main(args):
 
         # Initialize the trainer (evaluator)
         trainer = LLMEDTrainer(base_output_path=base_output_path)
-
-        # Load the experiment configuration
-        config = utils.get_hocon_config(
-            config_path=config_path,
-            config_name=config_name
-        )
 
         # Initialize the LLM
         if config["provider"] == "openai":
@@ -187,7 +181,7 @@ def main(args):
         # Initialize the ED-Reranking component
         reranker = LLMED(
             model=model,
-            config=config,
+            **config,
             entity_dict_path=entity_dict_path,
             demonstration_documents=demonstration_documents,
             demonstration_candidate_entities=demonstration_candidate_entities,
@@ -317,7 +311,8 @@ def main(args):
                 train_documents=processed_train_documents,
                 train_candidate_entities=processed_train_candidate_entities,
                 dev_documents=dev_documents,
-                dev_candidate_entities=dev_candidate_entities
+                dev_candidate_entities=dev_candidate_entities,
+                **config,
             )
 
         if actiontype == "evaluate":

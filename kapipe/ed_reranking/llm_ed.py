@@ -13,7 +13,6 @@ from tqdm import tqdm
 from .. import evaluation
 from .. import utils
 from ..datatypes import (
-    Config,
     Document,
     Mention,
     Entity,
@@ -67,7 +66,7 @@ class LLMED:
     ) -> "LLMED":
 
         # Define the default paths for the resources in the snapshot
-        config_path = snapshot_path + "/config.json"
+        component_config_path = snapshot_path + "/component_config.json"
         entity_dict_path = snapshot_path + "/entity_dict.json"
         demonstration_documents_path = (
             snapshot_path + "/demonstration_documents.json"
@@ -82,11 +81,19 @@ class LLMED:
         if not os.path.exists(demonstration_candidate_entities_path):
             demonstration_candidate_entities_path = None
 
+        # Load the component configuration
+        component_config = utils.read_json(component_config_path)
+        logger.info(f"Loaded component configuration from {component_config_path}")
+        logger.info(utils.pretty_format_dict(component_config))
+
         # Initialize the reranker from explicit snapshot resources
         reranker = cls(
+            # External
             model=model,
-            config=config_path,
+            # Internal
+            **component_config,
             entity_dict_path=entity_dict_path,
+            # Optional (Internal)
             demonstration_documents=demonstration_documents_path,
             demonstration_candidate_entities=demonstration_candidate_entities_path,
         )
@@ -101,25 +108,21 @@ class LLMED:
         # External
         model: HuggingFaceLLM | OpenAILLM,
         # Internal
-        config: Config | str,
+        prompt_template_name_or_path: str,
+        knowledge_base_name: str,
         entity_dict_path: str,
-        # Optional
+        # Optional (Internal)
         demonstration_documents: list[Document] | str | None = None,
         demonstration_candidate_entities: (
             list[CandidateEntitiesForDocument] | str | None
         ) = None,
+        **unused_kwargs: object,
     ):
         logger.info("########## LLMED Initialization Starts ##########")
 
         self.model = model
-
-        # Load the configuration
-        if isinstance(config, str):
-            config_path = config
-            config = utils.read_json(config_path)
-            logger.info(f"Loaded configuration from {config_path}")
-        self.config = config
-        logger.info(utils.pretty_format_dict(self.config))
+        self.prompt_template_name_or_path = prompt_template_name_or_path
+        self.knowledge_base_name = knowledge_base_name
 
         # Load the entity dictionary
         logger.info(f"Loading entity dictionary from {entity_dict_path}")
@@ -174,8 +177,8 @@ class LLMED:
 
         # Initialize the prompt processor, whioch generates prompts for the LLM
         self.prompt_processor = PromptProcessor(
-            prompt_template_name_or_path=self.config["prompt_template_name_or_path"],
-            knowledge_base_name_prompt=self.config["knowledge_base_name"],
+            prompt_template_name_or_path=self.prompt_template_name_or_path,
+            knowledge_base_name_prompt=self.knowledge_base_name,
             entity_dict=self.entity_dict,
         )
 
@@ -191,7 +194,7 @@ class LLMED:
     def save(self, snapshot_path: str) -> None:
         """Save the configuration, entity dictionary, demonstration documents, and demonstration candidate entities to a snapshot directory."""
 
-        config_path = snapshot_path + "/config.json"
+        component_config_path = snapshot_path + "/component_config.json"
         entity_dict_path = snapshot_path + "/entity_dict.json"
         demonstration_documents_path = (
             snapshot_path + "/demonstration_documents.json"
@@ -200,7 +203,12 @@ class LLMED:
             snapshot_path + "/demonstration_candidate_entities.json"
         )
 
-        utils.write_json(config_path, self.config)
+        component_config: dict[str, Any] = {
+            "prompt_template_name_or_path": self.prompt_template_name_or_path,
+            "knowledge_base_name": self.knowledge_base_name,
+        }
+
+        utils.write_json(component_config_path, component_config)
         utils.write_json(entity_dict_path, list(self.entity_dict.values()))
         utils.write_json(
             demonstration_documents_path,

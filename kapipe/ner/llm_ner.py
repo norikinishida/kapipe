@@ -13,7 +13,6 @@ from tqdm import tqdm
 from .. import evaluation
 from .. import utils
 from ..datatypes import (
-    Config,
     Document,
     Mention,
     ContextsForOneExample
@@ -60,7 +59,7 @@ class LLMNER:
     ) -> "LLMNER":
 
         # Define the default paths for the resources in the snapshot
-        config_path = snapshot_path + "/config.json"
+        component_config_path = snapshot_path + "/component_config.json"
         vocab_path = snapshot_path + "/entity_types.vocab.txt"
         meta_info_path = snapshot_path + "/etype_meta_info.json"
         demonstration_documents_path = (
@@ -71,12 +70,20 @@ class LLMNER:
         if not os.path.exists(demonstration_documents_path):
             demonstration_documents_path = None
 
+        # Load the component configuration
+        component_config = utils.read_json(component_config_path)
+        logger.info(f"Loaded component configuration from {component_config_path}")
+        logger.info(utils.pretty_format_dict(component_config))
+
         # Initialize the extractor from explicit snapshot resources
         extractor = cls(
+            # External
             model=model,
-            config=config_path,
+            # Internal
+            **component_config,
             vocab_etype=vocab_path,
             etype_meta_info=meta_info_path,
+            # Optional (Internal)
             demonstration_documents=demonstration_documents_path,
         )
 
@@ -90,23 +97,18 @@ class LLMNER:
         # External
         model: HuggingFaceLLM | OpenAILLM,
         # Internal
-        config: Config | str,
+        prompt_template_name_or_path: str,
         vocab_etype: dict[str, int] | str,
         etype_meta_info: dict[str, dict[str, str]] | str,
-        # Optional
+        # Optional (Internal)
         demonstration_documents: list[Document] | str | None = None,
+        # Optional
+        **unused_kwargs: object,
     ):
         logger.info("########## LLMNER Initialization Starts ##########")
 
         self.model = model
-
-        # Load the configuration
-        if isinstance(config, str):
-            config_path = config
-            config = utils.read_json(config_path)
-            logger.info(f"Loaded configuration from {config_path}")
-        self.config = config
-        logger.info(utils.pretty_format_dict(self.config))
+        self.prompt_template_name_or_path = prompt_template_name_or_path
 
         # Load the entity-type vocabulary
         if isinstance(vocab_etype, str):
@@ -142,9 +144,7 @@ class LLMNER:
 
         # Initialize the prompt processor, which generates prompts for the LLM
         self.prompt_processor = PromptProcessor(
-            prompt_template_name_or_path=(
-                self.config["prompt_template_name_or_path"]
-            ),
+            prompt_template_name_or_path=self.prompt_template_name_or_path,
             vocab_etype=self.vocab_etype,
             etype_meta_info=self.etype_meta_info,
         )
@@ -169,12 +169,16 @@ class LLMNER:
     def save(self, snapshot_path: str) -> None:
         """Save the configuration, entity-type vocabulary, meta-information, and demonstration documents to a snapshot."""
 
-        config_path = snapshot_path + "/config.json"
+        component_config_path = snapshot_path + "/component_config.json"
         vocab_path = snapshot_path + "/entity_types.vocab.txt"
         meta_info_path = snapshot_path + "/etype_meta_info.json"
         demonstration_documents_path = snapshot_path + "/demonstration_documents.json"
 
-        utils.write_json(config_path, self.config)
+        component_config: dict[str, Any] = {
+            "prompt_template_name_or_path": self.prompt_template_name_or_path,
+        }
+
+        utils.write_json(component_config_path, component_config)
         utils.write_vocab(vocab_path, self.vocab_etype, write_frequency=False)
         utils.write_json(meta_info_path, self.etype_meta_info)
         utils.write_json(demonstration_documents_path, self.demonstration_documents)

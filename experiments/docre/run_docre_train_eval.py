@@ -191,20 +191,20 @@ def main(args):
     # Method
     ##################
 
+    # Load the experiment configuration
+    config = utils.get_hocon_config(config_path=config_path, config_name=config_name)
+
+    # Save the experiment configuration to the output path
+    utils.write_json(os.path.join(base_output_path, "config.json"), config)
+
     if method_name == "atlop":
         # Initialize the trainer (evaluator)
         trainer = ATLOPTrainer(base_output_path=base_output_path)
 
         if actiontype == "train":
-            # Load the experiment configuration
-            config = utils.get_hocon_config(
-                config_path=config_path,
-                config_name=config_name
-            )
-
             # Initialilze the DocRE component
             extractor = ATLOP(
-                config=config,
+                **config,
                 vocab_relation=vocab_relation
             )
         else:
@@ -218,12 +218,6 @@ def main(args):
 
         # Initialize the trainer (evaluator)
         trainer = LLMDocRETrainer(base_output_path=base_output_path)
-
-        # Load the experiment configuration
-        config = utils.get_hocon_config(
-            config_path=config_path,
-            config_name=config_name
-        )
 
         # Initialize the LLM
         if config["provider"] == "openai":
@@ -243,7 +237,7 @@ def main(args):
         # Initialize the DocRE component
         extractor = LLMDocRE(
             model=model,
-            config=config,
+            **config,
             vocab_relation=vocab_relation,
             rel_meta_info=rel_meta_info,
             entity_dict_path=entity_dict_path,
@@ -287,9 +281,8 @@ def main(args):
             documents=test_documents,
             split="test",
             with_gold_annotations=(
-                False if extractor.config["dataset_name"] in [
-                    "docred", "linked_docred"
-                ] else True
+                False if dataset_name in ["docred", "linked_docred"]
+                else True
             )
         )
 
@@ -299,12 +292,13 @@ def main(args):
                 extractor=extractor,
                 train_documents=train_documents,
                 dev_documents=dev_documents,
-                supplemental_info=supplemental_info
+                supplemental_info=supplemental_info,
+                **config,
             )
 
         if actiontype == "evaluate":
             # Evaluate the extractor on the datasets
-            if extractor.config["dataset_name"] == "docred":
+            if dataset_name == "docred":
                 trainer.official_evaluate(
                     extractor=extractor,
                     documents=dev_documents,
@@ -319,7 +313,7 @@ def main(args):
                     #
                     prediction_only=True,
                 )
-            elif extractor.config["dataset_name"] == "redocred":
+            elif dataset_name == "redocred":
                 trainer.official_evaluate(
                     extractor=extractor,
                     documents=dev_documents,
@@ -332,7 +326,7 @@ def main(args):
                     split="test",
                     supplemental_info=supplemental_info
                 )
-            elif extractor.config["dataset_name"] == "linked_docred":
+            elif dataset_name == "linked_docred":
                 trainer.evaluate(
                     extractor=extractor,
                     documents=dev_documents,
@@ -410,9 +404,8 @@ def main(args):
             documents=test_documents,
             split="test",
             with_gold_annotations=(
-                False if extractor.config["dataset_name"] in [
-                    "docred", "linked_docred"
-                ] else True
+                False if dataset_name in ["docred", "linked_docred"]
+                else True
             )
         )
 
@@ -421,7 +414,7 @@ def main(args):
 
         if actiontype == "evaluate":
             # Evaluate the extractor on the datasets
-            if extractor.config["dataset_name"] == "docred":
+            if dataset_name == "docred":
                 trainer.official_evaluate(
                     extractor=extractor,
                     documents=dev_documents,
@@ -438,7 +431,7 @@ def main(args):
                     #
                     prediction_only=True
                 )
-            elif extractor.config["dataset_name"] == "redocred":
+            elif dataset_name == "redocred":
                 trainer.official_evaluate(
                     extractor=extractor,
                     documents=dev_documents,
@@ -453,7 +446,7 @@ def main(args):
                     split="test",
                     supplemental_info=supplemental_info
                 )
-            elif extractor.config["dataset_name"] == "linked_docred":
+            elif dataset_name == "linked_docred":
                 trainer.evaluate(
                     extractor=extractor,
                     documents=dev_documents,

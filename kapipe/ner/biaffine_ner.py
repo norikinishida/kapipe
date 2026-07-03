@@ -19,7 +19,7 @@ import jsonlines
 
 from .. import evaluation
 from .. import utils
-from ..datatypes import Config, Document, Mention
+from ..datatypes import Document, Mention
 from ..nn_utils import (
     Biaffine,
     FocalLoss,
@@ -70,13 +70,20 @@ class BiaffineNER:
 
         # Define the default paths for the resources in the snapshot
         model_path = snapshot_path + "/model.pt"
-        config_path = snapshot_path + "/config.json"
+        component_config_path = snapshot_path + "/component_config.json"
         vocab_path = snapshot_path + "/entity_types.vocab.txt"
+
+        # Load the component configuration
+        component_config: dict[str, Any] = utils.read_json(component_config_path)
+        logger.info(f"Loaded component configuration from {component_config_path}")
+        logger.info(utils.pretty_format_dict(component_config))
 
         # Initialize the extractor from explicit snapshot resources
         extractor = cls(
-            config=config_path,
+            # Internal
+            **component_config,
             vocab_etype=vocab_path,
+            # Optional
             device=device,
         )
 
@@ -98,20 +105,28 @@ class BiaffineNER:
     def __init__(
         self,
         # Internal
-        config: Config | str,
+        model_name: str,
+        bert_pretrained_model_name_or_path: str,
+        max_seg_len: int,
+        dropout_rate: float,
+        loss_function_name: str,
+        allow_nested_entities: bool, 
         vocab_etype: dict[str, int] | str,
+        # Optional (Internal)
+        focal_loss_gamma: float | None = None,
         # Optional
         device: str = "cuda",
+        **unused_kwargs: object,
     ):
         logger.info("########## BiaffineNER Initialization Starts ##########")
-   
-        # Load the configuration
-        if isinstance(config, str):
-            config_path = config
-            config = utils.read_json(config_path)
-            logger.info(f"Loaded configuration from {config_path}")
-        self.config = config
-        logger.info(utils.pretty_format_dict(self.config))
+
+        self.model_name = model_name
+        self.bert_pretrained_model_name_or_path = bert_pretrained_model_name_or_path
+        self.max_seg_len = max_seg_len
+        self.dropout_rate = dropout_rate
+        self.loss_function_name = loss_function_name
+        self.allow_nested_entities = allow_nested_entities
+        self.focal_loss_gamma = focal_loss_gamma
 
         # Load the entity-type vocabulary
         if isinstance(vocab_etype, str):
@@ -125,19 +140,18 @@ class BiaffineNER:
         }
 
         # Initialize the model
-        self.model_name = self.config["model_name"]
         if self.model_name == "biaffine_ner_model":
             self.model = BiaffineNERModel(
                 bert_pretrained_model_name_or_path=(
-                    self.config["bert_pretrained_model_name_or_path"]
+                    self.bert_pretrained_model_name_or_path
                 ),
-                max_seg_len=self.config["max_seg_len"],
-                dropout_rate=self.config["dropout_rate"],
+                max_seg_len=self.max_seg_len,
+                dropout_rate=self.dropout_rate,
                 vocab_etype=self.vocab_etype,
-                loss_function_name=self.config["loss_function_name"],
+                loss_function_name=self.loss_function_name,
                 focal_loss_gamma=(
-                    self.config["focal_loss_gamma"]
-                    if self.config["loss_function_name"] == "focal_loss"
+                    self.focal_loss_gamma
+                    if self.loss_function_name == "focal_loss"
                     else None
                 ),
                 device=device,
@@ -155,7 +169,7 @@ class BiaffineNER:
 
         # Initialize the span-based decoder
         self.decoder = SpanBasedDecoder(
-            allow_nested_entities=self.config["allow_nested_entities"]
+            allow_nested_entities=self.allow_nested_entities
         )
 
         logger.info("########## BiaffineNER Initialization Ends ##########")
@@ -164,12 +178,24 @@ class BiaffineNER:
         """Save the model, configuration, and entity type vocabulary."""
 
         model_path = snapshot_path + "/model.pt"
-        config_path = snapshot_path + "/config.json"
+        component_config_path = snapshot_path + "/component_config.json"
         vocab_path = snapshot_path + "/entity_types.vocab.txt"
+
+        component_config: dict[str, Any] = {
+            "model_name": self.model_name,
+            "bert_pretrained_model_name_or_path": (
+                self.bert_pretrained_model_name_or_path
+            ),
+            "max_seg_len": self.max_seg_len,
+            "dropout_rate": self.dropout_rate,
+            "loss_function_name": self.loss_function_name,
+            "focal_loss_gamma": self.focal_loss_gamma,
+            "allow_nested_entities": self.allow_nested_entities,
+        }
 
         torch.save(self.model.state_dict(), model_path)
         if not model_only:
-            utils.write_json(config_path, self.config)
+            utils.write_json(component_config_path, component_config)
             utils.write_vocab(vocab_path, self.vocab_etype, write_frequency=False)
 
     def compute_loss(self, document: Document) -> (
@@ -432,8 +458,22 @@ class BiaffineNERTrainer:
         self,
         extractor: BiaffineNER,
         train_documents: list[Document],
-        dev_documents: list[Document]
+        dev_documents: list[Document],
+        #
+        max_epoch: int,
+        batch_size: int,
+        gradient_accumulation_steps: int,
+        warmup_ratio: float,
+        bert_learning_rate: float,
+        task_learning_rate: float,
+        adam_eps: float,
+        max_grad_norm: float,
+        n_steps_for_monitoring: int,
+        n_steps_for_validation: int,
+        max_patience: int,
+        **unused_kwargs: object,
     ) -> None:
+
         ##################
         # Setup
         ##################
@@ -441,11 +481,8 @@ class BiaffineNERTrainer:
         train_doc_indices = np.arange(len(train_documents))
 
         n_train = len(train_doc_indices)
-        max_epoch = extractor.config["max_epoch"]
-        batch_size = extractor.config["batch_size"]
-        gradient_accumulation_steps = extractor.config["gradient_accumulation_steps"]
         total_update_steps = n_train * max_epoch // (batch_size * gradient_accumulation_steps)
-        warmup_steps = int(total_update_steps * extractor.config["warmup_ratio"])
+        warmup_steps = int(total_update_steps * warmup_ratio)
 
         logger.info("Number of training documents: %d" % n_train)
         logger.info("Number of epochs: %d" % max_epoch)
@@ -456,7 +493,9 @@ class BiaffineNERTrainer:
 
         optimizer = get_optimizer2(
             model=extractor.model,
-            config=extractor.config
+            bert_learning_rate=bert_learning_rate,
+            task_learning_rate=task_learning_rate,
+            adam_eps=adam_eps,
         )
         scheduler = get_scheduler2(
             optimizer=optimizer,
@@ -573,14 +612,14 @@ class BiaffineNERTrainer:
                     # Update
                     ##################
 
-                    if extractor.config["max_grad_norm"] > 0:
+                    if max_grad_norm > 0:
                         torch.nn.utils.clip_grad_norm_(
                             bert_param,
-                            extractor.config["max_grad_norm"]
+                            max_grad_norm,
                         )
                         torch.nn.utils.clip_grad_norm_(
                             task_param,
-                            extractor.config["max_grad_norm"]
+                            max_grad_norm,
                         )
 
                     optimizer.step()
@@ -598,7 +637,7 @@ class BiaffineNERTrainer:
                     (
                         (batch_i % gradient_accumulation_steps == 0)
                         and
-                        (step % extractor.config["n_steps_for_monitoring"] == 0)
+                        (step % n_steps_for_monitoring == 0)
                     )
                 ):
                     ##################
@@ -629,9 +668,9 @@ class BiaffineNERTrainer:
                     (
                         (batch_i % gradient_accumulation_steps == 0)
                         and
-                        (extractor.config["n_steps_for_validation"] > 0)
+                        (n_steps_for_validation > 0)
                         and
-                        (step % extractor.config["n_steps_for_validation"] == 0)
+                        (step % n_steps_for_validation == 0)
                     )
                 ):
                     ##################
@@ -668,7 +707,7 @@ class BiaffineNERTrainer:
                     # Termination Check
                     ##################
 
-                    if bestscore_holder.patience >= extractor.config["max_patience"]:
+                    if bestscore_holder.patience >= max_patience:
                         writer_train.close()
                         writer_dev.close()
                         progress_bar.close()

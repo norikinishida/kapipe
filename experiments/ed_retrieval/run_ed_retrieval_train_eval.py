@@ -108,6 +108,12 @@ def main(args):
     # Method
     ##################
 
+    # Load the experiment configuration
+    config = utils.get_hocon_config(config_path=config_path, config_name=config_name)
+
+    # Save the experiment configuration to the output path
+    utils.write_json(os.path.join(base_output_path, "config.json"), config)
+
     if method_name == "blink_bi_encoder":
         # Initialize the trainer (evaluator)
         trainer = BlinkBiEncoderTrainer(
@@ -115,15 +121,9 @@ def main(args):
         )
 
         if actiontype == "train":
-            # Load the experiment configuration
-            config = utils.get_hocon_config(
-                config_path=config_path,
-                config_name=config_name
-            )
-
             # Initialize the ED-Retrieval component
             retriever = BlinkBiEncoder(
-                config=config,
+                **config,
                 entity_dict_path=entity_dict_path
             )
         else:
@@ -158,7 +158,7 @@ def main(args):
         # by duplicating and partitioning their mentions.
         processed_train_documents = split_documents_by_mention_limit(
             train_documents=processed_train_documents,
-            n_candidate_entities=retriever.config["n_candidate_entities"]
+            n_candidate_entities=config["n_candidate_entities"]
         )
         show_ed_documents_statistics(
             documents=processed_train_documents,
@@ -182,7 +182,8 @@ def main(args):
             trainer.train(
                 retriever=retriever,
                 train_documents=processed_train_documents,
-                dev_documents=dev_documents
+                dev_documents=dev_documents,
+                **config,
             )
 
         if actiontype == "evaluate":
@@ -190,18 +191,21 @@ def main(args):
             trainer.evaluate(
                 retriever=retriever,
                 documents=dev_documents,
-                split="dev"
+                split="dev",
+                retrieval_size=config["retrieval_size"],
             )
             trainer.evaluate(
                 retriever=retriever,
                 documents=test_documents,
-                split="test"
+                split="test",
+                retrieval_size=config["retrieval_size"],
             )
 
             trainer.evaluate(
                 retriever=retriever,
                 documents=train_documents,
                 split="train",
+                retrieval_size=config["retrieval_size"],
                 #
                 prediction_only=True
             )

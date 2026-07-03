@@ -167,20 +167,20 @@ def main(args):
     # Method
     ##################
 
+    # Load the experiment configuration
+    config = utils.get_hocon_config(config_path=config_path, config_name=config_name)
+
+    # Save the experiment configuration to the output path
+    utils.write_json(os.path.join(base_output_path, "config.json"), config)
+
     if method_name == "biaffine_ner":
         # Initialize the trainer (evaluator)
         trainer = BiaffineNERTrainer(base_output_path=base_output_path)
 
         if actiontype == "train":
-            # Load the experiment configuration
-            config = utils.get_hocon_config(
-                config_path=config_path,
-                config_name=config_name
-            )
-
             # Initialize the NER component
             extractor = BiaffineNER(
-                config=config,
+                **config,
                 vocab_etype=vocab_etype
             )
         else: 
@@ -194,12 +194,6 @@ def main(args):
 
         # Initialize the trainer (evaluator)
         trainer = LLMNERTrainer(base_output_path=base_output_path)
-
-        # Load the experiment configuration
-        config = utils.get_hocon_config(
-            config_path=config_path,
-            config_name=config_name
-        )
 
         # Initialize the LLM
         if config["provider"] == "openai":
@@ -219,7 +213,7 @@ def main(args):
         # Initialize the NER component
         extractor = LLMNER(
             model=model,
-            config=config,
+            **config,
             vocab_etype=vocab_etype,
             etype_meta_info=etype_meta_info,
             demonstration_documents=demonstration_documents
@@ -251,7 +245,8 @@ def main(args):
             trainer.train(
                 extractor=extractor,
                 train_documents=train_documents,
-                dev_documents=dev_documents
+                dev_documents=dev_documents,
+                **config,
             )
 
         if actiontype == "evaluate":

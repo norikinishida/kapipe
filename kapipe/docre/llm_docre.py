@@ -12,7 +12,6 @@ from tqdm import tqdm
 from .. import evaluation
 from .. import utils
 from ..datatypes import (
-    Config,
     Document,
     Triple,
     EntityPage,
@@ -61,7 +60,7 @@ class LLMDocRE:
     ) -> "LLMDocRE":
 
         # Define the default paths for the resources in the snapshot
-        config_path = snapshot_path + "/config.json"
+        component_config_path = snapshot_path + "/component_config.json"
         vocab_path = snapshot_path + "/relations.vocab.txt"
         meta_info_path = snapshot_path + "/rel_meta_info.json"
         entity_dict_path = snapshot_path + "/entity_dict.json"
@@ -73,13 +72,21 @@ class LLMDocRE:
         if not os.path.exists(demonstration_documents_path):
             demonstration_documents_path = None
 
+        # Load the component configuration
+        component_config = utils.read_json(component_config_path)
+        logger.info(f"Loaded component configuration from {component_config_path}")
+        logger.info(utils.pretty_format_dict(component_config))
+
         # Initialize the extractor from explicit snapshot resources
         extractor = cls(
+            # External
             model=model,
-            config=config_path,
+            # Internal
+            **component_config,
             vocab_relation=vocab_path,
             rel_meta_info=meta_info_path,
             entity_dict_path=entity_dict_path,
+            # Optional (Internal)
             demonstration_documents=demonstration_documents_path,
         )
 
@@ -93,24 +100,29 @@ class LLMDocRE:
         # External
         model: HuggingFaceLLM | OpenAILLM,
         # Internal
-        config: Config | str,
+        prompt_template_name_or_path: str,
+        knowledge_base_name: str,
+        mention_style: str,
+        with_span_annotation: bool,
+        possible_head_entity_types: list[str] | None,
+        possible_tail_entity_types: list[str] | None,
         vocab_relation: dict[str, int] | str,
         rel_meta_info: dict[str, dict[str, str]] | str,
         entity_dict_path: str,
-        # Optional
+        # Optional (Internal)
         demonstration_documents: list[Document] | str | None = None,
+        # Optional
+        **unused_kwargs: object,
     ):
         logger.info("########## LLMDocRE Initialization Starts ##########")
 
         self.model = model
-
-        # Load the configuration
-        if isinstance(config, str):
-            config_path = config
-            config = utils.read_json(config_path)
-            logger.info(f"Loaded configuration from {config_path}")
-        self.config = config
-        logger.info(utils.pretty_format_dict(self.config))
+        self.prompt_template_name_or_path = prompt_template_name_or_path
+        self.knowledge_base_name = knowledge_base_name
+        self.mention_style = mention_style
+        self.with_span_annotation = with_span_annotation
+        self.possible_head_entity_types = possible_head_entity_types
+        self.possible_tail_entity_types = possible_tail_entity_types
 
         # Load the relation vocabulary
         if isinstance(vocab_relation, str):
@@ -158,13 +170,13 @@ class LLMDocRE:
 
         # Initialize the prompt processor
         self.prompt_processor = PromptProcessor(
-            prompt_template_name_or_path=self.config["prompt_template_name_or_path"],
-            knowledge_base_name_prompt=self.config["knowledge_base_name"],
+            prompt_template_name_or_path=self.prompt_template_name_or_path,
+            knowledge_base_name_prompt=self.knowledge_base_name,
             vocab_relation=self.vocab_relation,
             rel_meta_info=self.rel_meta_info,
             entity_dict=self.entity_dict,
-            mention_style=self.config["mention_style"],
-            with_span_annotation=self.config["with_span_annotation"]
+            mention_style=self.mention_style,
+            with_span_annotation=self.with_span_annotation,
         )
 
         # Define regular expression for output parsing.
@@ -187,7 +199,7 @@ class LLMDocRE:
     def save(self, snapshot_path: str) -> None:
         """Save the configuration, relation vocabulary, relation meta-information, entity dictionary, and demonstration pool to a specified snapshot path."""
 
-        config_path = snapshot_path + "/config.json"
+        component_config_path = snapshot_path + "/component_config.json"
         vocab_path = snapshot_path + "/relations.vocab.txt"
         meta_info_path = snapshot_path + "/rel_meta_info.json"
         entity_dict_path = snapshot_path + "/entity_dict.json"
@@ -195,7 +207,16 @@ class LLMDocRE:
             snapshot_path + "/demonstration_documents.json"
         )
 
-        utils.write_json(config_path, self.config)
+        component_config: dict[str, Any] = {
+            "prompt_template_name_or_path": self.prompt_template_name_or_path,
+            "knowledge_base_name": self.knowledge_base_name,
+            "mention_style": self.mention_style,
+            "with_span_annotation": self.with_span_annotation,
+            "possible_head_entity_types": self.possible_head_entity_types,
+            "possible_tail_entity_types": self.possible_tail_entity_types,
+        }
+
+        utils.write_json(component_config_path, component_config)
         utils.write_vocab(vocab_path, self.vocab_relation, write_frequency=False)
         utils.write_json(meta_info_path, self.rel_meta_info)
         utils.write_json(entity_dict_path, list(self.entity_dict.values()))

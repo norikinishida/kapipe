@@ -18,7 +18,6 @@ import jsonlines
 from .. import evaluation
 from .. import utils
 from ..datatypes import (
-    Config,
     Document,
     Mention,
     Entity,
@@ -72,13 +71,20 @@ class BlinkCrossEncoder:
 
         # Define the default paths for the resources in the snapshot
         model_path = snapshot_path + "/model.pt"
-        config_path = snapshot_path + "/config.json"
+        component_config_path = snapshot_path + "/component_config.json"
         entity_dict_path = snapshot_path + "/entity_dict.json"
+
+        # Load the component configuration
+        component_config: dict[str, Any] = utils.read_json(component_config_path)
+        logger.info(f"Loaded component configuration from {component_config_path}")
+        logger.info(utils.pretty_format_dict(component_config))
 
         # Initialize the reranker from explicit snapshot resources
         reranker = cls(
-            config=config_path,
+            # Internal
+            **component_config,
             entity_dict_path=entity_dict_path,
+            # Optional
             device=device,
         )
 
@@ -100,20 +106,25 @@ class BlinkCrossEncoder:
     def __init__(
         self,
         # Internal
-        config: Config | str,
+        model_name: str,
+        bert_pretrained_model_name_or_path: str,
+        max_seg_len: int,
+        mention_context_length: int,
+        max_n_candidates_in_training: int,
+        max_n_candidates_in_inference: int,
         entity_dict_path: str,
         # Optional
         device: str = "cuda",
+        **unused_kwargs: object,
     ):
         logger.info("########## BlinkCrossEncoder Initialization Starts ##########")
 
-        # Load the configuration
-        if isinstance(config, str):
-            config_path = config
-            config = utils.read_json(config_path)
-            logger.info(f"Loaded configuration from {config_path}")
-        self.config = config
-        logger.info(utils.pretty_format_dict(self.config))
+        self.model_name = model_name
+        self.bert_pretrained_model_name_or_path = bert_pretrained_model_name_or_path
+        self.max_seg_len = max_seg_len
+        self.mention_context_length = mention_context_length
+        self.max_n_candidates_in_training = max_n_candidates_in_training
+        self.max_n_candidates_in_inference = max_n_candidates_in_inference
 
         # Load the entity dictionary
         logger.info(f"Loading entity dictionary from {entity_dict_path}")
@@ -127,15 +138,14 @@ class BlinkCrossEncoder:
         )
 
         # Initialize the model
-        self.model_name = config["model_name"]
         if self.model_name == "blink_cross_encoder_model":
             self.model = BlinkCrossEncoderModel(
                 bert_pretrained_model_name_or_path=(
-                    self.config["bert_pretrained_model_name_or_path"]
+                    self.bert_pretrained_model_name_or_path
                 ),
-                max_seg_len=self.config["max_seg_len"],
+                max_seg_len=self.max_seg_len,
                 entity_dict=self.entity_dict,
-                mention_context_length=self.config["mention_context_length"],
+                mention_context_length=self.mention_context_length,
                 device=device,
             )
         else:
@@ -155,12 +165,23 @@ class BlinkCrossEncoder:
         """Save the model, configuration, and entity dictionary to the specified snapshot path."""
 
         model_path = snapshot_path + "/model.pt"
-        config_path = snapshot_path + "/config.json"
+        component_config_path = snapshot_path + "/component_config.json"
         entity_dict_path = snapshot_path + "/entity_dict.json"
+
+        component_config: dict[str, Any] = {
+            "model_name": self.model_name,
+            "bert_pretrained_model_name_or_path": (
+                self.bert_pretrained_model_name_or_path
+            ),
+            "max_seg_len": self.max_seg_len,
+            "mention_context_length": self.mention_context_length,
+            "max_n_candidates_in_training": self.max_n_candidates_in_training,
+            "max_n_candidates_in_inference": self.max_n_candidates_in_inference,
+        }
 
         torch.save(self.model.state_dict(), model_path)
         if not model_only:
-            utils.write_json(config_path, self.config)
+            utils.write_json(component_config_path, component_config)
             utils.write_json(entity_dict_path, list(self.entity_dict.values()))
 
     def compute_loss(
@@ -181,7 +202,7 @@ class BlinkCrossEncoder:
         preprocessed_data = self.model.preprocess(
             document=document,
             candidate_entities_for_doc=candidate_entities_for_doc,
-            max_n_candidates=self.config["max_n_candidates_in_training"]
+            max_n_candidates=self.max_n_candidates_in_training,
         )
 
         # Tensorize the preprocessed data for the specified mention index
@@ -223,7 +244,7 @@ class BlinkCrossEncoder:
             preprocessed_data = self.model.preprocess(
                 document=document,
                 candidate_entities_for_doc=candidate_entities_for_doc,
-                max_n_candidates=self.config["max_n_candidates_in_inference"]
+                max_n_candidates=self.max_n_candidates_in_inference,
             )
 
             # Rerank candidate entities for each mention in the document
@@ -365,7 +386,21 @@ class BlinkCrossEncoderTrainer:
         train_documents: list[Document],
         train_candidate_entities: list[CandidateEntitiesForDocument],
         dev_documents: list[Document],
-        dev_candidate_entities: list[CandidateEntitiesForDocument]
+        dev_candidate_entities: list[CandidateEntitiesForDocument],
+        #
+        max_training_instances: int | None,
+        max_epoch: int,
+        batch_size: int,
+        gradient_accumulation_steps: int,
+        warmup_ratio: float,
+        bert_learning_rate: float,
+        task_learning_rate: float,
+        adam_eps: float,
+        max_grad_norm: float,
+        n_steps_for_monitoring: int,
+        n_steps_for_validation: int,
+        max_patience: int,
+        **unused_kwargs: object,
     ) -> None:
         ##################
         # Setup
@@ -392,11 +427,11 @@ class BlinkCrossEncoderTrainer:
         )
 
         # Limit the training instances to MAX_TRAINING_INSTANCES
-        if reranker.config["max_training_instances"] is not None:
+        if max_training_instances is not None:
             n_prev_instances = len(train_doc_index_and_mention_index_tuples)
             train_doc_index_and_mention_index_tuples = (
                 train_doc_index_and_mention_index_tuples[
-                    :reranker.config["max_training_instances"]
+                    :max_training_instances
                 ]
             )
             n_new_instances = len(train_doc_index_and_mention_index_tuples)
@@ -405,11 +440,8 @@ class BlinkCrossEncoderTrainer:
                 logger.info(f"{n_prev_instances} -> {n_new_instances} mentions")
 
         n_train = len(train_doc_index_and_mention_index_tuples)
-        max_epoch = reranker.config["max_epoch"]
-        batch_size = reranker.config["batch_size"]
-        gradient_accumulation_steps = reranker.config["gradient_accumulation_steps"]
         total_update_steps = n_train * max_epoch // (batch_size * gradient_accumulation_steps)
-        warmup_steps = int(total_update_steps * reranker.config["warmup_ratio"])
+        warmup_steps = int(total_update_steps * warmup_ratio)
 
         logger.info("Number of training mentions: %d" % n_train)
         logger.info("Number of epochs: %d" % max_epoch)
@@ -420,7 +452,9 @@ class BlinkCrossEncoderTrainer:
 
         optimizer = get_optimizer2(
             model=reranker.model,
-            config=reranker.config
+            bert_learning_rate=bert_learning_rate,
+            task_learning_rate=task_learning_rate,
+            adam_eps=adam_eps,
         )
         scheduler = get_scheduler2(
             optimizer=optimizer,
@@ -543,14 +577,14 @@ class BlinkCrossEncoderTrainer:
                     # Update
                     ##################
 
-                    if reranker.config["max_grad_norm"] > 0:
+                    if max_grad_norm > 0:
                         torch.nn.utils.clip_grad_norm_(
                             bert_param,
-                            reranker.config["max_grad_norm"]
+                            max_grad_norm,
                         )
                         torch.nn.utils.clip_grad_norm_(
                             task_param,
-                            reranker.config["max_grad_norm"]
+                            max_grad_norm,
                         )
 
                     optimizer.step()
@@ -568,7 +602,7 @@ class BlinkCrossEncoderTrainer:
                     (
                         (batch_i % gradient_accumulation_steps == 0)
                         and
-                        (step % reranker.config["n_steps_for_monitoring"] == 0)
+                        (step % n_steps_for_monitoring == 0)
                     )
                 ):
 
@@ -600,9 +634,9 @@ class BlinkCrossEncoderTrainer:
                     (
                         (batch_i % gradient_accumulation_steps == 0)
                         and
-                        (reranker.config["n_steps_for_validation"] > 0)
+                        (n_steps_for_validation > 0)
                         and
-                        (step % reranker.config["n_steps_for_validation"] == 0)
+                        (step % n_steps_for_validation == 0)
                     )
                 ):
 
@@ -642,7 +676,7 @@ class BlinkCrossEncoderTrainer:
                     # Termination Check
                     ##################
 
-                    if bestscore_holder.patience >= reranker.config["max_patience"]:
+                    if bestscore_holder.patience >= max_patience:
                         writer_train.close()
                         writer_dev.close()
                         progress_bar.close()
