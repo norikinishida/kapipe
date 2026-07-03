@@ -3,6 +3,7 @@ from typing import Any
 
 
 __all__ = [
+    "BaseNER",
     "BiaffineNER",
     "BiaffineNERTrainer",
     "LLMNER",
@@ -11,6 +12,7 @@ __all__ = [
 
 
 _NAME_TO_MODULE = {
+    "BaseNER": "base",
     "BiaffineNER": "biaffine_ner",
     "BiaffineNERTrainer": "biaffine_ner",
     "LLMNER": "llm_ner",

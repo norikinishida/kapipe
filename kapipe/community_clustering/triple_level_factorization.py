@@ -5,12 +5,13 @@ import logging
 import networkx as nx
 
 from ..datatypes import CommunityRecord
+from .base import BaseCommunityClusterer
 
 
 logger = logging.getLogger(__name__)
 
 
-class TripleLevelFactorization:
+class TripleLevelFactorization(BaseCommunityClusterer):
     """
     A community detection algorithm that treats each triple (head, relation, tail) in a directed graph as a community.
 

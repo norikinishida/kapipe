@@ -4,9 +4,10 @@ import spacy
 from spacy.lang.en import English
 
 from ..datatypes import Passage, Document
+from .base import BaseChunker
 
 
-class Chunker:
+class Chunker(BaseChunker):
 
     def __init__(self, model_name: str | None = None) -> None:
 

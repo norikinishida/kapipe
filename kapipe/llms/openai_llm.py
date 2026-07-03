@@ -6,8 +6,10 @@ from tenacity import (
     wait_random_exponential
 )
 
+from .base import BaseLLM
 
-class OpenAILLM:
+
+class OpenAILLM(BaseLLM):
     """A class that wraps an OpenAI causal language model (LLM) client for text generation."""
  
     def __init__(

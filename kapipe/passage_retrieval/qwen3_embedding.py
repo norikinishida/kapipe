@@ -11,12 +11,13 @@ from .. import utils
 from ..datatypes import Passage
 from ..utils import StopWatch
 from .anns import ApproximateNearestNeighborSearch
+from .base import BasePassageRetriever
 
 
 logger = logging.getLogger(__name__)
 
 
-class Qwen3Embedding:
+class Qwen3Embedding(BasePassageRetriever):
     """A class for performing dense passage retrieval using the Qwen3-Embedding model."""
 
     def __init__(

@@ -1,12 +1,6 @@
 from typing import Any, TypeAlias
 
 ##########
-# Config
-##########
-
-Config : TypeAlias = dict[str, Any]
-
-##########
 # Data types for documents/passages
 ##########
 

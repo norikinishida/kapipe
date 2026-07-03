@@ -5,12 +5,13 @@ import logging
 import networkx as nx
 
 from ..datatypes import CommunityRecord
+from .base import BaseCommunityClusterer
 
 
 logger = logging.getLogger(__name__)
 
 
-class NeighborhoodAggregation:
+class NeighborhoodAggregation(BaseCommunityClusterer):
     """
     A community detection algorithm that aggregates each node with its in- and out-neighbors.
 

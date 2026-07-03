@@ -3,6 +3,7 @@ from typing import Any
 
 
 __all__ = [
+    "BaseCommunityClusterer",
     "HierarchicalLeiden",
     "NeighborhoodAggregation",
     "TripleLevelFactorization",
@@ -10,6 +11,7 @@ __all__ = [
 
 
 _NAME_TO_MODULE = {
+    "BaseCommunityClusterer": "base",
     "HierarchicalLeiden": "hierarchical_leiden",
     "NeighborhoodAggregation": "neighborhood_aggregation",
     "TripleLevelFactorization": "triple_level_factorization",

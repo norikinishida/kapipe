@@ -3,12 +3,14 @@ from typing import Any
 
 
 __all__ = [
+    "BaseEntityGraphConstructor",
     "EntityGraphConstructor",
     # "export_nx_to_neo4j",
 ]
 
 
 _NAME_TO_MODULE = {
+    "BaseEntityGraphConstructor": "base",
     "EntityGraphConstructor": "entity_graph_constructor",
     # "export_nx_to_neo4j": "entity_graph_visualization",
 }

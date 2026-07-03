@@ -29,12 +29,13 @@ from ..nn_utils import (
 )
 from ..resources import resolve_snapshot_path
 from ..utils import BestScoreHolder
+from .base import BaseDocRE
 
 
 logger = logging.getLogger(__name__)
 
 
-class ATLOP:
+class ATLOP(BaseDocRE):
     """
     A class for performing document-level relation extraction using ATLOP (Zhou et al., 2021).
     """

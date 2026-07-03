@@ -8,12 +8,13 @@ from ..datatypes import (
     Document,
     CandidateEntitiesForDocument
 )
+from .base import BaseEDReranker
 
 
 logger = logging.getLogger(__name__)
 
 
-class IdenticalEntityReranker:
+class IdenticalEntityReranker(BaseEDReranker):
 
     def __init__(self) -> None:
         logger.info(

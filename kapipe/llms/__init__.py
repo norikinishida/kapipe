@@ -3,12 +3,14 @@ from typing import Any
 
 
 __all__ = [
+    "BaseLLM",
     "HuggingFaceLLM",
     "OpenAILLM",
 ]
 
 
 _NAME_TO_MODULE = {
+    "BaseLLM": "base",
     "HuggingFaceLLM": "hf_llm",
     "OpenAILLM": "openai_llm",
 }

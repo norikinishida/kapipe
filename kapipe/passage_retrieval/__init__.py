@@ -4,6 +4,7 @@ from typing import Any
 
 __all__ = [
     "ApproximateNearestNeighborSearch",
+    "BasePassageRetriever",
     "BM25",
     "Contriever",
     "Qwen3Embedding",
@@ -12,6 +13,7 @@ __all__ = [
 
 _NAME_TO_MODULE = {
     "ApproximateNearestNeighborSearch": "anns",
+    "BasePassageRetriever": "base",
     "BM25": "bm25",
     "Contriever": "contriever",
     "Qwen3Embedding": "qwen3_embedding",

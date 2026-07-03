@@ -3,6 +3,7 @@ from typing import Any
 
 
 __all__ = [
+    "BaseDocRE",
     "ATLOP",
     "ATLOPTrainer",
     "LLMDocRE",
@@ -15,6 +16,7 @@ __all__ = [
 
 
 _NAME_TO_MODULE = {
+    "BaseDocRE": "base",
     "ATLOP": "atlop",
     "ATLOPTrainer": "atlop",
     "LLMDocRE": "llm_docre",

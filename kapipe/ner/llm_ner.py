@@ -19,12 +19,13 @@ from ..datatypes import (
 )
 from ..llms import HuggingFaceLLM, OpenAILLM
 from ..resources import resolve_snapshot_path
+from .base import BaseNER
 
 
 logger = logging.getLogger(__name__)
 
 
-class LLMNER:
+class LLMNER(BaseNER):
 
     @classmethod
     def from_identifier(

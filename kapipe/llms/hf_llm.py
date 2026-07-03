@@ -7,11 +7,13 @@ from transformers import (
     BitsAndBytesConfig,
 )
 
+from .base import BaseLLM
+
 
 logger = logging.getLogger(__name__)
 
 
-class HuggingFaceLLM:
+class HuggingFaceLLM(BaseLLM):
     """A class that wraps a Hugging Face causal language model (LLM) for text generation."""
 
     def __init__(
@@ -182,7 +184,6 @@ class HuggingFaceLLM:
     def generate(
         self,
         prompt: str,
-        do_sample: bool = False,
         temperature: float = 0.0,
     ) -> str:
         """Generate text for the given prompt."""
@@ -230,7 +231,7 @@ class HuggingFaceLLM:
                 max_new_tokens=self.max_new_tokens,
                 # Parameters that control the generation outputs
                 num_beams=1,
-                do_sample=do_sample,
+                do_sample=False,
                 temperature=temperature,
                 pad_token_id=self.tokenizer.eos_token_id,
                 eos_token_id=eos_token_ids,

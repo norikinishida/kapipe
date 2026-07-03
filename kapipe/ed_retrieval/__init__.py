@@ -3,6 +3,7 @@ from typing import Any
 
 
 __all__ = [
+    "BaseEDRetriever",
     "BlinkBiEncoder",
     "BlinkBiEncoderTrainer",
     "DummyEntityRetriever",
@@ -10,6 +11,7 @@ __all__ = [
 
 
 _NAME_TO_MODULE = {
+    "BaseEDRetriever": "base",
     "BlinkBiEncoder": "blink_bi_encoder",
     "BlinkBiEncoderTrainer": "blink_bi_encoder",
     "DummyEntityRetriever": "dummy_entity_retriever",

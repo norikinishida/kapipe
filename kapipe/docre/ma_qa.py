@@ -26,6 +26,7 @@ from ..nn_utils import (
 )
 from ..resources import resolve_snapshot_path
 from ..utils import BestScoreHolder
+from .base import BaseDocRE
 
 
 logger = logging.getLogger(__name__)
@@ -46,7 +47,7 @@ TRIPLE_TO_QUESTION_TEMPLATES = {
 }
 
 
-class MAQA:
+class MAQA(BaseDocRE):
     """
     A class for performing document-level relation extraction using the Mention-Agnostic QA-based DocRE Extractor (Oumaima and Nishida et al., 2024)
     """

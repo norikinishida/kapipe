@@ -37,12 +37,13 @@ from ..nn_utils import get_optimizer2, get_scheduler2
 from ..passage_retrieval import ApproximateNearestNeighborSearch
 from ..resources import resolve_snapshot_path
 from ..utils import BestScoreHolder
+from .base import BaseEDRetriever
 
 
 logger = logging.getLogger(__name__)
 
 
-class BlinkBiEncoder:
+class BlinkBiEncoder(BaseEDRetriever):
     """
     A class for entity disambiguation (candidate retrieval) using the BLINK Bi-Encoder (Wu et al., 2020).
     """

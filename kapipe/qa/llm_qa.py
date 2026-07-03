@@ -2,9 +2,7 @@ from __future__ import annotations
  
 import copy
 import logging
-import os
 import re
-from typing import Any
 
 import torch
 from tqdm import tqdm
@@ -15,12 +13,13 @@ from ..datatypes import (
     ContextsForOneExample
 )
 from ..llms import HuggingFaceLLM, OpenAILLM
+from .base import BaseQA
 
 
 logger = logging.getLogger(__name__)
 
 
-class LLMQA:
+class LLMQA(BaseQA):
 
     def __init__(
         self,

@@ -19,12 +19,13 @@ from ..datatypes import (
 )
 from ..llms import HuggingFaceLLM, OpenAILLM
 from ..resources import resolve_snapshot_path
+from .base import BaseDocRE
 
 
 logger = logging.getLogger(__name__)
 
 
-class LLMDocRE:
+class LLMDocRE(BaseDocRE):
     """A class for performing document-level relation extraction using a large language model (LLM)."""
 
     @classmethod

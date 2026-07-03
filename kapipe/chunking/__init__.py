@@ -3,11 +3,13 @@ from typing import Any
 
 
 __all__ = [
+    "BaseChunker",
     "Chunker",
 ]
 
 
 _NAME_TO_MODULE = {
+    "BaseChunker": "base",
     "Chunker": "chunker",
 }
 

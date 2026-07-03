@@ -3,11 +3,13 @@ from typing import Any
 
 
 __all__ = [
+    "BaseQA",
     "LLMQA",
 ]
 
 
 _NAME_TO_MODULE = {
+    "BaseQA": "base",
     "LLMQA": "llm_qa",
 }
 

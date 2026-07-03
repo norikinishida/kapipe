@@ -22,6 +22,7 @@ from ..datatypes import (
 )
 from ..llms import HuggingFaceLLM, OpenAILLM
 from ..resources import resolve_snapshot_path
+from .base import BaseEDReranker
 
 
 logger = logging.getLogger(__name__)
@@ -31,7 +32,7 @@ N_CAND = 3
 N_MENT_PER_CHUNK = 5
 
 
-class LLMED:
+class LLMED(BaseEDReranker):
 
     @classmethod
     def from_identifier(

@@ -11,12 +11,13 @@ from ..datatypes import (
     Passage
 )
 from ..llms import HuggingFaceLLM, OpenAILLM
+from .base import BaseReportGenerator
 
 
 logger = logging.getLogger(__name__)
 
 
-class LLMBasedReportGenerator:
+class LLMBasedReportGenerator(BaseReportGenerator):
     
     def __init__(
         self,

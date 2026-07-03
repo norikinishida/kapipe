@@ -11,12 +11,13 @@ from .. import utils
 from ..datatypes import Passage
 from ..utils import StopWatch
 from .anns import ApproximateNearestNeighborSearch
+from .base import BasePassageRetriever
 
 
 logger = logging.getLogger(__name__)
 
 
-class Contriever:
+class Contriever(BasePassageRetriever):
     """A class for performing dense passage retrieval using the Contriever model."""
     
     def __init__(

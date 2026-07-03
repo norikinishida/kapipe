@@ -12,12 +12,13 @@ from ..datatypes import (
     Entity,
     CandidateEntitiesForDocument,
 )
+from .base import BaseEDRetriever
 
 
 logger = logging.getLogger(__name__)
 
 
-class DummyEntityRetriever:
+class DummyEntityRetriever(BaseEDRetriever):
 
     def __init__(self) -> None:
         logger.info("########## DummyEntityRetriever Initialization Starts ##########")

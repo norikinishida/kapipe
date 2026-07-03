@@ -3,6 +3,7 @@ from typing import Any
 
 
 __all__ = [
+    "BaseEDReranker",
     "BlinkCrossEncoder",
     "BlinkCrossEncoderTrainer",
     "IdenticalEntityReranker",
@@ -12,6 +13,7 @@ __all__ = [
 
 
 _NAME_TO_MODULE = {
+    "BaseEDReranker": "base",
     "BlinkCrossEncoder": "blink_cross_encoder",
     "BlinkCrossEncoderTrainer": "blink_cross_encoder",
     "IdenticalEntityReranker": "identical_entity_reranker",

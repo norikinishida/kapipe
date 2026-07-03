@@ -16,7 +16,6 @@ from transformers.modeling_outputs import ModelOutput
 from tqdm import tqdm
 import jsonlines
 
-
 from .. import evaluation
 from .. import utils
 from ..datatypes import Document, Mention
@@ -28,12 +27,13 @@ from ..nn_utils import (
 )
 from ..resources import resolve_snapshot_path
 from ..utils import BestScoreHolder
+from .base import BaseNER
 
 
 logger = logging.getLogger(__name__)
 
 
-class BiaffineNER:
+class BiaffineNER(BaseNER):
     """A class for performing Named Entity Recognition (NER) using a Biaffine-NER model (Yu et al., 2020)."""
 
     @classmethod

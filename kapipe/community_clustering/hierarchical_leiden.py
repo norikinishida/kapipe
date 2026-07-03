@@ -9,12 +9,13 @@ from graspologic.utils import largest_connected_component
 # import html
 
 from ..datatypes import CommunityRecord
+from .base import BaseCommunityClusterer
 
 
 logger = logging.getLogger(__name__)
 
 
-class HierarchicalLeiden:
+class HierarchicalLeiden(BaseCommunityClusterer):
     """
     A hierarchical community detection algorithm based on the Leiden method.
 

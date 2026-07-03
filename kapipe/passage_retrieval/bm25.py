@@ -8,9 +8,10 @@ import scipy.sparse as sp
 
 from .. import utils
 from ..datatypes import Passage
+from .base import BasePassageRetriever
 
 
-class BM25:
+class BM25(BasePassageRetriever):
     """A class for performing sparse lexical passage retrieval using BM25."""
 
     def __init__(
@@ -124,8 +125,25 @@ class BM25:
         self.factor1 = factor1
         self.factor2 = factor2
 
-    def search(self, query: str, top_k: int = 1) -> list[Passage]:
-        """Retrieve the top-k passages for a query."""
+    def search(
+        self,
+        queries: list[str],
+        top_k: int = 1,
+    ) -> list[list[Passage]]:
+        """Retrieve the top-k passages for a batch of queries."""
+
+        batch_passages: list[list[Passage]] = []
+        for query in queries:
+            passages = self._search_one(
+                query=query,
+                top_k=top_k
+            )
+            batch_passages.append(passages)
+
+        return batch_passages
+
+    def _search_one(self, query: str, top_k: int = 1) -> list[Passage]:
+        """Retrieve the top-k passages for a single query."""
 
         # Require a built index before retrieval
         if self.passages is None:

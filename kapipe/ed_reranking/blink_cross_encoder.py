@@ -27,12 +27,13 @@ from ..datatypes import (
 from ..nn_utils import get_optimizer2, get_scheduler2
 from ..resources import resolve_snapshot_path
 from ..utils import BestScoreHolder
+from .base import BaseEDReranker
 
 
 logger = logging.getLogger(__name__)
 
 
-class BlinkCrossEncoder:
+class BlinkCrossEncoder(BaseEDReranker):
     """
     A class for entity disambiguation (reranking) using the BLINK Cross-Encoder (Wu et al., 2020).
     """

@@ -7,12 +7,13 @@ from tqdm import tqdm
 
 from ..datatypes import EntityPage
 from .. import utils
+from .base import BaseEntityGraphConstructor
 
 
 logger = logging.getLogger(__name__)
 
 
-class EntityGraphConstructor:
+class EntityGraphConstructor(BaseEntityGraphConstructor):
 
     def __init__(
         self,
