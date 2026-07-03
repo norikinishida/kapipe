@@ -1,5 +1,10 @@
 <!-- ![KAPipe logo](./images/kapipe_logo_v01.png) -->
 
+[!NOTE]
+This repository is currently under active development.
+Major updates are planned soon, including changes to APIs, component interfaces, model loading, and datasets.
+The current implementation should be considered unstable until the update is complete.
+
 # KAPipe
 
 **KAPipe** is a modular framework for building ***Knowledge Acquisition Systems*** from unstructured data.
