@@ -52,9 +52,19 @@ Each input passage should be a JSON object with a `text` field.
 
 The `title` field is optional.
 
-## Step 3. Running the experiments
+## Step 3. Configuration Setup
+
+Adjust the settings in the following configuration file (HOCON format).
+
+```bash
+experiments/chunking/config/default.conf
+```
+
+## Step 4. Experiment Running
 
 First, check `STORAGE_DATA` and `STORAGE_RESULTS` in the execution script and adjust them to your environment.
+
+If you modified the configuration file or added new configuration entries, make sure that the execution script refers to the intended configuration.
 
 Then run:
 

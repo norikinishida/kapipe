@@ -40,18 +40,24 @@ experiments/EXPERIMENT_NAME/data/examples/SOMETHING
 
 You can also prepare benchmark datasets with the scripts in `TBA`. 
 
-## Step 3. Running the experiments
+## Step 3. Configuration Setup
+
+Adjust the settings in the following configuration file (HOCON format).
+
+```bash
+experiments/EXPERIMENT_NAME/config/default.conf
+```
+
+## Step 4. Experiment Running
 
 First, check `STORAGE_DATA` and `STORAGE_RESULTS` in the execution script and adjust them to your environment.
+
+If you modified the configuration file or added new configuration entries, make sure that the execution script refers to the intended configuration.
 
 Then run:
 
 ```bash
 bash ./run_experiment.sh
 ```
-
-By default, the script uses METHOD_NAME_A (`METHOD=METHOD_NAME_A`).
-
-To use METHOD_NAME_B (`METHOD=METHOD_NAME_B`), change `METHOD` in the script to `METHOD_NAME_B`.
 
 If you use the OpenAI API, set your API key in advance.

@@ -42,9 +42,20 @@ experiments/docre/data/examples/entity_dict.json
 
 You can also prepare benchmark datasets (e.g., CDR, Linked-DocRED) with the scripts in `experiments/datasets/docre`.
 
-## Step 3. Running the experiments
+## Step 3. Configuration Setup
 
-First, check `STORAGE_DATA` and `STORAGE_RESULTS` in each execution script and adjust them to your environment.
+Adjust the settings in the following configuration files (HOCON format).
+
+```bash
+experiments/docre/config/atlop.conf
+experiments/docre/config/llm_docre.conf
+```
+
+## Step 4. Experiment Running
+
+First, check `STORAGE_DATA` and `STORAGE_RESULTS` in the execution script and adjust them to your environment.
+
+If you modified the configuration file or added new configuration entries, make sure that the execution script refers to the intended configuration.
 
 To apply an off-the-shelf DocRE component to documents, run:
 
@@ -57,9 +68,5 @@ To train or evaluate an DocRE component, run:
 ```bash
 bash ./run_docre_train_eval.sh
 ```
-
-By default, the script uses LLM-based DocRE (`METHOD=llm_docre`).
-
-To use ATLOP (`METHOD=atlop`), change `METHOD` in the script to `atlop`.
 
 If you use the OpenAI API, set your API key in advance.

@@ -42,9 +42,20 @@ experiments/ed_retrieval/data/examples/entity_dict.json
 
 You can also prepare benchmark datasets (e.g., CDR, Linked-DocRED) with the scripts in `experiments/datasets/ed`.
 
-## Step 3. Running the experiments
+## Step 3. Configuration Setup
 
-First, check `STORAGE_DATA` and `STORAGE_RESULTS` in each execution script and adjust them to your environment.
+Adjust the settings in the following configuration files (HOCON format).
+
+```bash
+experiments/ed_retrieval/config/mention_name_entity_retriever.conf
+experiments/ed_retrieval/config/blink_bi_encoder.conf
+```
+
+## Step 4. Experiment Running
+
+First, check `STORAGE_DATA` and `STORAGE_RESULTS` in the execution script and adjust them to your environment.
+
+If you modified the configuration file or added new configuration entries, make sure that the execution script refers to the intended configuration.
 
 To apply an off-the-shelf ED-Retrieval component to documents, run:
 
@@ -57,8 +68,3 @@ To train or evaluate an ED-Retrieval component, run:
 ```bash
 bash ./run_ed_retrieval_train_eval.sh
 ```
-
-By default, the script uses BLINK Bi-Encoder (`METHOD=blink_bi_encoder`).
-
-To use MentionNameEntityRetriever (`METHOD=mention_name_entity_retriever`), change `METHOD` in the script to `mention_name_entity_retriever`.
-

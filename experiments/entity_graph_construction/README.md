@@ -14,7 +14,7 @@ pyenv install 3.11.14
 pyenv virtualenv 3.11.14 <your-favorite-env-name>
 
 # 2. Activate the Python environment in this directory
-cd experiments/entity-graph-construction
+cd experiments/entity_graph_construction
 pyenv local <your-favorite-env-name>
 
 # 3. Install the KAPipe library
@@ -33,18 +33,26 @@ python -m pip install -r requirements.txt
 This directory already includes example data.
 
 ```bash
-TBA.
+experiments/entity_graph_construction/data/examples/documents_with_triples.json
+experiments/entity_graph_construction/data/examples/additional_triples.json
+experiments/entity_graph_construction/data/examples/entity_graph.json
 ```
 
-### Benchmark datasets
+## Step 3. Configuration Setup
 
-You can also prepare benchmark datasets with the scripts in `TBA`. 
+Adjust the settings in the following configuration file (HOCON format).
 
-## Step 3. Running the experiments
+```bash
+experiments/entity_graph_construction/config/default.conf
+```
+
+## Step 4. Experiment Running
 
 First, check `STORAGE_DATA` and `STORAGE_RESULTS` in the execution script and adjust them to your environment.
 
-To TBA, run:
+If you modified the configuration file or added new configuration entries, make sure that the execution script refers to the intended configuration.
+
+Then run:
 
 ```bash
 bash ./run_entity_graph_construction.sh

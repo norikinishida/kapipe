@@ -41,9 +41,20 @@ experiments/ner/data/examples/documents_with_supervision.json
 
 You can also prepare benchmark datasets (e.g., CDR, Linked-DocRED) with the scripts in `experiments/datasets/ner`.
 
-## Step 3. Running the experiments
+## Step 3. Configuration Setup
 
-First, check `STORAGE_DATA` and `STORAGE_RESULTS` in each execution script and adjust them to your environment.
+Adjust the settings in the following configuration files (HOCON format).
+
+```bash
+experiments/ner/config/biaffine_ner.conf
+experiments/ner/config/llm_ner.conf
+```
+
+## Step 4. Experiment Running
+
+First, check `STORAGE_DATA` and `STORAGE_RESULTS` in the execution script and adjust them to your environment.
+
+If you modified the configuration file or added new configuration entries, make sure that the execution script refers to the intended configuration.
 
 To apply an off-the-shelf NER component to documents, run:
 
@@ -57,13 +68,8 @@ To train or evaluate an NER component, run:
 bash ./run_ner_train_eval.sh
 ```
 
-By default, both scripts use the LLM-NER method (`METHOD=llm_ner`).
-
-To use Biaffine-NER (`METHOD=biaffine_ner`), change `METHOD` in each script to `biaffine_ner`.
-
 If you use the OpenAI API, set your API key in advance.
 
 ```bash
 export OPENAI_API_KEY=<your-openai-api-key>
 ```
-

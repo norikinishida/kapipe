@@ -33,20 +33,27 @@ python -m pip install -r requirements.txt
 This directory already includes example data.
 
 ```bash
-experiments/EXPERIMENT_NAME/data/examples/passages.jsonl
-experiments/EXPERIMENT_NAME/data/examples/questions.json
+experiments/passage_retrieval/data/examples/passages.jsonl
+experiments/passage_retrieval/data/examples/questions.json
 ```
 
-## Step 3. Running the experiments
+## Step 3. Configuration Setup
+
+Adjust the settings in the following configuration files (HOCON format).
+
+```bash
+experiments/passage_retrieval/config/contriever.conf
+experiments/passage_retrieval/config/qwen3_embedding.conf
+```
+
+## Step 4. Experiment Running
 
 First, check `STORAGE_DATA` and `STORAGE_RESULTS` in the execution script and adjust them to your environment.
+
+If you modified the configuration file or added new configuration entries, make sure that the execution script refers to the intended configuration.
 
 Then run:
 
 ```bash
 bash ./run_passage_retrieval.sh
 ```
-
-By default, the script uses Qwen3-Embedding-0.6B (`METHOD=qwen3_embedding`).
-
-To use Contriever (`METHOD=contriever`), change `METHOD` in the script to `contriever`.

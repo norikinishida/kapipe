@@ -33,21 +33,33 @@ python -m pip install -r requirements.txt
 This directory already includes example data.
 
 ```bash
-experiments/EXPERIMENT_NAME/data/examples/questions.json
-experiments/EXPERIMENT_NAME/data/examples/questions.contexts.json
-experiments/EXPERIMENT_NAME/data/examples/questions_with_answers.json
+experiments/qa/data/examples/questions.json
+experiments/qa/data/examples/questions.contexts.json
+experiments/qa/data/examples/questions_with_answers.json
 ```
 
 ### Benchmark datasets
 
 You can also prepare benchmark datasets with the scripts in `experiments/datasets/qa`. 
 
-## Step 3. Running the experiments
+## Step 3. Configuration Setup
+
+Adjust the settings in the following configuration file (HOCON format).
+
+```bash
+experiments/qa/config/llm_qa.conf
+```
+
+## Step 4. Experiment Running
 
 First, check `STORAGE_DATA` and `STORAGE_RESULTS` in the execution script and adjust them to your environment.
+
+If you modified the configuration file or added new configuration entries, make sure that the execution script refers to the intended configuration.
 
 Then run:
 
 ```bash
 bash ./run_qa.sh
 ```
+
+If you use the OpenAI API, set your API key in advance.

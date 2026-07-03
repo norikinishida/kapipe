@@ -37,18 +37,25 @@ experiments/report_generation/data/examples/graph.graphml
 experiments/report_generation/data/examples/communities.json
 ```
 
-## Step 3. Running the experiments
+## Step 3. Configuration Setup
+
+Adjust the settings in the following configuration files (HOCON format).
+
+```bash
+experiments/report_generation/config/llm.conf
+experiments/report_generation/config/template.conf
+```
+
+## Step 4. Experiment Running
 
 First, check `STORAGE_DATA` and `STORAGE_RESULTS` in the execution script and adjust them to your environment.
+
+If you modified the configuration file or added new configuration entries, make sure that the execution script refers to the intended configuration.
 
 Then run:
 
 ```bash
 bash ./run_report_generation.sh
 ```
-
-By default, the script uses Template-based Report Generation (`METHOD=template`).
-
-To use LLM-based Report Generation (`METHOD=llm`), change `METHOD` in the script to `llm`.
 
 If you use the OpenAI API, set your API key in advance.

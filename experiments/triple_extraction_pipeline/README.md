@@ -1,6 +1,6 @@
-# EXPERIMENT_NAME
+# triple_extraction_pipeline
 
-This directory contains example experiments for EXPERIMENT_NAME.
+This directory contains example experiments for Triple Extraction Pipeline.
 
 ## Step 1. Installation
 
@@ -14,7 +14,7 @@ pyenv install 3.11.14
 pyenv virtualenv 3.11.14 <your-favorite-env-name>
 
 # 2. Activate the Python environment in this directory
-cd experiments/EXPERIMENT_NAME
+cd experiments/triple_extraction_pipeline
 pyenv local <your-favorite-env-name>
 
 # 3. Install the KAPipe library
@@ -33,25 +33,29 @@ python -m pip install -r requirements.txt
 This directory already includes example data.
 
 ```bash
-experiments/EXPERIMENT_NAME/data/examples/SOMETHING
+experiments/triple_extraction_pipeline/data/examples/documents.json
+experiments/triple_extraction_pipeline/data/examples/documents_with_supervision.json
+experiments/triple_extraction_pipeline/data/examples/documents2.json
 ```
 
-### Benchmark datasets
+## Step 3. Configuration Setup
 
-You can also prepare benchmark datasets with the scripts in `TBA`. 
+Adjust the settings in the following configuration file (HOCON format).
 
-## Step 3. Running the experiments
+```bash
+experiments/triple_extraction_pipeline/config/default.conf
+```
+
+## Step 4. Experiment Running
 
 First, check `STORAGE_DATA` and `STORAGE_RESULTS` in the execution script and adjust them to your environment.
+
+If you modified the configuration file or added new configuration entries, make sure that the execution script refers to the intended configuration.
 
 Then run:
 
 ```bash
-bash ./run_experiment.sh
+bash ./run_triple_extraction_pipeline.sh
 ```
-
-By default, the script uses METHOD_NAME_A (`METHOD=METHOD_NAME_A`).
-
-To use METHOD_NAME_B (`METHOD=METHOD_NAME_B`), change `METHOD` in the script to `METHOD_NAME_B`.
 
 If you use the OpenAI API, set your API key in advance.
