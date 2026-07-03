@@ -3,62 +3,40 @@ from __future__ import annotations
 import logging
 
 import networkx as nx
+import torch
 
+from .. import utils
 from ..datatypes import (
     CommunityRecord,
     Passage
 )
-from .. import utils
 from ..llms import HuggingFaceLLM, OpenAILLM
+from .base import BaseReportGenerator
 
 
 logger = logging.getLogger(__name__)
 
 
-class LLMBasedReportGenerator:
+class LLMBasedReportGenerator(BaseReportGenerator):
     
     def __init__(
         self,
-        prompt_template_name_or_path: str | None = None,
-        llm_backend: str = "openai", # "openai" or "huggingface"
-        llm_kwargs: dict | None = None
+        model: HuggingFaceLLM | OpenAILLM,
+        prompt_template_name_or_path: str = "report_generation_01_zeroshot",
+        relation_map: dict[str, str] | None = None,
     ):
-        if prompt_template_name_or_path is None:
-            self.prompt_template_name_or_path = "report_generation_01_zeroshot"
-        else:
-            self.prompt_template_name_or_path = prompt_template_name_or_path
+        self.model = model
+        self.prompt_template_name_or_path = prompt_template_name_or_path
 
-        self.llm_backend = llm_backend.lower()
-        self.llm_kwargs = llm_kwargs if llm_kwargs is not None else {}
-
-        # Load prompt template for report generation
+        # Load the prompt template for report generation
         self.prompt_template = utils.read_prompt_template(
-            prompt_template_name_or_path=self.prompt_template_name_or_path
+            prompt_template_name_or_path=self.prompt_template_name_or_path,
+            prompt_template_package_name="kapipe.report_generation.prompt_templates"
         )
 
-        # Initialize the LLM model
-        if self.llm_backend == "openai":
-            openai_model_name = self.llm_kwargs.get("openai_model_name", "gpt-4o-mini")
-            max_new_tokens = self.llm_kwargs.get("max_new_tokens", 2048)
-            self.model = OpenAILLM(
-                openai_model_name=openai_model_name,
-                max_new_tokens=max_new_tokens
-            )
-        elif self.llm_backend == "huggingface":
-            llm_name_or_path = self.llm_kwargs.get("llm_name_or_path", "Qwen/Qwen2.5-7B-Instruct")
-            max_new_tokens = self.llm_kwargs.get("max_new_tokens", 2048)
-            quantization_bits = self.llm_kwargs.get("quantization_bits", -1)
-            self.model = HuggingFaceLLM(
-                device="cuda",
-                # Model
-                llm_name_or_path=llm_name_or_path,
-                # Generation
-                max_new_tokens=max_new_tokens,
-                quantization_bits=quantization_bits
-            )
-        else:
-            raise ValueError(f"Unsupported llm_backend: {self.llm_backend}")
-
+        if relation_map is None:
+            relation_map = {}
+        self.relation_map = relation_map
 
     def generate_community_reports(
         self,
@@ -68,17 +46,13 @@ class LLMBasedReportGenerator:
         node_attr_keys: tuple[str, ...],
         edge_attr_keys: tuple[str, ...],
         # Misc.
-        relation_map: dict[str, str] | None = None,
-        parse_generated_text_fn = None
+        parse_generated_text_fn = None,
     ) -> list[Passage]:
-        """Generate reports for each community using an LLM."""
+        """Generate reports for each community."""
 
         assert len(node_attr_keys) > 0
         assert len(edge_attr_keys) > 0
-
-        if relation_map is None:
-            relation_map = {}
-    
+   
         if parse_generated_text_fn is None:
             parse_generated_text_fn = parse_generated_text
 
@@ -86,7 +60,6 @@ class LLMBasedReportGenerator:
         self.graph = graph
         self.node_attr_keys = node_attr_keys
         self.edge_attr_keys = edge_attr_keys
-        self.relation_map = relation_map
         self.parse_generated_text_fn = parse_generated_text_fn
         self.n_total = len(communities) - 1 # Exclude ROOT
         self.count = 0
@@ -144,7 +117,7 @@ class LLMBasedReportGenerator:
         ]
 
         # Generate this community's report
-        report = self._generate_community_report(
+        report = self.generate_community_report(
             community=community,
             direct_nodes=direct_nodes,
             child_reports=child_reports
@@ -155,7 +128,7 @@ class LLMBasedReportGenerator:
 
         return report           
 
-    def _generate_community_report(
+    def generate_community_report(
         self,
         community: CommunityRecord,
         direct_nodes: list[str],
@@ -168,21 +141,28 @@ class LLMBasedReportGenerator:
         # Show progress
         logger.info(f"[{self.count}/{self.n_total}] Generating a report for community (ID:{community['community_id']}) with {len(direct_nodes)} direct nodes and {len(child_reports)} sub communities (IDs:{[c['community_id'] for c in child_reports]})...")
 
-        # Generate a prompt
-        prompt = self._generate_prompt(
-            direct_nodes=direct_nodes,
-            child_reports=child_reports,
-        )
+        with torch.no_grad():
+            # Switch to inference mode for Hugging Face models
+            if self.model.provider == "hf":
+                self.model.llm.eval()
 
-        # Generate a plain-text report based on the prompt
-        generated_text = self.model.generate(prompt)
+            # Generate a prompt
+            prompt = self.generate_prompt(
+                direct_nodes=direct_nodes,
+                child_reports=child_reports,
+            )
 
-        # Parse the generated report
-        processed_title, processed_text = self.parse_generated_text_fn(generated_text)
+            # Generate a plain-text report based on the prompt
+            generated_text = self.model.generate(prompt)
 
-        return {"title": processed_title, "text": processed_text} | community
+            # Parse the generated report
+            processed_title, processed_text = self.parse_generated_text_fn(
+                generated_text
+            )
 
-    def _generate_prompt(
+            return {"title": processed_title, "text": processed_text} | community
+
+    def generate_prompt(
         self,
         direct_nodes: list[str],
         child_reports: list[Passage]

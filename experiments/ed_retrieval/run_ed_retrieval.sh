@@ -1,24 +1,50 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
 
-# STORAGE=/home/nishida/storage/projects/kapipe/experiments
-STORAGE=/home/nishida/projects/kapipe/experiments
+######
+# Storage paths
+######
 
-STORAGE_DATA=${STORAGE}/data
-STORAGE_RESULTS=${STORAGE}/results
+STORAGE_DATA=/home/nishida/projects/kapipe/experiments/ed_retrieval/data
+STORAGE_RESULTS=/home/nishida/projects/kapipe/experiments/ed_retrieval/results
+
+# STORAGE_DATA=/home/nishida/storage/projects/kapipe/experiments/datasets/ed
+# STORAGE_RESULTS=/home/nishida/storage/projects/kapipe/experiments/ed_retrieval/results
+
+######
+# Experiment configuration
+######
 
 # Method
-# IDENTIFIER=dummy_entity_retriever
-IDENTIFIER=blink_bi_encoder_cdr
+METHOD=mention_name_entity_retriever
+# METHOD=blink_bi_encoder
+
+if [ "${METHOD}" == "mention_name_entity_retriever" ]; then
+    CONFIG_PATH=./config/mention_name_entity_retriever.conf
+    CONFIG_NAME=default
+elif [ "${METHOD}" == "blink_bi_encoder" ]; then
+    CONFIG_PATH=./config/blink_bi_encoder.conf
+    CONFIG_NAME=blink_bi_encoder_cdr
+    # CONFIG_NAME=blink_bi_encoder_linked_docred
+else
+    echo "Error: Invalid METHOD specified."
+    exit 1
+fi
 
 # Input Data
-DOCUMENTS=${STORAGE_RESULTS}/ner/ner/biaffine_ner_cdr/example/documents.json
+DOCUMENTS=${STORAGE_DATA}/examples/documents.ner.json
 
 # Output Path
 RESULTS_DIR=${STORAGE_RESULTS}
 MYPREFIX=example
 
+######
+# Experiment execution
+######
+
 python run_ed_retrieval.py \
-    --identifier ${IDENTIFIER} \
+    --method ${METHOD} \
+    --config_path ${CONFIG_PATH} \
+    --config_name ${CONFIG_NAME} \
     --input_documents ${DOCUMENTS} \
     --results_dir ${RESULTS_DIR} \
     --prefix ${MYPREFIX}

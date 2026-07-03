@@ -2,33 +2,13 @@ import argparse
 import json
 import logging
 import os
+import sys
 
 from tqdm import tqdm
 
-import sys
-sys.path.insert(0, "../..")
-from kapipe.passage_retrieval import Contriever
 from kapipe import utils
+from kapipe.passage_retrieval import Contriever, Qwen3Embedding
 from kapipe.utils import StopWatch
-
-
-def set_logger(filename, overwrite=False):
-    """
-    Parameters
-    ----------
-    filename: str
-    overwrite: bool, default False
-    """
-    if os.path.exists(filename) and not overwrite:
-        logging.info("%s already exists." % filename)
-        do_remove = input("Delete the existing log file? [y/n]: ")
-        if (not do_remove.lower().startswith("y")) and (not len(do_remove) == 0):
-            logging.info("Done.")
-            sys.exit(0)
-
-    root_logger = logging.getLogger()
-    handler = logging.FileHandler(filename, "w")
-    root_logger.addHandler(handler)
 
 
 def main(args):
@@ -40,20 +20,20 @@ def main(args):
     ##################
 
     # Method
-    gpu_id = args.gpu
     method_name = args.method
-    metric_name = args.metric
-    top_k = args.top_k
+    config_path = args.config_path
+    config_name = args.config_name
 
     # Input Data
-    path_input_file = args.input_file
+    input_file_path = args.input_file
 
     # Output Path
-    path_results_dir = args.results_dir
-    index_name = args.index_name
-    if index_name is None or index_name == "None":
-        index_name = utils.get_current_time()
-        args.index_name = index_name
+    results_dir = args.results_dir
+    prefix = args.prefix
+    if prefix is None or prefix == "None":
+        assert args.actiontype != "search", "Prefix must be specified for search action."
+        prefix = utils.get_current_time()
+        args.prefix = prefix
 
     # Action
     actiontype = args.actiontype
@@ -64,51 +44,35 @@ def main(args):
     # Logging Setup
     ##################
 
-    # Set index root
-    index_root = os.path.join(
-        path_results_dir,
-        "passage_retrieval"
+    # Set base output path
+    base_output_path = os.path.join(
+        results_dir,
+        "passage_retrieval",
+        method_name,
+        config_name,
+        prefix,
     )
-    utils.mkdir(os.path.join(
-        index_root,
-        method_name
-    ))
-  
+    utils.mkdir(base_output_path)
+ 
+    index_dir = os.path.join(base_output_path, "indexes")
+    utils.mkdir(index_dir)
+
+    search_results_dir = os.path.join(base_output_path, "search_results")
+    utils.mkdir(search_results_dir)
+
     if actiontype == "indexing":
-        # Set base output path
-        utils.mkdir(os.path.join(
-            index_root,
-            method_name,
-            "indexes",
-            index_name
-        ))
         # Set logger
         set_logger(
-            os.path.join(
-                index_root,
-                method_name,
-                "indexes",
-                index_name,
-                "indexing.log"  
-            ),
+            os.path.join(index_dir, "indexing.log"),
             # overwrite=True
         )
+
     elif actiontype == "search":
-        # Set base output path
-        utils.mkdir(os.path.join(
-            index_root,
-            method_name,
-            "search-results",
-            index_name
-        ))
         # Set logger
         set_logger(
             os.path.join(
-                index_root,
-                method_name,
-                "search-results",
-                index_name,
-                os.path.splitext(os.path.basename(path_input_file))[0] + ".log"
+                search_results_dir,
+                os.path.splitext(os.path.basename(input_file_path))[0] + ".log"
             ),
             # overwrite=True
         )
@@ -116,12 +80,10 @@ def main(args):
     # Show arguments
     logging.info(utils.pretty_format_dict(vars(args)))
 
-    # Index will be saved to index_root/method_name/indexes/index_name/...
-    # Search results will be saved to index_root/method_name/search-results/index_name/...
-    # Logs will be saved to index_root/method_name/{indexing,search}.log
+    # Index will be saved to `index_dir``
+    # Search results will be saved to `search_results_dir`
 
-    logging.info(f"index_root: {index_root}")
-    logging.info(f"index_name: {index_name}")
+    logging.info(f"index dir: {index_dir}")
 
     ##################
     # Data
@@ -131,7 +93,7 @@ def main(args):
         # Load passages
         logging.info("Loading passages for indexing ...")
         passages = []
-        for line in open(path_input_file):
+        for line in open(input_file_path):
             passage = json.loads(line.strip())
             passages.append(passage)
         logging.info(f"Loaded {len(passages)} passages")
@@ -139,21 +101,35 @@ def main(args):
     if actiontype == "search":
         # Load questions
         logging.info("Loading questions for search ...")
-        questions = utils.read_json(path_input_file)
+        questions = utils.read_json(input_file_path)
         logging.info(f"Loaded {len(questions)} questions")
 
     ##################
     # Method
     ##################
 
+    # Load the experiment configuration
+    config = utils.get_hocon_config(config_path=config_path, config_name=config_name)
+
+    # Save the experiment configuration to the output path
+    utils.write_json(os.path.join(base_output_path, "config.json"), config)
+
     # Initialize the Passage Retrieval component
     if method_name == "contriever":
         retriever = Contriever(
-            max_passage_length=512,
-            pooling_method="average",
-            normalize=False,
-            gpu_id=gpu_id,
-            metric=metric_name
+            model_name=config["model_name"],
+            max_passage_length=config["max_passage_length"],
+            pooling_method=config["pooling_method"],
+            normalize=config["normalize"],
+            metric=config["metric"],
+        )
+    elif method_name == "qwen3_embedding":
+        retriever = Qwen3Embedding(
+            model_name=config["model_name"],
+            max_passage_length=config["max_passage_length"],
+            normalize=config["normalize"],
+            metric=config["metric"],
+            query_instruction=config["query_instruction"],
         )
     else:
         raise ValueError(f"Invalid retrieval method name: {method_name}")
@@ -162,34 +138,35 @@ def main(args):
     # Indexing, Search
     ##################
 
-
     if actiontype == "indexing":
-        logging.info(f"Applying the Passage Retrieval component (indexing) to passages in {path_input_file} ...")
+        logging.info(f"Applying the Passage Retrieval component (indexing) to passages in {input_file_path} ...")
 
         # Build index
         retriever.make_index(
             passages=passages,
-            index_root=index_root,
-            index_name=index_name
+            index_dir=index_dir,
+            batch_size=config["indexing_batch_size"],
         )
 
     if actiontype == "search":
-        logging.info(f"Applying the Passage Retrieval component (search) to questions in {path_input_file} ...")
+        logging.info(f"Applying the Passage Retrieval component (search) to questions in {input_file_path} ...")
 
         # Load the index
-        retriever.load_index(index_root=index_root, index_name=index_name)
+        retriever.load_index(index_dir=index_dir)
 
         # Search top-k passages for each question
         contexts = []
-        BATCH_SIZE = 10
-        for i in tqdm(range(0, len(questions), BATCH_SIZE)):
+        batch_size = config["search_batch_size"]
+        for i in tqdm(range(0, len(questions), batch_size)):
             # Create a batch of questions
-            batch = questions[i:i+BATCH_SIZE]
+            batch = questions[i:i+batch_size]
+
             # Search top-k passages for this batch
             batch_passages = retriever.search(
                 queries=[q["question"] for q in batch],
-                top_k=top_k
+                top_k=config["top_k"]
             )
+
             # Create a ContextsForOneExample object for each question
             for question, passages in zip(batch, batch_passages):
                 contexts_for_question = {
@@ -199,11 +176,8 @@ def main(args):
                 contexts.append(contexts_for_question)
  
         search_output = os.path.join(
-            index_root,
-            method_name,
-            "search-results",
-            index_name,
-            os.path.splitext(os.path.basename(path_input_file))[0] + ".contexts.json"
+            search_results_dir,
+            os.path.splitext(os.path.basename(input_file_path))[0] + ".contexts.json"
         )
         utils.write_json(search_output, contexts)
         logging.info(f"Saved the Passage Retrieval results to {search_output}")
@@ -217,6 +191,19 @@ def main(args):
     logging.info("Time: %f min." % sw.get_time("main", minute=True))
 
 
+def set_logger(filename: str, overwrite: bool =False) -> None:
+    if os.path.exists(filename) and not overwrite:
+        logging.info("%s already exists." % filename)
+        do_remove = input("Delete the existing log file? [y/n]: ")
+        if (not do_remove.lower().startswith("y")) and (not len(do_remove) == 0):
+            logging.info("Done.")
+            sys.exit(0)
+
+    root_logger = logging.getLogger()
+    handler = logging.FileHandler(filename, "w")
+    root_logger.addHandler(handler)
+
+
 if __name__ == "__main__":
     logging.basicConfig(
         format="%(asctime)s - %(levelname)s - %(name)s - %(message)s",
@@ -226,17 +213,16 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
     # Method
-    parser.add_argument("--gpu", type=int, default=0)
     parser.add_argument("--method", type=str, required=True)
-    parser.add_argument("--metric", type=str, required=True)
-    parser.add_argument("--top_k", type=int, default=10)
+    parser.add_argument("--config_path", type=str, required=True)
+    parser.add_argument("--config_name", type=str, required=True)
 
     # Input Data
     parser.add_argument("--input_file", type=str, required=True)
 
     # Output Path
     parser.add_argument("--results_dir", type=str, required=True)
-    parser.add_argument("--index_name", type=str, default=None)
+    parser.add_argument("--prefix", type=str, default=None)
 
     # Action
     parser.add_argument("--actiontype", type=str, required=True)

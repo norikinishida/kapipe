@@ -1,150 +1,122 @@
 from typing import Any, TypeAlias
-from pyhocon import ConfigTree
 
 ##########
-# Config
-##########
-
-Config : TypeAlias = ConfigTree 
-
-##########
-# Passage
+# Data types for documents/passages
 ##########
 
 Passage : TypeAlias = dict[str, Any]
-# {
-#     "title": str # optional
-#     "text": str,
-# }
-
-##########
-# Document
-##########
+# Required fields:
+# - text: str
+# Optional fields:
+# - title: str
 
 DocKey : TypeAlias = str
 
 Document : TypeAlias = dict[str, Any]
-# {
-#     "doc_key": str,
-#     "sentences": list[str], 
-#     "mentions": list[Mention], # optional
-#     "entities": list[Entity], # optional
-#     "relations": list[Triple] # optional
-# }
+# Required fields:
+# - doc_key: DocKey
+# - sentences: list[str]
+# Optional fields:
+# - mentions: list[Mention]
+# - entities: list[Entity]
+# - relations: list[Triple]
+
+##########
+# Data types for NER
+##########
 
 Mention : TypeAlias = dict[str, Any]
-# {
-#     "span": tuple[int],
-#     "name": str,
-#     "entity_type": str, # optional
-#     "entity_id": str # optional
-# }
+# Required fields:
+# - span: tuple[int, int] | list[int] | None
+# - name: str
+# - entity_type: str
+# Optional fields:
+# - entity_id: str
+
+##########
+# Data types for Entity Disambiguation
+##########
 
 Entity : TypeAlias = dict[str, Any]
-# {
-#     "mention_indices": list[int],
-#     "mention_names": list[str],
-#     "entity_type": str,
-#     "entity_id": str
-# }
-
-Triple : TypeAlias = dict[str, Any]
-# {
-#     "arg1": int,
-#     "relation": str,
-#     "arg2": int
-# }
-
-##########
-# Entity Dictionary
-##########
+# Required fields:
+# - mention_indices: list[int]
+# - mention_names: list[str]
+# - entity_type: str
+# - entity_id: str
 
 EntityPage : TypeAlias = dict[str, Any]
-# {
-#     "entity_id": str,
-#     "canonical_name": str,
-#     "synonyms": list[str],
-#     "description": str
-# }
-
-##########
-# Candidate Entities
-##########
-
-CandidateEntitiesForDocument : TypeAlias = dict[str, Any]
-# {
-#     "doc_key": str,
-#     "candidate_entities": list[list[CandEntKeyInfo]]
-# }
+# Required fields:
+# - entity_id: str
+# - canonical_name: str
+# - description: str
+# Optional fields:
+# - synonyms: list[str]
+# - entity_type: str
 
 CandEntKeyInfo : TypeAlias = dict[str, Any]
-# {
-#     "entity_id": str,
-#     "score": float
-# }
+# Required fields:
+# - entity_id: str
+# - canonical_name: str
+# - score: float
+
+CandidateEntitiesForDocument : TypeAlias = dict[str, Any]
+# Required fields:
+# - doc_key: str
+# - candidate_entities: list[list[CandEntKeyInfo]]
 
 EntityPassage : TypeAlias = dict[str, Any]
-# {
-#     "title": str,
-#     "text": str,
-#     "entity_id": str
-# }
+# Required fields:
+# - title: str
+# - text: str
+# - entity_id: str
 
 ##########
-# Community
+# Data types for Document-level Relation Extraction
+##########
+
+Triple : TypeAlias = dict[str, Any]
+# Required fields:
+# - arg1: int
+# - relation: str
+# - arg2: int
+
+##########
+# Data types for Community Clustering
 ##########
 
 CommunityRecord : TypeAlias = dict[str, Any]
-# {
-#     "community_id": str,
-#     "nodes": list[str],
-#     "level": int, 
-#     "parent_community_id": str,
-#     "child_community_ids": list[str]
-# }
+# Required fields:
+# - community_id: str
+# - nodes: list[str] | None
+# - level: int
+# - parent_community_id: str | None
+# - child_community_ids: list[str]
 
 ##########
-# Contexts
-##########
-
-ContextsForOneExample : TypeAlias = dict[str, Any]
-# {
-#     "question_key": str,
-#     "contexts": list[Passage]
-# }
-
-##########
-# Question
+# Data types for QA
 ##########
 
 QuestionKey : TypeAlias = str
 
+ContextsForOneExample : TypeAlias = dict[str, Any]
+# Required fields:
+# - doc_key or question_key: str
+# - contexts: list[Passage]
+
 Question : TypeAlias = dict[str, Any]
-# {
-#     "question_key": str,
-#     "question": str,
-#     "answers": list[Answer], # optional
-# }
+# Required fields:
+# - question_key: QuestionKey
+# - question: str
+# Optional fields:
+# - answers: list[Answer]
+# - output_answer: str
+# - rationale: str
+# - helpfulness_score: float
 
 Answer : TypeAlias = dict[str, Any]
-# {
-#     "answer": str
-# }
-
-##########
-# Demonstrations for In-Context Learning
-##########
-
-DemonstrationsForOneExample : TypeAlias = dict[str, Any]
-# {
-#     "doc_key" or "question_key": str
-#     "demonstrations": list[DemoKeyInfo]
-# }
-
-DemoKeyInfo : TypeAlias = dict[str, Any]
-# {
-#     "doc_key" or "question_key": str,
-#     "score": float
-# }
-
-
+# Required fields:
+# - answer: str
+# Optional fields:
+# - answer_type: str
+# - list_index: int
+# list_index is required when answer_type is "list"

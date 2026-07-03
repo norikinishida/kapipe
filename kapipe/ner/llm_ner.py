@@ -1,191 +1,229 @@
 from __future__ import annotations
 
 import copy
-# import json
 import logging
 import os
 import re
 from typing import Any
 import unicodedata
 
-# import numpy as np
 import torch
-# import torch.nn as nn
 from tqdm import tqdm
 
+from .. import evaluation
+from .. import utils
 from ..datatypes import (
-    Config,
     Document,
     Mention,
-    DemonstrationsForOneExample,
     ContextsForOneExample
 )
-from .. import utils
-from .. import evaluation
 from ..llms import HuggingFaceLLM, OpenAILLM
+from ..resources import resolve_snapshot_path
+from .base import BaseNER
 
 
 logger = logging.getLogger(__name__)
 
 
-class LLMNER:
+class LLMNER(BaseNER):
+
+    @classmethod
+    def from_identifier(
+        cls,
+        model: HuggingFaceLLM | OpenAILLM,
+        identifier: str,
+    ) -> "LLMNER":
+
+        # Resolve the public identifier to the corresponding local snapshot
+        snapshot_path = resolve_snapshot_path(
+            component_name="ner",
+            method_name="llm_ner",
+            identifier=identifier,
+        )
+
+        # Load the extractor from the resolved snapshot
+        extractor = cls.from_snapshot(
+            model=model,
+            snapshot_path=snapshot_path,
+        )
+
+        # Store the public identifier for later inspection
+        extractor.identifier = identifier
+
+        return extractor
+
+    @classmethod
+    def from_snapshot(
+        cls,
+        model: HuggingFaceLLM | OpenAILLM,
+        snapshot_path: str,
+    ) -> "LLMNER":
+
+        # Define the default paths for the resources in the snapshot
+        component_config_path = snapshot_path + "/component_config.json"
+        vocab_path = snapshot_path + "/entity_types.vocab.txt"
+        meta_info_path = snapshot_path + "/etype_meta_info.json"
+        demonstration_documents_path = (
+            snapshot_path + "/demonstration_documents.json"
+        )
+
+        # Set the demonstration documents to None if the file does not exist
+        if not os.path.exists(demonstration_documents_path):
+            demonstration_documents_path = None
+
+        # Load the component configuration
+        component_config = utils.read_json(component_config_path)
+        logger.info(f"Loaded component configuration from {component_config_path}")
+        logger.info(utils.pretty_format_dict(component_config))
+
+        # Initialize the extractor from explicit snapshot resources
+        extractor = cls(
+            # External
+            model=model,
+            # Internal
+            **component_config,
+            vocab_etype=vocab_path,
+            etype_meta_info=meta_info_path,
+            # Optional (Internal)
+            demonstration_documents=demonstration_documents_path,
+        )
+
+        # Store the snapshot path for later inspection
+        extractor.snapshot_path = snapshot_path
+
+        return extractor
 
     def __init__(
         self,
-        device: str,
-        # Initialization
-        config: Config | str | None = None,
-        vocab_etype: dict[str, int] | str | None = None,
-        etype_meta_info: dict[str, dict[str, str]] | str | None = None,
-        path_demonstration_pool: str | None = None,
-        # Loading
-        path_snapshot: str | None = None,
-        # Misc
-        model: HuggingFaceLLM | OpenAILLM | None = None,
+        # External
+        model: HuggingFaceLLM | OpenAILLM,
+        # Internal
+        prompt_template_name_or_path: str,
+        vocab_etype: dict[str, int] | str,
+        etype_meta_info: dict[str, dict[str, str]] | str,
+        # Optional (Internal)
+        demonstration_documents: list[Document] | str | None = None,
+        # Optional
+        **unused_kwargs: object,
     ):
         logger.info("########## LLMNER Initialization Starts ##########")
 
-        self.device = device
-        self.path_snapshot = path_snapshot
+        self.model = model
+        self.prompt_template_name_or_path = prompt_template_name_or_path
 
-        if path_snapshot is not None:
-            assert config is None
-            # assert vocab_etype is None
-            # assert etype_meta_info is None
-            assert path_demonstration_pool is None
-
-            config = path_snapshot + "/config"
-            if vocab_etype is None:
-                vocab_etype = path_snapshot + "/entity_types.vocab.txt"
-            if etype_meta_info is None:
-                etype_meta_info = path_snapshot + "/etype_meta_info.json"
-            path_demonstration_pool = path_snapshot + "/demonstration_pool.json"
-
-            if not os.path.exists(path_demonstration_pool):
-                path_demonstration_pool = None
-
-        # Load the configuration
-        if isinstance(config, str):
-            config_path = config
-            config = utils.get_hocon_config(config_path=config_path)
-            logger.info(f"Loaded configuration from {config_path}")
-        self.config = config
-        logger.info(utils.pretty_format_dict(self.config))
-
-        # Load the entity type vocabulary
+        # Load the entity-type vocabulary
         if isinstance(vocab_etype, str):
             vocab_path = vocab_etype
             vocab_etype = utils.read_vocab(vocab_path)
             logger.info(f"Loaded entity type vocabulary from {vocab_path}")
         self.vocab_etype = vocab_etype
-        self.ivocab_etype = {i:l for l, i in self.vocab_etype.items()}
+        self.ivocab_etype = {
+            entity_type_id: entity_type
+            for entity_type, entity_type_id in self.vocab_etype.items()
+        }
 
-        # Load the entity type meta information (pretty names and definitions)
+        # Load human-readable entity-type names and definitions. These values
+        # are inserted into prompts and used to normalize generated labels.
         if isinstance(etype_meta_info, str):
             meta_path = etype_meta_info
             etype_meta_info = utils.read_json(meta_path)
             logger.info(f"Loaded entity type meta-information from {meta_path}")
         self.etype_meta_info = etype_meta_info
 
-        # Initialize the prompt processor
+        # Load the demonstration documents
+        if isinstance(demonstration_documents, str):
+            demonstration_documents_path = demonstration_documents
+            demonstration_documents = utils.read_json(demonstration_documents_path)
+            logger.info(
+                f"Loaded {len(demonstration_documents)} demonstration documents "
+                f"from {demonstration_documents_path}"
+            )
+        elif demonstration_documents is None:
+            # Use an empty list for zero-shot setting
+            demonstration_documents = []
+        self.demonstration_documents: list[Document] = demonstration_documents
+
+        # Initialize the prompt processor, which generates prompts for the LLM
         self.prompt_processor = PromptProcessor(
-            prompt_template_name_or_path=config["prompt_template_name_or_path"],
+            prompt_template_name_or_path=self.prompt_template_name_or_path,
             vocab_etype=self.vocab_etype,
             etype_meta_info=self.etype_meta_info,
-            path_demonstration_pool=path_demonstration_pool,
-            n_demonstrations=config["n_demonstrations"]
         )
 
-        # Initialize the model
-        self.model_name = config["model_name"]
-        assert self.model_name in ["hf", "openai"]
-        if model is not None:
-            self.model = model
-            logger.info("LLM is provided by an argument")
-        elif self.model_name == "hf":
-            self.model = HuggingFaceLLM(
-                device=device,
-                # Model
-                llm_name_or_path=config["llm_name_or_path"],
-                # Generation
-                max_new_tokens=config["max_new_tokens"],
-                quantization_bits=config["quantization_bits"],
-            )
-        else:
-            self.model = OpenAILLM(
-                openai_model_name=config["openai_model_name"],
-                max_new_tokens=config["max_new_tokens"]
-            )
-        # self.model.llm.to(self.model.device)
-
-        # Define regular expression for output parsing
-        # <bullet> (<mention>, <entity type>)
-        # self.re_comp = re.compile("(.+?)\s*\(\s*(.+?)\s*,\s*(.+?)\s*\)$")
-        # <bullet> <mention> -> <entity type>
-        # self.re_comp = re.compile("(.+?)\s*(.+?)\s*->\s*(.+?)$")
-        # <bullet> <mention> | <entity type>
-        self.re_comp = re.compile("(.+?)\s*(.+?)\s*\|\s*(.+?)$")
+        # Define regular expression for output parsing.
+        # Parse generated lines of the followingform:
+        #
+        #     - [mention text] | [entity type]
+        #
+        self.re_comp = re.compile(r"(.+?)\s*(.+?)\s*\|\s*(.+?)$")
 
         # Create entity type mapping (normalized pretty name -> canonical name)
         # e.g., "Location" -> "LOC"
-        self.normalized_to_canonical = {}
+        self.normalized_to_canonical: dict[str, str] = {}
         for etype in self.vocab_etype.keys():
             pretty_name = self.etype_meta_info[etype]["Pretty Name"]
-            self.normalized_to_canonical[pretty_name.lower()] = etype
+            normalized_pretty_name = pretty_name.lower()
+            self.normalized_to_canonical[normalized_pretty_name] = etype
 
         logger.info("########## LLMNER Initialization Ends ##########")
 
-    def save(self, path_snapshot: str) -> None:
-        path_config = path_snapshot + "/config"
-        path_vocab = path_snapshot + "/entity_types.vocab.txt"
-        path_meta_info = path_snapshot + "/etype_meta_info.json"
-        path_demonstration_pool = path_snapshot + "/demonstration_pool.json"
-        utils.write_json(path_config, self.config)
-        utils.write_vocab(path_vocab, self.vocab_etype, write_frequency=False)
-        utils.write_json(path_meta_info, self.etype_meta_info)
-        if self.prompt_processor.path_demonstration_pool is not None:
-            utils.write_json(
-                path_demonstration_pool,
-                list(self.prompt_processor.demonstration_pool.values())
-            )
+    def save(self, snapshot_path: str) -> None:
+        """Save the configuration, entity-type vocabulary, meta-information, and demonstration documents to a snapshot."""
+
+        component_config_path = snapshot_path + "/component_config.json"
+        vocab_path = snapshot_path + "/entity_types.vocab.txt"
+        meta_info_path = snapshot_path + "/etype_meta_info.json"
+        demonstration_documents_path = snapshot_path + "/demonstration_documents.json"
+
+        component_config: dict[str, Any] = {
+            "prompt_template_name_or_path": self.prompt_template_name_or_path,
+        }
+
+        utils.write_json(component_config_path, component_config)
+        utils.write_vocab(vocab_path, self.vocab_etype, write_frequency=False)
+        utils.write_json(meta_info_path, self.etype_meta_info)
+        utils.write_json(demonstration_documents_path, self.demonstration_documents)
 
     def extract(
         self,
         document: Document,
-        # optional: few-shot setting
-        demonstrations_for_doc: DemonstrationsForOneExample | None = None,
-        # optional: context augmentation
+        # Optional: context augmentation
         contexts_for_doc: ContextsForOneExample | None = None
     ) -> Document:
+        """Extract named entity mentions from a single document."""
+
         with torch.no_grad():
-            if self.model_name == "hf":
-                # Switch to inference mode
+            # Switch to inference mode for Hugging Face models
+            if self.model.provider == "hf":
                 self.model.llm.eval()
 
-            # Generate a prompt
+            # Generate the prompt
             prompt = self.prompt_processor.generate(
                 document=document,
-                demonstrations_for_doc=demonstrations_for_doc,
-                contexts_for_doc=contexts_for_doc
+                demonstration_documents=self.demonstration_documents,
+                contexts_for_doc=contexts_for_doc,
             )
 
-            # Generate a response
+            # Generate the response
             generated_text = self.model.generate(prompt)
 
-            # Structurize
+            # Structurize the generated text into mentions
             mentions = self.structurize(
                 document=document,
                 generated_text=generated_text
             )
 
-            # Integrate
+            # Integrate the mentions into the document
             result_document = copy.deepcopy(document)
             result_document["mentions"] = mentions
             result_document["ner_prompt"] = prompt
             result_document["ner_generated_text"] = generated_text
+
             return result_document
 
     def structurize(self, document: Document, generated_text: str) -> list[Mention]:
+        """Structurize the generated text into the mentions."""
+
         doc_key = document["doc_key"]
 
         # Get mapping from character position to word position (index)
@@ -213,6 +251,8 @@ class LLMNER:
             s_len = len(sent.split())
             token_index_to_sent_index.extend([s_i] * s_len)
 
+        # Parse the generated text and extract mention tuples
+        # (begin_token_index, end_token_index, entity_type)
         tuples: list[tuple[int, int, str]] = []
         for generated_line in generated_text.split("\n"):
             generated_line = generated_line.strip()
@@ -258,6 +298,7 @@ class LLMNER:
                 logger.info(f"[{doc_key}] A generated line contains invalid entity type: '{generated_line}'")
                 # continue
 
+            # Map the normalized entity type to the canonical entity type
             canonical_entity_type = self.normalized_to_canonical.get(
                 normalized_entity_type,
                 entity_type
@@ -279,6 +320,7 @@ class LLMNER:
                 "entity_type": etype,
             })
         mentions = sorted(mentions, key=lambda m: m["span"])
+
         return mentions
 
     def extract_word_level_spans(
@@ -287,6 +329,8 @@ class LLMNER:
         normalized_text: str,
         char_index_to_word_index: list[int]
     ) -> list[tuple[int, int]]:
+        """Extract word-level spans of a mention string in the input text."""
+
         spans: list[tuple[int, int]] = []
         pattern = r"\s*".join(re.escape(c) for c in normalized_name)
         results = re.finditer(
@@ -302,35 +346,34 @@ class LLMNER:
             begin_word_i = char_index_to_word_index[begin_char_i]
             end_word_i = char_index_to_word_index[end_char_i - 1]
             spans.append((begin_word_i, end_word_i))
+
         return spans
 
     def batch_extract(
         self,
         documents: list[Document],
-        # optional: few-shot setting
-        demonstrations: list[DemonstrationsForOneExample] | None = None,
         # optional: context augmentation
         contexts: list[ContextsForOneExample] | None = None
     ) -> list[Document]:
-        result_documents = []
+        """Extract named entity mentions from a batch of documents."""
 
-        if demonstrations is None:
-            demonstrations = [None] * len(documents)
+        result_documents: list[Document] = []
 
+        # Use empty contexts when no contexts are provided
         if contexts is None:
             contexts = [None] * len(documents)
 
-        for document, demonstrations_for_doc, contexts_for_doc in tqdm(
-            zip(documents, demonstrations, contexts),
+        for document, contexts_for_doc in tqdm(
+            zip(documents, contexts),
             total=len(documents),
             desc="extraction steps"
         ):
             result_document = self.extract(
                 document=document,
-                demonstrations_for_doc=demonstrations_for_doc,
                 contexts_for_doc=contexts_for_doc
             )
             result_documents.append(result_document)
+
         return result_documents
 
 
@@ -341,23 +384,15 @@ class PromptProcessor:
         prompt_template_name_or_path: str,
         vocab_etype: dict[str, int],
         etype_meta_info: dict[str, dict[str, str]],
-        # optional: few-shot setting
-        path_demonstration_pool: str | None = None,
-        n_demonstrations: int | None = None
     ):
         self.prompt_template_name_or_path = prompt_template_name_or_path
         self.vocab_etype = vocab_etype
         self.etype_meta_info = etype_meta_info
-        self.path_demonstration_pool = path_demonstration_pool
-        self.n_demonstrations = n_demonstrations
-
-        # If demonstration pool is provided, `n_demonstartions` should also be set
-        if self.path_demonstration_pool is not None:
-            assert self.n_demonstrations is not None
 
         # Load the prompt template
         self.prompt_template = utils.read_prompt_template(
-            prompt_template_name_or_path=self.prompt_template_name_or_path
+            prompt_template_name_or_path=self.prompt_template_name_or_path,
+            prompt_template_package_name="kapipe.ner.prompt_templates",
         )
 
         # Generate the prompt part for entity types
@@ -368,39 +403,23 @@ class PromptProcessor:
             self.entity_types_prompt += f"- {pretty_name}: {definition}\n"
         self.entity_types_prompt = self.entity_types_prompt.rstrip()
 
-        # Load the demonstration pool
-        if self.path_demonstration_pool is not None:
-            self.demonstration_pool: dict[str, Document] = {
-                demo_doc["doc_key"]: demo_doc
-                for demo_doc in utils.read_json(self.path_demonstration_pool)
-            }
-
     def generate(
         self,
         document: Document,
-        # optional: few-shot setting
-        demonstrations_for_doc: DemonstrationsForOneExample | None = None,
-        # optional: context augmentation
+        demonstration_documents: list[Document],
+        # Optional: context augmentation
         contexts_for_doc: ContextsForOneExample | None = None
     ) -> str:
+        """Generate a prompt for the input document."""
+
         ##########
         # Demonstrations Prompt
         ##########
 
-        if demonstrations_for_doc is not None:
-            # Create demonstration documents
-            demonstration_documents: list[Document] = []
-            for demo_key_dict in (
-                demonstrations_for_doc["demonstrations"][:self.n_demonstrations]
-            ):
-                demo_doc = self.demonstration_pool[demo_key_dict["doc_key"]]
-                demonstration_documents.append(demo_doc)
-            # Generate prompt part for demonstrations
-            demonstrations_prompt = self.generate_demonstrations_prompt(
-                demonstration_documents=demonstration_documents
-            )
-        else:
-            demonstrations_prompt = ""
+        # Generate the prompt part for the demonstrations
+        demonstrations_prompt = self.generate_demonstrations_prompt(
+            demonstration_documents=demonstration_documents,
+        )        
 
         ##########
         # Contexts Prompt
@@ -412,7 +431,7 @@ class PromptProcessor:
             for passage in contexts_for_doc["contexts"]:
                 text = utils.create_text_from_passage(passage=passage, sep=" : ")
                 context_texts.append(text)
-            # Generate prompt part for contexts
+            # Generate the prompt part for the contexts
             contexts_prompt = self.generate_contexts_prompt(
                 context_texts=context_texts
             )
@@ -423,7 +442,7 @@ class PromptProcessor:
         # Test Case Prompt
         ##########
 
-        # Generate prompt part for the test case
+        # Generate the prompt part for the test case
         test_case_prompt = self.generate_test_case_prompt(
             document=document
         )
@@ -439,12 +458,15 @@ class PromptProcessor:
             contexts_prompt=contexts_prompt,
             test_case_prompt=test_case_prompt
         )
+
         return prompt
 
     def generate_demonstrations_prompt(
         self,
         demonstration_documents: list[Document]
     ) -> str:
+        """Generate a prompt for the demonstrations."""
+
         prompt = ""
         n_demos = len(demonstration_documents)
         for demo_i, demo_doc in enumerate(demonstration_documents):
@@ -454,9 +476,12 @@ class PromptProcessor:
             prompt += f"{self.generate_output_prompt(document=demo_doc)}\n"
             if demo_i < n_demos - 1:
                 prompt += "\n"
+
         return prompt.rstrip()
         
     def generate_contexts_prompt(self, context_texts: list[str]) -> str:
+        """Generate a prompt for the contexts."""
+
         n_contexts = len(context_texts)
         if n_contexts == 0:
             return ""
@@ -465,17 +490,26 @@ class PromptProcessor:
             prompt += f"[{context_i+1}] {content.strip()} \n"
             if context_i < n_contexts - 1:
                 prompt += "\n"
+
         return prompt.rstrip()
 
     def generate_test_case_prompt(self, document: Document) -> str:
+        """Generate a prompt for the test case."""
+
         prompt = f"Text: {self.generate_input_text_prompt(document=document)}\n"
+
         return prompt.rstrip()
 
     def generate_input_text_prompt(self, document: Document) -> str:
+        """Generate a prompt for the input text."""
+
         prompt = " ".join(document["sentences"]) + "\n"
+
         return prompt.rstrip()
 
     def generate_output_prompt(self, document: Document) -> str:
+        """Generate a prompt for the output mentions."""
+
         prompt = ""
         words = " ".join(document["sentences"]).split()
         for mention in document["mentions"]:
@@ -487,7 +521,13 @@ class PromptProcessor:
             else:
                 pretty_name = etype
             prompt += f"- {name} | {pretty_name}\n"
+
         return prompt.rstrip()
+
+
+#####################
+# Trainer (Evaluator)
+#####################
 
 
 class LLMNERTrainer:
@@ -500,15 +540,15 @@ class LLMNERTrainer:
         paths = {}
 
         # configurations
-        paths["path_snapshot"] = self.base_output_path
+        paths["snapshot_path"] = self.base_output_path
 
         # evaluation outputs
-        paths["path_dev_gold"] = self.base_output_path + "/dev.gold.json"
-        paths["path_dev_pred"] = self.base_output_path + "/dev.pred.json"
-        paths["path_dev_eval"] = self.base_output_path + "/dev.eval.json"
-        paths["path_test_gold"] = self.base_output_path + "/test.gold.json"
-        paths["path_test_pred"] = self.base_output_path + "/test.pred.json"
-        paths["path_test_eval"] = self.base_output_path + "/test.eval.json"
+        paths["dev_gold_path"] = self.base_output_path + "/dev.gold.json"
+        paths["dev_pred_path"] = self.base_output_path + "/dev.pred.json"
+        paths["dev_eval_path"] = self.base_output_path + "/dev.eval.json"
+        paths["test_gold_path"] = self.base_output_path + "/test.gold.json"
+        paths["test_pred_path"] = self.base_output_path + "/test.pred.json"
+        paths["test_eval_path"] = self.base_output_path + "/test.eval.json"
 
         return paths
 
@@ -519,42 +559,41 @@ class LLMNERTrainer:
         split: str
     ) -> None:
         # Cache the gold annotations for evaluation
-        path_gold = self.paths[f"path_{split}_gold"]
-        if not os.path.exists(path_gold):
+        gold_path = self.paths[f"{split}_gold_path"]
+        if not os.path.exists(gold_path):
             gold_documents = []
             for document in tqdm(documents, desc="dataset setup"):
                 gold_doc = copy.deepcopy(document)
                 gold_documents.append(gold_doc)
-            utils.write_json(path_gold, gold_documents)
-            logger.info(f"Saved the gold annotations for evaluation in {path_gold}")
+            utils.write_json(gold_path, gold_documents)
+            logger.info(f"Saved the gold annotations for evaluation in {gold_path}")
 
     def save_extractor(self, extractor: LLMNER) -> None:
-        extractor.save(path_snapshot=self.paths["path_snapshot"])
+        extractor.save(snapshot_path=self.paths["snapshot_path"])
 
     def evaluate(
         self,
         extractor: LLMNER,
         documents: list[Document],
-        demonstrations: list[DemonstrationsForOneExample] | None,
         contexts: list[ContextsForOneExample] | None,
         split: str,
         #
         prediction_only: bool = False,
         get_scores_only: bool = False
     ) -> dict[str, Any] | None:
+
         # Apply the extractor
         result_documents = extractor.batch_extract(
             documents=documents,
-            demonstrations=demonstrations,
             contexts=contexts
         )
 
         # Save the prediction results
-        utils.write_json(self.paths[f"path_{split}_pred"], result_documents)
+        utils.write_json(self.paths[f"{split}_pred_path"], result_documents)
 
         # Save the prompt-response pairs in plain text
         with open(
-            self.paths[f"path_{split}_pred"].replace(".json", ".txt"), "w"
+            self.paths[f"{split}_pred_path"].replace(".json", ".txt"), "w"
         ) as f:
             for result_doc in result_documents:
                 doc_key = result_doc["doc_key"]
@@ -573,14 +612,14 @@ class LLMNERTrainer:
 
         # Calculate the evaluation scores
         scores = evaluation.ner.fscore(
-            pred_path=self.paths[f"path_{split}_pred"],
-            gold_path=self.paths[f"path_{split}_gold"]
+            pred_path=self.paths[f"{split}_pred_path"],
+            gold_path=self.paths[f"{split}_gold_path"]
         )
 
         if get_scores_only:
             return scores
 
         # Save the evaluation scores
-        utils.write_json(self.paths[f"path_{split}_eval"], scores)
+        utils.write_json(self.paths[f"{split}_eval_path"], scores)
         logger.info(utils.pretty_format_dict(scores))
         return scores

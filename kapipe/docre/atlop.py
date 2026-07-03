@@ -19,53 +19,125 @@ from opt_einsum import contract
 from tqdm import tqdm
 import jsonlines
 
-from ..datatypes import Config, Document, Triple
-from .. import utils
-from ..utils import BestScoreHolder
 from .. import evaluation
+from .. import utils
+from ..datatypes import Document, Triple
 from ..nn_utils import (
     AdaptiveThresholdingLoss,
     get_optimizer2,
     get_scheduler2
 )
+from ..resources import resolve_snapshot_path
+from ..utils import BestScoreHolder
+from .base import BaseDocRE
 
 
 logger = logging.getLogger(__name__)
 
 
-class ATLOP:
+class ATLOP(BaseDocRE):
     """
-    ATLOP (Zhou et al., 2021).
+    A class for performing document-level relation extraction using ATLOP (Zhou et al., 2021).
     """
+
+    @classmethod
+    def from_identifier(
+        cls,
+        identifier: str,
+        device: str = "cuda",
+    ) -> "ATLOP":
+
+        # Resolve the public identifier to the corresponding local snapshot
+        snapshot_path = resolve_snapshot_path(
+            component_name="docre",
+            method_name="atlop",
+            identifier=identifier,
+        )
+
+        # Load the extractor from the resolved snapshot
+        extractor = cls.from_snapshot(
+            snapshot_path=snapshot_path,
+            device=device,
+        )
+
+        # Store the public identifier for later inspection
+        extractor.identifier = identifier
+
+        return extractor
+
+    @classmethod
+    def from_snapshot(
+        cls,
+        snapshot_path: str,
+        device: str = "cuda",
+    ) -> "ATLOP":
+
+        # Define the default paths for the resources in the snapshot
+        model_path = snapshot_path + "/model.pt"
+        component_config_path = snapshot_path + "/component_config.json"
+        vocab_path = snapshot_path + "/relations.vocab.txt"
+
+        # Load the component configuration
+        component_config: dict[str, Any] = utils.read_json(component_config_path)
+        logger.info(f"Loaded component configuration from {component_config_path}")
+        logger.info(utils.pretty_format_dict(component_config))
+
+        # Initialize the extractor from explicit snapshot resources
+        extractor = cls(
+            # Internal
+            **component_config,
+            vocab_relation=vocab_path,
+            # Optional
+            device=device,
+        )
+
+        # Store the snapshot path for later inspection
+        extractor.snapshot_path = snapshot_path
+
+        # Load trained model parameters from the snapshot
+        extractor.model.load_state_dict(
+            torch.load(model_path, map_location=torch.device("cpu")),
+            strict=False
+        )
+        logger.info(f"Loaded model parameters from {model_path}")
+
+        # Move the model again after loading parameters
+        extractor.model.to(extractor.model.device)
+
+        return extractor
 
     def __init__(
         self,
-        device: str,
-        # Initialization
-        config: Config | str | None = None,
-        vocab_relation: dict[str, int] | str | None = None,
-        # Loading
-        path_snapshot: str | None = None
+        # Internal
+        model_name: str,
+        bert_pretrained_model_name_or_path: str,
+        max_seg_len: int,
+        token_embedding_method: str,
+        entity_pooling_method: str,
+        use_localized_context_pooling: bool,
+        bilinear_block_size: int,
+        loss_function_name: str,
+        possible_head_entity_types: list[str] | None,
+        possible_tail_entity_types: list[str] | None,
+        top_k_labels: int,
+        vocab_relation: dict[str, int] | str,
+        # Optional
+        device: str = "cuda",
+        **unused_kwargs: object,
     ):
         logger.info("########## ATLOP Initialization Starts ##########")
 
-        self.device = device
-        self.path_snapshot = path_snapshot
-
-        if path_snapshot is not None:
-            assert config is None
-            assert vocab_relation is None
-            config = path_snapshot + "/config"
-            vocab_relation = path_snapshot + "/relations.vocab.txt"
-            path_model = path_snapshot + "/model"
-
-        # Load the configuration
-        if isinstance(config, str):
-            config_path = config
-            config = utils.get_hocon_config(config_path=config_path)
-            logger.info(f"Loaded configuration from {config_path}")
-        self.config = config
-        logger.info(utils.pretty_format_dict(self.config))
+        self.model_name = model_name
+        self.bert_pretrained_model_name_or_path = bert_pretrained_model_name_or_path
+        self.max_seg_len = max_seg_len
+        self.token_embedding_method = token_embedding_method
+        self.entity_pooling_method = entity_pooling_method
+        self.use_localized_context_pooling = use_localized_context_pooling
+        self.bilinear_block_size = bilinear_block_size
+        self.loss_function_name = loss_function_name
+        self.possible_head_entity_types = possible_head_entity_types
+        self.possible_tail_entity_types = possible_tail_entity_types
+        self.top_k_labels = top_k_labels
 
         # Load the relation vocabulary
         if isinstance(vocab_relation, str):
@@ -73,71 +145,91 @@ class ATLOP:
             vocab_relation = utils.read_vocab(vocab_path)
             logger.info(f"Loaded relation type vocabulary from {vocab_path}")
         self.vocab_relation = vocab_relation
-        self.ivocab_relation = {i:l for l, i in self.vocab_relation.items()}
+        self.ivocab_relation = {
+            relation_id: relation
+            for relation, relation_id in self.vocab_relation.items()
+        }
 
         # Initialize the model
-        self.model_name = config["model_name"]
-        self.top_k_labels = config["top_k_labels"]
         if self.model_name == "atlop_model":
             self.model = ATLOPModel(
-                device=device,
-                bert_pretrained_name_or_path=config["bert_pretrained_name_or_path"],
-                max_seg_len=config["max_seg_len"],
-                token_embedding_method=config["token_embedding_method"],
-                entity_pooling_method=config["entity_pooling_method"],
-                use_localized_context_pooling=config["use_localized_context_pooling"],
-                bilinear_block_size=config["bilinear_block_size"],
+                bert_pretrained_model_name_or_path=(
+                    self.bert_pretrained_model_name_or_path
+                ),
+                max_seg_len=self.max_seg_len,
+                token_embedding_method=self.token_embedding_method,
+                entity_pooling_method=self.entity_pooling_method,
+                use_localized_context_pooling=(
+                    self.use_localized_context_pooling
+                ),
+                bilinear_block_size=self.bilinear_block_size,
                 vocab_relation=self.vocab_relation,
-                loss_function_name=config["loss_function"],
-                possible_head_entity_types=config["possible_head_entity_types"],
-                possible_tail_entity_types=config["possible_tail_entity_types"]
+                loss_function_name=self.loss_function_name,
+                possible_head_entity_types=self.possible_head_entity_types,
+                possible_tail_entity_types=self.possible_tail_entity_types,
+                device=device,
             )
         else:
             raise ValueError(f"Invalid model_name: {self.model_name}")
 
-        # Show parameter shapes
-        # logger.info("Model parameters:")
-        # for name, param in self.model.named_parameters():
-        #     logger.info(f"{name}: {tuple(param.shape)}")
-
-        # Load trained model parameters
-        if path_snapshot is not None:
-            self.model.load_state_dict(
-                torch.load(path_model, map_location=torch.device("cpu")),
-                strict=False
-            )
-            logger.info(f"Loaded model parameters from {path_model}")
-
+        # Move the model to the specified device
         self.model.to(self.model.device)
 
         logger.info("########## ATLOP Initialization Ends ##########")
 
-    def save(self, path_snapshot: str, model_only: bool = False) -> None:
-        path_config = path_snapshot + "/config"
-        path_vocab = path_snapshot + "/relations.vocab.txt"
-        path_model = path_snapshot + "/model"
+    def save(self, snapshot_path: str, model_only: bool = False) -> None:
+        """Save the model, configuration, and relation vocabulary."""
+
+        model_path = snapshot_path + "/model.pt"
+        component_config_path = snapshot_path + "/component_config.json"
+        vocab_path = snapshot_path + "/relations.vocab.txt"
+
+        component_config: dict[str, Any] = {
+            "model_name": self.model_name,
+            "bert_pretrained_model_name_or_path": (
+                self.bert_pretrained_model_name_or_path
+            ),
+            "max_seg_len": self.max_seg_len,
+            "token_embedding_method": self.token_embedding_method,
+            "entity_pooling_method": self.entity_pooling_method,
+            "use_localized_context_pooling": (
+                self.use_localized_context_pooling
+            ),
+            "bilinear_block_size": self.bilinear_block_size,
+            "loss_function_name": self.loss_function_name,
+            "possible_head_entity_types": self.possible_head_entity_types,
+            "possible_tail_entity_types": self.possible_tail_entity_types,
+            "top_k_labels": self.top_k_labels,
+        }
+
+        torch.save(self.model.state_dict(), model_path)
         if not model_only:
-            utils.write_json(path_config, self.config)
-            utils.write_vocab(path_vocab, self.vocab_relation, write_frequency=False)
-        torch.save(self.model.state_dict(), path_model)
+            utils.write_json(component_config_path, component_config)
+            utils.write_vocab(
+                vocab_path,
+                self.vocab_relation,
+                write_frequency=False
+            )
 
     def compute_loss(
         self,
         document: Document
     ) -> tuple[torch.Tensor, torch.Tensor, int, int]:
+        """Compute the loss for a single document."""
+
         # Switch to training mode
         self.model.train()
 
-        # Preprocess
+        # Preprocess the document
         preprocessed_data = self.model.preprocess(document=document)
 
-        # Tensorize
+        # Tensorize the preprocessed data
         model_input = self.model.tensorize(
             preprocessed_data=preprocessed_data,
             compute_loss=True
         )
 
-        # Forward
+        # Forward pass through the model
         model_output = self.model.forward(**model_input)
 
         return (
@@ -148,11 +240,12 @@ class ATLOP:
         )
 
     def extract(self, document: Document) -> Document:
+        """Extract triples from a single document."""
         with torch.no_grad():
             # Switch to inference mode
             self.model.eval()
 
-            # Preprocess
+            # Preprocess the document
             preprocessed_data = self.model.preprocess(document=document)
 
             # Return no triple if head or tail entity is missing
@@ -165,26 +258,27 @@ class ATLOP:
                 result_document["relations"] = []
                 return result_document
 
-            # Tensorize
+            # Tensorize the preprocessed data
             model_input = self.model.tensorize(
                 preprocessed_data=preprocessed_data,
                 compute_loss=False
             )
 
-            # Forward
+            # Forward pass through the model
             model_output = self.model.forward(**model_input)
             logits = model_output.logits # (n_entity_pairs, n_relations)
 
-            # Structurize
+            # Structurize the logits into triples
             triples = self.structurize(
                 pair_head_entity_indices=preprocessed_data["pair_head_entity_indices"],
                 pair_tail_entity_indices=preprocessed_data["pair_tail_entity_indices"],
                 logits=logits
             )
 
-            # Integrate
+            # Integrate the triples into the document
             result_document = copy.deepcopy(document)
             result_document["relations"] = triples
+
             return result_document
 
     def structurize(
@@ -193,6 +287,8 @@ class ATLOP:
         pair_tail_entity_indices: np.ndarray,
         logits: torch.Tensor
     ) -> list[Triple]:
+        """Structurize the logits into triples."""
+
         triples: list[Triple] = []
 
         # Get predicted relation labels (indices)
@@ -207,29 +303,41 @@ class ATLOP:
             pair_tail_entity_indices,
             pair_pred_relation_labels
         ):
+            # Skip self-relations
             if head_entity_i == tail_entity_i:
                 continue
+
             # Find positive (i.e., non-zero) relation labels (indices)
             rel_indices = np.nonzero(rel_indicators)[0].tolist()
             for rel_i in rel_indices:
                 if rel_i != 0:
                     # Convert relation index to relation name
                     rel = self.ivocab_relation[rel_i]
+
                     # Add a new triple
                     triples.append({
                         "arg1": int(head_entity_i),
                         "relation": rel,
                         "arg2": int(tail_entity_i),
-                        })
+                    })
 
         return triples
 
     def batch_extract(self, documents: list[Document]) -> list[Document]:
-        result_documents = []
+        """Extract triples from a batch of documents."""
+
+        result_documents: list[Document] = []
+
         for document in tqdm(documents, desc="extraction steps"):
             result_document = self.extract(document=document)
             result_documents.append(result_document)
+
         return result_documents
+
+
+#####################
+# Trainer (Evaluator), Model, Preprocessor
+#####################
 
 
 class ATLOPTrainer:
@@ -246,19 +354,19 @@ class ATLOPTrainer:
         base = self.base_output_path
         return {
             # config, vocab, model
-            "path_snapshot": base,
+            "snapshot_path": base,
             # training outputs
-            "path_train_losses": f"{base}/train.losses.jsonl",
-            "path_dev_evals": f"{base}/dev.eval.jsonl",
+            "train_losses_path": f"{base}/train.losses.jsonl",
+            "dev_evals_path": f"{base}/dev.eval.jsonl",
             # evaluation outputs
-            "path_dev_gold": f"{base}/dev.gold.json",
-            "path_dev_pred": f"{base}/dev.pred.json",
-            "path_dev_eval": f"{base}/dev.eval.json",
-            "path_test_gold": f"{base}/test.gold.json",
-            "path_test_pred": f"{base}/test.pred.json",
-            "path_test_eval": f"{base}/test.eval.json",
+            "dev_gold_path": f"{base}/dev.gold.json",
+            "dev_pred_path": f"{base}/dev.pred.json",
+            "dev_eval_path": f"{base}/dev.eval.json",
+            "test_gold_path": f"{base}/test.gold.json",
+            "test_pred_path": f"{base}/test.pred.json",
+            "test_eval_path": f"{base}/test.eval.json",
             # required for Ign evaluation
-            "path_gold_train_triples": f"{base}/gold_train_triples.json",
+            "gold_train_triples_path": f"{base}/gold_train_triples.json",
         }
 
     def setup_dataset(
@@ -270,7 +378,7 @@ class ATLOPTrainer:
     ) -> None:
         if split == "train":
             # Cache the gold training triples for Ign evaluation
-            if not os.path.exists(self.paths["path_gold_train_triples"]):
+            if not os.path.exists(self.paths["gold_train_triples_path"]):
                 gold_train_triples: list[tuple[str, str, str]] = []
                 for document in tqdm(documents, desc="Generating gold training triples"):
                     entity_index_to_mention_names = {
@@ -300,15 +408,15 @@ class ATLOPTrainer:
                 gold_train_triples = list(set(gold_train_triples))
                 gold_train_triples = {"root": gold_train_triples}
                 utils.write_json(
-                    self.paths["path_gold_train_triples"],
+                    self.paths["gold_train_triples_path"],
                     gold_train_triples
                 )
-                logger.info(f"Saved the gold training triples for Ign evaluation in {self.paths['path_gold_train_triples']}")
+                logger.info(f"Saved the gold training triples for Ign evaluation in {self.paths['gold_train_triples_path']}")
 
         # Cache the gold annotations for evaluation
         if split != "train" and with_gold_annotations:
-            path_gold = self.paths[f"path_{split}_gold"]
-            if not os.path.exists(path_gold):
+            gold_path = self.paths[f"{split}_gold_path"]
+            if not os.path.exists(gold_path):
                 gold_documents = []
                 for document in tqdm(documents, desc="dataset setup"):
                     gold_doc = copy.deepcopy(document)
@@ -316,15 +424,29 @@ class ATLOPTrainer:
                         document=document
                     )
                     gold_documents.append(gold_doc)
-                utils.write_json(path_gold, gold_documents)
-                logger.info(f"Saved the gold annotations for evaluation in {path_gold}")
+                utils.write_json(gold_path, gold_documents)
+                logger.info(f"Saved the gold annotations for evaluation in {gold_path}")
 
     def train(
         self,
         extractor: ATLOP,
         train_documents: list[Document],
         dev_documents: list[Document],
-        supplemental_info: dict[str, Any]
+        supplemental_info: dict[str, Any],
+        #
+        max_epoch: int,
+        batch_size: int,
+        gradient_accumulation_steps: int,
+        warmup_ratio: float,
+        bert_learning_rate: float,
+        task_learning_rate: float,
+        adam_eps: float,
+        max_grad_norm: float,
+        n_steps_for_monitoring: int,
+        n_steps_for_validation: int,
+        max_patience: int,
+        use_official_evaluation: bool = False,
+        **unused_kwargs: object,
     ) -> None:
         ##################
         # Setup
@@ -333,11 +455,8 @@ class ATLOPTrainer:
         train_doc_indices = np.arange(len(train_documents))
 
         n_train = len(train_doc_indices)
-        max_epoch = extractor.config["max_epoch"]
-        batch_size = extractor.config["batch_size"]
-        gradient_accumulation_steps = extractor.config["gradient_accumulation_steps"]
         total_update_steps = n_train * max_epoch // (batch_size * gradient_accumulation_steps)
-        warmup_steps = int(total_update_steps * extractor.config["warmup_ratio"])
+        warmup_steps = int(total_update_steps * warmup_ratio)
 
         logger.info("Number of training documents: %d" % n_train)
         logger.info("Number of epochs: %d" % max_epoch)
@@ -348,20 +467,22 @@ class ATLOPTrainer:
 
         optimizer = get_optimizer2(
             model=extractor.model,
-            config=extractor.config
+            bert_learning_rate=bert_learning_rate,
+            task_learning_rate=task_learning_rate,
+            adam_eps=adam_eps,
         )
         scheduler = get_scheduler2(
             optimizer=optimizer,
             total_update_steps=total_update_steps,
-            warmup_steps=warmup_steps
+            warmup_steps=warmup_steps,
         )
 
         writer_train = jsonlines.Writer(
-            open(self.paths["path_train_losses"], "w"),
+            open(self.paths["train_losses_path"], "w"),
             flush=True
         )
         writer_dev = jsonlines.Writer(
-            open(self.paths["path_dev_evals"], "w"),
+            open(self.paths["dev_evals_path"], "w"),
             flush=True
         )
 
@@ -373,7 +494,7 @@ class ATLOPTrainer:
         ##################
 
         # Evaluate the extractor
-        if extractor.config["use_official_evaluation"]:
+        if use_official_evaluation:
             scores = self.official_evaluate(
                 extractor=extractor,
                 documents=dev_documents,
@@ -401,8 +522,8 @@ class ATLOPTrainer:
         bestscore_holder.compare_scores(scores["standard"]["f1"], 0)
 
         # Save
-        extractor.save(path_snapshot=self.paths["path_snapshot"])
-        logger.info(f"Saved config, vocab, and model to {self.paths['path_snapshot']}")
+        extractor.save(snapshot_path=self.paths["snapshot_path"])
+        logger.info(f"Saved config, vocab, and model to {self.paths['snapshot_path']}")
 
         ##################
         # Training Loop
@@ -484,14 +605,14 @@ class ATLOPTrainer:
                     # Update
                     ##################
 
-                    if extractor.config["max_grad_norm"] > 0:
+                    if max_grad_norm > 0:
                         torch.nn.utils.clip_grad_norm_(
                             bert_param,
-                            extractor.config["max_grad_norm"]
+                            max_grad_norm,
                         )
                         torch.nn.utils.clip_grad_norm_(
                             task_param,
-                            extractor.config["max_grad_norm"]
+                            max_grad_norm,
                         )
 
                     optimizer.step()
@@ -509,7 +630,7 @@ class ATLOPTrainer:
                     (
                         (batch_i % gradient_accumulation_steps == 0)
                         and
-                        (step % extractor.config["n_steps_for_monitoring"] == 0)
+                        (step % n_steps_for_monitoring == 0)
                     )
                 ):
 
@@ -541,9 +662,9 @@ class ATLOPTrainer:
                     (
                         (batch_i % gradient_accumulation_steps == 0)
                         and
-                        (extractor.config["n_steps_for_validation"] > 0)
+                        (n_steps_for_validation > 0)
                         and
-                        (step % extractor.config["n_steps_for_validation"] == 0)
+                        (step % n_steps_for_validation == 0)
                     )
                 ):
                     ##################
@@ -551,7 +672,7 @@ class ATLOPTrainer:
                     ##################
 
                     # Evaluate the extractor
-                    if extractor.config["use_official_evaluation"]:
+                    if use_official_evaluation:
                         scores = self.official_evaluate(
                             extractor=extractor,
                             documents=dev_documents,
@@ -585,16 +706,16 @@ class ATLOPTrainer:
                     # Save the model
                     if did_update:
                         extractor.save(
-                            path_snapshot=self.paths["path_snapshot"],
+                            snapshot_path=self.paths["snapshot_path"],
                             model_only=True
                         )
-                        logger.info(f"Saved model to {self.paths['path_snapshot']}")
+                        logger.info(f"Saved model to {self.paths['snapshot_path']}")
 
                     ##################
                     # Termination Check
                     ##################
 
-                    if bestscore_holder.patience >= extractor.config["max_patience"]:
+                    if bestscore_holder.patience >= max_patience:
                         writer_train.close()
                         writer_dev.close()
                         progress_bar.close()
@@ -618,25 +739,25 @@ class ATLOPTrainer:
     ) -> dict[str, Any] | None:
         # Apply the extractor
         result_documents = extractor.batch_extract(documents=documents)
-        utils.write_json(self.paths[f"path_{split}_pred"], result_documents)
+        utils.write_json(self.paths[f"{split}_pred_path"], result_documents)
 
         if prediction_only:
             return
 
         # Calculate the evaluation scores
         scores = evaluation.docre.fscore(
-            pred_path=self.paths[f"path_{split}_pred"],
-            gold_path=self.paths[f"path_{split}_gold"],
+            pred_path=self.paths[f"{split}_pred_path"],
+            gold_path=self.paths[f"{split}_gold_path"],
             skip_intra_inter=skip_intra_inter,
             skip_ign=skip_ign,
-            gold_train_triples_path=self.paths["path_gold_train_triples"]
+            gold_train_triples_path=self.paths["gold_train_triples_path"]
         )
 
         if get_scores_only:
             return scores
 
         # Save the evaluation scores
-        utils.write_json(self.paths[f"path_{split}_eval"], scores)
+        utils.write_json(self.paths[f"{split}_eval_path"], scores)
         logger.info(utils.pretty_format_dict(scores))
         return scores
 
@@ -652,10 +773,10 @@ class ATLOPTrainer:
     ) -> dict[str, Any]:
         # Apply the extractor
         result_documents = extractor.batch_extract(documents=documents)
-        utils.write_json(self.paths[f"path_{split}_pred"], result_documents)
+        utils.write_json(self.paths[f"{split}_pred_path"], result_documents)
         triples = evaluation.docre.to_official(
-            path_input=self.paths[f"path_{split}_pred"],
-            path_output=self.paths[f"path_{split}_pred"].replace(".json", ".official.json")
+            input_path=self.paths[f"{split}_pred_path"],
+            output_path=self.paths[f"{split}_pred_path"].replace(".json", ".official.json")
         )
 
         if prediction_only:
@@ -676,7 +797,7 @@ class ATLOPTrainer:
             return scores
 
         # Save the evaluation scores
-        utils.write_json(self.paths[f"path_{split}_eval"], scores)
+        utils.write_json(self.paths[f"{split}_eval_path"], scores)
         logger.info(utils.pretty_format_dict(scores))
         return scores
 
@@ -704,8 +825,7 @@ class ATLOPModel(nn.Module):
 
     def __init__(
         self,
-        device: str,
-        bert_pretrained_name_or_path: str,
+        bert_pretrained_model_name_or_path: str,
         max_seg_len: int,
         token_embedding_method: str,
         entity_pooling_method: str,
@@ -714,7 +834,8 @@ class ATLOPModel(nn.Module):
         vocab_relation: dict[str, int],
         loss_function_name: str,
         possible_head_entity_types: list[str] | None = None,
-        possible_tail_entity_types: list[str] | None = None
+        possible_tail_entity_types: list[str] | None = None,
+        device: str = "cuda",
     ):
         super().__init__()
 
@@ -722,8 +843,7 @@ class ATLOPModel(nn.Module):
         # Hyper parameters
         ########################
 
-        self.device = device
-        self.bert_pretrained_name_or_path = bert_pretrained_name_or_path
+        self.bert_pretrained_model_name_or_path = bert_pretrained_model_name_or_path
         self.max_seg_len = max_seg_len
         self.token_embedding_method = token_embedding_method
         self.entity_pooling_method = entity_pooling_method
@@ -733,6 +853,7 @@ class ATLOPModel(nn.Module):
         self.loss_function_name = loss_function_name
         self.possible_head_entity_types = possible_head_entity_types
         self.possible_tail_entity_types = possible_tail_entity_types
+        self.device = device
 
         self.n_relations = len(self.vocab_relation)
 
@@ -747,7 +868,7 @@ class ATLOPModel(nn.Module):
 
         # BERT, tokenizer
         self.bert, self.tokenizer = self._initialize_bert_and_tokenizer(
-            pretrained_model_name_or_path=self.bert_pretrained_name_or_path
+            pretrained_model_name_or_path=self.bert_pretrained_model_name_or_path
         )
 
         # Dimensionality
@@ -789,7 +910,8 @@ class ATLOPModel(nn.Module):
     ) -> tuple[PreTrainedModel, PreTrainedTokenizer]:
         bert = AutoModel.from_pretrained(
             pretrained_model_name_or_path,
-            return_dict=True
+            return_dict=True,
+            attn_implementation="eager",
         )
         tokenizer = AutoTokenizer.from_pretrained(
             pretrained_model_name_or_path,

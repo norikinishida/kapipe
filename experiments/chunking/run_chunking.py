@@ -2,33 +2,13 @@ import argparse
 import json
 import logging
 import os
+import sys
 
 from tqdm import tqdm
 
-import sys
-sys.path.insert(0, "../..")
-from kapipe.chunking import Chunker
 from kapipe import utils
+from kapipe.chunking import Chunker
 from kapipe.utils import StopWatch
-
-
-def set_logger(filename, overwrite=False):
-    """
-    Parameters
-    ----------
-    filename: str
-    overwrite: bool, default False
-    """
-    if os.path.exists(filename) and not overwrite:
-        logging.info("%s already exists." % filename)
-        do_remove = input("Delete the existing log file? [y/n]: ")
-        if (not do_remove.lower().startswith("y")) and (not len(do_remove) == 0):
-            logging.info("Done.")
-            sys.exit(0)
-
-    root_logger = logging.getLogger()
-    handler = logging.FileHandler(filename, "w")
-    root_logger.addHandler(handler)
 
 
 def main(args):
@@ -40,27 +20,32 @@ def main(args):
     ##################
 
     # Method
-    spacy_model_name = args.spacy_model_name
-    window_size = args.window_size
+    method_name = args.method
+    config_path = args.config_path
+    config_name = args.config_name
 
     # Input Data
-    path_input_passages = args.input_passages
+    input_passages_path = args.input_passages
 
     # Output Path
-    path_results_dir = args.results_dir
+    results_dir = args.results_dir
     prefix = args.prefix
     if prefix is None or prefix == "None":
         prefix = utils.get_current_time()
         args.prefix = prefix
- 
+
+    assert method_name in ["default"], f"Unknown method: {method_name}"
+
     ##################
     # Logging Setup
     ##################
 
     # Set base output path
     base_output_path = os.path.join(
-        path_results_dir,
+        results_dir,
         "chunking",
+        method_name,
+        config_name,
         prefix
     )
     utils.mkdir(base_output_path)
@@ -78,42 +63,55 @@ def main(args):
     # Method
     ##################
 
+    # Load the experiment configuration
+    config = utils.get_hocon_config(config_path=config_path, config_name=config_name)
+
+    # Save the experiment configuration to the output path
+    utils.write_json(os.path.join(base_output_path, "config.json"), config)
+
     # Initialize the Chunking component
-    chunker = Chunker(model_name=spacy_model_name)
+    chunker = Chunker(model_name=config["spacy_model_name"])
 
     ##################
     # Chunking
     ##################
 
-    with open(path_input_passages) as fin:
+    # Count the input passages
+    with open(input_passages_path) as fin:
         n_lines = sum(1 for _ in fin)
-    logging.info(f"Applying the Chunking component to {n_lines} passages in {path_input_passages} ...")
+    logging.info(f"Applying the Chunking component to {n_lines} passages in {input_passages_path} ...")
 
-    # Create the full output path
-    filename = os.path.splitext(os.path.basename(path_input_passages))[0]
-    filename = f"{filename}.chunked_w{window_size}.jsonl"
+    # Create the output file path
+    input_file_name = os.path.splitext(os.path.basename(input_passages_path))[0]
+    output_file_name = f"{input_file_name}.chunked_w{config['window_size']}.jsonl"
+    output_file_path = os.path.join(base_output_path, output_file_name)
 
     # Apply the Chunking component to the passages
-    count_before = 0
-    count_after = 0
-    with open(os.path.join(base_output_path, filename), "w") as fout:
-        with open(path_input_passages) as fin:
+    n_input_passages = 0
+    n_output_passages = 0
+    with open(output_file_path, "w") as fout:
+        with open(input_passages_path) as fin:
             for line in tqdm(fin, total=n_lines):
                 # Load the passage
                 passage = json.loads(line.strip())
+
                 # Split the passage into chunked passages
                 chunked_passages = chunker.split_passage_to_chunked_passages(
                     passage=passage,
-                    window_size=window_size
+                    window_size=config["window_size"],
                 )
+
                 # Save the chunked passages
                 for chunked_passage in chunked_passages:
                     json_str = json.dumps(chunked_passage)
                     fout.write(json_str + "\n")
-                count_before += 1
-                count_after += len(chunked_passages)
 
-    logging.info(f"Split {count_before} passages into {count_after} chunked passages")
+                # Count the processed/produced passages
+                n_input_passages += 1
+                n_output_passages += len(chunked_passages)
+
+    logging.info(f"Split {n_input_passages} passages into {n_output_passages} chunked passages")
+    logging.info(f"Saved the chunked passages to {output_file_path}")
 
     ##################
     # Closing
@@ -124,6 +122,19 @@ def main(args):
     logging.info("Time: %f min." % sw.get_time("main", minute=True))
 
 
+def set_logger(filename: str, overwrite: bool = False) -> None:
+    if os.path.exists(filename) and not overwrite:
+        logging.info("%s already exists." % filename)
+        do_remove = input("Delete the existing log file? [y/n]: ")
+        if (not do_remove.lower().startswith("y")) and (not len(do_remove) == 0):
+            logging.info("Done.")
+            sys.exit(0)
+
+    root_logger = logging.getLogger()
+    handler = logging.FileHandler(filename, "w")
+    root_logger.addHandler(handler)
+
+
 if __name__ == "__main__":
     logging.basicConfig(
         format="%(asctime)s - %(levelname)s - %(name)s - %(message)s",
@@ -132,8 +143,9 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
     # Method
-    parser.add_argument("--spacy_model_name", type=str, default="en_core_web_sm")
-    parser.add_argument("--window_size", type=int, default=100)
+    parser.add_argument("--method", type=str, required=True)
+    parser.add_argument("--config_path", type=str, required=True)
+    parser.add_argument("--config_name", type=str, required=True)
 
     # Input Data
     parser.add_argument("--input_passages", type=str, required=True)

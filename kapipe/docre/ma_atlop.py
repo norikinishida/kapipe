@@ -17,56 +17,134 @@ from opt_einsum import contract
 from tqdm import tqdm
 import jsonlines
 
-from ..datatypes import Config, Document, Triple
-from .. import utils
-from ..utils import BestScoreHolder
+
 from .. import evaluation
+from .. import utils
+from ..datatypes import Document, Triple
 from ..nn_utils import (
     AdaptiveThresholdingLoss,
     get_optimizer2,
     get_scheduler2
 )
+from ..resources import resolve_snapshot_path
+from ..utils import BestScoreHolder
+from .base import BaseDocRE
 
 
 logger = logging.getLogger(__name__)
 
 
-class MAATLOP:
+class MAATLOP(BaseDocRE):
     """
-    Mention-Agnostic ATLOP (Oumaima and Nishida et al., 2024)
+    A class for performing document-level relation extraction using Mention-Agnostic ATLOP (Oumaima and Nishida et al., 2024)
     """
+
+    @classmethod
+    def from_identifier(
+        cls,
+        identifier: str,
+        device: str = "cuda",
+    ) -> "MAATLOP":
+
+        # Resolve the public identifier to the corresponding local snapshot
+        snapshot_path = resolve_snapshot_path(
+            component_name="docre",
+            method_name="ma_atlop",
+            identifier=identifier,
+        )
+
+        # Load the extractor from the resolved snapshot
+        extractor = cls.from_snapshot(
+            snapshot_path=snapshot_path,
+            device=device,
+        )
+
+        # Store the public identifier for later inspection
+        extractor.identifier = identifier
+
+        return extractor
+
+    @classmethod
+    def from_snapshot(
+        cls,
+        snapshot_path: str,
+        device: str = "cuda",
+    ) -> "MAATLOP":
+
+        # Define the default paths for the resources in the snapshot
+        model_path = snapshot_path + "/model.pt"
+        component_config_path = snapshot_path + "/component_config.json"
+        vocab_path = snapshot_path + "/relations.vocab.txt"
+        entity_dict_path = snapshot_path + "/entity_dict.json"
+
+        # Load the component configuration
+        component_config: dict[str, Any] = utils.read_json(component_config_path)
+        logger.info(f"Loaded component configuration from {component_config_path}")
+        logger.info(utils.pretty_format_dict(component_config))
+
+        # Initialize the extractor from explicit snapshot resources
+        extractor = cls(
+            # Internal
+            **component_config,
+            vocab_relation=vocab_path,
+            entity_dict_path=entity_dict_path,
+            # Optional
+            device=device,
+        )
+
+        # Store the snapshot path for later inspection
+        extractor.snapshot_path = snapshot_path
+
+        # Load trained model parameters from the snapshot
+        extractor.model.load_state_dict(
+            torch.load(model_path, map_location=torch.device("cpu")),
+            strict=False
+        )
+        logger.info(f"Loaded model parameters from {model_path}")
+
+        # Move the model again after loading parameters
+        extractor.model.to(extractor.model.device)
+
+        return extractor
 
     def __init__(
         self,
-        device: str,
-        # Initialization
-        config: Config | str | None = None,
-        vocab_relation: dict[str, int] | str | None = None,
-        path_entity_dict: str | None = None,
-        # Loading
-        path_snapshot: str | None = None
+        # Internal
+        model_name: str,
+        bert_pretrained_model_name_or_path: str,
+        max_seg_len: int,
+        entity_seq_length: int,
+        bilinear_block_size: int,
+        use_localized_context_pooling: bool,
+        possible_head_entity_types: list[str] | None,
+        possible_tail_entity_types: list[str] | None,
+        top_k_labels: int,
+        #
+        use_mention_as_canonical_name: bool,
+        do_negative_entity_sampling: bool,
+        negative_entity_ratio: float | None,
+        #
+        vocab_relation: dict[str, int] | str,
+        entity_dict_path: str,
+        # Optional
+        device: str = "cuda",
+        **unused_kwargs: object,
     ):
         logger.info("########## MAATLOP Initialization Starts ##########")
 
-        self.device = device
-        self.path_snapshot = path_snapshot
+        self.model_name = model_name
+        self.bert_pretrained_model_name_or_path = bert_pretrained_model_name_or_path
+        self.max_seg_len = max_seg_len
+        self.entity_seq_length = entity_seq_length
+        self.bilinear_block_size = bilinear_block_size
+        self.use_localized_context_pooling = use_localized_context_pooling
+        self.possible_head_entity_types = possible_head_entity_types
+        self.possible_tail_entity_types = possible_tail_entity_types
+        self.top_k_labels = top_k_labels
 
-        if path_snapshot is not None:
-            assert config is None
-            assert vocab_relation is None
-            assert path_entity_dict is None
-            config = path_snapshot + "/config"
-            vocab_relation = path_snapshot + "/relations.vocab.txt"
-            path_entity_dict = path_snapshot + "/entity_dict.json"
-            path_model = path_snapshot + "/model"
-
-        # Load the configuration
-        if isinstance(config, str):
-            config_path = config
-            config = utils.get_hocon_config(config_path=config_path)
-            logger.info(f"Loaded configuration from {config_path}")
-        self.config = config
-        logger.info(utils.pretty_format_dict(self.config))
+        self.use_mention_as_canonical_name = use_mention_as_canonical_name
+        self.do_negative_entity_sampling = do_negative_entity_sampling
+        self.negative_entity_ratio = negative_entity_ratio
 
         # Load the relation vocabulary
         if isinstance(vocab_relation, str):
@@ -74,56 +152,61 @@ class MAATLOP:
             vocab_relation = utils.read_vocab(vocab_path)
             logger.info(f"Loaded relation type vocabulary from {vocab_path}")
         self.vocab_relation = vocab_relation
-        self.ivocab_relation = {i:l for l, i in self.vocab_relation.items()}
+        self.ivocab_relation = {
+            relation_id: relation
+            for relation, relation_id in self.vocab_relation.items()
+        }
 
         # Load the entity dictionary
-        logger.info(f"Loading entity dictionary from {path_entity_dict}")
+        logger.info(f"Loading entity dictionary from {entity_dict_path}")
         self.entity_dict = {
             epage["entity_id"]: epage
-            for epage in utils.read_json(path_entity_dict)
+            for epage in utils.read_json(entity_dict_path)
         }
-        logger.info(f"Completed loading of entity dictionary with {len(self.entity_dict)} entities from {path_entity_dict}")
+        logger.info(
+            "Completed loading of entity dictionary with "
+            f"{len(self.entity_dict)} entities from {entity_dict_path}"
+        )        
+
+        # Store the knowledge-base entity identifiers
         self.kb_entity_ids = list(self.entity_dict.keys())
 
         # Initialize the model
-        self.model_name = config["model_name"]
-        self.top_k_labels = config["top_k_labels"]
         if self.model_name == "ma_atlop_model":
             self.model = MAATLOPModel(
-                device=device,
-                bert_pretrained_name_or_path=config["bert_pretrained_name_or_path"],
-                max_seg_len=config["max_seg_len"],
+                bert_pretrained_model_name_or_path=(
+                    self.bert_pretrained_model_name_or_path
+                ),
+                max_seg_len=self.max_seg_len,
                 entity_dict=self.entity_dict,
-                entity_seq_length=config["entity_seq_length"],
-                use_localized_context_pooling=config["use_localized_context_pooling"],
-                bilinear_block_size=config["bilinear_block_size"],
-                use_entity_loss=self.config["do_negative_entity_sampling"],
+                entity_seq_length=self.entity_seq_length,
+                use_localized_context_pooling=(
+                    self.use_localized_context_pooling
+                ),
+                bilinear_block_size=self.bilinear_block_size,
+                use_entity_loss=self.do_negative_entity_sampling,
                 vocab_relation=self.vocab_relation,
-                possible_head_entity_types=config["possible_head_entity_types"],
-                possible_tail_entity_types=config["possible_tail_entity_types"],
-                use_mention_as_canonical_name=config["use_mention_as_canonical_name"]
+                possible_head_entity_types=self.possible_head_entity_types,
+                possible_tail_entity_types=self.possible_tail_entity_types,
+                use_mention_as_canonical_name=(
+                    self.use_mention_as_canonical_name
+                ),
+                device=device,
             )
         else:
-            raise Exception(f"Invalid model_name: {self.model_name}")
+            raise ValueError(f"Invalid model_name: {self.model_name}")
 
         # Show parameter shapes
         # logger.info("Model parameters:")
         # for name, param in self.model.named_parameters():
         #     logger.info(f"{name}: {tuple(param.shape)}")
 
-        # Load trained model parameters
-        if path_snapshot is not None:
-            self.model.load_state_dict(
-                torch.load(path_model, map_location=torch.device("cpu")),
-                strict=False
-            )
-            logger.info(f"Loaded model parameters from {path_model}")
-
+        # Move the model to the specified device
         self.model.to(self.model.device)
 
         logger.info("########## MAATLOP Initialization Ends ##########")
 
-    # def load_model(self, path_model: str) -> None:
+    # def load_model(self, model_path: str) -> None:
     #     if ignored_names is None:
     #         self.model.load_state_dict(
     #             torch.load(path, map_location=torch.device("cpu")),
@@ -138,16 +221,44 @@ class MAATLOP:
     #             }
     #         self.model.load_state_dict(checkpoint, strict=False)
 
-    def save(self, path_snapshot: str, model_only: bool = False) -> None:
-        path_config = path_snapshot + "/config"
-        path_vocab = path_snapshot + "/relations.vocab.txt"
-        path_entity_dict = path_snapshot + "/entity_dict.json"
-        path_model = path_snapshot + "/model"
+    def save(
+        self,
+        snapshot_path: str,
+        model_only: bool = False
+    ) -> None:
+        """Save the model parameters, configuration, relation vocabulary, and entity dictionary."""
+
+        model_path = snapshot_path + "/model.pt"
+        component_config_path = snapshot_path + "/component_config.json"
+        vocab_path = snapshot_path + "/relations.vocab.txt"
+        entity_dict_path = snapshot_path + "/entity_dict.json"
+
+        component_config: dict[str, Any] = {
+            "model_name": self.model_name,
+            "bert_pretrained_model_name_or_path": (
+                self.bert_pretrained_model_name_or_path
+            ),
+            "max_seg_len": self.max_seg_len,
+            "entity_seq_length": self.entity_seq_length,
+            "bilinear_block_size": self.bilinear_block_size,
+            "use_localized_context_pooling": self.use_localized_context_pooling,
+            "possible_head_entity_types": self.possible_head_entity_types,
+            "possible_tail_entity_types": self.possible_tail_entity_types,
+            "top_k_labels": self.top_k_labels,
+            "use_mention_as_canonical_name": self.use_mention_as_canonical_name,
+            "do_negative_entity_sampling": self.do_negative_entity_sampling,
+            "negative_entity_ratio": self.negative_entity_ratio,
+        }
+ 
+        torch.save(self.model.state_dict(), model_path)
         if not model_only:
-            utils.write_json(path_config, self.config)
-            utils.write_vocab(path_vocab, self.vocab_relation, write_frequency=False)
-            utils.write_json(path_entity_dict, self.entity_dict)
-        torch.save(self.model.state_dict(), path_model)
+            utils.write_json(component_config_path, component_config)
+            utils.write_vocab(
+                vocab_path,
+                self.vocab_relation,
+                write_frequency=False
+            )
+            utils.write_json(entity_dict_path, list(self.entity_dict.values()))
 
     def compute_loss(self, document: Document) -> (
         tuple[torch.Tensor, torch.Tensor, int, int, torch.Tensor, int]
@@ -156,28 +267,28 @@ class MAATLOP:
         # Switch to training mode
         self.model.train()
 
-        # Negative Entity Sampling
-        if self.config["do_negative_entity_sampling"]:
+        # Perform negative entity sampling if enabled
+        if self.do_negative_entity_sampling:
             document = self.sample_negative_entities_randomly(
                 document=document,
                 sample_size=round(
-                    len(document["entities"]) * self.config["negative_entity_ratio"]
+                    len(document["entities"]) * self.negative_entity_ratio
                 )
             )
 
-        # Preprocess
+        # Preprocess the document
         preprocessed_data = self.model.preprocess(document=document)
 
-        # Tensorize
+        # Tensorize the preprocessed data
         model_input = self.model.tensorize(
             preprocessed_data=preprocessed_data,
             compute_loss=True
         )
 
-        # Forward
+        # Forward pass through the model
         model_output = self.model.forward(**model_input)
 
-        if self.config["do_negative_entity_sampling"]:
+        if self.do_negative_entity_sampling:
             return (
                 model_output.pair_loss,
                 model_output.pair_acc,
@@ -200,6 +311,8 @@ class MAATLOP:
         document: Document,
         sample_size: int
     ) -> Document:
+        """Sample negative entities randomly from the knowledge base and integrate them into the document."""
+
         result_document = copy.deepcopy(document)
 
         n_entities = len(result_document["entities"])
@@ -215,7 +328,9 @@ class MAATLOP:
 
         # Remove gold entities from the sampled list
         sampled_entity_ids = [
-            eid for eid in sampled_entity_ids if not eid in gold_entity_ids
+            eid
+            for eid in sampled_entity_ids
+            if eid not in gold_entity_ids
         ]
         sampled_entity_ids = sampled_entity_ids[:sample_size]
 
@@ -245,9 +360,11 @@ class MAATLOP:
             result_document["mentions"].append(mention)
             sampled_entity_mention_index.append(len(result_document["mentions"]) - 1)
 
+        # Mark all existing entities in the document as dummy entities
         for e_i in range(len(result_document["entities"])):
             result_document["entities"][e_i]["is_dummy"] = True
 
+        # Integrate the sampled entities as new entities in the document
         for m_i, etype, eid in zip(
             sampled_entity_mention_index,
             sampled_entity_types,
@@ -261,15 +378,21 @@ class MAATLOP:
             }
             result_document["entities"].append(entity)
 
-        assert len(result_document["entities"]) == n_entities + sample_size
+        # Ensure that the number of entities in the result document is equal to the original number of entities plus the sample size
+        assert len(result_document["entities"]) == (
+            n_entities + sample_size
+        )
+
         return result_document
 
     def extract(self, document: Document) -> Document:
+        """Extract triples from a single document."""
+
         with torch.no_grad():
             # Switch to inference mode
             self.model.eval()
 
-            # Preprocess
+            # Preprocess the document
             preprocessed_data = self.model.preprocess(document=document)
 
             # Return no triple if head or tail entity is missing
@@ -282,26 +405,32 @@ class MAATLOP:
                 result_document["relations"] = []
                 return result_document
 
-            # Tensorize
+            # Tensorize the preprocessed data
             model_input = self.model.tensorize(
                 preprocessed_data=preprocessed_data,
                 compute_loss=False
             )
 
-            # Forward
+            # Forward pass through the model
             model_output = self.model.forward(**model_input)
-            logits = model_output.pair_logits # (n_entity_pairs, n_relations)
+            # (n_entity_pairs, n_relations)
+            logits = model_output.pair_logits
 
-            # Structurize
+            # Structurize the logits into triples
             triples = self.structurize(
-                pair_head_entity_indices=preprocessed_data["pair_head_entity_indices"],
-                pair_tail_entity_indices=preprocessed_data["pair_tail_entity_indices"],
+                pair_head_entity_indices=(
+                    preprocessed_data["pair_head_entity_indices"]
+                ),
+                pair_tail_entity_indices=(
+                    preprocessed_data["pair_tail_entity_indices"]
+                ),
                 logits=logits
             )
 
-            # Integrate
+            # Integrate the triples into the document
             result_document = copy.deepcopy(document)
             result_document["relations"] = triples
+
             return result_document
 
     def structurize(
@@ -310,6 +439,8 @@ class MAATLOP:
         pair_tail_entity_indices: np.ndarray,
         logits: torch.Tensor
     ) -> list[Triple]:
+        """Structurize the logits into triples."""
+
         triples: list[Triple] = []
 
         # Get predicted relation labels (indices)
@@ -324,14 +455,17 @@ class MAATLOP:
             pair_tail_entity_indices,
             pair_pred_relation_labels
         ):
+            # Skip self-relations
             if head_entity_i == tail_entity_i:
                 continue
+
             # Find positive (i.e., non-zero) relation labels (indices)
             rel_indices = np.nonzero(rel_indicators)[0].tolist()
             for rel_i in rel_indices:
                 if rel_i != 0:
                     # Convert relation index to relation name
                     rel = self.ivocab_relation[rel_i]
+
                     # Add a new triple
                     triples.append({
                         "arg1": int(head_entity_i),
@@ -342,11 +476,20 @@ class MAATLOP:
         return triples
 
     def batch_extract(self, documents: list[Document]) -> list[Document]:
-        result_documents = []
+        """Extract triples from a batch of documents."""
+
+        result_documents: list[Document] = []
+
         for document in tqdm(documents, desc="extraction steps"):
             result_document = self.extract(document=document)
             result_documents.append(result_document)
+
         return result_documents
+
+
+#####################
+# Trainer (Evaluator), Model, Preprocessor
+#####################
 
 
 class MAATLOPTrainer:
@@ -363,22 +506,22 @@ class MAATLOPTrainer:
         paths = {}
 
         # configurations
-        paths["path_snapshot"] = self.base_output_path
+        paths["snapshot_path"] = self.base_output_path
 
         # training outputs
-        paths["path_train_losses"] = self.base_output_path + "/train.losses.jsonl"
-        paths["path_dev_evals"] = self.base_output_path + "/dev.eval.jsonl"
+        paths["train_losses_path"] = self.base_output_path + "/train.losses.jsonl"
+        paths["dev_evals_path"] = self.base_output_path + "/dev.eval.jsonl"
 
         # evaluation outputs
-        paths["path_dev_gold"] = self.base_output_path + "/dev.gold.json"
-        paths["path_dev_pred"] = self.base_output_path + "/dev.pred.json"
-        paths["path_dev_eval"] = self.base_output_path + "/dev.eval.json"
-        paths["path_test_gold"] = self.base_output_path + "/test.gold.json"
-        paths["path_test_pred"] = self.base_output_path + "/test.pred.json"
-        paths["path_test_eval"] = self.base_output_path + "/test.eval.json"
+        paths["dev_gold_path"] = self.base_output_path + "/dev.gold.json"
+        paths["dev_pred_path"] = self.base_output_path + "/dev.pred.json"
+        paths["dev_eval_path"] = self.base_output_path + "/dev.eval.json"
+        paths["test_gold_path"] = self.base_output_path + "/test.gold.json"
+        paths["test_pred_path"] = self.base_output_path + "/test.pred.json"
+        paths["test_eval_path"] = self.base_output_path + "/test.eval.json"
 
         # required for Ign evaluation
-        paths["path_gold_train_triples"] = self.base_output_path + "/gold_train_triples.json"
+        paths["gold_train_triples_path"] = self.base_output_path + "/gold_train_triples.json"
 
         return paths
 
@@ -391,7 +534,7 @@ class MAATLOPTrainer:
     ) -> None:
         if split == "train":
             # Cache the gold training triples for Ign evaluation
-            if not os.path.exists(self.paths["path_gold_train_triples"]):
+            if not os.path.exists(self.paths["gold_train_triples_path"]):
                 gold_train_triples = []
                 for document in tqdm(documents, desc="dataset setup"):
                     mentions = document["mentions"]
@@ -422,28 +565,42 @@ class MAATLOPTrainer:
                 gold_train_triples = list(set(gold_train_triples))
                 gold_train_triples = {"root": gold_train_triples}
                 utils.write_json(
-                    self.paths["path_gold_train_triples"],
+                    self.paths["gold_train_triples_path"],
                     gold_train_triples
                 )
-                logger.info(f"Saved the gold training triples for Ign evaluation in {self.paths['path_gold_train_triples']}")
+                logger.info(f"Saved the gold training triples for Ign evaluation in {self.paths['gold_train_triples_path']}")
 
         # Cache the gold annotations for evaluation
         if split != "train" and with_gold_annotations:
-            path_gold = self.paths[f"path_{split}_gold"]
-            if not os.path.exists(path_gold):
+            gold_path = self.paths[f"{split}_gold_path"]
+            if not os.path.exists(gold_path):
                 gold_documents = []
                 for document in tqdm(documents, desc="dataset setup"):
                     gold_doc = copy.deepcopy(document)
                     gold_documents.append(gold_doc)
-                utils.write_json(path_gold, gold_documents)
-                logger.info(f"Saved the gold annotations for evaluation in {path_gold}")
+                utils.write_json(gold_path, gold_documents)
+                logger.info(f"Saved the gold annotations for evaluation in {gold_path}")
 
     def train(
         self,
         extractor: MAATLOP,
         train_documents: list[Document],
         dev_documents: list[Document],
-        supplemental_info: dict[str, Any]
+        supplemental_info: dict[str, Any],
+        #
+        max_epoch: int,
+        batch_size: int,
+        gradient_accumulation_steps: int,
+        warmup_ratio: float,
+        bert_learning_rate: float,
+        task_learning_rate: float,
+        adam_eps: float,
+        max_grad_norm: float,
+        n_steps_for_monitoring: int,
+        n_steps_for_validation: int,
+        max_patience: int,
+        use_official_evaluation: bool = False,
+        **unused_kwargs: object,
     ) -> None:
         ##################
         # Setup
@@ -452,11 +609,8 @@ class MAATLOPTrainer:
         train_doc_indices = np.arange(len(train_documents))
 
         n_train = len(train_doc_indices)
-        max_epoch = extractor.config["max_epoch"]
-        batch_size = extractor.config["batch_size"]
-        gradient_accumulation_steps = extractor.config["gradient_accumulation_steps"]
         total_update_steps = n_train * max_epoch // (batch_size * gradient_accumulation_steps)
-        warmup_steps = int(total_update_steps * extractor.config["warmup_ratio"])
+        warmup_steps = int(total_update_steps * warmup_ratio)
 
         logger.info("Number of training documents: %d" % n_train)
         logger.info("Number of epochs: %d" % max_epoch)
@@ -467,7 +621,9 @@ class MAATLOPTrainer:
 
         optimizer = get_optimizer2(
             model=extractor.model,
-            config=extractor.config
+            bert_learning_rate=bert_learning_rate,
+            task_learning_rate=task_learning_rate,
+            adam_eps=adam_eps,
         )
         scheduler = get_scheduler2(
             optimizer=optimizer,
@@ -476,11 +632,11 @@ class MAATLOPTrainer:
         )
 
         writer_train = jsonlines.Writer(
-            open(self.paths["path_train_losses"], "w"),
+            open(self.paths["train_losses_path"], "w"),
             flush=True
         )
         writer_dev = jsonlines.Writer(
-            open(self.paths["path_dev_evals"], "w"),
+            open(self.paths["dev_evals_path"], "w"),
             flush=True
         )
 
@@ -492,7 +648,7 @@ class MAATLOPTrainer:
         ##################
 
         # Evaluate the extractor
-        if extractor.config["use_official_evaluation"]:
+        if use_official_evaluation:
             scores = self.official_evaluate(
                 extractor=extractor,
                 documents=dev_documents,
@@ -520,8 +676,8 @@ class MAATLOPTrainer:
         bestscore_holder.compare_scores(scores["standard"]["f1"], 0)
 
         # Save
-        extractor.save(path_snapshot=self.paths["path_snapshot"])
-        logger.info(f"Saved config, relation vocabulary, entity dictionary, and model to {self.paths['path_snapshot']}")
+        extractor.save(snapshot_path=self.paths["snapshot_path"])
+        logger.info(f"Saved config, relation vocabulary, entity dictionary, and model to {self.paths['snapshot_path']}")
 
         ##################
         # Training Loop
@@ -569,7 +725,7 @@ class MAATLOPTrainer:
                     extractor_output = extractor.compute_loss(
                         document=train_documents[doc_i]
                     )
-                    if extractor.config["do_negative_entity_sampling"]:
+                    if extractor.do_negative_entity_sampling:
                         (
                             one_loss,
                             one_acc,
@@ -592,7 +748,7 @@ class MAATLOPTrainer:
                     actual_batchsize += 1
                     actual_total_pairs += n_valid_pairs
                     actual_total_triples += n_valid_triples
-                    if extractor.config["do_negative_entity_sampling"]:
+                    if extractor.do_negative_entity_sampling:
                         batch_entity_loss = batch_entity_loss + one_entity_loss
                         actual_total_entities += n_entities
 
@@ -602,7 +758,7 @@ class MAATLOPTrainer:
                 actual_total_triples = float(actual_total_triples)
                 batch_loss = batch_loss / actual_total_pairs # loss per pair
                 batch_acc = batch_acc / actual_total_triples
-                if extractor.config["do_negative_entity_sampling"]:
+                if extractor.do_negative_entity_sampling:
                     actual_total_entities = float(actual_total_entities)
                     batch_entity_loss = batch_entity_loss / actual_total_entities # loss per entity
 
@@ -626,14 +782,14 @@ class MAATLOPTrainer:
                     # Update
                     ##################
 
-                    if extractor.config["max_grad_norm"] > 0:
+                    if max_grad_norm > 0:
                         torch.nn.utils.clip_grad_norm_(
                             bert_param,
-                            extractor.config["max_grad_norm"]
+                            max_grad_norm,
                         )
                         torch.nn.utils.clip_grad_norm_(
                             task_param,
-                            extractor.config["max_grad_norm"]
+                            max_grad_norm,
                         )
 
                     optimizer.step()
@@ -651,7 +807,7 @@ class MAATLOPTrainer:
                     (
                         (batch_i % gradient_accumulation_steps == 0)
                         and
-                        (step % extractor.config["n_steps_for_monitoring"] == 0)
+                        (step % n_steps_for_monitoring == 0)
                     )
                 ):
 
@@ -683,9 +839,9 @@ class MAATLOPTrainer:
                     (
                         (batch_i % gradient_accumulation_steps == 0)
                         and
-                        (extractor.config["n_steps_for_validation"] > 0)
+                        (n_steps_for_validation > 0)
                         and
-                        (step % extractor.config["n_steps_for_validation"] == 0)
+                        (step % n_steps_for_validation == 0)
                     )
                 ):
 
@@ -694,7 +850,7 @@ class MAATLOPTrainer:
                     ##################
 
                     # Evaluate the extractor
-                    if extractor.config["use_official_evaluation"]:
+                    if use_official_evaluation:
                         scores = self.official_evaluate(
                             extractor=extractor,
                             documents=dev_documents,
@@ -728,19 +884,16 @@ class MAATLOPTrainer:
                     # Save the model
                     if did_update:
                         extractor.save(
-                            path_snapshot=self.paths["path_snapshot"],
+                            snapshot_path=self.paths["snapshot_path"],
                             model_only=True
                         )
-                        logger.info(f"Saved model to {self.paths['path_snapshot']}")
+                        logger.info(f"Saved model to {self.paths['snapshot_path']}")
 
                     ##################
                     # Termination Check
                     ##################
 
-                    if (
-                        bestscore_holder.patience
-                        >= extractor.config["max_patience"]
-                    ):
+                    if bestscore_holder.patience >= max_patience:
                         writer_train.close()
                         writer_dev.close()
                         progress_bar.close()
@@ -764,27 +917,26 @@ class MAATLOPTrainer:
     ) -> dict[str, Any] | None:
         # Apply the extractor
         result_documents = extractor.batch_extract(documents=documents)
-        utils.write_json(self.paths[f"path_{split}_pred"], result_documents)
+        utils.write_json(self.paths[f"{split}_pred_path"], result_documents)
     
         if prediction_only:
             return
 
         # Calculate the evaluation scores
-        # path_gold_documents = supplemental_info["path_gold_documents"][split]
         scores = evaluation.docre.fscore(
-            pred_path=self.paths[f"path_{split}_pred"],
-            gold_path=self.paths[f"path_{split}_gold"],
+            pred_path=self.paths[f"{split}_pred_path"],
+            gold_path=self.paths[f"{split}_gold_path"],
             skip_intra_inter=skip_intra_inter,
             skip_ign=skip_ign,
-            # gold_documents_path=path_gold_documents,
-            gold_train_triples_path=self.paths["path_gold_train_triples"]
+            # gold_documents_path=gold_documents_path,
+            gold_train_triples_path=self.paths["gold_train_triples_path"]
         )
 
         if get_scores_only:
             return scores
 
         # Save the evalution scores
-        utils.write_json(self.paths[f"path_{split}_eval"], scores)
+        utils.write_json(self.paths[f"{split}_eval_path"], scores)
         logger.info(utils.pretty_format_dict(scores))
         return scores
 
@@ -800,12 +952,12 @@ class MAATLOPTrainer:
     ) -> dict[str, Any] | None:
         # Apply the extractor
         result_documents = extractor.batch_extract(documents=documents)
-        utils.write_json(self.paths[f"path_{split}_pred"], result_documents)
+        utils.write_json(self.paths[f"{split}_pred_path"], result_documents)
         triples = evaluation.docre.to_official(
-            path_input=self.paths[f"path_{split}_pred"],
-            path_output=self.paths[
-                f"path_{split}_pred"
-            ].replace(".json", ".official.json")
+            input_path=self.paths[f"{split}_pred_path"],
+            output_path=(
+                self.paths[f"{split}_pred_path"].replace(".json", ".official.json")
+            )
         )
 
         if prediction_only:
@@ -826,7 +978,7 @@ class MAATLOPTrainer:
             return scores
 
         # Save the evaluation scores
-        utils.write_json(self.paths[f"path_{split}_eval"], scores)
+        utils.write_json(self.paths[f"{split}_eval_path"], scores)
         logger.info(utils.pretty_format_dict(scores))
         return scores
 
@@ -855,8 +1007,7 @@ class MAATLOPModel(nn.Module):
 
     def __init__(
         self,
-        device,
-        bert_pretrained_name_or_path,
+        bert_pretrained_model_name_or_path,
         max_seg_len,
         entity_dict,
         entity_seq_length,
@@ -866,13 +1017,13 @@ class MAATLOPModel(nn.Module):
         vocab_relation,
         possible_head_entity_types=None,
         possible_tail_entity_types=None,
-        use_mention_as_canonical_name=False
+        use_mention_as_canonical_name=False,
+        device: str = "cuda",
     ):
         """
         Parameters
         ----------
-        device : str
-        bert_pretrained_name_or_path : str
+        bert_pretrained_model_name_or_path : str
         max_seg_len : int
         entity_dict : dict[str, EntityPage]
         entity_seq_length : int
@@ -886,6 +1037,7 @@ class MAATLOPModel(nn.Module):
             by default None
         use_mention_as_canonical_name : bool
             by default False
+        device : str
         """
         super().__init__()
 
@@ -893,8 +1045,7 @@ class MAATLOPModel(nn.Module):
         # Hyper parameters
         ########################
 
-        self.device = device
-        self.bert_pretrained_name_or_path = bert_pretrained_name_or_path
+        self.bert_pretrained_model_name_or_path = bert_pretrained_model_name_or_path
         self.max_seg_len = max_seg_len
         self.entity_dict = entity_dict
         self.entity_seq_length = entity_seq_length
@@ -905,6 +1056,7 @@ class MAATLOPModel(nn.Module):
         self.possible_head_entity_types = possible_head_entity_types
         self.possible_tail_entity_types = possible_tail_entity_types
         self.use_mention_as_canonical_name = use_mention_as_canonical_name
+        self.device = device
 
         self.n_relations = len(self.vocab_relation)
 
@@ -914,7 +1066,7 @@ class MAATLOPModel(nn.Module):
 
         # BERT, tokenizer
         self.bert, self.tokenizer = self._initialize_bert_and_tokenizer(
-            pretrained_model_name_or_path=self.bert_pretrained_name_or_path
+            pretrained_model_name_or_path=self.bert_pretrained_model_name_or_path
         )
 
         # Dimensionality

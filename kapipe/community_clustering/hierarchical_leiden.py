@@ -9,34 +9,46 @@ from graspologic.utils import largest_connected_component
 # import html
 
 from ..datatypes import CommunityRecord
+from .base import BaseCommunityClusterer
 
 
 logger = logging.getLogger(__name__)
 
 
-class HierarchicalLeiden:
+class HierarchicalLeiden(BaseCommunityClusterer):
+    """
+    A hierarchical community detection algorithm based on the Leiden method.
+
+    This results in a hierarchical structure of communities under a ROOT community.
+    """
     
-    def __init__(self):
-        pass
+    def __init__(
+        self,
+        max_cluster_size: int = 10,
+        use_lcc: bool = False ,
+    ):
+        self.max_cluster_size = max_cluster_size
+        self.use_lcc = use_lcc
 
     def cluster_communities(
         self,
         graph: nx.MultiDiGraph,
-        max_cluster_size: int = 10,
-        use_lcc: bool = False 
     ) -> list[CommunityRecord]:
+        """Apply the Hierarchical Leiden algorithm to cluster communities in a directed graph."""
+
         logger.info("Applying Hierarchical Leiden algorithm ...")
 
         # Transform the graph to undirected one
         modified_graph = nx.DiGraph(graph).to_undirected()
 
-        if use_lcc:
+        # If requested, extract the largest connected component
+        if self.use_lcc:
             modified_graph = self._stable_largest_connected_component(graph=modified_graph)
 
         # Apply Hierarchical Leiden algorithm
         community_mapping = hierarchical_leiden(
             graph=modified_graph,
-            max_cluster_size=max_cluster_size
+            max_cluster_size=self.max_cluster_size
         )
         logger.info(f"Obtained {len(community_mapping)} communities")
 
@@ -54,7 +66,7 @@ class HierarchicalLeiden:
             level = int(partition.level)
 
             # Add a new community record
-            if not community_id in communities:
+            if community_id not in communities:
                 communities[community_id] = {
                     "community_id": community_id,
                     "nodes": [],
@@ -89,6 +101,8 @@ class HierarchicalLeiden:
         return communities
 
     def _stable_largest_connected_component(self, graph: nx.Graph) -> nx.Graph:
+        """Extract the largest connected component of the graph and stabilize it."""
+
         lcc = cast("nx.Graph", largest_connected_component(graph.copy()))
         # lcc = _normalize_node_names(graph=lcc)
         return self._stabilize_graph(graph=lcc)
@@ -104,37 +118,29 @@ class HierarchicalLeiden:
 
         Useful to avoid random node orderings which may affect downstream processing.
         """
+        # Create a new graph with the same type (directed or undirected) as the input graph
         fixed_graph = nx.DiGraph() if graph.is_directed() else nx.Graph()
 
+        # Add nodes to the new graph in a sorted order
         sorted_nodes = graph.nodes(data=True)
         sorted_nodes = sorted(sorted_nodes, key=lambda x: x[0])
-
         fixed_graph.add_nodes_from(sorted_nodes)
 
-        # If the graph is undirected, we create the edges in a stable way, so we get the same results
-        # for example:
-        # A -> B
-        # in graph theory is the same as
-        # B -> A
-        # in an undirected graph
-        # however, this can lead to downstream issues because sometimes
-        # consumers read graph.nodes() which ends up being [A, B] and sometimes it's [B, A]
-        # but they base some of their logic on the order of the nodes, so the order ends up being important
-        # so we sort the nodes in the edge in a stable way, so that we always get the same order
-
         def _sort_edge(edge: tuple[Any, Any, Any]) -> tuple[Any, Any, Any]:
+            """Sort the nodes in an edge to ensure consistent ordering."""
             u, v, data = edge
             return (min(u, v), max(u, v), data)
 
         def _edge_key(u: Any, v: Any) -> str:
+            """Create a stable key for an edge based on its nodes."""
             return f"{u} -> {v}"        
 
+        # Add edges to the new graph in a sorted order
         edges = list(graph.edges(data=True)) 
         if not graph.is_directed():
             edges = [_sort_edge(e) for e in edges]
-
         edges = sorted(edges, key=lambda e: _edge_key(e[0], e[1]))
-
         fixed_graph.add_edges_from(edges)
+
         return fixed_graph
 

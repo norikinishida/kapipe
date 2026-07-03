@@ -1,4 +1,37 @@
-from .fscore import fscore
+import importlib
+from typing import Any
 
-from .docred_official import to_official
-from .docred_official import official_evaluate
+
+__all__ = [
+    "fscore",
+    "official_evaluate",
+    "to_official",
+]
+
+
+_NAME_TO_MODULE = {
+    "fscore": "fscore",
+    "official_evaluate": "docred_official",
+    "to_official": "docred_official",
+}
+
+
+def __getattr__(name: str) -> Any:
+    """Function to lazily import public objects."""
+
+    # Reject unknown public names immediately
+    if name not in __all__:
+        raise AttributeError(
+            f"module '{__name__}' has no attribute '{name}'"
+        )
+
+    # Import the module that defines the requested public object
+    module = importlib.import_module(f".{_NAME_TO_MODULE[name]}", __name__)
+
+    # Read the requested public object from the imported module
+    value = getattr(module, name)
+
+    # Cache the object to avoid importing the module again for the same name
+    globals()[name] = value
+
+    return value

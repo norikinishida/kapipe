@@ -1,40 +1,57 @@
 #!/usr/bin/env sh
 
-# STORAGE=/home/nishida/storage/projects/kapipe/experiments
-STORAGE=/home/nishida/projects/kapipe/experiments
+######
+# Storage paths
+######
 
-STORAGE_DATA=${STORAGE}/data
-STORAGE_RESULTS=${STORAGE}/results
+STORAGE_DATA=/home/nishida/projects/kapipe/experiments/passage_retrieval/data
+STORAGE_RESULTS=/home/nishida/projects/kapipe/experiments/passage_retrieval/results
+
+######
+# Experiment configuration
+######
 
 # Method
-GPU=0
-METHOD=contriever
-METRIC=inner-product
-TOP_K=3
+# METHOD=contriever
+METHOD=qwen3_embedding
+
+if [ "${METHOD}" = "contriever" ]; then
+    CONFIG_PATH=./config/contriever.conf
+    CONFIG_NAME=contriever_msmarco_top10
+elif [ "${METHOD}" = "qwen3_embedding" ]; then
+    CONFIG_PATH=./config/qwen3_embedding.conf
+    CONFIG_NAME=qwen3_embedding_0.6b_top10
+else
+    echo "Unknown method: ${METHOD}"
+    exit 1
+fi
 
 # Input Data
-INPUT_PASSAGES=${STORAGE_DATA}/examples/reports.chunked_w100.jsonl
+INPUT_PASSAGES=${STORAGE_DATA}/examples/passages.jsonl
 INPUT_QUESTIONS=${STORAGE_DATA}/examples/questions.json
 
 # Output Path
 RESULTS_DIR=${STORAGE_RESULTS}
-INDEX_NAME=example
+MYPREFIX=example
+
+######
+# Experiment execution
+######
 
 python run_passage_retrieval.py \
-    --gpu ${GPU} \
     --method ${METHOD} \
-    --metric ${METRIC} \
+    --config_path ${CONFIG_PATH} \
+    --config_name ${CONFIG_NAME} \
     --input_file ${INPUT_PASSAGES} \
     --results_dir ${RESULTS_DIR} \
-    --index_name ${INDEX_NAME} \
+    --prefix ${MYPREFIX} \
     --actiontype indexing
 
 python run_passage_retrieval.py \
-    --gpu ${GPU} \
     --method ${METHOD} \
-    --metric ${METRIC} \
-    --top_k ${TOP_K} \
+    --config_path ${CONFIG_PATH} \
+    --config_name ${CONFIG_NAME} \
     --input_file ${INPUT_QUESTIONS} \
     --results_dir ${RESULTS_DIR} \
-    --index_name ${INDEX_NAME} \
+    --prefix ${MYPREFIX} \
     --actiontype search

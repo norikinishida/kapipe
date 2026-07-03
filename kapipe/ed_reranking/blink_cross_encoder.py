@@ -15,74 +15,139 @@ from transformers.modeling_outputs import ModelOutput
 from tqdm import tqdm
 import jsonlines
 
+from .. import evaluation
+from .. import utils
 from ..datatypes import (
-    Config,
     Document,
     Mention,
     Entity,
     CandEntKeyInfo,
     CandidateEntitiesForDocument
 )
-from .. import utils
-from ..utils import BestScoreHolder
-from .. import evaluation
 from ..nn_utils import get_optimizer2, get_scheduler2
+from ..resources import resolve_snapshot_path
+from ..utils import BestScoreHolder
+from .base import BaseEDReranker
 
 
 logger = logging.getLogger(__name__)
 
 
-class BlinkCrossEncoder:
+class BlinkCrossEncoder(BaseEDReranker):
     """
-    BLINK Cross-Encoder (Wu et al., 2020).
+    A class for entity disambiguation (reranking) using the BLINK Cross-Encoder (Wu et al., 2020).
     """
+
+    @classmethod
+    def from_identifier(
+        cls,
+        identifier: str,
+        device: str = "cuda",
+    ) -> "BlinkCrossEncoder":
+
+        # Resolve the public identifier to the corresponding local snapshot
+        snapshot_path = resolve_snapshot_path(
+            component_name="ed_reranking",
+            method_name="blink_cross_encoder",
+            identifier=identifier,
+        )
+
+        # Load the reranker from the resolved snapshot
+        reranker = cls.from_snapshot(
+            snapshot_path=snapshot_path,
+            device=device,
+        )
+
+        # Store the public identifier for later inspection
+        reranker.identifier = identifier
+
+        return reranker
+
+    @classmethod
+    def from_snapshot(
+        cls,
+        snapshot_path: str,
+        device: str = "cuda",
+    ) -> "BlinkCrossEncoder":
+
+        # Define the default paths for the resources in the snapshot
+        model_path = snapshot_path + "/model.pt"
+        component_config_path = snapshot_path + "/component_config.json"
+        entity_dict_path = snapshot_path + "/entity_dict.json"
+
+        # Load the component configuration
+        component_config: dict[str, Any] = utils.read_json(component_config_path)
+        logger.info(f"Loaded component configuration from {component_config_path}")
+        logger.info(utils.pretty_format_dict(component_config))
+
+        # Initialize the reranker from explicit snapshot resources
+        reranker = cls(
+            # Internal
+            **component_config,
+            entity_dict_path=entity_dict_path,
+            # Optional
+            device=device,
+        )
+
+        # Store the snapshot path for later inspection
+        reranker.snapshot_path = snapshot_path
+
+        # Load trained model parameters from the snapshot
+        reranker.model.load_state_dict(
+            torch.load(model_path, map_location=torch.device("cpu")),
+            strict=False
+        )
+        logger.info(f"Loaded model parameters from {model_path}")
+
+        # Move the model again after loading parameters
+        reranker.model.to(reranker.model.device)
+
+        return reranker
 
     def __init__(
         self,
-        device: str,
-        # Initialization
-        config: Config | str | None = None,
-        path_entity_dict: str | None = None,
-        # Loading
-        path_snapshot: str | None = None
+        # Internal
+        model_name: str,
+        bert_pretrained_model_name_or_path: str,
+        max_seg_len: int,
+        mention_context_length: int,
+        max_n_candidates_in_training: int,
+        max_n_candidates_in_inference: int,
+        entity_dict_path: str,
+        # Optional
+        device: str = "cuda",
+        **unused_kwargs: object,
     ):
         logger.info("########## BlinkCrossEncoder Initialization Starts ##########")
 
-        self.device = device
-        self.path_snapshot = path_snapshot
-
-        if path_snapshot is not None:
-            assert config is None
-            assert path_entity_dict is None
-            config = path_snapshot + "/config"
-            path_entity_dict = path_snapshot + "/entity_dict.json"
-            path_model = path_snapshot + "/model"
-
-        # Load the configuration
-        if isinstance(config, str):
-            config_path = config
-            config = utils.get_hocon_config(config_path=config_path)
-            logger.info(f"Loaded configuration from {config_path}")
-        self.config = config
-        logger.info(utils.pretty_format_dict(self.config))
+        self.model_name = model_name
+        self.bert_pretrained_model_name_or_path = bert_pretrained_model_name_or_path
+        self.max_seg_len = max_seg_len
+        self.mention_context_length = mention_context_length
+        self.max_n_candidates_in_training = max_n_candidates_in_training
+        self.max_n_candidates_in_inference = max_n_candidates_in_inference
 
         # Load the entity dictionary
-        logger.info(f"Loading entity dictionary from {path_entity_dict}")
+        logger.info(f"Loading entity dictionary from {entity_dict_path}")
         self.entity_dict = {
             epage["entity_id"]: epage
-            for epage in utils.read_json(path_entity_dict)
+            for epage in utils.read_json(entity_dict_path)
         }
-        logger.info(f"Completed loading of entity dictionary with {len(self.entity_dict)} entities from {path_entity_dict}")
+        logger.info(
+            "Completed loading of entity dictionary with "
+            f"{len(self.entity_dict)} entities from {entity_dict_path}"
+        )
 
         # Initialize the model
-        self.model_name = config["model_name"]
         if self.model_name == "blink_cross_encoder_model":
             self.model = BlinkCrossEncoderModel(
-                device=device,
-                bert_pretrained_name_or_path=config["bert_pretrained_name_or_path"],
-                max_seg_len=config["max_seg_len"],
+                bert_pretrained_model_name_or_path=(
+                    self.bert_pretrained_model_name_or_path
+                ),
+                max_seg_len=self.max_seg_len,
                 entity_dict=self.entity_dict,
-                mention_context_length=self.config["mention_context_length"]
+                mention_context_length=self.mention_context_length,
+                device=device,
             )
         else:
             raise Exception(f"Invalid model_name: {self.model_name}")
@@ -92,26 +157,33 @@ class BlinkCrossEncoder:
         # for name, param in self.model.named_parameters():
         #     logger.infof"{name}: {tuple(param.shape)}")
 
-        # Load trained model parameters
-        if path_snapshot is not None:
-            self.model.load_state_dict(
-                torch.load(path_model, map_location=torch.device("cpu")),
-                strict=False
-            )
-            logger.info(f"Loaded model parameters from {path_model}")
-
+        # Move the model to the specified device
         self.model.to(self.model.device)
 
         logger.info("########## BlinkCrossEncoder Initialization Ends ##########")
 
-    def save(self, path_snapshot: str, model_only: bool = False) -> None:
-        path_config = path_snapshot + "/config"
-        path_entity_dict = path_snapshot + "/entity_dict.json"
-        path_model = path_snapshot + "/model"
+    def save(self, snapshot_path: str, model_only: bool = False) -> None:
+        """Save the model, configuration, and entity dictionary to the specified snapshot path."""
+
+        model_path = snapshot_path + "/model.pt"
+        component_config_path = snapshot_path + "/component_config.json"
+        entity_dict_path = snapshot_path + "/entity_dict.json"
+
+        component_config: dict[str, Any] = {
+            "model_name": self.model_name,
+            "bert_pretrained_model_name_or_path": (
+                self.bert_pretrained_model_name_or_path
+            ),
+            "max_seg_len": self.max_seg_len,
+            "mention_context_length": self.mention_context_length,
+            "max_n_candidates_in_training": self.max_n_candidates_in_training,
+            "max_n_candidates_in_inference": self.max_n_candidates_in_inference,
+        }
+
+        torch.save(self.model.state_dict(), model_path)
         if not model_only:
-            utils.write_json(path_config, self.config)
-            utils.write_json(path_entity_dict, list(self.entity_dict.values()))
-        torch.save(self.model.state_dict(), path_model)
+            utils.write_json(component_config_path, component_config)
+            utils.write_json(entity_dict_path, list(self.entity_dict.values()))
 
     def compute_loss(
         self,
@@ -119,26 +191,29 @@ class BlinkCrossEncoder:
         candidate_entities_for_doc: CandidateEntitiesForDocument,
         mention_index: int
     ) -> tuple[torch.Tensor, torch.Tensor]:
+        """Compute the loss for a single document and mention index."""
+
+        # Ensure that the document and candidate entities correspond to the same example
         assert document["doc_key"] == candidate_entities_for_doc["doc_key"]
 
         # Switch to training mode
         self.model.train()
 
-        # Preprocess
+        # Preprocess the document and candidate entities for the specified mention index
         preprocessed_data = self.model.preprocess(
             document=document,
             candidate_entities_for_doc=candidate_entities_for_doc,
-            max_n_candidates=self.config["max_n_candidates_in_training"]
+            max_n_candidates=self.max_n_candidates_in_training,
         )
 
-        # Tensorize
+        # Tensorize the preprocessed data for the specified mention index
         model_input = self.model.tensorize(
             preprocessed_data=preprocessed_data,
             mention_index=mention_index,
             compute_loss=True
         )
 
-        # Forward
+        # Forward pass through the model to compute the loss and accuracy
         model_output = self.model.forward(**model_input)
 
         return (
@@ -151,6 +226,9 @@ class BlinkCrossEncoder:
         document: Document,
         candidate_entities_for_doc: CandidateEntitiesForDocument
     ) -> Document:
+        """Rerank candidate entities for a single document."""
+
+        # Ensure that the document and candidate entities correspond to the same example
         assert document["doc_key"] == candidate_entities_for_doc["doc_key"]
 
         with torch.no_grad():
@@ -163,50 +241,52 @@ class BlinkCrossEncoder:
                 result_document["entities"] = []
                 return result_document
 
-            # Preprocess
+            # Preprocess the document and candidate entities for inference
             preprocessed_data = self.model.preprocess(
                 document=document,
                 candidate_entities_for_doc=candidate_entities_for_doc,
-                max_n_candidates=self.config["max_n_candidates_in_inference"]
+                max_n_candidates=self.max_n_candidates_in_inference,
             )
 
+            # Rerank candidate entities for each mention in the document
             mentions: list[Mention] = []
             cands_for_mentions: list[list[CandEntKeyInfo]] = (
                 candidate_entities_for_doc["candidate_entities"]
             )
             for mention_index in range(len(preprocessed_data["mentions"])):
-                # Tensorize
+                # Tensorize the preprocessed data for the current mention index
                 model_input = self.model.tensorize(
                     preprocessed_data=preprocessed_data,
                     mention_index=mention_index,
                     compute_loss=False
                 )
 
-                # Forward
+                # Forward pass through the model to compute the logits
                 model_output = self.model.forward(**model_input)
                 logits = model_output.logits # (1, n_candidates)
 
-                # Structurize (1)
-                # Transform logits to mention-level entity IDs
-                pred_candidate_entity_index = torch.argmax(logits, dim=1).cpu().item() # int
-                pred_candidate_entity_id = cands_for_mentions[mention_index][
+                # Determine the index of the predicted candidate entity with the
+                # highest logit score.
+                pred_candidate_entity_index: int = (
+                    torch.argmax(logits, dim=1).cpu().item()
+                )
+                pred_candidate_entity_id: str = cands_for_mentions[mention_index][
                     pred_candidate_entity_index
                 ]["entity_id"]
                 mentions.append({"entity_id": pred_candidate_entity_id,})
 
-            # Structurize (2)
-            # Transform to entity-level entity IDs
-            # i.e., aggregate mentions based on the entity IDs
+            # Aggregate mentions based on the entity IDs
             entities: list[Entity] = utils.aggregate_mentions_to_entities(
                 document=document,
                 mentions=mentions
             )
 
-            # Integrate
+            # Integrate the entities into the document
             result_document = copy.deepcopy(document)
             for m_i in range(len(result_document["mentions"])):
                 result_document["mentions"][m_i].update(mentions[m_i])
             result_document["entities"] = entities
+
             return result_document
 
     def batch_rerank(
@@ -214,7 +294,10 @@ class BlinkCrossEncoder:
         documents: list[Document],
         candidate_entities: list[CandidateEntitiesForDocument]
     ) -> list[Document]:
-        result_documents = []
+        """Rerank candidate entities for a batch of documents."""
+
+        result_documents: list[Document] = []
+
         for document, candidate_entities_for_doc in tqdm(
             zip(documents, candidate_entities),
             total=len(documents),
@@ -225,7 +308,13 @@ class BlinkCrossEncoder:
                 candidate_entities_for_doc=candidate_entities_for_doc
             )
             result_documents.append(result_document)
+
         return result_documents
+
+
+#####################
+# Trainer (Evaluator), Model, Preprocessor
+#####################
 
 
 class BlinkCrossEncoderTrainer:
@@ -241,17 +330,17 @@ class BlinkCrossEncoderTrainer:
     def get_paths(self) -> dict[str, str]:
         paths = {}
         # configurations
-        paths["path_snapshot"] = self.base_output_path
+        paths["snapshot_path"] = self.base_output_path
         # training outputs
-        paths["path_train_losses"] = self.base_output_path + "/train.losses.jsonl"
-        paths["path_dev_evals"] = self.base_output_path + "/dev.eval.jsonl"
+        paths["train_losses_path"] = self.base_output_path + "/train.losses.jsonl"
+        paths["dev_evals_path"] = self.base_output_path + "/dev.eval.jsonl"
         # evaluation outputs
-        paths["path_dev_gold"] = self.base_output_path + "/dev.gold.json"
-        paths["path_dev_pred"] = self.base_output_path + "/dev.pred.json"
-        paths["path_dev_eval"] = self.base_output_path + "/dev.eval.json"
-        paths["path_test_gold"] = self.base_output_path + "/test.gold.json"
-        paths["path_test_pred"] = self.base_output_path + "/test.pred.json"
-        paths["path_test_eval"] = self.base_output_path + "/test.eval.json"
+        paths["dev_gold_path"] = self.base_output_path + "/dev.gold.json"
+        paths["dev_pred_path"] = self.base_output_path + "/dev.pred.json"
+        paths["dev_eval_path"] = self.base_output_path + "/dev.eval.json"
+        paths["test_gold_path"] = self.base_output_path + "/test.gold.json"
+        paths["test_pred_path"] = self.base_output_path + "/test.pred.json"
+        paths["test_eval_path"] = self.base_output_path + "/test.eval.json"
         return paths
 
     def setup_dataset(
@@ -262,8 +351,8 @@ class BlinkCrossEncoderTrainer:
         split: str
     ) -> None:
         # Cache the gold annotations for evaluation
-        path_gold = self.paths[f"path_{split}_gold"]
-        if not os.path.exists(path_gold):
+        gold_path = self.paths[f"{split}_gold_path"]
+        if not os.path.exists(gold_path):
             kb_entity_ids = set(list(reranker.entity_dict.keys()))
             gold_documents = []
             for document, candidate_entities_for_doc in tqdm(
@@ -289,8 +378,8 @@ class BlinkCrossEncoderTrainer:
                     gold_doc["mentions"][m_i]["in_kb"] = in_kb
                     gold_doc["mentions"][m_i]["in_cand"] = in_cand
                 gold_documents.append(gold_doc)
-            utils.write_json(path_gold, gold_documents)
-            logger.info(f"Saved the gold annotations for evaluation in {path_gold}")
+            utils.write_json(gold_path, gold_documents)
+            logger.info(f"Saved the gold annotations for evaluation in {gold_path}")
 
     def train(
         self,
@@ -298,7 +387,21 @@ class BlinkCrossEncoderTrainer:
         train_documents: list[Document],
         train_candidate_entities: list[CandidateEntitiesForDocument],
         dev_documents: list[Document],
-        dev_candidate_entities: list[CandidateEntitiesForDocument]
+        dev_candidate_entities: list[CandidateEntitiesForDocument],
+        #
+        max_training_instances: int | None,
+        max_epoch: int,
+        batch_size: int,
+        gradient_accumulation_steps: int,
+        warmup_ratio: float,
+        bert_learning_rate: float,
+        task_learning_rate: float,
+        adam_eps: float,
+        max_grad_norm: float,
+        n_steps_for_monitoring: int,
+        n_steps_for_validation: int,
+        max_patience: int,
+        **unused_kwargs: object,
     ) -> None:
         ##################
         # Setup
@@ -325,11 +428,11 @@ class BlinkCrossEncoderTrainer:
         )
 
         # Limit the training instances to MAX_TRAINING_INSTANCES
-        if reranker.config["max_training_instances"] is not None:
+        if max_training_instances is not None:
             n_prev_instances = len(train_doc_index_and_mention_index_tuples)
             train_doc_index_and_mention_index_tuples = (
                 train_doc_index_and_mention_index_tuples[
-                    :reranker.config["max_training_instances"]
+                    :max_training_instances
                 ]
             )
             n_new_instances = len(train_doc_index_and_mention_index_tuples)
@@ -338,11 +441,8 @@ class BlinkCrossEncoderTrainer:
                 logger.info(f"{n_prev_instances} -> {n_new_instances} mentions")
 
         n_train = len(train_doc_index_and_mention_index_tuples)
-        max_epoch = reranker.config["max_epoch"]
-        batch_size = reranker.config["batch_size"]
-        gradient_accumulation_steps = reranker.config["gradient_accumulation_steps"]
         total_update_steps = n_train * max_epoch // (batch_size * gradient_accumulation_steps)
-        warmup_steps = int(total_update_steps * reranker.config["warmup_ratio"])
+        warmup_steps = int(total_update_steps * warmup_ratio)
 
         logger.info("Number of training mentions: %d" % n_train)
         logger.info("Number of epochs: %d" % max_epoch)
@@ -353,7 +453,9 @@ class BlinkCrossEncoderTrainer:
 
         optimizer = get_optimizer2(
             model=reranker.model,
-            config=reranker.config
+            bert_learning_rate=bert_learning_rate,
+            task_learning_rate=task_learning_rate,
+            adam_eps=adam_eps,
         )
         scheduler = get_scheduler2(
             optimizer=optimizer,
@@ -362,11 +464,11 @@ class BlinkCrossEncoderTrainer:
         )
 
         writer_train = jsonlines.Writer(
-            open(self.paths["path_train_losses"], "w"),
+            open(self.paths["train_losses_path"], "w"),
             flush=True
         )
         writer_dev = jsonlines.Writer(
-            open(self.paths["path_dev_evals"], "w"),
+            open(self.paths["dev_evals_path"], "w"),
             flush=True
         )
 
@@ -397,8 +499,8 @@ class BlinkCrossEncoderTrainer:
         )
 
         # Save
-        reranker.save(path_snapshot=self.paths["path_snapshot"])
-        logger.info(f"Saved config, entity dictionary, and model to {self.paths['path_snapshot']}")
+        reranker.save(snapshot_path=self.paths["snapshot_path"])
+        logger.info(f"Saved config, entity dictionary, and model to {self.paths['snapshot_path']}")
 
         ##################
         # Training Loop
@@ -476,14 +578,14 @@ class BlinkCrossEncoderTrainer:
                     # Update
                     ##################
 
-                    if reranker.config["max_grad_norm"] > 0:
+                    if max_grad_norm > 0:
                         torch.nn.utils.clip_grad_norm_(
                             bert_param,
-                            reranker.config["max_grad_norm"]
+                            max_grad_norm,
                         )
                         torch.nn.utils.clip_grad_norm_(
                             task_param,
-                            reranker.config["max_grad_norm"]
+                            max_grad_norm,
                         )
 
                     optimizer.step()
@@ -501,7 +603,7 @@ class BlinkCrossEncoderTrainer:
                     (
                         (batch_i % gradient_accumulation_steps == 0)
                         and
-                        (step % reranker.config["n_steps_for_monitoring"] == 0)
+                        (step % n_steps_for_monitoring == 0)
                     )
                 ):
 
@@ -533,9 +635,9 @@ class BlinkCrossEncoderTrainer:
                     (
                         (batch_i % gradient_accumulation_steps == 0)
                         and
-                        (reranker.config["n_steps_for_validation"] > 0)
+                        (n_steps_for_validation > 0)
                         and
-                        (step % reranker.config["n_steps_for_validation"] == 0)
+                        (step % n_steps_for_validation == 0)
                     )
                 ):
 
@@ -566,16 +668,16 @@ class BlinkCrossEncoderTrainer:
                     # Save the model
                     if did_update:
                         reranker.save(
-                            path_snapshot=self.paths["path_snapshot"],
+                            snapshot_path=self.paths["snapshot_path"],
                             model_only=True
                         )
-                        logger.info(f"Saved model to {self.paths['path_snapshot']}")
+                        logger.info(f"Saved model to {self.paths['snapshot_path']}")
 
                     ##################
                     # Termination Check
                     ##################
 
-                    if bestscore_holder.patience >= reranker.config["max_patience"]:
+                    if bestscore_holder.patience >= max_patience:
                         writer_train.close()
                         writer_dev.close()
                         progress_bar.close()
@@ -600,20 +702,20 @@ class BlinkCrossEncoderTrainer:
             documents=documents,
             candidate_entities=candidate_entities
         )
-        utils.write_json(self.paths[f"path_{split}_pred"], result_documents)
+        utils.write_json(self.paths[f"{split}_pred_path"], result_documents)
 
         if prediction_only:
             return
 
         # Calculate the evaluation scores
         scores = evaluation.ed.accuracy(
-            pred_path=self.paths[f"path_{split}_pred"],
-            gold_path=self.paths[f"path_{split}_gold"],
+            pred_path=self.paths[f"{split}_pred_path"],
+            gold_path=self.paths[f"{split}_gold_path"],
             inkb=True
         )
         scores.update(evaluation.ed.fscore(
-            pred_path=self.paths[f"path_{split}_pred"],
-            gold_path=self.paths[f"path_{split}_gold"],
+            pred_path=self.paths[f"{split}_pred_path"],
+            gold_path=self.paths[f"{split}_gold_path"],
             inkb=True
         ))
 
@@ -621,7 +723,7 @@ class BlinkCrossEncoderTrainer:
             return scores
 
         # Save the evaluation scores
-        utils.write_json(self.paths[f"path_{split}_eval"], scores)
+        utils.write_json(self.paths[f"{split}_eval_path"], scores)
         logger.info(utils.pretty_format_dict(scores))
         return scores
 
@@ -643,20 +745,20 @@ class BlinkCrossEncoderModel(nn.Module):
 
     def __init__(
         self,
-        device,
-        bert_pretrained_name_or_path,
+        bert_pretrained_model_name_or_path,
         max_seg_len,
         entity_dict,
-        mention_context_length
+        mention_context_length,
+        device: str = "cuda",
     ):
         """
         Parameters
         ----------
-        device : str
-        bert_pretrained_name_or_path : str
+        bert_pretrained_model_name_or_path : str
         max_seg_len : int
         entity_dict : dict[str, EntityPage]
         mention_context_length : int
+        device : str
         """
         super().__init__()
 
@@ -664,11 +766,11 @@ class BlinkCrossEncoderModel(nn.Module):
         # Hyper parameters
         ########################
 
-        self.device = device
-        self.bert_pretrained_name_or_path = bert_pretrained_name_or_path
+        self.bert_pretrained_model_name_or_path = bert_pretrained_model_name_or_path
         self.max_seg_len = max_seg_len
         self.entity_dict = entity_dict
         self.mention_context_length = mention_context_length
+        self.device = device
 
         ########################
         # Components
@@ -676,7 +778,7 @@ class BlinkCrossEncoderModel(nn.Module):
 
         # BERT, tokenizer
         self.bert, self.tokenizer = self._initialize_bert_and_tokenizer(
-            pretrained_model_name_or_path=self.bert_pretrained_name_or_path
+            pretrained_model_name_or_path=self.bert_pretrained_model_name_or_path
         )
 
         # Dimensionality
@@ -760,7 +862,7 @@ class BlinkCrossEncoderModel(nn.Module):
         Parameters
         ----------
         document : Document
-        candidate_entities : dict[str, str | list[list[CandEntKeyInfo]]]
+        candidate_entities_for_doc : dict[str, str | list[list[CandEntKeyInfo]]]
         max_n_candidates : int | None
             by default None
 

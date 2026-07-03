@@ -1,1 +1,6 @@
-recursive-include kapipe/prompt_templates *
+recursive-include kapipe/ner/prompt_templates *.txt
+recursive-include kapipe/ed_reranking/prompt_templates *.txt
+recursive-include kapipe/docre/prompt_templates *.txt
+recursive-include kapipe/report_generation/prompt_templates *.txt
+recursive-include kapipe/qa/prompt_templates *.txt
+recursive-include kapipe/evaluation/qa/prompt_templates *.txt

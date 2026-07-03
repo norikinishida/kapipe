@@ -8,16 +8,21 @@ from ..datatypes import (
     Document,
     CandidateEntitiesForDocument
 )
+from .base import BaseEDReranker
 
 
 logger = logging.getLogger(__name__)
 
 
-class IdenticalEntityReranker:
+class IdenticalEntityReranker(BaseEDReranker):
 
-    def __init__(self):
-        logger.info("########## IdenticalEntityReranker Initialization Starts ##########")
-        logger.info("########## IdenticalEntityReranker Initialization Ends ##########")
+    def __init__(self) -> None:
+        logger.info(
+            "########## IdenticalEntityReranker Initialization Starts ##########"
+        )
+        logger.info(
+            "########## IdenticalEntityReranker Initialization Ends ##########"
+        )
 
     def rerank(
         self,
@@ -31,6 +36,7 @@ class IdenticalEntityReranker:
         documents: list[Document],
         candidate_entities: list[CandidateEntitiesForDocument]
     ) -> list[Document]:
+
         result_documents = []
         for document, candidate_entities_for_doc in tqdm(
             zip(documents, candidate_entities),
@@ -42,5 +48,6 @@ class IdenticalEntityReranker:
                 candidate_entities_for_doc=candidate_entities_for_doc
             )
             result_documents.append(result_document)
+
         return result_documents
 

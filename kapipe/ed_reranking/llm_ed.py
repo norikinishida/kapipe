@@ -2,28 +2,27 @@ from __future__ import annotations
 
 from collections import defaultdict
 import copy
-# import json
 import logging
 import os
 import re
 from typing import Any
 
-# import numpy as np
 import torch
 from tqdm import tqdm
 
+from .. import evaluation
+from .. import utils
 from ..datatypes import (
-    Config,
     Document,
     Mention,
+    Entity,
     EntityPage,
     CandidateEntitiesForDocument,
-    DemonstrationsForOneExample,
     ContextsForOneExample
 )
-from .. import utils
-from .. import evaluation
 from ..llms import HuggingFaceLLM, OpenAILLM
+from ..resources import resolve_snapshot_path
+from .base import BaseEDReranker
 
 
 logger = logging.getLogger(__name__)
@@ -33,127 +32,206 @@ N_CAND = 3
 N_MENT_PER_CHUNK = 5
 
 
-class LLMED:
+class LLMED(BaseEDReranker):
+
+    @classmethod
+    def from_identifier(
+        cls,
+        model: HuggingFaceLLM | OpenAILLM,
+        identifier: str,
+    ) -> "LLMED":
+
+        # Resolve the public identifier to the corresponding local snapshot
+        snapshot_path = resolve_snapshot_path(
+            component_name="ed_reranking",
+            method_name="llm_ed",
+            identifier=identifier,
+        )
+
+        # Load the reranker from the resolved snapshot
+        reranker = cls.from_snapshot(
+            model=model,
+            snapshot_path=snapshot_path,
+        )
+
+        # Store the public identifier for later inspection
+        reranker.identifier = identifier
+
+        return reranker
+
+    @classmethod
+    def from_snapshot(
+        cls,
+        model: HuggingFaceLLM | OpenAILLM,
+        snapshot_path: str,
+    ) -> "LLMED":
+
+        # Define the default paths for the resources in the snapshot
+        component_config_path = snapshot_path + "/component_config.json"
+        entity_dict_path = snapshot_path + "/entity_dict.json"
+        demonstration_documents_path = (
+            snapshot_path + "/demonstration_documents.json"
+        )
+        demonstration_candidate_entities_path = (
+            snapshot_path + "/demonstration_candidate_entities.json"
+        )
+
+        # Set the demonstration documents to None if the file does not exist
+        if not os.path.exists(demonstration_documents_path):
+            demonstration_documents_path = None
+        if not os.path.exists(demonstration_candidate_entities_path):
+            demonstration_candidate_entities_path = None
+
+        # Load the component configuration
+        component_config = utils.read_json(component_config_path)
+        logger.info(f"Loaded component configuration from {component_config_path}")
+        logger.info(utils.pretty_format_dict(component_config))
+
+        # Initialize the reranker from explicit snapshot resources
+        reranker = cls(
+            # External
+            model=model,
+            # Internal
+            **component_config,
+            entity_dict_path=entity_dict_path,
+            # Optional (Internal)
+            demonstration_documents=demonstration_documents_path,
+            demonstration_candidate_entities=demonstration_candidate_entities_path,
+        )
+
+        # Store the snapshot path for later inspection
+        reranker.snapshot_path = snapshot_path
+
+        return reranker
 
     def __init__(
         self,
-        device: str,
-        # Initialization
-        config: Config | str | None = None,
-        path_entity_dict: str | None = None,
-        path_demonstration_pool: str | None = None,
-        path_candidate_entities_pool: str | None = None,
-        # Loading
-        path_snapshot: str | None = None,
-        # Misc.
-        model: HuggingFaceLLM | OpenAILLM | None = None,
+        # External
+        model: HuggingFaceLLM | OpenAILLM,
+        # Internal
+        prompt_template_name_or_path: str,
+        knowledge_base_name: str,
+        entity_dict_path: str,
+        # Optional (Internal)
+        demonstration_documents: list[Document] | str | None = None,
+        demonstration_candidate_entities: (
+            list[CandidateEntitiesForDocument] | str | None
+        ) = None,
+        **unused_kwargs: object,
     ):
         logger.info("########## LLMED Initialization Starts ##########")
 
-        self.device = device
-        self.path_snapshot = path_snapshot
-
-        if path_snapshot is not None:
-            assert config is None
-            assert path_entity_dict is None
-            assert path_demonstration_pool is None
-            assert path_candidate_entities_pool is None
-            config = path_snapshot + "/config"
-            path_entity_dict = path_snapshot + "/entity_dict.json"
-            path_demonstration_pool = path_snapshot + "/demonstration_pool.json"
-            path_candidate_entities_pool = path_snapshot + "/candidate_entities_pool.json"
-            if not os.path.exists(path_demonstration_pool):
-                path_demonstration_pool = None
-            if not os.path.exists(path_candidate_entities_pool):
-                path_candidate_entities_pool = None
-
-        # Load the configuration
-        if isinstance(config, str):
-            config_path = config
-            config = utils.get_hocon_config(config_path=config_path)
-            logger.info(f"Loaded configuration from {config_path}")
-        self.config = config
-        logger.info(utils.pretty_format_dict(self.config))
+        self.model = model
+        self.prompt_template_name_or_path = prompt_template_name_or_path
+        self.knowledge_base_name = knowledge_base_name
 
         # Load the entity dictionary
-        logger.info(f"Loading entity dictionary from {path_entity_dict}")
+        logger.info(f"Loading entity dictionary from {entity_dict_path}")
         self.entity_dict = {
             epage["entity_id"]: epage
-            for epage in utils.read_json(path_entity_dict)
+            for epage in utils.read_json(entity_dict_path)
         }
-        logger.info(f"Completed loading of entity dictionary with {len(self.entity_dict)} entities from {path_entity_dict}")
+        logger.info(f"Completed loading of entity dictionary with {len(self.entity_dict)} entities from {entity_dict_path}")
 
-        # Initialize the prompt processor
-        self.prompt_processor = PromptProcessor(
-            prompt_template_name_or_path=config["prompt_template_name_or_path"],
-            knowledge_base_name_prompt=config["knowledge_base_name"],
-            entity_dict=self.entity_dict,
-            path_demonstration_pool=path_demonstration_pool,
-            path_candidate_entities_pool=path_candidate_entities_pool,
-            n_demonstrations=config["n_demonstrations"]
+        # Load the demonstration documents
+        if isinstance(demonstration_documents, str):
+            demonstration_documents_path = demonstration_documents
+            demonstration_documents = utils.read_json(demonstration_documents_path)
+            logger.info(
+                f"Loaded {len(demonstration_documents)} demonstration documents "
+                f"from {demonstration_documents_path}"
+            )
+        elif demonstration_documents is None:
+            # Use an empty list for zero-shot setting
+            demonstration_documents = []
+        self.demonstration_documents: list[Document] = demonstration_documents
+
+        # Load demonstration candidate entities
+        if isinstance(demonstration_candidate_entities, str):
+            demonstration_candidate_entities_path = demonstration_candidate_entities
+            demonstration_candidate_entities = utils.read_json(
+                demonstration_candidate_entities_path
+            )
+            logger.info(
+                "Loaded "
+                f"{len(demonstration_candidate_entities)} "
+                "demonstration candidate-entity records "
+                f"from {demonstration_candidate_entities_path}"
+            )
+        elif demonstration_candidate_entities is None:
+            # Use an empty list for zero-shot setting
+            demonstration_candidate_entities = [] 
+        self.demonstration_candidate_entities: list[CandidateEntitiesForDocument] = (
+            demonstration_candidate_entities
         )
 
-        # Initialize the model
-        self.model_name = config["model_name"]
-        assert self.model_name in ["hf", "openai"]
-        if model is not None:
-            self.model = model
-            logger.info("LLM is provided by an argument")
-        elif self.model_name == "hf":
-            self.model = HuggingFaceLLM(
-                device=device,
-                # Model
-                llm_name_or_path=config["llm_name_or_path"],
-                # Generation
-                max_new_tokens=config["max_new_tokens"],
-                quantization_bits=config["quantization_bits"],
+        # Validate the lengths of demonstration documents and demonstration
+        # candidate entities.
+        if (
+            len(self.demonstration_documents)
+            != len(self.demonstration_candidate_entities)
+        ):
+            raise ValueError(
+                "demonstration_documents and demonstration_candidate_entities "
+                "must have the same length."
             )
-        else:
-            self.model = OpenAILLM(
-                openai_model_name=config["openai_model_name"],
-                max_new_tokens=config["max_new_tokens"]
-            )
-        # self.model.llm.to(self.model.device)
 
-        # Define regular expression for output parsing
-        # <bullet> (<mention>, <entity id>)
-        # self.re_comp = re.compile("(.+?)\s*\(\s*(.+?)\s*,\s*(.+?)\s*\)$")
-        # <bullet> <mention> -> <entity id>
-        # self.re_comp = re.compile("(.+?)\s*(.+?)\s*->\s*(.+?)$")
-        # <bullet> <mention> | <entity id>
-        self.re_comp = re.compile("(.+?)\s*(.+?)\s*\|\s*(.+?)$")
+        # Initialize the prompt processor, whioch generates prompts for the LLM
+        self.prompt_processor = PromptProcessor(
+            prompt_template_name_or_path=self.prompt_template_name_or_path,
+            knowledge_base_name_prompt=self.knowledge_base_name,
+            entity_dict=self.entity_dict,
+        )
+
+        # Define regular expression for output parsing.
+        # Parse generated lines of the following form:
+        #
+        #     - [mention text] | [entity ID]
+        #
+        self.re_comp = re.compile(r"(.+?)\s*(.+?)\s*\|\s*(.+?)$")
 
         logger.info("########## LLMED Initialization Ends ##########")
 
-    def save(self, path_snapshot: str) -> None:
-        path_config = path_snapshot + "/config"
-        path_entity_dict = path_snapshot + "/entity_dict.json"
-        path_demonstration_pool = path_snapshot + "/demonstration_pool.json"
-        path_candidate_entities_pool = path_snapshot + "/candidate_entities_pool.json"
-        utils.write_json(path_config, self.config)
-        utils.write_json(path_entity_dict, list(self.entity_dict.values()))
-        if self.prompt_processor.path_demonstration_pool is not None:
-            utils.write_json(
-                path_demonstration_pool,
-                list(self.prompt_processor.demonstration_pool.values())
-            )
-            utils.write_json(
-                path_candidate_entities_pool,
-                list(self.prompt_processor.candidate_entities_pool.values())
-            )
+    def save(self, snapshot_path: str) -> None:
+        """Save the configuration, entity dictionary, demonstration documents, and demonstration candidate entities to a snapshot directory."""
+
+        component_config_path = snapshot_path + "/component_config.json"
+        entity_dict_path = snapshot_path + "/entity_dict.json"
+        demonstration_documents_path = (
+            snapshot_path + "/demonstration_documents.json"
+        )
+        demonstration_candidate_entities_path = (
+            snapshot_path + "/demonstration_candidate_entities.json"
+        )
+
+        component_config: dict[str, Any] = {
+            "prompt_template_name_or_path": self.prompt_template_name_or_path,
+            "knowledge_base_name": self.knowledge_base_name,
+        }
+
+        utils.write_json(component_config_path, component_config)
+        utils.write_json(entity_dict_path, list(self.entity_dict.values()))
+        utils.write_json(
+            demonstration_documents_path,
+            self.demonstration_documents
+        )
+        utils.write_json(
+            demonstration_candidate_entities_path,
+            self.demonstration_candidate_entities
+        )
 
     def rerank(
         self,
         document: Document,
         candidate_entities_for_doc: CandidateEntitiesForDocument,
-        # optional: few-shot setting
-        demonstrations_for_doc: DemonstrationsForOneExample | None = None,
-        # optional: prompt augmentation
+        # Optional: prompt augmentation
         contexts_for_doc: ContextsForOneExample | None = None
     ) -> Document:
+        """Rerank candidate entities for a single document."""
+
         with torch.no_grad():
-            if self.model_name == "hf":
-                # Switch to inference mode
+            # Switch to inference mode for Hugging Face models
+            if self.model.provider == "hf":
                 self.model.llm.eval()
  
             # Split mentions into groups and perform reranking on the groups iteratively
@@ -161,6 +239,7 @@ class LLMED:
             generated_text_list: list[str] = []
             target_mentions_list: list[list[Mention]] = []
             indices = list(range(0, len(document["mentions"])))
+
             for m_i in range(0, len(document["mentions"]), N_MENT_PER_CHUNK):
                 # Get mention indices for this group
                 target_mention_indices = indices[m_i: m_i + N_MENT_PER_CHUNK]
@@ -170,7 +249,10 @@ class LLMED:
                     document=document,
                     candidate_entities_for_doc=candidate_entities_for_doc,
                     target_mention_indices=target_mention_indices,
-                    demonstrations_for_doc=demonstrations_for_doc,
+                    demonstration_documents=self.demonstration_documents,
+                    demonstration_candidate_entities=(
+                        self.demonstration_candidate_entities
+                    ),
                     contexts_for_doc=contexts_for_doc
                 )
                 prompt_list.append(prompt)
@@ -179,8 +261,8 @@ class LLMED:
                 generated_text = self.model.generate(prompt)
                 generated_text_list.append(generated_text)
 
-                # Structurize (1)
-                target_mentions = self._structurize_for_mentions(
+                # Convert the generated text into mention-level records
+                target_mentions = self.structurize(
                     document=document,
                     candidate_entities_for_doc=candidate_entities_for_doc,
                     generated_text=generated_text,
@@ -188,15 +270,15 @@ class LLMED:
                 )
                 target_mentions_list.append(target_mentions)
 
-            # Structurize (2)
+            # Aggregate the mention-level records
             mentions = utils.flatten_lists(target_mentions_list)
             assert len(mentions) == len(document["mentions"])
-            entities = utils.aggregate_mentions_to_entities(
+            entities: list[Entity] = utils.aggregate_mentions_to_entities(
                 document=document,
                 mentions=mentions
             )
 
-            # Integrate
+            # Integrate the entities into the document
             result_document = copy.deepcopy(document)
             for m_i in range(len(result_document["mentions"])):
                 result_document["mentions"][m_i].update(mentions[m_i])
@@ -205,15 +287,18 @@ class LLMED:
             result_document["ed_generated_text"] = "\n@@@@@@@@@@\n".join(
                 generated_text_list
             )
+
             return result_document
 
-    def _structurize_for_mentions(
+    def structurize(
         self,
         document: Document,
         candidate_entities_for_doc: CandidateEntitiesForDocument,
         generated_text: str,
         target_mention_indices: list[int]
     ) -> list[Mention]:
+        """Structurize the generated text into mention-level entity records."""
+
         doc_key = document["doc_key"]
 
         # Get one-to-many mapping from normalized mention name to mention indices
@@ -273,7 +358,7 @@ class LLMED:
                     # Skip checking the mention names
     
                     # Check whether the entity ID can be found in the possible list
-                    if not entity_id in possible_entity_ids:
+                    if entity_id not in possible_entity_ids:
                         logger.info(f"[{doc_key}] Skipped a generated line with invalid concept ID: {entity_id}")
                         continue
     
@@ -301,7 +386,7 @@ class LLMED:
                 normalized_name = normalized_name2
 
                 # Check whether the entity ID can be found in the possible list
-                if not entity_id in possible_entity_ids:
+                if entity_id not in possible_entity_ids:
                     logger.info(f"[{doc_key}] Skipped a generated line with invalid concept ID: {entity_id}")
                     continue
 
@@ -312,7 +397,7 @@ class LLMED:
 
         # Check
         for m_i in range(len(document["mentions"])):
-            if not m_i in target_mention_indices:
+            if m_i not in target_mention_indices:
                 assert mentions[m_i]["entity_id"] == "NO-PRED"
 
         return [mentions[m_i] for m_i in target_mention_indices]
@@ -321,29 +406,25 @@ class LLMED:
         self,
         documents: list[Document],
         candidate_entities: list[CandidateEntitiesForDocument],
-        # optional: few-shot setting
-        demonstrations: list[DemonstrationsForOneExample] | None = None,
-        # optional: context augmentation
+        # Optional: context augmentation
         contexts: list[ContextsForOneExample] | None = None
     ) -> list[Document]:
-        result_documents = []
+        """Rerank candidate entities for a batch of documents."""
 
-        if demonstrations is None:
-            demonstrations = [None] * len(documents)
+        result_documents: list[Document] = []
 
+        # Use empty contexts when no contexts are provided
         if contexts is None:
             contexts = [None] * len(documents)
 
         for (
             document,
             candidate_entities_for_doc,
-            demonstrations_for_doc,
             contexts_for_doc
         ) in tqdm(
                 zip(
                     documents,
                     candidate_entities,
-                    demonstrations,
                     contexts
                 ),
                 total=len(documents),
@@ -352,10 +433,10 @@ class LLMED:
             result_document = self.rerank(
                 document=document,
                 candidate_entities_for_doc=candidate_entities_for_doc,
-                demonstrations_for_doc=demonstrations_for_doc,
                 contexts_for_doc=contexts_for_doc
             )
             result_documents.append(result_document)
+
         return result_documents
 
 
@@ -366,92 +447,57 @@ class PromptProcessor:
         prompt_template_name_or_path: str,
         knowledge_base_name_prompt: str,
         entity_dict: dict[str, EntityPage],
-        # optional: few-shot setting
-        path_demonstration_pool: str | None = None,
-        path_candidate_entities_pool: str | None = None,
-        n_demonstrations: int | None = None
-    ):
+    ) -> None:
+
         self.prompt_template_name_or_path = prompt_template_name_or_path
         self.knowledge_base_name_prompt = knowledge_base_name_prompt
         self.entity_dict = entity_dict
-        self.path_demonstration_pool = path_demonstration_pool
-        self.path_candidate_entities_pool = path_candidate_entities_pool
-        self.n_demonstrations = n_demonstrations
-
-        # If demonstraion pool is provided, `path_candidate_entities_pool` and `n_demonstartions` should also be set
-        if self.path_demonstration_pool is not None:
-            assert self.path_candidate_entities_pool is not None
-            assert self.n_demonstrations is not None
 
         # Load the prompt template
         self.prompt_template = utils.read_prompt_template(
-            prompt_template_name_or_path=self.prompt_template_name_or_path
+            prompt_template_name_or_path=self.prompt_template_name_or_path,
+            prompt_template_package_name="kapipe.ed_reranking.prompt_templates",
         )
  
-        # Load pools for demonstrations
-        if self.path_demonstration_pool is not None:
-            self.demonstration_pool = {
-                demo_doc["doc_key"]: demo_doc
-                for demo_doc in utils.read_json(path_demonstration_pool)
-            }
-            self.candidate_entities_pool = {
-                cands["doc_key"]: cands
-                for cands in utils.read_json(path_candidate_entities_pool)
-            }
-
     def generate(
         self,
         document: Document,
         candidate_entities_for_doc: CandidateEntitiesForDocument,
         target_mention_indices: list[int],
-        # optional: few-shot setting
-        demonstrations_for_doc: DemonstrationsForOneExample | None = None,
+        demonstration_documents: list[Document],
+        demonstration_candidate_entities: list[CandidateEntitiesForDocument],
         # optional: context augmentation
         contexts_for_doc: ContextsForOneExample | None = None
     ) -> str:
+        """Generate a prompt for the LLM based on the input document, candidate entities, and optional context augmentation."""
+
         ##########
         # Demonstrations Prompt
         ##########
 
-        if demonstrations_for_doc is not None:
-            # Create demonstration documents
-            demonstration_documents: list[Document] = []
-            for demo_key_dict in (
-                demonstrations_for_doc["demonstrations"][:self.n_demonstrations]
+        # Create candidate entity pages for the demonstration documents
+        candidate_entity_pages_for_demos: list[list[list[EntityPage]]] = []
+        for candidate_entities_for_demo in demonstration_candidate_entities:
+            candidate_entity_pages_for_demo: list[list[EntityPage]] = []
+            for candidate_entities_for_one_mention in (
+                candidate_entities_for_demo["candidate_entities"]
             ):
-                demo_doc = self.demonstration_pool[demo_key_dict["doc_key"]]
-                demonstration_documents.append(demo_doc)
-
-            # Create candidate entities for the demonstration documents
-            candidate_entity_pages_for_demos: list[list[list[EntityPage]]] = []
-            for demo_key_dict in (
-                demonstrations_for_doc["demonstrations"][:self.n_demonstrations]
-            ):
-                candidate_entities_for_demo = self.candidate_entities_pool[
-                    demo_key_dict["doc_key"]
+                candidate_entity_pages_for_one_mention: list[EntityPage] = [
+                    self.entity_dict[cand_key_dict["entity_id"]]
+                    for cand_key_dict in candidate_entities_for_one_mention
                 ]
-                candidate_entity_pages_for_demo: list[list[EntityPage]] = []
-                for candidate_entities_for_one_mention in (
-                    candidate_entities_for_demo["candidate_entities"]
-                ):
-                    candidate_entity_pages_for_one_mention: list[EntityPage] = [
-                        self.entity_dict[cand_key_dict["entity_id"]]
-                        for cand_key_dict in candidate_entities_for_one_mention
-                    ]
-                    candidate_entity_pages_for_demo.append(
-                        candidate_entity_pages_for_one_mention
-                    )
-                candidate_entity_pages_for_demos.append(
-                    candidate_entity_pages_for_demo
+                candidate_entity_pages_for_demo.append(
+                    candidate_entity_pages_for_one_mention
                 )
-
-            # Generate prompt part for demonstrations
-            demonstrations_prompt = self.generate_demonstrations_prompt(
-                demonstration_documents=demonstration_documents,
-                candidate_entity_pages_for_demos=candidate_entity_pages_for_demos
+            candidate_entity_pages_for_demos.append(
+                candidate_entity_pages_for_demo
             )
-        else:
-            demonstrations_prompt = ""
+
+        # Generate the prompt part for demonstrations
+        demonstrations_prompt = self.generate_demonstrations_prompt(
+            demonstration_documents=demonstration_documents,
+            candidate_entity_pages_for_demos=candidate_entity_pages_for_demos
+        )
 
         ##########
         # Contexts Prompt
@@ -505,6 +551,7 @@ class PromptProcessor:
             contexts_prompt=contexts_prompt,
             test_case_prompt=test_case_prompt
         )
+
         return prompt
 
     def generate_demonstrations_prompt(
@@ -512,6 +559,8 @@ class PromptProcessor:
         demonstration_documents: list[Document],
         candidate_entity_pages_for_demos: list[list[list[EntityPage]]]
     ) -> str:
+        """Generate a prompt for the demonstrations based on the demonstration documents and their corresponding candidate entity pages."""
+
         prompt = ""
         n_demos = len(demonstration_documents)
         for demo_i, (demo_doc, cand_ent_pages_for_demo) in enumerate(zip(
@@ -520,7 +569,7 @@ class PromptProcessor:
         )):
             prompt += f"Example {demo_i+1}:\n"
 
-            # Generate prompt part fro the input text
+            # Generate prompt part """fro the input text
             prompt += f"Text: {self.generate_input_text_prompt(document=demo_doc)}\n"
            
             # Sample target mention indices
@@ -555,6 +604,8 @@ class PromptProcessor:
         return prompt.rstrip()
 
     def generate_contexts_prompt(self, context_texts: list[str]) -> str:
+        """Generate a prompt for the contexts based on the provided context texts."""
+
         n_contexts = len(context_texts)
         if n_contexts == 0:
             return ""
@@ -572,9 +623,13 @@ class PromptProcessor:
         candidate_entity_pages_for_doc: list[list[EntityPage]],
         target_mention_indices: list[int]
     ) -> str:
+        """Generate a prompt for the test case based on the input document, candidate entity pages, and target mention indices."""
+
         prompt = ""
+
         # Generate prompt part for the input text
         prompt += f"Text: {self.generate_input_text_prompt(document=document)}\n"
+
         # Generate prompt part for the mentions and their candidate concepts 
         mention_candidates_pairs_prompt = (
             self.generate_input_mention_candidates_pairs_prompt(
@@ -585,10 +640,14 @@ class PromptProcessor:
             )
         )
         prompt += f"{mention_candidates_pairs_prompt}\n"
+
         return prompt.rstrip()
 
     def generate_input_text_prompt(self, document: Document) -> str:
+        """Generate a prompt for the input text based on the provided document."""
+
         prompt = " ".join(document["sentences"]) + "\n"
+
         return prompt.rstrip()
 
     def generate_input_mention_candidates_pairs_prompt(
@@ -598,6 +657,8 @@ class PromptProcessor:
         target_mention_indices: list[int],
         demonstration_mode: bool = False
     ) -> str:
+        """Generate a prompt for the mention-candidate pairs based on the provided document, candidate entity pages, and target mention indices."""
+
         # Aggregate mentions strings
         words = " ".join(document["sentences"]).split()
         names = []
@@ -639,6 +700,7 @@ class PromptProcessor:
                 canonical_name = cand_page["canonical_name"].replace("|", " ")
                 desc = cand_page["description"].replace("|", " ").replace("\n", " ").rstrip()
                 prompt += f"- ID: {entity_id} | Name: {canonical_name} | Description: {desc}\n"
+
         return prompt.rstrip()
 
     def generate_output_prompt(
@@ -647,6 +709,8 @@ class PromptProcessor:
         candidate_entity_pages_for_doc: list[list[EntityPage]],
         target_mention_indices: list[int]
     ) -> str:
+        """Generate a prompt for the output based on the provided document, candidate entity pages, and target mention indices."""
+
         prompt = ""
 
         words = " ".join(document["sentences"]).split()
@@ -660,7 +724,7 @@ class PromptProcessor:
 
                 # If the ground-truth entity cannot be found in the candidates,
                 # set the target output "NA".
-                if not entity_id in {
+                if entity_id not in {
                     epage["entity_id"]
                     for epage in candidate_entity_pages_for_doc[m_i]
                 }:
@@ -670,7 +734,12 @@ class PromptProcessor:
 
         return prompt.rstrip()
 
- 
+
+ #####################
+# Trainer (Evaluator)
+#####################
+
+
 class LLMEDTrainer:
 
     def __init__(self, base_output_path: str):
@@ -681,15 +750,15 @@ class LLMEDTrainer:
         paths = {}
 
         # configurations
-        paths["path_snapshot"] = self.base_output_path
+        paths["snapshot_path"] = self.base_output_path
 
         # evaluation outputs
-        paths["path_dev_gold"] = self.base_output_path + "/dev.gold.json"
-        paths["path_dev_pred"] = self.base_output_path + "/dev.pred.json"
-        paths["path_dev_eval"] = self.base_output_path + "/dev.eval.json"
-        paths["path_test_gold"] = self.base_output_path + "/test.gold.json"
-        paths["path_test_pred"] = self.base_output_path + "/test.pred.json"
-        paths["path_test_eval"] = self.base_output_path + "/test.eval.json"
+        paths["dev_gold_path"] = self.base_output_path + "/dev.gold.json"
+        paths["dev_pred_path"] = self.base_output_path + "/dev.pred.json"
+        paths["dev_eval_path"] = self.base_output_path + "/dev.eval.json"
+        paths["test_gold_path"] = self.base_output_path + "/test.gold.json"
+        paths["test_pred_path"] = self.base_output_path + "/test.pred.json"
+        paths["test_eval_path"] = self.base_output_path + "/test.eval.json"
 
         return paths
 
@@ -701,8 +770,8 @@ class LLMEDTrainer:
         split: str
     ) -> None:
         # Cache the gold annotations for evaluation
-        path_gold = self.paths[f"path_{split}_gold"]
-        if not os.path.exists(path_gold):
+        gold_path = self.paths[f"{split}_gold_path"]
+        if not os.path.exists(gold_path):
             kb_entity_ids = set(list(reranker.prompt_processor.entity_dict.keys()))
             gold_documents = []
             for document, candidate_entities_for_doc in tqdm(
@@ -726,18 +795,17 @@ class LLMEDTrainer:
                     gold_doc["mentions"][m_i]["in_kb"] = in_kb
                     gold_doc["mentions"][m_i]["in_cand"] = in_cand
                 gold_documents.append(gold_doc)
-            utils.write_json(path_gold, gold_documents)
-            logger.info(f"Saved the gold annotations for evaluation in {path_gold}")
+            utils.write_json(gold_path, gold_documents)
+            logger.info(f"Saved the gold annotations for evaluation in {gold_path}")
 
     def save_reranker(self, reranker: LLMED) -> None:
-        reranker.save(path_snapshot=self.paths["path_snapshot"])
+        reranker.save(snapshot_path=self.paths["snapshot_path"])
 
     def evaluate(
         self,
         reranker: LLMED,
         documents: list[Document],
         candidate_entities: list[CandidateEntitiesForDocument],
-        demonstrations: list[DemonstrationsForOneExample],
         contexts: list[ContextsForOneExample],
         split: str,
         #
@@ -748,16 +816,15 @@ class LLMEDTrainer:
         result_documents = reranker.batch_rerank(
             documents=documents,
             candidate_entities=candidate_entities,
-            demonstrations=demonstrations,
             contexts=contexts
         )
 
         # Save the prediction results
-        utils.write_json(self.paths[f"path_{split}_pred"], result_documents)
+        utils.write_json(self.paths[f"{split}_pred_path"], result_documents)
 
         # Save the prompt-response pairs in plain text
         with open(
-            self.paths[f"path_{split}_pred"].replace(".json", ".txt"), "w"
+            self.paths[f"{split}_pred_path"].replace(".json", ".txt"), "w"
         ) as f:
             for result_doc in result_documents:
                 doc_key = result_doc["doc_key"]
@@ -776,13 +843,13 @@ class LLMEDTrainer:
 
         # Calculate the evaluation scores
         scores = evaluation.ed.accuracy(
-            pred_path=self.paths[f"path_{split}_pred"],
-            gold_path=self.paths[f"path_{split}_gold"],
+            pred_path=self.paths[f"{split}_pred_path"],
+            gold_path=self.paths[f"{split}_gold_path"],
             inkb=True
         )
         scores.update(evaluation.ed.fscore(
-            pred_path=self.paths[f"path_{split}_pred"],
-            gold_path=self.paths[f"path_{split}_gold"],
+            pred_path=self.paths[f"{split}_pred_path"],
+            gold_path=self.paths[f"{split}_gold_path"],
             inkb=True
         ))
 
@@ -790,6 +857,6 @@ class LLMEDTrainer:
             return scores
 
         # Save the evaluation scores
-        utils.write_json(self.paths[f"path_{split}_eval"], scores)
+        utils.write_json(self.paths[f"{split}_eval_path"], scores)
         logger.info(utils.pretty_format_dict(scores))
         return scores

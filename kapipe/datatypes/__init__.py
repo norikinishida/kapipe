@@ -1,27 +1,61 @@
+import importlib
+from typing import Any
 
-from .datatypes import Config
 
-from .datatypes import Passage
+__all__ = [
+    "Answer",
+    "CandEntKeyInfo",
+    "CandidateEntitiesForDocument",
+    "CommunityRecord",
+    "ContextsForOneExample",
+    "DocKey",
+    "Document",
+    "Entity",
+    "EntityPage",
+    "EntityPassage",
+    "Mention",
+    "Passage",
+    "Question",
+    "QuestionKey",
+    "Triple",
+]
 
-from .datatypes import DocKey
-from .datatypes import Document
-from .datatypes import Mention
-from .datatypes import Entity
-from .datatypes import Triple
 
-from .datatypes import EntityPage
+_NAME_TO_MODULE = {
+    "Answer": "datatypes",
+    "CandEntKeyInfo": "datatypes",
+    "CandidateEntitiesForDocument": "datatypes",
+    "CommunityRecord": "datatypes",
+    "ContextsForOneExample": "datatypes",
+    "DocKey": "datatypes",
+    "Document": "datatypes",
+    "Entity": "datatypes",
+    "EntityPage": "datatypes",
+    "EntityPassage": "datatypes",
+    "Mention": "datatypes",
+    "Passage": "datatypes",
+    "Question": "datatypes",
+    "QuestionKey": "datatypes",
+    "Triple": "datatypes",
+}
 
-from .datatypes import CandidateEntitiesForDocument
-from .datatypes import CandEntKeyInfo
-from .datatypes import EntityPassage
 
-from .datatypes import CommunityRecord
+def __getattr__(name: str) -> Any:
+    """Function to lazily import public objects."""
 
-from .datatypes import ContextsForOneExample
+    # Reject unknown public names immediately
+    if name not in __all__:
+        raise AttributeError(
+            f"module '{__name__}' has no attribute '{name}'"
+        )
 
-from .datatypes import QuestionKey
-from .datatypes import Question
-from .datatypes import Answer
+    # Import the module that defines the requested public object
+    module = importlib.import_module(f".{_NAME_TO_MODULE[name]}", __name__)
 
-from .datatypes import DemonstrationsForOneExample
-from .datatypes import DemoKeyInfo
+    # Read the requested public object from the imported module
+    value = getattr(module, name)
+
+    # Cache the object to avoid importing the module again for the same name
+    globals()[name] = value
+
+    return value

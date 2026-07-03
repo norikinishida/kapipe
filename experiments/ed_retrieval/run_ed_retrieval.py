@@ -1,34 +1,14 @@
 import argparse
 import logging
 import os
-
-import transformers
-from tqdm import tqdm
-
 import sys
-sys.path.insert(0, "../..")
-from kapipe.ed_retrieval import EDRetrieval
+
+from tqdm import tqdm
+import transformers
+
 from kapipe import utils
+from kapipe.ed_retrieval import MentionNameEntityRetriever, BlinkBiEncoder
 from kapipe.utils import StopWatch
-
-
-def set_logger(filename, overwrite=False):
-    """
-    Parameters
-    ----------
-    filename: str
-    overwrite: bool, default False
-    """
-    if os.path.exists(filename) and not overwrite:
-        logging.info("%s already exists." % filename)
-        do_remove = input("Delete the existing log file? [y/n]: ")
-        if (not do_remove.lower().startswith("y")) and (not len(do_remove) == 0):
-            logging.info("Done.")
-            sys.exit(0)
-
-    root_logger = logging.getLogger()
-    handler = logging.FileHandler(filename, "w")
-    root_logger.addHandler(handler)
 
 
 def main(args):
@@ -42,19 +22,21 @@ def main(args):
     ##################
 
     # Method
-    gpu = args.gpu
-    identifier = args.identifier
-    num_candidate_entities = args.num_candidate_entities
+    method_name = args.method
+    config_path = args.config_path
+    config_name = args.config_name
 
     # Input Data
-    path_input_documents = args.input_documents
+    input_documents_path = args.input_documents
 
     # Output Path
-    path_results_dir = args.results_dir
+    results_dir = args.results_dir
     prefix = args.prefix
     if prefix is None or prefix == "None":
         prefix = utils.get_current_time()
         args.prefix = prefix
+
+    assert method_name in ["mention_name_entity_retriever", "blink_bi_encoder"]
 
     ##################
     # Logging Setup
@@ -62,17 +44,17 @@ def main(args):
 
     # Set base output path
     base_output_path = os.path.join(
-        path_results_dir,
+        results_dir,
         "ed_retrieval",
-        "ed_retrieval",
-        identifier,
+        method_name,
+        config_name,
         prefix
     )
     utils.mkdir(base_output_path)
-
+    
     # Set logger
     set_logger(
-        os.path.join(base_output_path, "retrieval.log"),
+        os.path.join(base_output_path, "ed_retrieval.log"),
         # overwrite=True
     )
 
@@ -84,43 +66,62 @@ def main(args):
     ##################
 
     # Load documents
-    documents = utils.read_json(path_input_documents)
+    documents = utils.read_json(input_documents_path)
 
     ##################
     # Method
     ##################
 
-    # Initialize the ED-Retrieval retriever
-    retriever = EDRetrieval(identifier=identifier, gpu=gpu)
+    # Load the experiment configuration
+    config = utils.get_hocon_config(config_path=config_path, config_name=config_name)
+
+    # Save the experiment configuration to the output path
+    utils.write_json(os.path.join(base_output_path, "config.json"), config)
+
+    # Initialize the ED-Retrieval component.
+    # Also build the ANN index from precomputed entity vectors.
+    if method_name == "mention_name_entity_retriever":
+        retriever = MentionNameEntityRetriever()
+        retriever.make_index()
+    elif method_name == "blink_bi_encoder":
+        retriever = BlinkBiEncoder.from_identifier(
+            identifier=config["identifier"]
+        )
+        retriever.make_index(use_precomputed_entity_vectors=True)
+    else:
+        raise ValueError(f"Unknown method: {method_name}")
 
     ##################
     # ED-Retrieval
     ##################
 
-    logging.info(f"Applying the ED-Retrieval component to {len(documents)} documents in {path_input_documents} ...")
+    logging.info(f"Applying the ED-Retrieval component to {len(documents)} documents in {input_documents_path} ...")
 
     # Create the full output path
-    path_output_documents = os.path.join(base_output_path, "documents.json")
-    path_output_candidates = os.path.join(base_output_path, "candidate_entities.json")
+    output_documents_path = os.path.join(
+        base_output_path,
+        "documents.json"
+    )
+    output_candidates_path = os.path.join(
+        base_output_path,
+        "candidate_entities.json"
+    )
 
-    # Apply the ED-Retrieval retriever to the documents
+    # Apply the ED-Retrieval component to the documents
     result_documents = []
     candidate_entities = []
     for document in tqdm(documents):
         result_document, candidate_entities_for_doc = retriever.search(
             document=document,
-            num_candidate_entities=num_candidate_entities
+            retrieval_size=config["retrieval_size"]
         )
         result_documents.append(result_document)
         candidate_entities.append(candidate_entities_for_doc)
-        if len(result_documents) % 500 == 0:
-            utils.write_json(path_output_documents.replace(".json", f".until_{len(result_documents)}.json"), result_documents)
-            utils.write_json(path_output_candidates.replace(".json", f".until_{len(candidate_entities)}.json"), candidate_entities)
 
     # Save the results
-    utils.write_json(path_output_documents, result_documents)
-    utils.write_json(path_output_candidates, candidate_entities)
-    logging.info(f"Saved the prediction results to {path_output_documents} and {path_output_candidates}")
+    utils.write_json(output_documents_path, result_documents)
+    utils.write_json(output_candidates_path, candidate_entities)
+    logging.info(f"Saved the prediction results to {output_documents_path} and {output_candidates_path}")
 
     ##################
     # Closing
@@ -133,6 +134,19 @@ def main(args):
     return prefix
 
 
+def set_logger(filename: str, overwrite: bool = False) -> None:
+    if os.path.exists(filename) and not overwrite:
+        logging.info("%s already exists." % filename)
+        do_remove = input("Delete the existing log file? [y/n]: ")
+        if (not do_remove.lower().startswith("y")) and (not len(do_remove) == 0):
+            logging.info("Done.")
+            sys.exit(0)
+
+    root_logger = logging.getLogger()
+    handler = logging.FileHandler(filename, "w")
+    root_logger.addHandler(handler)
+
+
 if __name__ == "__main__":
     logging.basicConfig(
         format="%(asctime)s - %(levelname)s - %(name)s - %(message)s",
@@ -142,9 +156,9 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
     # Method
-    parser.add_argument("--gpu", type=int, default=0)
-    parser.add_argument("--identifier", type=str, required=True)
-    parser.add_argument("--num_candidate_entities", type=int, default=10)
+    parser.add_argument("--method", type=str, required=True)
+    parser.add_argument("--config_path", type=str, required=True)
+    parser.add_argument("--config_name", type=str, required=True)
 
     # Input Data
     parser.add_argument("--input_documents", type=str, required=True)

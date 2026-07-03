@@ -1,27 +1,52 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
 
-# STORAGE=/home/nishida/storage/projects/kapipe/experiments
-STORAGE=/home/nishida/projects/kapipe/experiments
+######
+# Storage paths
+######
 
-STORAGE_DATA=${STORAGE}/data
-STORAGE_RESULTS=${STORAGE}/results
+STORAGE_DATA=/home/nishida/projects/kapipe/experiments/docre/data
+STORAGE_RESULTS=/home/nishida/projects/kapipe/experiments/docre/results
+
+# STORAGE_DATA=/home/nishida/storage/projects/kapipe/experiments/datasets/docre
+# STORAGE_RESULTS=/home/nishida/storage/projects/kapipe/experiments/docre/results
+
+######
+# Experiment configuration
+######
 
 # Method
-IDENTIFIER=atlop_cdr
-# IDENTIFIER=gpt4omini_cdr
-# IDENTIFIER=qwen2_5_7b_cdr
-# IDENTIFIER=gpt4omini_any
+# METHOD=atlop
+METHOD=llm_docre
+
+if [ "${METHOD}" == "atlop" ]; then
+    CONFIG_PATH=./config/atlop.conf
+    CONFIG_NAME=atlop_cdr
+    # CONFIG_NAME=atlop_linked_docred
+elif [ "${METHOD}" == "llm_docre" ]; then
+    CONFIG_PATH=./config/llm_docre.conf
+    # CONFIG_NAME=llm_docre_cdr
+    # CONFIG_NAME=llm_docre_linked_docred
+    CONFIG_NAME=llm_docre_user_defined
+else
+    echo "Error: Invalid METHOD specified."
+    exit 1
+fi
 
 # Input Data
-DOCUMENTS=${STORAGE_RESULTS}/ed_reranking/ed_reranking/blink_cross_encoder_cdr/example/documents.json
+DOCUMENTS=${STORAGE_DATA}/examples/documents.ner.ed_ret.ed_rank.json
 
 # Output Path
 RESULTS_DIR=${STORAGE_RESULTS}
-MYPREFIX=example2
+MYPREFIX=example
+
+######
+# Experiment execution
+######
 
 python run_docre.py \
-    --identifier ${IDENTIFIER} \
+    --method ${METHOD} \
+    --config_path ${CONFIG_PATH} \
+    --config_name ${CONFIG_NAME} \
     --input_documents ${DOCUMENTS} \
     --results_dir ${RESULTS_DIR} \
     --prefix ${MYPREFIX}
-

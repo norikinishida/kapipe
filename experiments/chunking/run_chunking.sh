@@ -1,25 +1,32 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
 
-# STORAGE=/home/nishida/storage/projects/kapipe/experiments
-STORAGE=/home/nishida/projects/kapipe/experiments
+######
+# Storage paths
+######
 
-STORAGE_DATA=${STORAGE}/data
-STORAGE_RESULTS=${STORAGE}/results
+STORAGE_DATA=/home/nishida/projects/kapipe/experiments/chunking/data
+STORAGE_RESULTS=/home/nishida/projects/kapipe/experiments/chunking/results
+
+######
+# Experiment configuration
+######
 
 # Method
-SPACY_MODEL_NAME=en_core_sci_md
-WINDOW_SIZE=100
+METHOD=default
+CONFIG_PATH=config/default.conf
+CONFIG_NAME=en_core_sci_md_w100
 
 # Input Data
-INPUT_PASSAGES=${STORAGE_DATA}/examples/reports.jsonl
+INPUT_PASSAGES=${STORAGE_DATA}/examples/articles.jsonl
 
 # Output Path
 RESULTS_DIR=${STORAGE_RESULTS}
 MYPREFIX=example
 
 python run_chunking.py \
-    --spacy_model_name ${SPACY_MODEL_NAME} \
-    --window_size ${WINDOW_SIZE} \
+    --method ${METHOD} \
+    --config_path ${CONFIG_PATH} \
+    --config_name ${CONFIG_NAME} \
     --input_passages ${INPUT_PASSAGES} \
     --results_dir ${RESULTS_DIR} \
     --prefix ${MYPREFIX}

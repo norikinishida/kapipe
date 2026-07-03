@@ -22,6 +22,7 @@ def accuracy(pred_path, gold_path, exact_match=False):
     else:
         pred_questions = pred_path
     assert isinstance(pred_questions, list)
+
     if isinstance(gold_path, str):
         gold_questions = utils.read_json(gold_path)
     else:
@@ -44,15 +45,25 @@ def accuracy(pred_path, gold_path, exact_match=False):
     
 def _accuracy(pred_questions, gold_questions, exact_match):
     scores = {}
-    
+
+    # Initialize accumulators
     total_count = 0
     total_count_correct = 0
 
     for pred_question, gold_question in zip(pred_questions, gold_questions):
+        # Normalize the predicted answer
         pred_ans_str = pred_question["output_answer"].lower()
+
+        # Count one question (= one gold answer)
         total_count += 1
+
+        # Match against each gold-answer synonym
         for gold_ans in gold_question["answers"]:
+
+            # Normalize the gold-answer synonym
             gold_ans_str = gold_ans["answer"].lower()
+
+            # Compute an exact-match/paratial-match score
             if exact_match:
                 if pred_ans_str == gold_ans_str:
                     total_count_correct += 1
