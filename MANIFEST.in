@@ -4,3 +4,8 @@ recursive-include kapipe/docre/prompt_templates *.txt
 recursive-include kapipe/report_generation/prompt_templates *.txt
 recursive-include kapipe/qa/prompt_templates *.txt
 recursive-include kapipe/evaluation/qa/prompt_templates *.txt
+
+prune kapipe/_legacy
+prune kapipe/llms/_legacy
+prune kapipe/pipelines/_legacy
+prune kapipe/qa/_legacy
