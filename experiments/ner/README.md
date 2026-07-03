@@ -56,16 +56,10 @@ First, check `STORAGE_DATA` and `STORAGE_RESULTS` in the execution script and ad
 
 If you modified the configuration file or added new configuration entries, make sure that the execution script refers to the intended configuration.
 
-To apply an off-the-shelf NER component to documents, run:
+Then run:
 
 ```bash
 bash ./run_ner.sh
-```
-
-To train or evaluate an NER component, run:
-
-```bash
-bash ./run_ner_train_eval.sh
 ```
 
 If you use the OpenAI API, set your API key in advance.

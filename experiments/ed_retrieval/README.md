@@ -57,14 +57,8 @@ First, check `STORAGE_DATA` and `STORAGE_RESULTS` in the execution script and ad
 
 If you modified the configuration file or added new configuration entries, make sure that the execution script refers to the intended configuration.
 
-To apply an off-the-shelf ED-Retrieval component to documents, run:
+Then run:
 
 ```bash
 bash ./run_ed_retrieval.sh
-```
-
-To train or evaluate an ED-Retrieval component, run:
-
-```bash
-bash ./run_ed_retrieval_train_eval.sh
 ```
