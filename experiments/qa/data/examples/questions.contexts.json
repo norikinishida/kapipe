@@ -3,16 +3,22 @@
         "question_key": "question#123",
         "contexts": [
             {
-                "text": "Oliver Hartwell married Clara Venn in 2016. Clara was known in Hartwell's family for her quiet humor and careful memory. Public records in Larkford list Clara Venn as Oliver Hartwell's wife."
+                "title": "Ketanserin pretreatment reverses alfentanil - induced muscle rigidity .",
+                "text": "Systemic pretreatment with ketanserin , a relatively specific type - 2 serotonin receptor antagonist , significantly attenuated the muscle rigidity produced in rats by the potent short - acting opiate agonist alfentanil . Following placement of subcutaneous electrodes in each animal 's left gastrocnemius muscle , rigidity was assessed by analyzing root - mean - square electromyographic activity . Intraperitoneal ketanserin administration at doses of 0 . 63 and 2 . 5 mg / kg prevented the alfentanil - induced increase in electromyographic activity compared with animals pretreated with saline . Chlordiazepoxide at doses up to 10 mg / kg failed to significantly influence the rigidity produced by alfentanil . Despite the absence of rigidity , animals that received ketanserin ( greater than 0 . 31 mg / kg i . p . ) followed by alfentanil were motionless , flaccid , and less responsive to external stimuli than were animals receiving alfentanil alone . Rats that received ketanserin and alfentanil exhibited less rearing and exploratory behavior at the end of the 60 - min recording period than did animals that received ketanserin alone . These results , in combination with previous work , suggest that muscle rigidity , a clinically relevant side - effect of parenteral narcotic administration , may be partly mediated via serotonergic pathways . Pretreatment with type - 2 serotonin antagonists may be clinically useful in attenuating opiate - induced rigidity , although further studies will be necessary to assess the interaction of possibly enhanced CNS , cardiovascular , and respiratory depression .",
+                "score": 0.7015140056610107,
+                "rank": 1
             },
             {
-                "text": "Clara Venn began her clinical career at St. Brigid's Children's Hospital. She worked there as a pediatric nurse from 2012 to 2016. Her duties included night rounds and discharge planning."
+                "title": "Involvement of locus coeruleus and noradrenergic neurotransmission in fentanyl - induced muscular rigidity in the rat .",
+                "text": "Whereas muscular rigidity is a well - known side effect that is associated with high - dose fentanyl anesthesia , a paucity of information exists with regard to its underlying mechanism ( s ) . We investigated in this study the possible engagement of locus coeruleus of the pons in this phenomenon , using male Sprague - Dawley rats anesthetized with ketamine . Under proper control of respiration , body temperature and end - tidal CO2 , intravenous administration of fentanyl ( 50 or 100 micrograms / kg ) consistently promoted an increase in electromyographic activity recorded from the gastrocnemius and abdominal rectus muscles . Such an induced muscular rigidity by the narcotic agent was significantly antagonized or even reduced by prior electrolytic lesions of the locus coeruleus or pretreatment with the alpha - adrenoceptor blocker , prazosin . Microinjection of fentanyl ( 2 . 5 micrograms / 50 nl ) directly into this pontine nucleus , on the other hand , elicited discernible electromyographic excitation . It is speculated that the induction of muscular rigidity by fentanyl may involve the coerulospinal noradrenergic fibers to the spinal motoneurons .",
+                "score": 0.6968926191329956,
+                "rank": 2
             },
             {
-                "text": "Clara Venn later joined North Quay Medical Center. She worked in its pediatric ward from 2017 to 2021. The hospital newsletter described her as a senior nurse."
-            },
-            {
-                "text": "Clara Venn attended a short training course at Alderwick General Hospital. The course focused on emergency triage for children. She did not hold a staff position there."
+                "title": "Effects of calcitonin on rat extrapyramidal motor system : behavioral and biochemical data .",
+                "text": "The effects of i . v . c . injection of human and salmon calcitonin on biochemical and behavioral parameters related to the extrapyramidal motor system , were investigated in male rats . Calcitonin injection resulted in a potentiation of haloperidol - induced catalepsy and a partial prevention of apomorphine - induced hyperactivity . Moreover calcitonin induced a significant decrease in nigral GAD activity but no change in striatal DA and DOPAC concentration or GAD activity . The results are discussed in view of a primary action of calcitonin on the striatonigral GABAergic pathway mediating the DA - related behavioral messages of striatal origin .",
+                "score": 0.4875096380710602,
+                "rank": 3
             }
         ]
     },
@@ -20,16 +26,22 @@
         "question_key": "question#456",
         "contexts": [
             {
-                "text": "Naomi Calder worked at Alderwick General Hospital after finishing medical school. She joined the internal medicine department in 2011. Her early work focused on respiratory infections."
+                "title": "Phenobarbital - induced dyskinesia in a neurologically - impaired child .",
+                "text": "A 2 - year - old child with known neurologic impairment developed a dyskinesia soon after starting phenobarbital therapy for seizures . Known causes of movement disorders were eliminated after evaluation . On repeat challenge with phenobarbital , the dyskinesia recurred . Phenobarbital should be added to the list of anticonvulsant drugs that can cause movement disorders .",
+                "score": 0.5103684663772583,
+                "rank": 1
             },
             {
-                "text": "Naomi Calder later worked at St. Brigid's Children's Hospital. She served on its pediatric asthma team from 2016 to 2019. Several hospital reports list her as a consulting physician."
+                "title": "Acute changes of blood ammonia may predict short - term adverse effects of valproic acid .",
+                "text": "Valproic acid ( VPA ) was given to 24 epileptic patients who were already being treated with other antiepileptic drugs . A standardized loading dose of VPA was administered , and venous blood was sampled at 0 , 1 , 2 , 3 , and 4 hours . Ammonia ( NH3 ) was higher in patients who , during continuous therapy , complained of drowsiness ( 7 patients ) than in those who were symptom - free ( 17 patients ) , although VPA plasma levels were similar in both groups . By measuring VPA - induced changes of blood NH3 content , it may be possible to identify patients at higher risk of obtundation when VPA is given chronically .",
+                "score": 0.45389652252197266,
+                "rank": 2
             },
             {
-                "text": "Priya Voss worked at Alderwick General Hospital from 2014 to 2018. She was part of the same internal medicine unit that handled respiratory cases. Her staff profile remained online after she left."
-            },
-            {
-                "text": "Priya Voss also worked at St. Brigid's Children's Hospital. She joined its pediatric asthma team in 2019. Her role involved patient follow-up and family counseling."
+                "title": "Glycopyrronium requirements for antagonism of the muscarinic side effects of edrophonium .",
+                "text": "We have compared , in 60 adult patients , the cardiovascular effects of glycopyrronium 5 micrograms kg - 1 and 10 micrograms kg - 1 given either simultaneously or 1 min before edrophonium 1 mg kg - 1 . Significant differences between the four groups were detected ( P less than 0 . 001 ) . Both groups receiving 10 micrograms kg - 1 showed increases in heart rate of up to 30 beat min - 1 ( 95 % confidence limits 28 - 32 beat min - 1 ) . Use of glycopyrronium 5 micrograms kg - 1 provided greater cardiovascular stability and , given 1 min before the edrophonium , was sufficient to minimize early , edrophonium - induced bradycardias . This low dose of glycopyrronium provided good control of oropharyngeal secretions .",
+                "score": 0.4459940791130066,
+                "rank": 3
             }
         ]
     }

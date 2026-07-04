@@ -14,7 +14,7 @@ STORAGE_RESULTS=/home/nishida/projects/kapipe/experiments/chunking/results
 # Method
 METHOD=default
 CONFIG_PATH=config/default.conf
-CONFIG_NAME=en_core_web_md_w50
+CONFIG_NAME=en_core_sci_md_w50
 
 # Input Data
 INPUT_PASSAGES=${STORAGE_DATA}/examples/articles.jsonl

@@ -12,12 +12,11 @@ A question is represented as a dictionary with the following fields.
 |---|---|---|
 | `question_key` | `str` | Unique question identifier |
 | `question` | `str` | Natural language question |
-| `candidate_answers` | `list[str]` | Candidate answers, if available |
 
 ```json
 {
     "question_key": "question#123",
-    "question": "Which hospitals has Oliver Hartwell’s wife worked at?"
+    "question": "Which interventions attenuated, prevented, antagonized, or reduced opioid-induced muscle rigidity in rats?"
 }
 ```
 
@@ -30,7 +29,7 @@ Contexts are represented as a dictionary with the following fields.
 | `question_key` | `str` | Unique question identifier |
 | `contexts` | `list[dict]` | Context passages |
 
-Each context passage conatins the following fields.
+Each context passage contains the following fields.
 
 | Field | Type | Description |
 |---|---|---|
@@ -42,12 +41,13 @@ Each context passage conatins the following fields.
     "question_key": "question#123",
     "contexts": [
         {
-            "text": "Oliver Hartwell married Clara Venn in 2016. Clara was known in Hartwell's family for her quiet humor and careful memory. Public records in Larkford list Clara Venn as Oliver Hartwell's wife."
+            "title": "Ketanserin pretreatment reverses alfentanil-induced muscle rigidity.",
+            "text": "Systemic pretreatment with ketanserin, a relatively specific type-2 serotonin receptor antagonist, significantly attenuated ..."
         },
         {
-            "text": "Clara Venn began her clinical career at St. Brigid's Children's Hospital. She worked there as a pediatric nurse from 2012 to 2016. Her duties included night rounds and discharge planning."
+            "title": "Involvement of locus coeruleus and noradrenergic neurotransmission in fentanyl-induced muscular rigidity in the rat.",
+            "text": "Whereas muscular rigidity is a well-known side effect that is associated with high-dose fentanyl anesthesia, a paucity of ..."
         },
- 
         ...
     ]
 }
@@ -66,9 +66,9 @@ The output preserves the input question fields and adds answer-related fields.
 ```json
 {
     "question_key": "question#123",
-    "question": "Which hospitals has Oliver Hartwell's wife worked at?",
-    "output_answer": "Oliver Hartwell's wife has worked at St. Brigid's Children's Hospital and North Quay Medical Center.",
-    "rationale": "The context passages provide information about Clara Venn's employment history. Passage [2] states ...",
+    "question": "Which interventions attenuated, prevented, antagonized, or reduced opioid-induced muscle rigidity in rats?",
+    "output_answer": "Ketanserin, electrolytic lesions of the locus coeruleus, and prazosin attenuated, prevented, antagonized, or reduced opioid-induced muscle rigidity in rats.",
+    "rationale": "The context passages provide information on different interventions that affect opioid-induced muscle rigidity in rats. Passage [1] mentions that ...",
     "helpfulness_score": 1.0
 }
 ```

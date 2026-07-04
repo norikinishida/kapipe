@@ -12,9 +12,9 @@ STORAGE_RESULTS=/home/nishida/projects/kapipe/experiments/passage_retrieval/resu
 ######
 
 # Method
-# METHOD=bm25
+METHOD=bm25
 # METHOD=contriever
-METHOD=qwen3_embedding
+# METHOD=qwen3_embedding
 
 if [ "${METHOD}" = "bm25" ]; then
     CONFIG_PATH=./config/bm25.conf

@@ -17,8 +17,8 @@ Additional metadata fields are preserved in the output.
 
 ```json
 {
-    "title": "Oliver Hartwell and Clara Venn",
-    "text": "Oliver Hartwell married Clara Venn in 2016. Clara was known in Hartwell's family for her quiet humor and careful memory. Public records in Larkford list Clara Venn as Oliver Hartwell's wife. Clara Venn began her clinical career at St. Brigid's Children's Hospital. She worked there as a pediatric nurse from 2012 to 2016. Her duties included night rounds and discharge planning. Clara Venn later joined North Quay Medical Center. She worked in its pediatric ward from 2017 to 2021. The hospital newsletter described her as a senior nurse. Clara Venn attended a short training course at Alderwick General Hospital. The course focused on emergency triage for children. She did not hold a staff position there.",
+    "title": "Tricuspid valve regurgitation and lithium carbonate toxicity in a newborn infant.",
+    "text": "A newborn with massive tricuspid regurgitation, atrial flutter, congestive heart failure, and a high serum lithium level is described. This is the first patient to initially manifest tricuspid regurgitation and atrial flutter, and the 11th described patient with cardiac disease among infants exposed to lithium compounds in the first trimester of pregnancy. Sixty-three percent of these infants had tricuspid valve involvement. Lithium carbonate may be a factor in the increasing incidence of congenital heart disease when taken during early pregnancy. It also causes neurologic depression, cyanosis, and cardiac arrhythmia when consumed prior to delivery. ...",
     "hoge": "fuga"
 }
 ```
@@ -37,20 +37,16 @@ Each chunked passage preserves the original metadata and replaces `text` with a 
 ```json
 [
     {
-        "title": "Oliver Hartwell and Clara Venn",
-        "text": "Oliver Hartwell married Clara Venn in 2016. Clara was known in Hartwell's family for her quiet humor and careful memory. Public records in Larkford list Clara Venn as Oliver Hartwell's wife. Clara Venn began her clinical career at St. Brigid's Children's Hospital. She worked there as a pediatric nurse from 2012 to 2016.",
+        "title": "Tricuspid valve regurgitation and lithium carbonate toxicity in a newborn infant.",
+        "text": "A newborn with massive tricuspid regurgitation, atrial flutter, congestive heart failure, and a high serum lithium level is described. This is the first patient to initially manifest tricuspid regurgitation and atrial flutter, and the 11th described patient with cardiac disease among infants exposed to lithium compounds in the first trimester of pregnancy.",
         "hoge": "fuga"
     },
     {
-        "title": "Oliver Hartwell and Clara Venn",
-        "text": "Her duties included night rounds and discharge planning. Clara Venn later joined North Quay Medical Center. She worked in its pediatric ward from 2017 to 2021. The hospital newsletter described her as a senior nurse. Clara Venn attended a short training course at Alderwick General Hospital. The course focused on emergency triage for children.",
+        "title": "Tricuspid valve regurgitation and lithium carbonate toxicity in a newborn infant.",
+        "text": "Sixty-three percent of these infants had tricuspid valve involvement. Lithium carbonate may be a factor in the increasing incidence of congenital heart disease when taken during early pregnancy. It also causes neurologic depression, cyanosis, and cardiac arrhythmia when consumed prior to delivery.",
         "hoge": "fuga"
     },
-    {
-        "title": "Oliver Hartwell and Clara Venn",
-        "text": "She did not hold a staff position there.",
-        "hoge": "fuga"
-    }
+    ...
 ]
 ```
 

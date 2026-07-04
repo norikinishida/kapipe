@@ -18,18 +18,20 @@ Each passage contains the following fields.
 Additional metadata fields are preserved in retrieved passages.
 
 ```json
-{
-    "text": "Oliver Hartwell married Clara Venn in 2016. Clara was known in Hartwell's family for her quiet humor and careful memory. Public records in Larkford list Clara Venn as Oliver Hartwell's wife.",
-    "hoge": "fuga"
-}
+[
+    {
+        "title": "Tricuspid valve regurgitation and lithium carbonate toxicity in a newborn infant.",
+        "text": "A newborn with massive tricuspid regurgitation, atrial flutter, congestive heart failure, and a high serum lithium level is described. This is the first patient to initially manifest tricuspid regurgitation and atrial flutter, and the 11th described patient with cardiac disease among infants exposed to lithium compounds in the first trimester of pregnancy. Sixty-three percent of these infants had tricuspid valve involvement. Lithium carbonate may be a factor in the increasing incidence of congenital heart disease when taken during early pregnancy. It also causes neurologic depression, cyanosis, and cardiac arrhythmia when consumed prior to delivery."
+    },
+    ...
+]
 ```
 
 Search takes a list of query strings.
 
 ```json
 [
-    "Which hospitals has Oliver Hartwell's wife worked at?",
-    ...
+    "Which interventions attenuated, prevented, antagonized, or reduced opioid-induced muscle rigidity in rats?",
 ]
 ```
 
@@ -50,13 +52,15 @@ Each retrieved passage preserves the original passage fields and adds `score` an
 [
     [
         {
-            "text": "Oliver Hartwell married Clara Venn in 2016. Clara was known in Hartwell's family for her quiet humor and careful memory. Public records in Larkford list Clara Venn as Oliver Hartwell's wife.",
-            "score": 0.671139121055603,
+            "title": "Ketanserin pretreatment reverses alfentanil-induced muscle rigidity.",
+            "text": "Systemic pretreatment with ketanserin, a relatively specific type-2 serotonin receptor antagonist, ...",
+            "score": 0.7015140056610107,
             "rank": 1
         },
         {
-            "text": "Clara Venn later joined North Quay Medical Center. She worked in its pediatric ward from 2017 to 2021. The hospital newsletter described her as a senior nurse.",
-            "score": 0.4334491193294525,
+            "title": "Involvement of locus coeruleus and noradrenergic neurotransmission in fentanyl-induced muscular rigidity in the rat.",
+            "text": "Whereas muscular rigidity is a well-known side effect that is associated with high-dose fentanyl anesthesia, ...",
+            "score": 0.6968926191329956,
             "rank": 2
         },
         ...
