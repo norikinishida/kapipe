@@ -145,6 +145,19 @@ Each candidate entity contains the following fields.
 | Mention-name Assignment | Assigns each mention surface form (lowercased) as its entity ID. This is useful when no explicit target knowledge base exists and mention surface forms are treated as pseudo concepts. |
 | [BLINK Bi-Encoder (Wu et al., 2020)](https://aclanthology.org/2020.emnlp-main.519/) | Retrieves candidate entities from a predefined entity dictionary using dense bi-encoder retrieval. |
 
+## Public Snapshots
+
+The following public snapshots can be loaded with `from_identifier(...)`.
+
+| Method | Identifier | Dataset | Entity Dictionary | Configuration |
+|---|---|---|---|---|
+| BLINK Bi-Encoder | `blink_bi_encoder_linked_docred` | Linked-DocRED | DBpedia 2020.02.01 | `bert-base-uncased`; precomputed entity vectors included |
+| BLINK Bi-Encoder | `blink_bi_encoder_cdr` | CDR | MeSH 2015 | `allenai/scibert_scivocab_uncased`; precomputed entity vectors included |
+
+These snapshots are predefined resources for existing benchmark settings. You can also use your own entity dictionary by training a retriever for it.
+
+`identifier` is resolved through the public resource configuration installed under `~/.kapipe/download/config`.
+
 ## Usage
 
 ### Mention-name Assignment:

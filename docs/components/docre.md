@@ -131,6 +131,21 @@ Each relation contains the following fields.
 | [MAQA (Oumaima and Nishida et al., 2024)](https://aclanthology.org/2024.bionlp-1.37/) | Mention-agnostic QA-based DocRE extractor |
 | LLM-based DocRE | Prompt-based DocRE extractor using a proprietary or open-source LLM |
 
+## Public Snapshots
+
+The following public snapshots can be loaded with `from_identifier(...)`.
+
+| Method | Identifier | Dataset | Relation Schema | Configuration |
+|---|---|---|---|---|
+| ATLOP | `atlop_linked_docred` | Linked-DocRED | 96 relations, e.g., `P17` (country), `P19` (place of birth), `P26` (spouse) | `bert-base-cased`; all entity-type pairs considered |
+| ATLOP | `atlop_cdr` | CDR | 1 relation: `CID` (Chemical-Induce-Disease) | `allenai/scibert_scivocab_cased`; `Chemical` to `Disease` pairs only; overlap token embedding |
+| LLM-based DocRE | `llm_docre_linked_docred` | Linked-DocRED | 96 relations, e.g., `P17` (country), `P19` (place of birth), `P26` (spouse) | Few-shot prompt snapshot; Wikipedia setting; runtime LLM is user-provided |
+| LLM-based DocRE | `llm_docre_cdr` | CDR | 1 relation: `CID` (Chemical-Induce-Disease) | Few-shot prompt snapshot; MeSH setting; runtime LLM is user-provided |
+
+These snapshots are predefined resources for common benchmark settings. You can also define your own relation schema and train or configure an extractor for it.
+
+`identifier` is resolved through the public resource configuration installed under `~/.kapipe/download/config`.
+
 ## Usage
 
 ### Predefined ATLOP:

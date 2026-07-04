@@ -62,6 +62,21 @@ Each mention contains the following fields.
 | [Biaffine-NER (Yu et al., 2020)](https://aclanthology.org/2020.acl-main.577/) | Span-based neural NER extractor based on Biaffine scoring |
 | LLM-based NER | Prompt-based NER extractor using a proprietary or open-source LLM |
 
+## Public Snapshots
+
+The following public snapshots can be loaded with `from_identifier(...)`.
+
+| Method | Identifier | Dataset | Entity Types | Configuration |
+|---|---|---|---|---|
+| Biaffine-NER | `biaffine_ner_linked_docred` | Linked-DocRED | `PER`, `ORG`, `LOC`, `TIME`, `NUM`, `MISC` | `bert-base-uncased`; nested entities enabled |
+| Biaffine-NER | `biaffine_ner_cdr` | CDR | `Chemical`, `Disease` | `allenai/scibert_scivocab_uncased`; nested entities enabled |
+| LLM-based NER | `llm_ner_linked_docred` | Linked-DocRED | `PER`, `ORG`, `LOC`, `TIME`, `NUM`, `MISC` | Few-shot prompt snapshot; runtime LLM is user-provided |
+| LLM-based NER | `llm_ner_cdr` | CDR | `Chemical`, `Disease` | Few-shot prompt snapshot; runtime LLM is user-provided |
+
+These snapshots are predefined resources for existing benchmark settings. You can also define your own entity type schema and train or configure an extractor for it.
+
+`identifier` is resolved through the public resource configuration installed under `~/.kapipe/download/config`.
+
 ## Usage
 
 ### Predefined Biaffine-NER:
@@ -82,7 +97,12 @@ result_document = extractor.extract(document)
 from kapipe.ner import LLMNER
 
 # Instantiate your LLM wrapper
-model = ...
+# Case: OpenAI LLM
+from kapipe.llms import OpenAILLM
+model = OpenAILLM(
+    model_name="gpt-5.4-nano",
+    max_new_tokens=1024,
+)
 
 # Load LLM-based NER predefined for the Linked-DocRED schema
 extractor = LLMNER.from_identifier(
@@ -100,7 +120,13 @@ result_document = extractor.extract(document)
 from kapipe.ner import LLMNER
 
 # Instantiate your LLM wrapper
-model = ...
+# Case: HuggingFace LLM
+from kapipe.llms import HuggingFaceLLM
+model = HuggingFaceLLM(
+    model_name = "meta-llama/Meta-Llama-3.1-70B-Instruct",
+    max_new_tokens=1024,
+    quantization_bits=4,
+)
 
 # Define entity types for your task
 vocab_etype = {

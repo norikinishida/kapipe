@@ -151,6 +151,21 @@ Each entity contains the following fields.
 | [BLINK Cross-Encoder (Wu et al., 2020)](https://aclanthology.org/2020.emnlp-main.519/) | Reranks candidate entities using a cross-encoder over mention contexts and entity descriptions. |
 | LLM-based ED | Reranks candidate entities using a proprietary or open-source LLM with an entity disambiguation prompt. |
 
+## Public Snapshots
+
+The following public snapshots can be loaded with `from_identifier(...)`.
+
+| Method | Identifier | Dataset | Entity Dictionary | Configuration |
+|---|---|---|---|---|
+| BLINK Cross-Encoder | `blink_cross_encoder_linked_docred` | Linked-DocRED | DBpedia 2020.02.01 | `bert-base-uncased`; up to 16 candidates per mention at inference |
+| BLINK Cross-Encoder | `blink_cross_encoder_cdr` | CDR | MeSH 2015 | `allenai/scibert_scivocab_uncased`; up to 16 candidates per mention at inference |
+| LLM-based ED | `llm_ed_linked_docred` | Linked-DocRED | DBpedia 2020.02.01 | Few-shot prompt snapshot; runtime LLM is user-provided |
+| LLM-based ED | `llm_ed_cdr` | CDR | MeSH 2015 | Few-shot prompt snapshot; runtime LLM is user-provided |
+
+These snapshots are predefined resources for existing benchmark settings. You can also use your own entity dictionary by training or configuring a reranker for it.
+
+`identifier` is resolved through the public resource configuration installed under `~/.kapipe/download/config`.
+
 ## Usage
 
 ### Identical Entity Reranking:
