@@ -390,7 +390,7 @@ class Qwen3Embedding(BasePassageRetriever):
     def search(
         self,
         queries: list[str],
-        top_k: int = 1,
+        top_k: int,
     ) -> list[list[Passage]]:
         """Retrieve the top-k passages for each query."""
 

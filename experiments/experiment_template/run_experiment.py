@@ -62,7 +62,7 @@ def main(args):
     SOMETHING = LOAD_FUNCTIONS(INPUT_SOMETHING_PATH)
  
     ##################
-    # Method
+    # Method Instantiation
     ##################
 
     # Load the experiment configuration
@@ -78,7 +78,7 @@ def main(args):
         raise Exception(f"Unknown method: {method_name}")
 
     ##################
-    # COMPONENT_NAME
+    # Method Execution
     ##################
 
     logging.info(f"Applying the COMPONENT_NAME component to SOMETHING in {INPUT_SOMETHING_PATH} ...")

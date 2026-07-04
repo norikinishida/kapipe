@@ -59,7 +59,7 @@ def main(args):
     logging.info(utils.pretty_format_dict(vars(args)))
 
     ##################
-    # Method
+    # Method Instantiation
     ##################
 
     # Load the experiment configuration
@@ -75,7 +75,7 @@ def main(args):
     )
 
     ##################
-    # Entity Graph Construction
+    # Method Execution
     ##################
     
     logging.info(f"Applying the Entity Graph Construction component to extracted triples ({input_documents_path_list}) and additional triples ({input_additional_triples_path}) ...")

@@ -4,11 +4,13 @@ from typing import Any
 
 __all__ = [
     "TripleExtractionPipeline",
+    "RAGPipeline",
 ]
 
 
 _NAME_TO_MODULE = {
     "TripleExtractionPipeline": "triple_extraction_pipeline",
+    "RAGPipeline": "rag_pipeline",
 }
 
 

@@ -78,7 +78,7 @@ def main(args):
         assert doc["doc_key"] == cands["doc_key"], f"Document and candidate entities do not match: {doc['doc_key']} vs {cands['doc_key']}"
 
     ##################
-    # Method
+    # Method Instantiation
     ##################
 
     # Load the experiment configuration
@@ -117,7 +117,7 @@ def main(args):
         raise ValueError(f"Unknown method: {method_name}")
 
     ##################
-    # ED-Reranking
+    # Method Execution
     ##################
     
     logging.info(f"Applying the ED-Reranking component to {len(documents)} documents (+ candidate entities) in {input_documents_path} ({input_candidate_entities_path}) ...")

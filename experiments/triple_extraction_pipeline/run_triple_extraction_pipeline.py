@@ -103,7 +103,7 @@ def main(args):
     documents = utils.read_json(input_documents_path)
 
     ##################
-    # Method
+    # Method Instantiation
     ##################
 
     # Load the experiment configuration
@@ -137,7 +137,7 @@ def main(args):
     )
 
     # Instantiate the Triple Extraction pipeline
-    pipe = TripleExtractionPipeline(
+    extractor = TripleExtractionPipeline(
         ner=ner,
         ed_retrieval=ed_retrieval,
         ed_reranking=ed_reranking,
@@ -145,7 +145,7 @@ def main(args):
     )
 
     ##################
-    # Triple Extraction
+    # Method Execution
     ##################
 
     logging.info(f"Applying the Triple Extraction pipeline to {len(documents)} documents in {input_documents_path} ...")
@@ -153,7 +153,7 @@ def main(args):
     # Apply the Triple Extraction pipeline to the documents
     result_documents = []
     for document in tqdm(documents):
-        result_document = pipe.extract_from_document(
+        result_document = extractor.extract_from_document(
             document=document,
             retrieval_size=config["ed_retrieval"]["retrieval_size"]
         )
@@ -240,11 +240,11 @@ def instantiate_ner_component(
         loaded_llm_map = {}
 
     # Initialize the NER component
-    if ner_config["method"] == "biaffine_ner":
+    if ner_config["method_name"] == "biaffine_ner":
         ner = BiaffineNER.from_identifier(
             identifier=ner_config["identifier"]
         )
-    elif ner_config["method"] == "llm_ner":
+    elif ner_config["method_name"] == "llm_ner":
         # Instantiate or reuse the LLM
         llm, loaded_llm_map = instantiate_llm(
             config=ner_config,
@@ -275,7 +275,7 @@ def instantiate_ner_component(
             )
 
     else:
-        raise ValueError(f"Unknown NER method: {ner_config['method']}")
+        raise ValueError(f"Unknown NER method: {ner_config['method_name']}")
 
     return ner, loaded_llm_map
 
@@ -291,17 +291,17 @@ def instantiate_ed_retrieval_component(
 
     # Initialize the ED-Retrieval component.
     # Also, build the index.
-    if ed_retrieval_config["method"] == "mention_name_entity_retriever":
+    if ed_retrieval_config["method_name"] == "mention_name_entity_retriever":
         ed_retrieval = MentionNameEntityRetriever()
         ed_retrieval.make_index()
-    elif ed_retrieval_config["method"] == "blink_bi_encoder":
+    elif ed_retrieval_config["method_name"] == "blink_bi_encoder":
         ed_retrieval = BlinkBiEncoder.from_identifier(
             identifier=ed_retrieval_config["identifier"]
         )
         ed_retrieval.make_index(use_precomputed_entity_vectors=True)
     else:
         raise ValueError(
-            f"Unknown ED-Retrieval method: {ed_retrieval_config['method']}"
+            f"Unknown ED-Retrieval method: {ed_retrieval_config['method_name']}"
         )
 
     return ed_retrieval, loaded_llm_map
@@ -317,13 +317,13 @@ def instantiate_ed_reranking_component(
         loaded_llm_map = {}
 
     # Initialize the ED-Reranking component
-    if ed_reranking_config["method"] == "identical_entity_reranker":
+    if ed_reranking_config["method_name"] == "identical_entity_reranker":
         ed_reranking = IdenticalEntityReranker()
-    elif ed_reranking_config["method"] == "blink_cross_encoder":
+    elif ed_reranking_config["method_name"] == "blink_cross_encoder":
         ed_reranking = BlinkCrossEncoder.from_identifier(
             identifier=ed_reranking_config["identifier"]
         )
-    elif ed_reranking_config["method"] == "llm_ed":
+    elif ed_reranking_config["method_name"] == "llm_ed":
         llm, loaded_llm_map = instantiate_llm(
             config=ed_reranking_config,
             loaded_llm_map=loaded_llm_map
@@ -334,7 +334,7 @@ def instantiate_ed_reranking_component(
         )
     else:
         raise ValueError(
-            f"Unknown ED-Reranking method: {ed_reranking_config['method']}"
+            f"Unknown ED-Reranking method: {ed_reranking_config['method_name']}"
         )
 
     return ed_reranking, loaded_llm_map
@@ -350,11 +350,11 @@ def instantiate_docre_component(
         loaded_llm_map = {}
 
     # Initialize the DocRE component
-    if docre_config["method"] == "atlop":
+    if docre_config["method_name"] == "atlop":
         docre = ATLOP.from_identifier(
             identifier=docre_config["identifier"]
         )
-    elif docre_config["method"] == "llm_docre":
+    elif docre_config["method_name"] == "llm_docre":
         # Instantiate or reuse the LLM
         llm, loaded_llm_map = instantiate_llm(
             config=docre_config,
@@ -393,7 +393,7 @@ def instantiate_docre_component(
                 entity_dict_path=entity_dict_path,
             )
     else:
-        raise ValueError(f"Unknown DocRE method: {docre_config['method']}")
+        raise ValueError(f"Unknown DocRE method: {docre_config['method_name']}")
 
     return docre, loaded_llm_map
 

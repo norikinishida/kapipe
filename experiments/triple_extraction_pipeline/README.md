@@ -1,6 +1,6 @@
 # triple_extraction_pipeline
 
-This directory contains example experiments for Triple Extraction Pipeline.
+This directory contains example experiments for Triple Extraction pipeline.
 
 ## Step 1. Installation
 

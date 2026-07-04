@@ -60,7 +60,7 @@ def main(args):
     logging.info(utils.pretty_format_dict(vars(args)))
 
     ##################
-    # Method
+    # Method Instantiation
     ##################
 
     # Load the experiment configuration
@@ -73,7 +73,7 @@ def main(args):
     chunker = Chunker(model_name=config["spacy_model_name"])
 
     ##################
-    # Chunking
+    # Method Execution
     ##################
 
     # Count the input passages

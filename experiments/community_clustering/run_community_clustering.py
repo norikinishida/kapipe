@@ -70,7 +70,7 @@ def main(args):
     graph = nx.read_graphml(input_graph_path)
 
     ##################
-    # Method
+    # Method Instantiation
     ##################
 
     # Load the experiment configuration
@@ -95,7 +95,7 @@ def main(args):
         raise Exception(f"Invalid method_name: {method_name}")
 
     ##################
-    # Community Clustering
+    # Method Execution
     ##################
 
     logging.info(f"Applying the Community Clustering component to knowledge graph in {input_graph_path} ...")

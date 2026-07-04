@@ -6,8 +6,8 @@ import sys
 from tqdm import tqdm
 import transformers
 
+from kapipe import evaluation
 from kapipe import utils
-from kapipe.evaluation.qa import accuracy, recall, token_level_f1
 from kapipe.llms import HuggingFaceLLM, OpenAILLM
 from kapipe.qa import LLMQA
 from kapipe.utils import StopWatch
@@ -81,7 +81,7 @@ def main(args):
         contexts = [None] * len(questions)
 
     ##################
-    # Method
+    # Method Instantiation
     ##################
 
     # Load the experiment configuration
@@ -114,7 +114,7 @@ def main(args):
         )
         
     ##################
-    # QA
+    # Method Execution
     ##################
 
     logging.info(f"Applying the QA component to {len(questions)} questions (+ contexts) in {input_questions_path} ({input_contexts_path}) ...")
@@ -162,14 +162,14 @@ def main(args):
             raise ValueError("--gold_answers is required when --do_evaluation is set")
 
         # Evaluate the prediction results
-        scores = accuracy(
+        scores = evaluation.qa.accuracy(
             pred_path=output_questions_path,
             gold_path=gold_questions_path,
             exact_match=False,
-        ) | token_level_f1(
+        ) | evaluation.qa.token_level_f1(
             pred_path=output_questions_path,
             gold_path=gold_questions_path
-        ) | recall(
+        ) | evaluation.qa.recall(
             pred_path=output_questions_path,
             gold_path=gold_questions_path,
             exact_match=False,

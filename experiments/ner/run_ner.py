@@ -68,7 +68,7 @@ def main(args):
     documents = utils.read_json(input_documents_path)
 
     ##################
-    # Method
+    # Method Instantiation
     ##################
 
     # Load the experiment configuration
@@ -124,7 +124,7 @@ def main(args):
         raise ValueError(f"Unknown method: {method_name}")
 
     ##################
-    # NER
+    # Method Execution
     ##################
 
     logging.info(f"Applying the NER component to {len(documents)} documents in {input_documents_path} ...")

@@ -69,7 +69,7 @@ def main(args):
     documents = utils.read_json(input_documents_path)
 
     ##################
-    # Method
+    # Method Instantiation
     ##################
 
    # Load the experiment configuration
@@ -133,7 +133,7 @@ def main(args):
         raise ValueError(f"Unknown method: {method_name}")
 
     ##################
-    # DocRE
+    # Method Execution
     ##################
 
     logging.info(f"Applying the DocRE component to {len(documents)} documents in {input_documents_path} ...")

@@ -5,6 +5,7 @@
 - The user edits the code.
 - Only provide proposed code changes and explanations.
 - Do not create or edit files unless explicitly instructed by the user.
+- Files may change dynamically. Always check the latest contents of relevant files before answering, suggesting changes, or writing code.
 
 ## Directory Structure
 

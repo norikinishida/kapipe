@@ -54,9 +54,11 @@ def main(args):
     )
     utils.mkdir(base_output_path)
  
+    # Index will be saved to `index_dir``
     index_dir = os.path.join(base_output_path, "indexes")
     utils.mkdir(index_dir)
 
+    # Search results will be saved to `search_results_dir`
     search_results_dir = os.path.join(base_output_path, "search_results")
     utils.mkdir(search_results_dir)
 
@@ -79,10 +81,6 @@ def main(args):
 
     # Show arguments
     logging.info(utils.pretty_format_dict(vars(args)))
-
-    # Index will be saved to `index_dir``
-    # Search results will be saved to `search_results_dir`
-
     logging.info(f"index dir: {index_dir}")
 
     ##################
@@ -105,7 +103,7 @@ def main(args):
         logging.info(f"Loaded {len(questions)} questions")
 
     ##################
-    # Method
+    # Method Instantiation
     ##################
 
     # Load the experiment configuration
@@ -135,7 +133,7 @@ def main(args):
         raise ValueError(f"Invalid retrieval method name: {method_name}")
 
     ##################
-    # Indexing, Search
+    # Method Execution
     ##################
 
     if actiontype == "indexing":

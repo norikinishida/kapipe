@@ -164,7 +164,7 @@ def main(args):
     )
 
     ##################
-    # Method
+    # Method Instantiation
     ##################
 
     # Load the experiment configuration
@@ -223,7 +223,7 @@ def main(args):
         raise ValueError(f"Unknown method: {method_name}")
 
     ##################
-    # Training, Evaluation
+    # Method Execution
     ##################
 
     if method_name == "biaffine_ner":

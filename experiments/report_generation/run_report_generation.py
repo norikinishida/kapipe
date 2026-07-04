@@ -82,7 +82,7 @@ def main(args):
     communities = utils.read_json(input_communities_path)
 
     ##################
-    # Method
+    # Method Instantiation
     ##################
 
     # Load the experiment configuration
@@ -120,7 +120,7 @@ def main(args):
         raise Exception(f"Invalid method: {method_name}")
 
     ##################
-    # Report Generation
+    # Method Execution
     ##################
 
     logging.info(f"Applying the Report Generation component to {len(communities)} communities in {input_communities_path} ...")
