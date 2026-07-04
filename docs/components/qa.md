@@ -88,7 +88,19 @@ The output preserves the input question fields and adds answer-related fields.
 from kapipe.qa import LLMQA
 
 # Instantiate your LLM wrapper
-model = ...
+# OpenAI LLM
+from kapipe.llms import OpenAILLM
+model = OpenAILLM(
+    model_name="gpt-5.4-nano",
+    max_new_tokens=1024,
+)
+# HuggingFace LLM
+from kapipe.llms import HuggingFaceLLM
+model = HuggingFaceLLM(
+    model_name = "meta-llama/Meta-Llama-3.1-70B-Instruct",
+    max_new_tokens=1024,
+    quantization_bits=4,
+)
 
 # Build an LLM-based QA component
 answerer = LLMQA(

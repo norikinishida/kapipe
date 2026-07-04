@@ -126,7 +126,19 @@ reports = generator.generate_community_reports(
 from kapipe.report_generation import LLMBasedReportGenerator
 
 # Instantiate your LLM wrapper
-model = ...
+# OpenAI LLM
+from kapipe.llms import OpenAILLM
+model = OpenAILLM(
+    model_name="gpt-5.4-nano",
+    max_new_tokens=1024,
+)
+# HuggingFace LLM
+from kapipe.llms import HuggingFaceLLM
+model = HuggingFaceLLM(
+    model_name = "meta-llama/Meta-Llama-3.1-70B-Instruct",
+    max_new_tokens=1024,
+    quantization_bits=4,
+)
 
 # Build an LLM-based Report Generator
 generator = LLMBasedReportGenerator(model=model)

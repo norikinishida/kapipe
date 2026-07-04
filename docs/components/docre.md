@@ -168,7 +168,19 @@ result_document = extractor.extract(document=document)
 from kapipe.docre import LLMDocRE
 
 # Instantiate your LLM wrapper
-model = ...
+# OpenAI LLM
+from kapipe.llms import OpenAILLM
+model = OpenAILLM(
+    model_name="gpt-5.4-nano",
+    max_new_tokens=1024,
+)
+# HuggingFace LLM
+from kapipe.llms import HuggingFaceLLM
+model = HuggingFaceLLM(
+    model_name = "meta-llama/Meta-Llama-3.1-70B-Instruct",
+    max_new_tokens=1024,
+    quantization_bits=4,
+)
 
 # Load LLM-based DocRE predefined for the Linked-DocRED schema
 extractor = LLMDocRE.from_identifier(

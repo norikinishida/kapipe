@@ -97,11 +97,18 @@ result_document = extractor.extract(document)
 from kapipe.ner import LLMNER
 
 # Instantiate your LLM wrapper
-# Case: OpenAI LLM
+# OpenAI LLM
 from kapipe.llms import OpenAILLM
 model = OpenAILLM(
     model_name="gpt-5.4-nano",
     max_new_tokens=1024,
+)
+# HuggingFace LLM
+from kapipe.llms import HuggingFaceLLM
+model = HuggingFaceLLM(
+    model_name = "meta-llama/Meta-Llama-3.1-70B-Instruct",
+    max_new_tokens=1024,
+    quantization_bits=4,
 )
 
 # Load LLM-based NER predefined for the Linked-DocRED schema
@@ -120,13 +127,7 @@ result_document = extractor.extract(document)
 from kapipe.ner import LLMNER
 
 # Instantiate your LLM wrapper
-# Case: HuggingFace LLM
-from kapipe.llms import HuggingFaceLLM
-model = HuggingFaceLLM(
-    model_name = "meta-llama/Meta-Llama-3.1-70B-Instruct",
-    max_new_tokens=1024,
-    quantization_bits=4,
-)
+model = ...
 
 # Define entity types for your task
 vocab_etype = {
@@ -153,7 +154,6 @@ extractor = LLMNER(
     vocab_etype=vocab_etype,
     etype_meta_info=etype_meta_info,
 )
-
 
 # Extract entity mentions from a document
 result_document = extractor.extract(document=document)

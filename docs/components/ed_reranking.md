@@ -206,7 +206,19 @@ result_document = reranker.rerank(
 from kapipe.ed_reranking import LLMED
 
 # Instantiate your LLM wrapper
-model = ...
+# OpenAI LLM
+from kapipe.llms import OpenAILLM
+model = OpenAILLM(
+    model_name="gpt-5.4-nano",
+    max_new_tokens=1024,
+)
+# HuggingFace LLM
+from kapipe.llms import HuggingFaceLLM
+model = HuggingFaceLLM(
+    model_name = "meta-llama/Meta-Llama-3.1-70B-Instruct",
+    max_new_tokens=1024,
+    quantization_bits=4,
+)
 
 # Load LLM-based ED predefined for the (Linked-DocRED, DBPedia) schema
 reranker = LLMED.from_identifier(
