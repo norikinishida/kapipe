@@ -441,14 +441,12 @@ def main(args):
                 reranker=reranker,
                 documents=dev_documents,
                 candidate_entities=dev_candidate_entities,
-                contexts=None,
                 split="dev"
             )
             trainer.evaluate(
                 reranker=reranker,
                 documents=test_documents,
                 candidate_entities=test_candidate_entities,
-                contexts=None,
                 split="test"
             )
 

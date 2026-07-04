@@ -313,13 +313,11 @@ def main(args):
             trainer.evaluate(
                 extractor=extractor,
                 documents=dev_documents,
-                contexts=None,
                 split="dev"
             )
             trainer.evaluate(
                 extractor=extractor,
                 documents=test_documents,
-                contexts=None,
                 split="test"
             )
 

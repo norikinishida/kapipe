@@ -33,7 +33,7 @@ class EntityGraphConstructor(BaseEntityGraphConstructor):
         self,
         documents_path_list: list[str] | None,
         entity_dict_path: str | None,
-        additional_triples_path: str | None = None,
+        additional_triples_path: str | None,
     ) -> nx.MultiDiGraph:
         """Construct a directed, multi-edge graph from the provided documents and entity dictionary."""
 

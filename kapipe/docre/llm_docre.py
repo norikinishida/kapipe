@@ -15,7 +15,6 @@ from ..datatypes import (
     Document,
     Triple,
     EntityPage,
-    ContextsForOneExample
 )
 from ..llms import HuggingFaceLLM, OpenAILLM
 from ..resources import resolve_snapshot_path
@@ -240,8 +239,6 @@ class LLMDocRE(BaseDocRE):
     def extract(
         self,
         document: Document,
-        # Optional: context augmentation
-        contexts_for_doc: ContextsForOneExample | None = None
     ) -> Document:
         """Extract triples from a single document."""
 
@@ -262,7 +259,6 @@ class LLMDocRE(BaseDocRE):
             prompt = self.prompt_processor.generate(
                 document=document,
                 demonstration_documents=self.demonstration_documents,
-                contexts_for_doc=contexts_for_doc,
             )
   
             # Generate a reponse
@@ -362,26 +358,17 @@ class LLMDocRE(BaseDocRE):
     def batch_extract(
         self,
         documents: list[Document],
-        # Optional: context augmentation
-        contexts: list[ContextsForOneExample] | None = None
     ) -> list[Document]:
         """Extract triples from a batch of documents."""
 
         result_documents: list[Document] = []
 
-        # Use empty contexts when no contexts are provided
-        if contexts is None:
-            contexts = [None] * len(documents)
-
-        for document, contexts_for_doc in tqdm(
-            zip(documents, contexts),
+        for document in tqdm(
+            documents,
             total=len(documents),
             desc="extraction steps"
         ):
-            result_document = self.extract(
-                document=document,
-                contexts_for_doc=contexts_for_doc
-            )
+            result_document = self.extract(document=document)
             result_documents.append(result_document)
 
         return result_documents
@@ -431,10 +418,8 @@ class PromptProcessor:
         self,
         document: Document,
         demonstration_documents: list[Document],
-        # Optional: context augmentation
-        contexts_for_doc: ContextsForOneExample | None = None
     ) -> str:
-        """Generate a prompt for a given document, demonstration documents, and optional contexts."""
+        """Generate a prompt for a given document and demonstration documents."""
 
         ##########
         # Demonstrations Prompt
@@ -444,24 +429,6 @@ class PromptProcessor:
         demonstrations_prompt = self.generate_demonstrations_prompt(
             demonstration_documents=demonstration_documents,
         )
-
-        ##########
-        # Contexts Prompt
-        ##########
-
-        if contexts_for_doc is not None:
-            # Create contexts
-            context_texts: list[str] = []
-            for passage in contexts_for_doc["contexts"]:
-                text = utils.create_text_from_passage(passage=passage, sep=" : ")
-                context_texts.append(text)
-
-            # Generate the prompt part for contexts
-            contexts_prompt = self.generate_contexts_prompt(
-                context_texts=context_texts
-            )
-        else:
-            contexts_prompt = ""
 
         ##########
         # Test Case Prompt
@@ -481,7 +448,6 @@ class PromptProcessor:
             knowledge_base_name_prompt=self.knowledge_base_name_prompt,
             relations_prompt=self.relations_prompt,
             demonstrations_prompt=demonstrations_prompt,
-            contexts_prompt=contexts_prompt,
             test_case_prompt=test_case_prompt
         )
 
@@ -507,22 +473,6 @@ class PromptProcessor:
                 prompt += "\n"
 
         return prompt.rstrip()
-
-    def generate_contexts_prompt(self, context_texts: list[str]) -> str:
-        """Generate a prompt for the contexts."""
-
-        n_contexts = len(context_texts)
-
-        if n_contexts == 0:
-            return ""
-        else:
-            prompt = ""
-            for context_i, content in enumerate(context_texts):
-                prompt += f"[{context_i+1}] {content.strip()} \n"
-                if context_i < n_contexts - 1:
-                    prompt += "\n"
-
-            return prompt.rstrip()
 
     def generate_test_case_prompt(self, document: Document) -> str:
         """Generate a prompt for the test case."""
@@ -709,7 +659,6 @@ class LLMDocRETrainer:
         self,
         extractor: LLMDocRE,
         documents: list[Document],
-        contexts: list[ContextsForOneExample],
         split: str,
         supplemental_info: dict[str, Any],
         #
@@ -720,10 +669,7 @@ class LLMDocRETrainer:
     ) -> dict[str, Any] | None:
 
         # Apply the extractor
-        result_documents = extractor.batch_extract(
-            documents=documents,
-            contexts=contexts
-        )
+        result_documents = extractor.batch_extract(documents=documents)
 
         # Save the prediction results
         utils.write_json(self.paths[f"{split}_pred_path"], result_documents)
@@ -768,7 +714,6 @@ class LLMDocRETrainer:
         self,
         extractor: LLMDocRE,
         documents: list[Document],
-        contexts: list[ContextsForOneExample],
         split: str,
         supplemental_info: dict[str, Any],
         #
@@ -777,10 +722,7 @@ class LLMDocRETrainer:
     ) -> dict[str, Any] | None:
 
         # Apply the extractor
-        result_documents = extractor.batch_extract(
-            documents=documents,
-            contexts=contexts
-        )
+        result_documents = extractor.batch_extract(documents=documents)
         utils.write_json(self.paths[f"{split}_pred_path"], result_documents)
 
         with open(

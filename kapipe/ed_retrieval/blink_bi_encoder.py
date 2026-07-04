@@ -289,7 +289,10 @@ class BlinkBiEncoder(BaseEDRetriever):
             model_output.n_mentions
         )
 
-    def make_index(self, use_precomputed_entity_vectors: bool = False) -> None:
+    def make_index(
+        self,
+        use_precomputed_entity_vectors: bool = False,
+    ) -> None:
         """Build the index for Approximate Nearest Neighbor Search (ANNS) based on the entity vectors."""
         with torch.no_grad():
             # Switch to inference mode
@@ -341,7 +344,11 @@ class BlinkBiEncoder(BaseEDRetriever):
             logger.info("Completed indexing")
             logger.info(f"Time: {span_time} min.")
 
-    def search(self, document: Document, retrieval_size: int = 1) -> tuple[
+    def search(
+        self,
+        document: Document,
+        retrieval_size: int,
+    ) -> tuple[
         Document, CandidateEntitiesForDocument
     ]:
         """Retrieve candidate entities for each mention in a single document."""
@@ -445,7 +452,7 @@ class BlinkBiEncoder(BaseEDRetriever):
     def batch_search(
         self,
         documents: list[Document],
-        retrieval_size: int = 1
+        retrieval_size: int,
     ) -> tuple[list[Document], list[CandidateEntitiesForDocument]]:
         """Retrieve candidate entities for each mention in a batch of documents."""
 

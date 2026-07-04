@@ -16,6 +16,6 @@ class BaseEDRetriever(ABC):
     def search(
         self,
         document: Document,
-        retrieval_size: int = 1
+        retrieval_size: int,
     ) -> tuple[Document, CandidateEntitiesForDocument]:
         """Retrieve candidate entities for each mention."""

@@ -18,7 +18,6 @@ from ..datatypes import (
     Entity,
     EntityPage,
     CandidateEntitiesForDocument,
-    ContextsForOneExample
 )
 from ..llms import HuggingFaceLLM, OpenAILLM
 from ..resources import resolve_snapshot_path
@@ -224,8 +223,6 @@ class LLMED(BaseEDReranker):
         self,
         document: Document,
         candidate_entities_for_doc: CandidateEntitiesForDocument,
-        # Optional: prompt augmentation
-        contexts_for_doc: ContextsForOneExample | None = None
     ) -> Document:
         """Rerank candidate entities for a single document."""
 
@@ -253,7 +250,6 @@ class LLMED(BaseEDReranker):
                     demonstration_candidate_entities=(
                         self.demonstration_candidate_entities
                     ),
-                    contexts_for_doc=contexts_for_doc
                 )
                 prompt_list.append(prompt)
 
@@ -406,34 +402,19 @@ class LLMED(BaseEDReranker):
         self,
         documents: list[Document],
         candidate_entities: list[CandidateEntitiesForDocument],
-        # Optional: context augmentation
-        contexts: list[ContextsForOneExample] | None = None
     ) -> list[Document]:
         """Rerank candidate entities for a batch of documents."""
 
         result_documents: list[Document] = []
 
-        # Use empty contexts when no contexts are provided
-        if contexts is None:
-            contexts = [None] * len(documents)
-
-        for (
-            document,
-            candidate_entities_for_doc,
-            contexts_for_doc
-        ) in tqdm(
-                zip(
-                    documents,
-                    candidate_entities,
-                    contexts
-                ),
+        for (document, candidate_entities_for_doc) in tqdm(
+                zip(documents, candidate_entities),
                 total=len(documents),
                 desc="reranking steps"
             ):
             result_document = self.rerank(
                 document=document,
                 candidate_entities_for_doc=candidate_entities_for_doc,
-                contexts_for_doc=contexts_for_doc
             )
             result_documents.append(result_document)
 
@@ -466,10 +447,8 @@ class PromptProcessor:
         target_mention_indices: list[int],
         demonstration_documents: list[Document],
         demonstration_candidate_entities: list[CandidateEntitiesForDocument],
-        # optional: context augmentation
-        contexts_for_doc: ContextsForOneExample | None = None
     ) -> str:
-        """Generate a prompt for the LLM based on the input document, candidate entities, and optional context augmentation."""
+        """Generate a prompt for the LLM based on the input document, candidate entities."""
 
         ##########
         # Demonstrations Prompt
@@ -498,23 +477,6 @@ class PromptProcessor:
             demonstration_documents=demonstration_documents,
             candidate_entity_pages_for_demos=candidate_entity_pages_for_demos
         )
-
-        ##########
-        # Contexts Prompt
-        ##########
-
-        if contexts_for_doc is not None:
-            # Create contexts
-            context_texts: list[str] = []
-            for passage in contexts_for_doc["contexts"]:
-                text = utils.create_text_from_passage(passage=passage, sep=" : ")
-                context_texts.append(text)
-            # Generate prompt part for contexts
-            contexts_prompt = self.generate_contexts_prompt(
-                context_texts=context_texts
-            )
-        else:
-            contexts_prompt = ""
 
         ##########
         # Test Case Prompt
@@ -548,7 +510,6 @@ class PromptProcessor:
         prompt = self.prompt_template.format(
             knowledge_base_name_prompt=self.knowledge_base_name_prompt,
             demonstrations_prompt=demonstrations_prompt,
-            contexts_prompt=contexts_prompt,
             test_case_prompt=test_case_prompt
         )
 
@@ -602,20 +563,6 @@ class PromptProcessor:
                 prompt += "\n"
 
         return prompt.rstrip()
-
-    def generate_contexts_prompt(self, context_texts: list[str]) -> str:
-        """Generate a prompt for the contexts based on the provided context texts."""
-
-        n_contexts = len(context_texts)
-        if n_contexts == 0:
-            return ""
-        else:
-            prompt = ""
-            for context_i, content in enumerate(context_texts):
-                prompt += f"[{context_i+1}] {content.strip()} \n"
-                if context_i < n_contexts - 1:
-                    prompt += "\n"
-            return prompt.rstrip()
 
     def generate_test_case_prompt(
         self,
@@ -806,7 +753,6 @@ class LLMEDTrainer:
         reranker: LLMED,
         documents: list[Document],
         candidate_entities: list[CandidateEntitiesForDocument],
-        contexts: list[ContextsForOneExample],
         split: str,
         #
         prediction_only: bool = False,
@@ -816,7 +762,6 @@ class LLMEDTrainer:
         result_documents = reranker.batch_rerank(
             documents=documents,
             candidate_entities=candidate_entities,
-            contexts=contexts
         )
 
         # Save the prediction results

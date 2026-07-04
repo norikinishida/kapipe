@@ -418,14 +418,12 @@ def main(args):
                 trainer.official_evaluate(
                     extractor=extractor,
                     documents=dev_documents,
-                    contexts=None,
                     split="dev",
                     supplemental_info=supplemental_info
                 )
                 trainer.official_evaluate(
                     extractor=extractor,
                     documents=test_documents,
-                    contexts=None,
                     split="test",
                     supplemental_info=supplemental_info,
                     #
@@ -435,14 +433,12 @@ def main(args):
                 trainer.official_evaluate(
                     extractor=extractor,
                     documents=dev_documents,
-                    contexts=None,
                     split="dev",
                     supplemental_info=supplemental_info
                 )
                 trainer.official_evaluate(
                     extractor=extractor,
                     documents=test_documents,
-                    contexts=None,
                     split="test",
                     supplemental_info=supplemental_info
                 )
@@ -450,7 +446,6 @@ def main(args):
                 trainer.evaluate(
                     extractor=extractor,
                     documents=dev_documents,
-                    contexts=None,
                     split="dev",
                     supplemental_info=supplemental_info,
                     #
@@ -460,7 +455,6 @@ def main(args):
                 trainer.evaluate(
                     extractor=extractor,
                     documents=test_documents,
-                    contexts=None,
                     split="test",
                     supplemental_info=supplemental_info,
                     #
@@ -473,7 +467,6 @@ def main(args):
                 trainer.evaluate(
                     extractor=extractor,
                     documents=dev_documents,
-                    contexts=None,
                     split="dev",
                     supplemental_info=supplemental_info,
                     #
@@ -483,7 +476,6 @@ def main(args):
                 trainer.evaluate(
                     extractor=extractor,
                     documents=test_documents,
-                    contexts=None,
                     split="test",
                     supplemental_info=supplemental_info,
                     #

@@ -224,7 +224,10 @@ class BiaffineNER(BaseNER):
             model_output.n_valid_spans
         )
 
-    def extract(self, document: Document) -> Document:
+    def extract(
+        self,
+        document: Document,
+    ) -> Document:
         """Extract named entity mentions from a single document."""
 
         with torch.no_grad():

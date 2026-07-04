@@ -13,6 +13,6 @@ class BaseEntityGraphConstructor(ABC):
         self,
         documents_path_list: list[str] | None,
         entity_dict_path: str | None,
-        additional_triples_path: str | None = None
+        additional_triples_path: str | None,
     ) -> nx.MultiDiGraph:
         """Construct an entity graph."""
