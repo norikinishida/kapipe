@@ -86,7 +86,10 @@ retriever = BM25(
 )
 
 # Build an index over passages
-retriever.make_index(passages=passages)
+retriever.make_index(
+    passages=passages,
+    index_dir="/path/to/index",
+)
 
 # Retrieve the top-10 passages for each query
 retrieved_passages = retriever.search(
@@ -150,6 +153,8 @@ retrieved_passages = retriever.search(
     top_k=10,
 )[0]
 ```
+
+After building an index, you can reload it with `retriever.load_index(index_dir="/path/to/index")`.
 
 ## Indexing Custom Passages
 

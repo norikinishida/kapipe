@@ -36,8 +36,6 @@ Each context passage conatins the following fields.
 |---|---|---|
 | `title` | `str` | Passage title, if available |
 | `text` | `str` | Passage text |
-| `score` | `float` | Retrieval score, if available |
-| `rank` | `int` | Retrieval rank, if available |
 
 ```json
 {
@@ -46,8 +44,6 @@ Each context passage conatins the following fields.
         {
             "title": "Lithium Carbonate and Related Health Conditions",
             "text": "This report examines the interconnections between Lithium Carbonate, ...",
-            "score": 1.5991605520248413,
-            "rank": 1
         },
         ...
     ]
