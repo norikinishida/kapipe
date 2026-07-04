@@ -17,7 +17,7 @@ A question is represented as a dictionary with the following fields.
 ```json
 {
     "question_key": "question#123",
-    "question": "What does lithium carbonate induce?"
+    "question": "Which hospitals has Oliver Hartwell’s wife worked at?"
 }
 ```
 
@@ -42,9 +42,12 @@ Each context passage conatins the following fields.
     "question_key": "question#123",
     "contexts": [
         {
-            "title": "Lithium Carbonate and Related Health Conditions",
-            "text": "This report examines the interconnections between Lithium Carbonate, ...",
+            "text": "Oliver Hartwell married Clara Venn in 2016. Clara was known in Hartwell's family for her quiet humor and careful memory. Public records in Larkford list Clara Venn as Oliver Hartwell's wife."
         },
+        {
+            "text": "Clara Venn began her clinical career at St. Brigid's Children's Hospital. She worked there as a pediatric nurse from 2012 to 2016. Her duties included night rounds and discharge planning."
+        },
+ 
         ...
     ]
 }
@@ -63,10 +66,10 @@ The output preserves the input question fields and adds answer-related fields.
 ```json
 {
     "question_key": "question#123",
-    "question": "What does lithium carbonate induce?",
-    "output_answer": "Lithium Carbonate induces Depressive Disorder, Cyanosis, and Cardiac Arrhythmias.",
-    "rationale": "The context passages indicate that Lithium Carbonate is associated with ...",
-    "helpfulness_score": 0.9
+    "question": "Which hospitals has Oliver Hartwell's wife worked at?",
+    "output_answer": "Oliver Hartwell's wife has worked at St. Brigid's Children's Hospital and North Quay Medical Center.",
+    "rationale": "The context passages provide information about Clara Venn's employment history. Passage [2] states ...",
+    "helpfulness_score": 1.0
 }
 ```
 

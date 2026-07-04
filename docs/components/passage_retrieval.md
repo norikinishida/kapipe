@@ -19,8 +19,7 @@ Additional metadata fields are preserved in retrieved passages.
 
 ```json
 {
-    "title": "Lithium Carbonate and Related Health Conditions",
-    "text": "This report examines the interconnections between Lithium Carbonate, ...",
+    "text": "Oliver Hartwell married Clara Venn in 2016. Clara was known in Hartwell's family for her quiet humor and careful memory. Public records in Larkford list Clara Venn as Oliver Hartwell's wife.",
     "hoge": "fuga"
 }
 ```
@@ -29,7 +28,8 @@ Search takes a list of query strings.
 
 ```json
 [
-    "What does lithium carbonate induce?"
+    "Which hospitals has Oliver Hartwell's wife worked at?",
+    ...
 ]
 ```
 
@@ -50,14 +50,18 @@ Each retrieved passage preserves the original passage fields and adds `score` an
 [
     [
         {
-            "title": "Lithium Carbonate and Related Health Conditions",
-            "text": "This report examines the interconnections between Lithium Carbonate, ...",
-            "hoge": "fuga",
-            "score": 1.5991605520248413,
+            "text": "Oliver Hartwell married Clara Venn in 2016. Clara was known in Hartwell's family for her quiet humor and careful memory. Public records in Larkford list Clara Venn as Oliver Hartwell's wife.",
+            "score": 0.671139121055603,
             "rank": 1
         },
+        {
+            "text": "Clara Venn later joined North Quay Medical Center. She worked in its pediatric ward from 2017 to 2021. The hospital newsletter described her as a senior nurse.",
+            "score": 0.4334491193294525,
+            "rank": 2
+        },
         ...
-    ]
+    ],
+    ...
 ]
 ```
 

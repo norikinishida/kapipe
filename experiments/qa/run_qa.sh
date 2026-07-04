@@ -18,6 +18,7 @@ STORAGE_RESULTS=/home/nishida/projects/kapipe/experiments/qa/results
 METHOD=llm_qa
 CONFIG_PATH=./config/llm_qa.conf
 CONFIG_NAME=gpt4o_with_context
+# CONFIG_NAME=gpt4o_without_context
 
 # Input Data
 INPUT_QUESTIONS=${STORAGE_DATA}/examples/questions.json

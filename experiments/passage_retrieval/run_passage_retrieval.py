@@ -7,7 +7,7 @@ import sys
 from tqdm import tqdm
 
 from kapipe import utils
-from kapipe.passage_retrieval import Contriever, Qwen3Embedding
+from kapipe.passage_retrieval import BM25, Contriever, Qwen3Embedding
 from kapipe.utils import StopWatch
 
 
@@ -113,7 +113,13 @@ def main(args):
     utils.write_json(os.path.join(base_output_path, "config.json"), config)
 
     # Initialize the Passage Retrieval component
-    if method_name == "contriever":
+    if method_name == "bm25":
+       retriever = BM25(
+            tokenizer=lambda text: text.lower().split(),
+            k1=config["k1"],
+            b=config["b"],
+        )
+    elif method_name == "contriever":
         retriever = Contriever(
             model_name=config["model_name"],
             max_passage_length=config["max_passage_length"],
@@ -140,11 +146,17 @@ def main(args):
         logging.info(f"Applying the Passage Retrieval component (indexing) to passages in {input_file_path} ...")
 
         # Build index
-        retriever.make_index(
-            passages=passages,
-            index_dir=index_dir,
-            batch_size=config["indexing_batch_size"],
-        )
+        if method_name == "bm25":
+            retriever.make_index(
+                passages=passages,
+                index_dir=index_dir,
+            )
+        else:
+            retriever.make_index(
+                passages=passages,
+                index_dir=index_dir,
+                batch_size=config["indexing_batch_size"],
+            )
 
     if actiontype == "search":
         logging.info(f"Applying the Passage Retrieval component (search) to questions in {input_file_path} ...")
