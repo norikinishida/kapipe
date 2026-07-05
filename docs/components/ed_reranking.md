@@ -173,7 +173,7 @@ These snapshots are predefined resources for existing benchmark settings. You ca
 ```python
 from kapipe.ed_reranking import IdenticalEntityReranker
 
-# Build an Identical Entity Reranker
+# Instantiate the ED-Reranking component using identical function
 reranker = IdenticalEntityReranker()
 
 # Keep the retrieved concept IDs unchanged
@@ -183,12 +183,12 @@ result_document = reranker.rerank(
 )
 ```
 
-### Predefined BLINK Cross-Encoder:
+### Predefined BLINK Cross-Encoder ED-Reranking:
 
 ```python
 from kapipe.ed_reranking import BlinkCrossEncoder
 
-# Load a BLINK Cross-Encoder component predefined for the (Linked-DocRED, DBPedia) schema
+# Load the BLINK Cross-Encoder ED-Reranking component predefined for the (Linked-DocRED, DBPedia) schema
 reranker = BlinkCrossEncoder.from_identifier(
     identifier="blink_cross_encoder_linked_docred"
 )
@@ -200,7 +200,7 @@ result_document = reranker.rerank(
 )
 ```
 
-### Predefined LLM-based ED:
+### Predefined LLM-based ED-Reranking:
 
 ```python
 from kapipe.ed_reranking import LLMED
@@ -220,7 +220,7 @@ model = HuggingFaceLLM(
     quantization_bits=4,
 )
 
-# Load an LLM-based ED component predefined for the (Linked-DocRED, DBPedia) schema
+# Load the LLM-based ED-Reranking component predefined for the (Linked-DocRED, DBPedia) schema
 reranker = LLMED.from_identifier(
     model=model,
     identifier="llm_ed_linked_docred"
@@ -233,7 +233,7 @@ result_document = reranker.rerank(
 )
 ```
 
-### User-defined LLM-based ED:
+### User-defined LLM-based ED-Reranking:
 
 ```python
 from kapipe.ed_reranking import LLMED
@@ -241,7 +241,7 @@ from kapipe.ed_reranking import LLMED
 # Instantiate your LLM wrapper
 model = ...
 
-# Instantiate a user-defined LLM-based ED component
+# Instantiate the LLM-based ED-Reranking component with the user-defined entity dictionary
 reranker = LLMED(
     model=model,
     prompt_template_name_or_path="ed_04_zeroshot",

@@ -108,7 +108,7 @@ Each passage contains generated title and text (with the corresponding community
 ```python
 from kapipe.report_generation import TemplateBasedReportGenerator
 
-# Build a Template-based Report Generator
+# Instantiate the Report Generation component using a template-based approach
 generator = TemplateBasedReportGenerator()
 
 # Generate reports for graph communities
@@ -140,7 +140,7 @@ model = HuggingFaceLLM(
     quantization_bits=4,
 )
 
-# Build an LLM-based Report Generator
+# Instantiate the Report Generation component using an LLM-based approach
 generator = LLMBasedReportGenerator(model=model)
 
 # Generate reports for graph communities
