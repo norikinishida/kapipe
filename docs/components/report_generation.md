@@ -146,12 +146,6 @@ reports = generator.generate_community_reports(
 )
 ```
 
-## Custom Node and Edge Textualization
-
-You can control how graph content is verbalized by changing `node_attr_keys` and `edge_attr_keys`.
-
-For example, `node_attr_keys=("name", "description")` uses only node names and descriptions.
-
 ## Example
 
 See [experiments/report_generation](../../experiments/report_generation) for runnable examples.

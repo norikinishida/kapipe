@@ -53,15 +53,21 @@ First, check `STORAGE_DATA` and `STORAGE_RESULTS` in the execution script and ad
 
 If you modified the configuration file or added new configuration entries, make sure that the execution script refers to the intended configuration.
 
-The pipeline has two actions.
+The pipeline consists of two sequential actions.
 
-- `indexing`: build a passage index from given passages.
+- `indexing`: build a retrieval index over passages.
 - `inference`: retrieve passages for each question and generate answers
 
-Run:
+Run one action at a time:
 
 ```bash
-bash ./run_rag_pipeline.sh
+bash ./run_rag_pipeline.sh --actiontype indexing
+```
+
+Run all actions:
+
+```bash
+bash ./run_rag_pipeline.sh --actiontype all
 ```
 
 If you use the OpenAI API, set your API key in advance.

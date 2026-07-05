@@ -36,8 +36,6 @@ def main(args):
     # Input Data
     input_graph_path = args.input_graph
     input_communities_path = args.input_communities
-    node_attr_keys = args.node_attr_keys
-    edge_attr_keys = args.edge_attr_keys
 
     # Output Path
     results_dir = args.results_dir
@@ -92,7 +90,7 @@ def main(args):
     utils.write_json(os.path.join(base_output_path, "config.json"), config)
  
     # Instantiate the Report Generation component
-    if method_name == "llm":
+    if method_name == "llm_based_report_generator":
         # Instantiate the LLM wrapper
         if config["llm_provider"] == "openai":
             model = OpenAILLM(
@@ -115,7 +113,7 @@ def main(args):
             prompt_template_name_or_path=config["prompt_template_name_or_path"],
             relation_map=config["relation_map"],
         )
-    elif method_name == "template":
+    elif method_name == "template_based_report_generator":
         # Instantiate the template-based Report Generation component
         generator = TemplateBasedReportGenerator(
             relation_map=config["relation_map"],
@@ -134,8 +132,8 @@ def main(args):
         # Input
         graph=graph,
         communities=communities,
-        node_attr_keys=node_attr_keys,
-        edge_attr_keys=edge_attr_keys,
+        node_attr_keys=tuple(config["node_attr_keys"]),
+        edge_attr_keys=tuple(config["edge_attr_keys"]),
     )
 
     # Save the Report Generation results
@@ -187,8 +185,6 @@ if __name__ == "__main__":
     # Input Data
     parser.add_argument("--input_graph", type=str, required=True)
     parser.add_argument("--input_communities", type=str, required=True)
-    parser.add_argument("--node_attr_keys", nargs="+", default=["name", "entity_type", "description"])
-    parser.add_argument("--edge_attr_keys", nargs="+", default=["relation"])
 
     # Output Path
     parser.add_argument("--results_dir", type=str, required=True)

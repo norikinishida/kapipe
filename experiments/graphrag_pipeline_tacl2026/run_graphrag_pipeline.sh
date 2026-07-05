@@ -1,0 +1,137 @@
+#!/usr/bin/env bash
+
+######
+# Storage paths
+######
+
+STORAGE_DATA=/home/nishida/projects/kapipe/experiments/graphrag_pipeline_tacl2026/data
+STORAGE_RESULTS=/home/nishida/projects/kapipe/experiments/graphrag_pipeline_tacl2026/results
+
+######
+# Experiment configuration
+######
+
+# Method
+METHOD=default
+CONFIG_PATH=./config/default.conf
+CONFIG_NAME=llm___keep___hl_size10___llm___sci100___contriever___gpt4o
+# CONFIG_NAME=slm___keep___na_hop1___temp___sci100___contriever___gpt4o
+
+# Input Data
+INPUT_DOCUMENTS=${STORAGE_DATA}/examples/documents.json
+ENTITY_DICT=${STORAGE_DATA}/examples/entity_dict.json
+INPUT_QUESTIONS=${STORAGE_DATA}/examples/questions.json
+
+# Output Path
+RESULTS_DIR=${STORAGE_RESULTS}
+MYPREFIX=example
+
+# (optional) Evaluation
+GOLD_QUESTIONS=${STORAGE_DATA}/examples/questions_with_answers.json
+
+######
+# Command-line arguments
+######
+
+# Initialize the requested action
+ACTIONTYPE=
+
+# Parse command-line arguments
+while [ "$#" -gt 0 ]; do
+    if [ "$1" = "--actiontype" ]; then
+        if [ "$#" -lt 2 ]; then
+            echo "Error: --actiontype requires a value"
+            exit 1
+        fi
+        ACTIONTYPE=$2
+        shift 2
+    else
+        echo "Error: Unknown argument: $1"
+        exit 1
+    fi
+done
+
+# Require the action type
+if [ -z "${ACTIONTYPE}" ]; then
+    echo "Usage: bash run_graphrag_pipeline.sh --actiontype {triple_extraction|entity_graph_construction|community_clustering|report_generation|chunking|retrieval_indexing|inference|all}"
+    exit 1
+fi
+
+######
+# Experiment execution
+######
+
+if [ "${ACTIONTYPE}" = "triple_extraction" ] || [ "${ACTIONTYPE}" = "all" ]; then
+    python run_graphrag_pipeline.py \
+        --method ${METHOD} \
+        --config_path ${CONFIG_PATH} \
+        --config_name ${CONFIG_NAME} \
+        --input_documents ${INPUT_DOCUMENTS} \
+        --results_dir ${RESULTS_DIR} \
+        --prefix ${MYPREFIX} \
+        --actiontype triple_extraction
+fi
+
+if [ "${ACTIONTYPE}" = "entity_graph_construction" ] || [ "${ACTIONTYPE}" = "all" ]; then
+    python run_graphrag_pipeline.py \
+        --method ${METHOD} \
+        --config_path ${CONFIG_PATH} \
+        --config_name ${CONFIG_NAME} \
+        --entity_dict ${ENTITY_DICT} \
+        --results_dir ${RESULTS_DIR} \
+        --prefix ${MYPREFIX} \
+        --actiontype entity_graph_construction
+fi
+
+if [ "${ACTIONTYPE}" = "community_clustering" ] || [ "${ACTIONTYPE}" = "all" ]; then
+    python run_graphrag_pipeline.py \
+        --method ${METHOD} \
+        --config_path ${CONFIG_PATH} \
+        --config_name ${CONFIG_NAME} \
+        --results_dir ${RESULTS_DIR} \
+        --prefix ${MYPREFIX} \
+        --actiontype community_clustering
+fi
+
+if [ "${ACTIONTYPE}" = "report_generation" ] || [ "${ACTIONTYPE}" = "all" ]; then
+    python run_graphrag_pipeline.py \
+        --method ${METHOD} \
+        --config_path ${CONFIG_PATH} \
+        --config_name ${CONFIG_NAME} \
+        --results_dir ${RESULTS_DIR} \
+        --prefix ${MYPREFIX} \
+        --actiontype report_generation
+fi
+
+if [ "${ACTIONTYPE}" = "chunking" ] || [ "${ACTIONTYPE}" = "all" ]; then
+    python run_graphrag_pipeline.py \
+        --method ${METHOD} \
+        --config_path ${CONFIG_PATH} \
+        --config_name ${CONFIG_NAME} \
+        --results_dir ${RESULTS_DIR} \
+        --prefix ${MYPREFIX} \
+        --actiontype chunking
+fi
+
+if [ "${ACTIONTYPE}" = "retrieval_indexing" ] || [ "${ACTIONTYPE}" = "all" ]; then
+    python run_graphrag_pipeline.py \
+        --method ${METHOD} \
+        --config_path ${CONFIG_PATH} \
+        --config_name ${CONFIG_NAME} \
+        --results_dir ${RESULTS_DIR} \
+        --prefix ${MYPREFIX} \
+        --actiontype retrieval_indexing
+fi
+
+if [ "${ACTIONTYPE}" = "inference" ] || [ "${ACTIONTYPE}" = "all" ]; then
+    python run_graphrag_pipeline.py \
+        --method ${METHOD} \
+        --config_path ${CONFIG_PATH} \
+        --config_name ${CONFIG_NAME} \
+        --input_questions ${INPUT_QUESTIONS} \
+        --results_dir ${RESULTS_DIR} \
+        --prefix ${MYPREFIX} \
+        --actiontype inference \
+        --do_evaluation \
+        --gold ${GOLD_QUESTIONS}
+fi

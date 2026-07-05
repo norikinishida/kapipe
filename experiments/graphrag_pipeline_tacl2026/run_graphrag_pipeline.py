@@ -118,16 +118,25 @@ def main(args: argparse.Namespace) -> None:
     )
     utils.mkdir(base_output_path)
 
+    if actiontype == "inference":
+        base_filename = os.path.splitext(os.path.basename(input_questions_path))[0]
+
     # Index will be saved to `index_dir`
     index_dir = os.path.join(base_output_path, "indexes")
     utils.mkdir(index_dir)
 
     # Set logger
-    set_logger(
-        os.path.join(base_output_path, f"{actiontype}.graphrag_pipeline.log"),
-        # overwrite=True
-    )
-
+    if actiontype == "inference":
+        set_logger(
+            os.path.join(base_output_path, f"{base_filename}.inference.log"),
+            # overwrite=True
+        )
+    else:
+        set_logger(
+            os.path.join(base_output_path, f"{actiontype}.log"),
+            # overwrite=True
+        )
+ 
     # Show arguments
     logging.info(utils.pretty_format_dict(vars(args)))
     logging.info(f"index dir: {index_dir}")
@@ -356,7 +365,7 @@ def main(args: argparse.Namespace) -> None:
         # Save the results
         output_questions_path = os.path.join(
             base_output_path,
-            f"{os.path.splitext(os.path.basename(input_questions_path))[0]}.pred.json",
+            f"{base_filename}.pred.json",
         )
         utils.write_json(output_questions_path, result_questions)
         logging.info(f"Saved the prediction results to {output_questions_path}")
@@ -375,13 +384,19 @@ def main(args: argparse.Namespace) -> None:
                 pred_path=output_questions_path,
                 gold_path=gold_questions_path,
                 exact_match=False,
-            ) | evaluation.qa.token_level_f1(
-                pred_path=output_questions_path,
-                gold_path=gold_questions_path,
-            ) | evaluation.qa.recall(
-                pred_path=output_questions_path,
-                gold_path=gold_questions_path,
-                exact_match=False,
+            )
+            qa_scores.update(
+                evaluation.qa.token_level_f1(
+                    pred_path=output_questions_path,
+                    gold_path=gold_questions_path,
+                )
+            )
+            qa_scores.update(
+                evaluation.qa.recall(
+                    pred_path=output_questions_path,
+                    gold_path=gold_questions_path,
+                    exact_match=False,
+                )
             )
             scores = {
                 "qa": qa_scores,
@@ -391,7 +406,7 @@ def main(args: argparse.Namespace) -> None:
             # Save the evaluation results
             output_evaluation_path = os.path.join(
                 base_output_path,
-                f"{os.path.splitext(os.path.basename(input_questions_path))[0]}.eval.json",
+                f"{base_filename}.eval.json",
             )
             utils.write_json(output_evaluation_path, scores)
 
@@ -674,8 +689,8 @@ def instantiate_chunking_component(
     # Instantiate the Chunking component
     if chunking_config["method_name"] == "chunker":
         model_name = None
-        if "model_name" in chunking_config:
-            model_name = chunking_config["model_name"]
+        if "spacy_model_name" in chunking_config:
+            model_name = chunking_config["spacy_model_name"]
         chunker = Chunker(
             model_name=model_name,
         )
@@ -795,6 +810,9 @@ if __name__ == "__main__":
     logging.basicConfig(
         format="%(asctime)s - %(levelname)s - %(name)s - %(message)s",
         level=logging.INFO
+    )
+    logging.getLogger("httpx").addFilter(
+        lambda r: "huggingface.co" not in r.getMessage()
     )
 
     parser = argparse.ArgumentParser()

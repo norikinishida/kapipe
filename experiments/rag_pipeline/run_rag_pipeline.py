@@ -76,6 +76,8 @@ def main(args):
     )
     utils.mkdir(base_output_path)
 
+    base_filename = os.path.splitext(os.path.basename(input_file_path))[0]
+
     # Index will be saved to `index_dir``
     index_dir = os.path.join(base_output_path, "indexes")
     utils.mkdir(index_dir)
@@ -176,7 +178,7 @@ def main(args):
         # Save the results
         output_questions_path = os.path.join(
             base_output_path,
-            f"{os.path.splitext(os.path.basename(input_file_path))[0]}.pred.json",
+            f"{base_filename}.pred.json",
         )
         utils.write_json(output_questions_path, result_questions)
         logging.info(f"Saved the prediction results to {output_questions_path}")
@@ -226,7 +228,7 @@ def main(args):
         # Save the evaluation results
         output_evaluation_path = os.path.join(
             base_output_path,
-            f"{os.path.splitext(os.path.basename(input_file_path))[0]}.eval.json",
+            f"{base_filename}.eval.json",
         )
         utils.write_json(output_evaluation_path, scores)
 

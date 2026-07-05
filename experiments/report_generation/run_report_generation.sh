@@ -12,14 +12,14 @@ STORAGE_RESULTS=/home/nishida/projects/kapipe/experiments/report_generation/resu
 ######
 
 # Method
-# METHOD=llm
-METHOD=template
+# METHOD=llm_based_report_generator
+METHOD=template_based_report_generator
 
-if [ ${METHOD} = "llm" ]; then
-    CONFIG_PATH=./config/llm.conf
+if [ ${METHOD} = "llm_based_report_generator" ]; then
+    CONFIG_PATH=./config/llm_based_report_generator.conf
     CONFIG_NAME=llm_cdr
-elif [ ${METHOD} = "template" ]; then
-    CONFIG_PATH=./config/template.conf
+elif [ ${METHOD} = "template_based_report_generator" ]; then
+    CONFIG_PATH=./config/template_based_report_generator.conf
     CONFIG_NAME=template_cdr
 else
     echo "Invalid method: ${METHOD}"
@@ -29,8 +29,6 @@ fi
 # Input Data
 INPUT_GRAPH=${STORAGE_DATA}/examples/graph.graphml
 INPUT_COMMUNITIES=${STORAGE_DATA}/examples/communities.json
-NODE_ATTR_KEYS="name entity_type description"
-EDGE_ATTR_KEYS="relation"
 
 # Output Path
 RESULTS_DIR=${STORAGE_RESULTS}
@@ -42,8 +40,6 @@ python run_report_generation.py \
     --config_name ${CONFIG_NAME} \
     --input_graph ${INPUT_GRAPH} \
     --input_communities ${INPUT_COMMUNITIES} \
-    --node_attr_keys ${NODE_ATTR_KEYS} \
-    --edge_attr_keys ${EDGE_ATTR_KEYS} \
     --results_dir ${RESULTS_DIR} \
     --prefix ${MYPREFIX}
 
