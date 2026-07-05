@@ -7,6 +7,7 @@ import sys
 from tqdm import tqdm
 import transformers
 
+from kapipe import evaluation
 from kapipe import utils
 from kapipe.ed_reranking import IdenticalEntityReranker, BlinkCrossEncoder, LLMED
 from kapipe.llms import HuggingFaceLLM, OpenAILLM
@@ -39,6 +40,10 @@ def main(args):
         prefix = utils.get_current_time()
         args.prefix = prefix
 
+    # Evaluation
+    do_evaluation = args.do_evaluation
+    gold_documents_path = args.gold
+
     ##################
     # Logging Setup
     ##################
@@ -53,9 +58,11 @@ def main(args):
     )
     utils.mkdir(base_output_path)
 
+    base_filename = os.path.splitext(os.path.basename(input_documents_path))[0]
+
     # Set logger
     set_logger(
-        os.path.join(base_output_path, "ed_reranking.log"),
+        os.path.join(base_output_path, f"{base_filename}.ed_reranking.log"),
         # overwrite=True
     )
 
@@ -127,9 +134,6 @@ def main(args):
     
     logging.info(f"Applying the ED-Reranking component to {len(documents)} documents (+ candidate entities) in {input_documents_path} ({input_candidate_entities_path}) ...")
 
-    # Create the full output path
-    output_documents_path = os.path.join(base_output_path, "documents.json")
-
     # Apply the ED-Reranking component to the documents (with candidate entities)
     result_documents = []
     for document, candidate_entities_for_doc in tqdm(
@@ -143,6 +147,10 @@ def main(args):
         result_documents.append(result_document)
 
     # Save the results
+    output_documents_path = os.path.join(
+        base_output_path,
+        f"{base_filename}.pred.json"
+    )
     utils.write_json(output_documents_path, result_documents)
     logging.info(f"Saved the prediction results to {output_documents_path}")
 
@@ -152,7 +160,10 @@ def main(args):
         and "ed_prompt" in result_documents[0]
         and "ed_generated_text" in result_documents[0]
     ):
-        output_text_path = os.path.join(base_output_path, "prompt_and_response.txt")
+        output_text_path = os.path.join(
+            base_output_path,
+            f"{base_filename}.prompt_and_response.txt"
+        )
         with open(output_text_path, "w") as f:
             for doc in result_documents:
                 doc_key = doc["doc_key"]
@@ -165,6 +176,81 @@ def main(args):
                 f.write("GENERATED TEXT:\n")
                 f.write(generated_text + "\n\n")
                 f.flush()
+
+    ##################
+    # Evaluation
+    ##################
+
+    if do_evaluation:
+        # Require gold documents only when evaluation is requested
+        if gold_documents_path is None:
+            raise ValueError("--gold is required when --do_evaluation is set")
+
+        # Load the gold documents to assign meta information for evaluation
+        gold_documents = utils.read_json(gold_documents_path)
+
+        # Read the entity dictionary from the instantiated reranker
+        kb_entity_ids = None
+        if hasattr(reranker, "entity_dict"):
+            # Use the entity dictionary bundled in the reranker component
+            kb_entity_ids = set(reranker.entity_dict.keys())
+
+        # Enable InKB evaluation only when the reranker exposes its entity dictionary
+        inkb = kb_entity_ids is not None
+
+        for gold_doc, candidate_entities_for_doc in zip(
+            gold_documents,
+            candidate_entities
+        ):
+            # Check document alignment
+            assert gold_doc["doc_key"] == candidate_entities_for_doc["doc_key"]
+
+            for gold_mention, candidates_for_mention in zip(
+                gold_doc["mentions"],
+                candidate_entities_for_doc["candidate_entities"],
+            ):
+
+                # Mark whether the gold entity exists in the entity dictionary
+                if kb_entity_ids is not None:
+                    gold_mention["in_kb"] = (
+                        gold_mention["entity_id"] in kb_entity_ids
+                    )
+
+                # Collect candidate entity IDs for this mention
+                candidate_entity_ids = [
+                    candidate["entity_id"]
+                    for candidate in candidates_for_mention
+                ]
+
+                # Mark whether the gold entity is included in candidates
+                gold_mention["in_cand"] = (
+                    gold_mention["entity_id"] in candidate_entity_ids
+                )
+
+        # Evaluate the prediction results
+        scores = evaluation.ed.accuracy(
+            pred_path=output_documents_path,
+            gold_path=gold_documents,
+            inkb=inkb,
+            skip_normalization=False,
+        )
+        scores.update(
+            evaluation.ed.fscore(
+                pred_path=output_documents_path,
+                gold_path=gold_documents,
+                inkb=inkb,
+                skip_normalization=False,
+            )
+        )
+        logging.info(utils.pretty_format_dict(scores))
+
+        # Save the evaluation result
+        output_evaluation_path = os.path.join(
+            base_output_path,
+            f"{base_filename}.eval.json"
+        )
+        utils.write_json(output_evaluation_path, scores)
+        logging.info(f"Saved the evaluation results to {output_evaluation_path}")
 
     ##################
     # Closing
@@ -195,6 +281,9 @@ if __name__ == "__main__":
         format="%(asctime)s - %(levelname)s - %(name)s - %(message)s",
         level=logging.INFO
     )
+    logging.getLogger("httpx").addFilter(
+        lambda r: "huggingface.co" not in r.getMessage()
+    )
 
     parser = argparse.ArgumentParser()
 
@@ -210,6 +299,10 @@ if __name__ == "__main__":
     # Output Path
     parser.add_argument("--results_dir", type=str, required=True)
     parser.add_argument("--prefix", type=str, default=None)
+
+    # Evaluation
+    parser.add_argument("--do_evaluation", action="store_true")
+    parser.add_argument("--gold", type=str, default=None)
 
     args = parser.parse_args()
 

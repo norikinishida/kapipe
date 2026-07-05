@@ -15,9 +15,9 @@ STORAGE_RESULTS=/home/nishida/projects/kapipe/experiments/ed_reranking/results
 ######
 
 # Method
-METHOD=identical_entity_reranker
+# METHOD=identical_entity_reranker
 # METHOD=blink_cross_encoder
-# METHOD=llm_ed
+METHOD=llm_ed
 
 if [ "${METHOD}" == "identical_entity_reranker" ]; then
     CONFIG_PATH=./config/identical_entity_reranker.conf
@@ -34,12 +34,15 @@ else
 fi
 
 # Input Data
-DOCUMENTS=${STORAGE_DATA}/examples/documents.ner.ed_ret.json
+INPUT_DOCUMENTS=${STORAGE_DATA}/examples/documents_with_disambiguated_entities.json
 CANDIDATE_ENTITIES=${STORAGE_DATA}/examples/candidate_entities.json
 
 # Output Path
 RESULTS_DIR=${STORAGE_RESULTS}
 MYPREFIX=example
+
+# Evaluation
+GOLD_DOCUMENTS=${STORAGE_DATA}/examples/documents_with_disambiguated_entities.json
 
 ######
 # Experiment execution
@@ -49,8 +52,10 @@ python run_ed_reranking.py \
     --method ${METHOD} \
     --config_path ${CONFIG_PATH} \
     --config_name ${CONFIG_NAME} \
-    --input_documents ${DOCUMENTS} \
+    --input_documents ${INPUT_DOCUMENTS} \
     --input_candidate_entities ${CANDIDATE_ENTITIES} \
     --results_dir ${RESULTS_DIR} \
-    --prefix ${MYPREFIX}
+    --prefix ${MYPREFIX} \
+    --do_evaluation \
+    --gold ${GOLD_DOCUMENTS}
 

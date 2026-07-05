@@ -144,13 +144,19 @@ def main(args):
         result_documents.append(result_document)
 
     # Save the results
-    output_documents_path = os.path.join(base_output_path, f"{base_filename}.ner.json")
+    output_documents_path = os.path.join(
+        base_output_path,
+        f"{base_filename}.pred.json"
+    )
     utils.write_json(output_documents_path, result_documents)
     logging.info(f"Saved the prediction results to {output_documents_path}")
 
     # Save the prompt-response pairs visually in plain text
     if "ner_prompt" in result_documents[0] and "ner_generated_text" in result_documents[0]:
-        output_text_path = os.path.join(base_output_path, f"{base_filename}.prompt_and_response.txt")
+        output_text_path = os.path.join(
+            base_output_path,
+            f"{base_filename}.prompt_and_response.txt"
+        )
         with open(output_text_path, "w") as f:
             for doc in result_documents:
                 doc_key = doc["doc_key"]
@@ -178,14 +184,15 @@ def main(args):
             pred_path=output_documents_path,
             gold_path=gold_documents_path,
         )
+        logging.info(utils.pretty_format_dict(scores))
 
         # Save the evaluation result
-        output_evaluation_path = os.path.join(base_output_path, f"{base_filename}.eval.json")
+        output_evaluation_path = os.path.join(
+            base_output_path,
+            f"{base_filename}.eval.json"
+        )
         utils.write_json(output_evaluation_path, scores)
         logging.info(f"Saved the evaluation results to {output_evaluation_path}")
-
-        # Log the evaluation result
-        logging.info(utils.pretty_format_dict(scores))
 
     ##################
     # Closing
@@ -215,6 +222,9 @@ if __name__ == "__main__":
     logging.basicConfig(
         format="%(asctime)s - %(levelname)s - %(name)s - %(message)s",
         level=logging.INFO
+    )
+    logging.getLogger("httpx").addFilter(
+        lambda r: "huggingface.co" not in r.getMessage()
     )
 
     parser = argparse.ArgumentParser()

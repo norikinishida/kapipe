@@ -6,6 +6,7 @@ import sys
 from tqdm import tqdm
 import transformers
 
+from kapipe import evaluation
 from kapipe import utils
 from kapipe.docre import ATLOP, LLMDocRE
 from kapipe.llms import HuggingFaceLLM, OpenAILLM
@@ -38,6 +39,10 @@ def main(args):
         prefix = utils.get_current_time()
         args.prefix = prefix
 
+    # Evaluation
+    do_evaluation = args.do_evaluation
+    gold_documents_path = args.gold
+
     ##################
     # Logging Setup
     ##################
@@ -52,9 +57,11 @@ def main(args):
     )
     utils.mkdir(base_output_path)
 
+    base_filename = os.path.splitext(os.path.basename(input_documents_path))[0]
+
     # Set logger
     set_logger(
-        os.path.join(base_output_path, "docre.log"),
+        os.path.join(base_output_path, f"{base_filename}.docre.log"),
         # overwrite=True
     )
 
@@ -140,9 +147,6 @@ def main(args):
 
     logging.info(f"Applying the DocRE component to {len(documents)} documents in {input_documents_path} ...")
 
-    # Create the full output path
-    output_documents_path = os.path.join(base_output_path, "documents.json")
-
     # Apply the DocRE component to the documents
     result_documents = []
     for document in tqdm(documents):
@@ -150,12 +154,13 @@ def main(args):
         result_documents.append(result_document)
 
     # Save the results
+    output_documents_path = os.path.join(base_output_path, f"{base_filename}.pred.json")
     utils.write_json(output_documents_path, result_documents)
     logging.info(f"Saved the prediction results to {output_documents_path}")
 
     # Save the prompt-response pairs visually in plain text
     if "docre_prompt" in result_documents[0] and "docre_generated_text" in result_documents[0]:
-        output_text_path = os.path.join(base_output_path, "prompt_and_response.txt")
+        output_text_path = os.path.join(base_output_path, f"{base_filename}.prompt_and_response.txt")
         with open(output_text_path, "w") as f:
             for doc in result_documents:
                 doc_key = doc["doc_key"]
@@ -168,6 +173,32 @@ def main(args):
                 f.write("GENERATED TEXT:\n")
                 f.write(generated_text + "\n\n")
                 f.flush()
+
+    ##################
+    # Evaluation
+    ##################
+
+    if do_evaluation:
+        # Require gold documents only when evaluation is requested
+        if gold_documents_path is None:
+            raise ValueError("--gold is required when --do_evaluation is set")
+
+        # Calculate standard DocRE scores
+        scores = evaluation.docre.fscore(
+            pred_path=output_documents_path,
+            gold_path=gold_documents_path,
+            skip_intra_inter=True,
+            skip_ign=True,
+        )
+        logging.info(utils.pretty_format_dict(scores))
+
+        # Save the evaluation scores
+        output_evaluation_path = os.path.join(
+            base_output_path,
+            f"{base_filename}.eval.json",
+        )
+        utils.write_json(output_evaluation_path, scores)
+        logging.info(f"Saved the evaluation results to {output_evaluation_path}")
 
     ##################
     # Closing
@@ -198,6 +229,9 @@ if __name__ == "__main__":
         format="%(asctime)s - %(levelname)s - %(name)s - %(message)s",
         level=logging.INFO
     )
+    logging.getLogger("httpx").addFilter(
+        lambda r: "huggingface.co" not in r.getMessage()
+    )
 
     parser = argparse.ArgumentParser()
 
@@ -212,6 +246,10 @@ if __name__ == "__main__":
     # Output Path
     parser.add_argument("--results_dir", type=str, required=True)
     parser.add_argument("--prefix", type=str, default=None)
+
+    # Evaluation
+    parser.add_argument("--do_evaluation", action="store_true")
+    parser.add_argument("--gold", type=str, default=None)
 
     args = parser.parse_args()
         

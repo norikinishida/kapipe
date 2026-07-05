@@ -104,8 +104,6 @@ def main(args):
 
     logging.info(f"Applying the ED-Retrieval component to {len(documents)} documents in {input_documents_path} ...")
 
-    # Create the full output path
-
     # Apply the ED-Retrieval component to the documents
     result_documents = []
     candidate_entities = []
@@ -118,10 +116,16 @@ def main(args):
         candidate_entities.append(candidate_entities_for_doc)
 
     # Save the results
-    output_documents_path = os.path.join(base_output_path, f"{base_filename}.ed_retrieval.json")
+    output_documents_path = os.path.join(
+        base_output_path,
+        f"{base_filename}.pred.json"
+    )
     utils.write_json(output_documents_path, result_documents)
 
-    output_candidates_path = os.path.join(base_output_path, f"{base_filename}.candidate_entities.json")
+    output_candidates_path = os.path.join(
+        base_output_path,
+        f"{base_filename}.pred_candidate_entities.json"
+    )
     utils.write_json(output_candidates_path, candidate_entities)
 
     logging.info(f"Saved the prediction results to {output_documents_path} and {output_candidates_path}")
@@ -135,32 +139,41 @@ def main(args):
         if gold_documents_path is None:
             raise ValueError("--gold is required when --do_evaluation is set")
 
+        # Load the gold documents to assign meta information for evaluation
+        gold_documents = utils.read_json(gold_documents_path)
+
+        # Read the entity dictionary from the instantiated reranker
+        kb_entity_ids = None
+        if hasattr(retriever, "entity_dict"):
+            # Use the entity dictionary bundled in the reranker component
+            kb_entity_ids = set(retriever.entity_dict.keys())
+
+        # Enable InKB evaluation only when the reranker exposes its entity dictionary
+        inkb = kb_entity_ids is not None
+
+        if kb_entity_ids is not None:
+            for gold_doc in gold_documents:
+                for gold_mention in gold_doc["mentions"]:
+                    # Mark whether the gold entity exists in the entity dictionary
+                    gold_mention["in_kb"] = (
+                        gold_mention["entity_id"] in kb_entity_ids
+                    )
+
         # Evaluate the prediction results
-        scores = evaluation.ed.accuracy(
-            pred_path=output_documents_path,
-            gold_path=gold_documents_path,
-            inkb=False,
-            skip_normalization=True
-        )
-        scores.update(evaluation.ed.fscore(
-            pred_path=output_documents_path,
-            gold_path=gold_documents_path,
-            inkb=False,
-            skip_normalization=True
-        ))
-        scores.update(evaluation.ed.recall_at_k(
+        scores = evaluation.ed.recall_at_k(
             pred_path=output_candidates_path,
-            gold_path=gold_documents_path,
-            inkb=False
-        ))
+            gold_path=gold_documents,
+            inkb=inkb
+        )
+        logging.info(utils.pretty_format_dict(scores))
  
         # Save the evaluation result
-        output_evaluation_path = os.path.join(base_output_path, f"{base_filename}.eval.json")
+        output_evaluation_path = os.path.join(
+            base_output_path,
+            f"{base_filename}.eval.json"
+        )
         utils.write_json(output_evaluation_path, scores)
         logging.info(f"Saved the evaluation results to {output_evaluation_path}")
-
-        # Log the evaluation result
-        logging.info(utils.pretty_format_dict(scores))
 
     ##################
     # Closing
@@ -190,6 +203,9 @@ if __name__ == "__main__":
     logging.basicConfig(
         format="%(asctime)s - %(levelname)s - %(name)s - %(message)s",
         level=logging.INFO
+    )
+    logging.getLogger("httpx").addFilter(
+        lambda r: "huggingface.co" not in r.getMessage()
     )
 
     parser = argparse.ArgumentParser()

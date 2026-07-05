@@ -33,9 +33,9 @@ fi
 # (In practice, use separate files for training, validation, and test data.
 # This example checks whether the model can achieve near 100% accuracy (i.e., overfit) on the training data.)
 DATASET_NAME=cdr
-TRAIN_DOCUMENTS=${STORAGE_DATA}/examples/documents_with_supervision.json
-DEV_DOCUMENTS=${STORAGE_DATA}/examples/documents_with_supervision.json
-TEST_DOCUMENTS=${STORAGE_DATA}/examples/documents_with_supervision.json
+TRAIN_DOCUMENTS=${STORAGE_DATA}/examples/documents_with_triples.json
+DEV_DOCUMENTS=${STORAGE_DATA}/examples/documents_with_triples.json
+TEST_DOCUMENTS=${STORAGE_DATA}/examples/documents_with_triples.json
 #
 ENTITY_DICT=${STORAGE_DATA}/examples/entity_dict.json
 #

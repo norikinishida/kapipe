@@ -27,17 +27,17 @@ Each mention contains the following fields.
 
 ```json
 {
-    "doc_key": "6794356",
+    "doc_key": "8800187",
     "sentences": [
-        "Tricuspid valve regurgitation and lithium carbonate toxicity in a newborn infant .",
+        "Effect of calcium chloride and 4 - aminopyridine therapy on desipramine toxicity in rats .",
         ...
     ],
     "mentions": [
         {
-            "span": [0, 2],
-            "name": "Tricuspid valve regurgitation",
-            "entity_type": "Disease",
-            "entity_id": "D014262"
+            "span": [2, 3],
+            "name": "calcium chloride",
+            "entity_type": "Chemical",
+            "entity_id": "D002122"
         },
         ...
     ]
@@ -63,18 +63,18 @@ Each candidate entity contains the following fields.
 
 ```json
 {
-    "doc_key": "6794356",
+    "doc_key": "8800187",
     "candidate_entities": [
         [
             {
-                "entity_id": "D014262",
-                "canonical_name": "Tricuspid Valve Insufficiency",
-                "score": 0.0017849934520199895
+                "entity_id": "D002122",
+                "canonical_name": "Calcium Chloride",
+                "score": 0.0017943419516086578
             },
             {
-                "entity_id": "D014264",
-                "canonical_name": "Tricuspid Valve Stenosis",
-                "score": 0.0017764709191396832
+                "entity_id": "D002118",
+                "canonical_name": "Calcium",
+                "score": 0.0017746267840266228
             },
             ...
         ],
@@ -112,34 +112,37 @@ Each entity contains the following fields.
 
 ```json
 {
-    "doc_key": "6794356",
+    "doc_key": "8800187",
     "sentences": [
-        "Tricuspid valve regurgitation and lithium carbonate toxicity in a newborn infant .",
+        "Effect of calcium chloride and 4 - aminopyridine therapy on desipramine toxicity in rats .",
         ...
     ],
     "mentions": [
         {
-            "span": [0, 2],
-            "name": "Tricuspid valve regurgitation",
-            "entity_type": "Disease",
-            "entity_id": "D014262"
+            "span": [2, 3],
+            "name": "calcium chloride",
+            "entity_type": "Chemical",
+            "entity_id": "D002122"
         },
         ...
     ],
     "entities": [
         {
-            "mention_indices": [0, 3, 7],
+            "mention_indices": [0, 11, 16, 22, 26, 27, 30],
             "mention_names": [
-                "Tricuspid valve regurgitation",
-                "tricuspid regurgitation",
-                "tricuspid regurgitation"
+                "calcium chloride",
+                "CaCl2",
+                "CaCl2",
+                "CaCl2",
+                "CaCl2",
+                "CaCl2",
+                "CaCl2"
             ],
-            "entity_type": "Disease",
-            "entity_id": "D014262"
+            "entity_type": "Chemical",
+            "entity_id": "D002122"
         },
         ...
-    ],
- 
+    ]
 }
 ```
 
@@ -210,7 +213,7 @@ from kapipe.ed_reranking import LLMED
 from kapipe.llms import OpenAILLM
 model = OpenAILLM(
     model_name="gpt-5.4-nano",
-    max_new_tokens=1024,
+    max_new_tokens=8192,
 )
 # HuggingFace LLM
 from kapipe.llms import HuggingFaceLLM

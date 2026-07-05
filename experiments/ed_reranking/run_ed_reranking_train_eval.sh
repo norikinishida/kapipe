@@ -32,9 +32,9 @@ fi
 # Input Data
 # (In practice, use separate files for training, validation, and test data.
 # This example checks whether the model can achieve near 100% accuracy (i.e., overfit) on the training data.)
-TRAIN_DOCUMENTS=${STORAGE_DATA}/examples/documents_with_supervision.json
-DEV_DOCUMENTS=${STORAGE_DATA}/examples/documents_with_supervision.json
-TEST_DOCUMENTS=${STORAGE_DATA}/examples/documents_with_supervision.json
+TRAIN_DOCUMENTS=${STORAGE_DATA}/examples/documents_with_disambiguated_entities.json
+DEV_DOCUMENTS=${STORAGE_DATA}/examples/documents_with_disambiguated_entities.json
+TEST_DOCUMENTS=${STORAGE_DATA}/examples/documents_with_disambiguated_entities.json
 # For the sake of example, we use candidate entities and entity dictionary under `data/examples/`, but in actual experiments, please use the results (candidate entities and entity dictionary) produced by ED-Retrieval.
 CANDIDATE_ENTITIES_ROOT=${STORAGE_DATA}/examples
 TRAIN_CANDIDATE_ENTITIES=${CANDIDATE_ENTITIES_ROOT}/candidate_entities.json

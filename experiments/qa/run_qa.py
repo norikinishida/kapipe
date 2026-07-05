@@ -135,13 +135,19 @@ def main(args):
         result_questions.append(result_question)
 
     # Save the QA results
-    output_questions_path = os.path.join(base_output_path, f"{base_filename}.pred.json")
+    output_questions_path = os.path.join(
+        base_output_path,
+        f"{base_filename}.pred.json"
+    )
     utils.write_json(output_questions_path, result_questions)
     logging.info(f"Saved the prediction results to {output_questions_path}")
 
     # Save the prompt-response pairs in plain text
     if "qa_prompt" in result_questions[0] and "qa_generated_text" in result_questions[0]:
-        output_text_path = os.path.join(base_output_path, "prompt_and_response.txt")
+        output_text_path = os.path.join(
+            base_output_path,
+            f"{base_filename}.prompt_and_response.txt"
+        )
         with open(output_text_path, "w") as f:
             for q in result_questions:
                 question_key = q["question_key"]
@@ -169,22 +175,30 @@ def main(args):
             pred_path=output_questions_path,
             gold_path=gold_questions_path,
             exact_match=False,
-        ) | evaluation.qa.token_level_f1(
-            pred_path=output_questions_path,
-            gold_path=gold_questions_path
-        ) | evaluation.qa.recall(
-            pred_path=output_questions_path,
-            gold_path=gold_questions_path,
-            exact_match=False,
         )
+        scores.update(
+            evaluation.qa.token_level_f1(
+                pred_path=output_questions_path,
+                gold_path=gold_questions_path
+            )
+        )
+        scores.update(
+            evaluation.qa.recall(
+                pred_path=output_questions_path,
+                gold_path=gold_questions_path,
+                exact_match=False,
+            )
+        )
+        logging.info(utils.pretty_format_dict(scores))
 
         # Save the evaluation result
-        output_evaluation_path = os.path.join(base_output_path, f"{base_filename}.eval.json")
+        output_evaluation_path = os.path.join(
+            base_output_path,
+            f"{base_filename}.eval.json"
+        )
         utils.write_json(output_evaluation_path, scores)
         logging.info(f"Saved the evaluation results to {output_evaluation_path}")
 
-        # Log the evaluation result
-        logging.info(utils.pretty_format_dict(scores))
 
     ##################
     # Closing

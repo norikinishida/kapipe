@@ -67,7 +67,6 @@ Each entity contains the following fields.
 | `entity_id` | `str` | Concept ID |
 
 ```json
-
 {
     "doc_key": "8800187",
     "sentences": [
@@ -122,18 +121,18 @@ Each candidate entity contains the following fields.
 
 ```json
 {
-    "doc_key": "6794356",
+    "doc_key": "8800187",
     "candidate_entities": [
         [
             {
-                "entity_id": "D014262",
-                "canonical_name": "Tricuspid Valve Insufficiency",
-                "score": 0.0017849934520199895
+                "entity_id": "D002122",
+                "canonical_name": "Calcium Chloride",
+                "score": 0.0017943419516086578
             },
             {
-                "entity_id": "D014264",
-                "canonical_name": "Tricuspid Valve Stenosis",
-                "score": 0.0017764709191396832
+                "entity_id": "D002118",
+                "canonical_name": "Calcium",
+                "score": 0.0017746267840266228
             },
             ...
         ],
