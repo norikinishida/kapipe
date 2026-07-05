@@ -244,7 +244,7 @@ def instantiate_passage_retrieval_component(
     passage_retrieval_config: dict[str, Any],
 ) -> BasePassageRetriever:
 
-    # Instantiate the BM25 retriever
+    # Instantiate the BM25-based Passage Retrieval component
     if passage_retrieval_config["method_name"] == "bm25":
         passage_retrieval = BM25(
             tokenizer=lambda text: text.lower().split(),
@@ -252,7 +252,7 @@ def instantiate_passage_retrieval_component(
             b=passage_retrieval_config["b"],
         )
 
-    # Instantiate the Contriever retriever
+    # Instantiate the Contriever-based Passage Retrieval component
     elif passage_retrieval_config["method_name"] == "contriever":
         passage_retrieval = Contriever(
             model_name=passage_retrieval_config["model_name"],
@@ -262,7 +262,7 @@ def instantiate_passage_retrieval_component(
             metric=passage_retrieval_config["metric"],
         )
 
-    # Instantiate the Qwen3-Embedding retriever
+    # Instantiate the Qwen3-Embedding-based Passage Retrieval component
     elif passage_retrieval_config["method_name"] == "qwen3_embedding":
         passage_retrieval = Qwen3Embedding(
             model_name=passage_retrieval_config["model_name"],
@@ -303,7 +303,7 @@ def instantiate_llm(
     config: dict[str, Any],
 ) -> BaseLLM:
 
-    # Instantiate the LLM
+    # Instantiate the LLM wrapper
     if config["llm_provider"] == "openai":
         llm = OpenAILLM(
             model_name=config["llm_model_name"],

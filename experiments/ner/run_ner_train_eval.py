@@ -173,18 +173,19 @@ def main(args):
     # Save the experiment configuration to the output path
     utils.write_json(os.path.join(base_output_path, "config.json"), config)
 
+    # Instantiate the NER component
     if method_name == "biaffine_ner":
         # Instantiate the trainer (evaluator)
         trainer = BiaffineNERTrainer(base_output_path=base_output_path)
 
         if actiontype == "train":
-            # Instantiate the NER component
+            # Instantiate the Biaffine NER component
             extractor = BiaffineNER(
                 **config,
                 vocab_etype=vocab_etype
             )
         else: 
-            # Load the NER component
+            # Load the Biaffine NER component from the snapshot
             extractor = BiaffineNER.from_snapshot(
                 snapshot_path=trainer.paths["snapshot_path"]
             )
@@ -195,7 +196,7 @@ def main(args):
         # Instantiate the trainer (evaluator)
         trainer = LLMNERTrainer(base_output_path=base_output_path)
 
-        # Instantiate the LLM
+        # Instantiate the LLM wrapper
         if config["provider"] == "openai":
             model = OpenAILLM(
                 model_name=config["model_name"],
@@ -210,7 +211,7 @@ def main(args):
         else:
             raise ValueError(f"Unknown LLM provider: {config['provider']}")
 
-        # Instantiate the NER component
+        # Instantiate the LLM-based NER component
         extractor = LLMNER(
             model=model,
             **config,

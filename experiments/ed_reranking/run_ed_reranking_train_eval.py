@@ -147,13 +147,13 @@ def main(args):
         trainer = BlinkCrossEncoderTrainer(base_output_path=base_output_path)
 
         if actiontype == "train":
-            # Instantiate the Blink Bi-Encoder reranker
+            # Instantiate the Blink Bi-Encoder ED-Reranking component
             reranker = BlinkCrossEncoder(
                 **config,
                 entity_dict_path=entity_dict_path
             )
         else:
-            # Load the Blink Bi-Encoder reranker from the snapshot
+            # Load the Blink Bi-Encoder ED-Reranking component from the snapshot
             reranker = BlinkCrossEncoder.from_snapshot(
                 snapshot_path=trainer.paths["snapshot_path"]
             )
@@ -179,7 +179,7 @@ def main(args):
         else:
             raise ValueError(f"Unknown LLM provider: {config['provider']}")
 
-        # Instantiate the LLM-based ED reranker
+        # Instantiate the LLM-based ED-Reranking component
         reranker = LLMED(
             model=model,
             **config,

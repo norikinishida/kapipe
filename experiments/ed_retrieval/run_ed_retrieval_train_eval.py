@@ -122,13 +122,13 @@ def main(args):
         )
 
         if actiontype == "train":
-            # Instantiate the BLINK Bi-Encoder retriever
+            # Instantiate the BLINK Bi-Encoder ED-Retrieval component
             retriever = BlinkBiEncoder(
                 **config,
                 entity_dict_path=entity_dict_path
             )
         else:
-            # Load the BLINK Bi-Encoder retriever from the snapshot
+            # Load the BLINK Bi-Encoder ED-Retrieval component from the snapshot
             retriever = BlinkBiEncoder.from_snapshot(
                 snapshot_path=trainer.paths["snapshot_path"]
             )

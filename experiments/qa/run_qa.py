@@ -109,7 +109,7 @@ def main(args):
             raise ValueError(f"Unknown LLM provider: {config['provider']}")
         logging.info("Instantiated the LLM model: %s" % repr(model))
 
-        # Instantiate the LLM-based answerer
+        # Instantiate the LLM-based QA component
         answerer = LLMQA(
             model=model,
             prompt_template_name_or_path=config["prompt_template_name_or_path"],
@@ -181,10 +181,10 @@ def main(args):
         # Save the evaluation result
         output_evaluation_path = os.path.join(base_output_path, f"{base_filename}.eval.json")
         utils.write_json(output_evaluation_path, scores)
+        logging.info(f"Saved the evaluation results to {output_evaluation_path}")
 
         # Log the evaluation result
         logging.info(utils.pretty_format_dict(scores))
-        logging.info(f"Saved the evaluation results to {output_evaluation_path}")
 
     ##################
     # Closing

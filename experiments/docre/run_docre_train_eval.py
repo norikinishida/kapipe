@@ -203,13 +203,13 @@ def main(args):
         trainer = ATLOPTrainer(base_output_path=base_output_path)
 
         if actiontype == "train":
-            # Instantiate the ATLOP extractor
+            # Instantiate the ATLOP-based DocRE component
             extractor = ATLOP(
                 **config,
                 vocab_relation=vocab_relation
             )
         else:
-            # Load the ATLOP extractor from the snapshot
+            # Load the ATLOP-based DocRE component from the snapshot
             extractor = ATLOP.from_snapshot(
                 snapshot_path=trainer.paths["snapshot_path"]
             )
@@ -235,7 +235,7 @@ def main(args):
         else:
             raise ValueError(f"Unknown LLM provider: {config['provider']}")
 
-        # Instantiate the LLM-based NER extractor
+        # Instantiate the LLM-based NER component
         extractor = LLMDocRE(
             model=model,
             **config,

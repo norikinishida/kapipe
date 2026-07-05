@@ -86,11 +86,9 @@ def main(args: argparse.Namespace) -> None:
 
     # Input Data
     input_documents_path = args.input_documents
-    input_passages_path = args.input_passages
-    input_questions_path = args.input_questions
-    documents_with_triples_path = args.documents_with_triples
     entity_dict_path = args.entity_dict
     additional_triples_path = args.additional_triples
+    input_questions_path = args.input_questions
 
     # Output Path
     results_dir = args.results_dir
@@ -101,7 +99,6 @@ def main(args: argparse.Namespace) -> None:
 
     # Action
     actiontype = args.actiontype
-    use_community_reports = args.use_community_reports
 
     # Evaluation
     do_evaluation = args.do_evaluation
@@ -134,6 +131,12 @@ def main(args: argparse.Namespace) -> None:
     # Show arguments
     logging.info(utils.pretty_format_dict(vars(args)))
     logging.info(f"index dir: {index_dir}")
+
+    ##################
+    # Data
+    ##################
+
+    # Data are loaded in the corresponding actiontype section below
 
     ##################
     # Method Instantiation
@@ -182,21 +185,21 @@ def main(args: argparse.Namespace) -> None:
 
     # Instantiate the Entity Graph Construction component
     entity_graph_construction = None
-    if actiontype == "construct_graph":
+    if actiontype == "entity_graph_construction":
         entity_graph_construction = instantiate_entity_graph_construction_component(
             entity_graph_construction_config=config["entity_graph_construction"],
         )
 
     # Instantiate the Community Clustering component
     community_clustering = None
-    if actiontype == "cluster_communities":
+    if actiontype == "community_clustering":
         community_clustering = instantiate_community_clustering_component(
             community_clustering_config=config["community_clustering"],
         )
 
     # Instantiate the Report Generation component
     report_generation = None
-    if actiontype == "generate_reports":
+    if actiontype == "report_generation":
         report_generation, loaded_llm_map = instantiate_report_generation_component(
             report_generation_config=config["report_generation"],
             loaded_llm_map=loaded_llm_map,
@@ -204,8 +207,8 @@ def main(args: argparse.Namespace) -> None:
 
     # Instantiate the Chunking component
     chunker = None
-    if actiontype == "chunk_passages":
-        chunker = instantiate_chunker_component(
+    if actiontype == "chunking":
+        chunker = instantiate_chunking_component(
             chunking_config=config["chunking"],
         )
 
@@ -242,8 +245,10 @@ def main(args: argparse.Namespace) -> None:
     # Method Execution
     ##################
 
-    if actiontype == "extract_triples":
+    if actiontype == "triple_extraction":
         # Load documents
+        if input_documents_path is None:
+            raise ValueError("--input_documents is required for triple_extraction")
         documents = utils.read_json(input_documents_path)
 
         logging.info(f"Extracting triples from {len(documents)} documents in {input_documents_path} ...")
@@ -255,30 +260,24 @@ def main(args: argparse.Namespace) -> None:
             index_dir=index_dir,
         )
 
-    elif actiontype == "construct_graph":
-        # Set the default documents-with-triples path
-        if documents_with_triples_path is None:
-            documents_with_triples_path = os.path.join(
-                index_dir,
-                "documents_with_triples.json",
-            )
-
-        # Use the documents-with-triples path if it exists
-        documents_path_list = None
-        if os.path.exists(documents_with_triples_path):
-            documents_path_list = [documents_with_triples_path]
+    elif actiontype == "entity_graph_construction":
+        # Set the path to the documents with triples
+        documents_with_triples_path = os.path.join(
+            index_dir, "documents_with_triples.json"
+            
+        )
 
         logging.info("Constructing an entity graph ...")
 
         # Construct the entity graph
         graphrag.construct_entity_graph(
-            documents_path_list=documents_path_list,
+            documents_path_list=[documents_with_triples_path],
             entity_dict_path=entity_dict_path,
             additional_triples_path=additional_triples_path,
             index_dir=index_dir,
         )
 
-    elif actiontype == "cluster_communities":
+    elif actiontype == "community_clustering":
         # Load the entity graph
         graph = graphrag.load_entity_graph(index_dir=index_dir)
 
@@ -290,7 +289,7 @@ def main(args: argparse.Namespace) -> None:
             index_dir=index_dir,
         )
 
-    elif actiontype == "generate_reports":
+    elif actiontype == "report_generation":
         # Load the entity graph
         graph = graphrag.load_entity_graph(index_dir=index_dir)
 
@@ -303,44 +302,41 @@ def main(args: argparse.Namespace) -> None:
         graphrag.generate_community_reports(
             graph=graph,
             communities=communities,
-            index_dir=index_dir,
             node_attr_keys=tuple(config["report_generation"]["node_attr_keys"]),
             edge_attr_keys=tuple(config["report_generation"]["edge_attr_keys"]),
+            index_dir=index_dir,
         )
 
-    elif actiontype == "chunk_passages":
-        # Load passages
-        passages = read_json_or_jsonl(input_passages_path)
+    elif actiontype == "chunking":
+        # Load community reports
+        reports = graphrag.load_community_reports(index_dir=index_dir)
 
-        logging.info(f"Chunking {len(passages)} passages in {input_passages_path} ...")
+        logging.info(f"Chunking {len(reports)} reports ...")
 
-        # Chunk passages
-        graphrag.chunk_passages(
-            passages=passages,
+        # Chunk reports
+        graphrag.chunk_reports(
+            reports=reports,
             window_size=config["chunking"]["window_size"],
             index_dir=index_dir,
         )
 
-    elif actiontype == "make_index":
-        # Load passage chunks
-        passages = graphrag.load_passages(index_dir=index_dir)
+    elif actiontype == "retrieval_indexing":
+        # Load chunked reports
+        chunked_reports = graphrag.load_chunked_reports(index_dir=index_dir)
 
-        # Add community reports to the passages
-        if use_community_reports:
-            reports = graphrag.load_community_reports(index_dir=index_dir)
-            passages = reports + passages
+        logging.info(f"Indexing {len(chunked_reports)} chunked reports ...")
 
-        logging.info(f"Indexing {len(passages)} passages ...")
-
-        # Build the passage retrieval index
+        # Build the retrieval index
         graphrag.make_passage_retrieval_index(
-            passages=passages,
-            index_dir=index_dir,
+            chunked_reports=chunked_reports,
             batch_size=config["passage_retrieval"]["indexing_batch_size"],
+            index_dir=index_dir,
         )
 
     elif actiontype == "inference":
         # Load questions
+        if input_questions_path is None:
+            raise ValueError("--input_questions is required for inference")
         questions = utils.read_json(input_questions_path)
 
         logging.info(f"Applying the GraphRAG pipeline to {len(questions)} questions in {input_questions_path} ...")
@@ -372,7 +368,7 @@ def main(args: argparse.Namespace) -> None:
         if do_evaluation:
             # Require gold answers only when evaluation is requested
             if gold_questions_path is None:
-                raise ValueError("--gold_questions is required when --do_evaluation is set")
+                raise ValueError("--gold is required when --do_evaluation is set")
 
             # Evaluate the prediction results
             qa_scores = evaluation.qa.accuracy(
@@ -433,24 +429,21 @@ def instantiate_ner_component(
     loaded_llm_map: dict[str, BaseLLM] | None,
 ) -> tuple[BaseNER, dict[str, BaseLLM]]:
 
-    # Initialize the loaded LLM map if this function is called first
-    if loaded_llm_map is None:
-        loaded_llm_map = {}
-
-    # Initialize the NER component
+    # Instantiate the NER component
     if ner_config["method_name"] == "biaffine_ner":
+        # Load the Biaffine NER component
         ner = BiaffineNER.from_identifier(
             identifier=ner_config["identifier"]
         )
     elif ner_config["method_name"] == "llm_ner":
-        # Instantiate or reuse the LLM
+        # Instantiate the LLM wrapper
         llm, loaded_llm_map = instantiate_llm(
             config=ner_config,
             loaded_llm_map=loaded_llm_map
         )
 
         if "identifier" in ner_config:
-            # Load the component from the public snapshot via the identifier
+            # Load the LLM-based NER component from the public snapshot
             ner = LLMNER.from_identifier(
                 model=llm,
                 identifier=ner_config["identifier"],
@@ -464,7 +457,7 @@ def instantiate_ner_component(
             }
             etype_meta_info: dict[str, dict[str, str]] = ner_config["etype_meta_info"]
 
-            # Initialize the component based on the user-defined schema
+            # Instantiate the LLM-based NER component with the user-defined schema 
             ner = LLMNER(
                 model=llm,
                 prompt_template_name_or_path=ner_config["prompt_template_name_or_path"],
@@ -483,16 +476,14 @@ def instantiate_ed_retrieval_component(
     loaded_llm_map: dict[str, BaseLLM] | None,
 ) -> tuple[BaseEDRetriever, dict[str, BaseLLM]]:
 
-    # Initialize the loaded LLM map if this function is called first
-    if loaded_llm_map is None:
-        loaded_llm_map = {}
-
-    # Initialize the ED-Retrieval component.
-    # Also, build the index.
+    # Instantiate the ED-Retrieval component.
+    # Also, re-build the index over entities.
     if ed_retrieval_config["method_name"] == "mention_name_entity_retriever":
+        # Instantiate the ED-Retrieval component using simple mention-name assignment
         ed_retrieval = MentionNameEntityRetriever()
         ed_retrieval.make_index()
     elif ed_retrieval_config["method_name"] == "blink_bi_encoder":
+        # Instantiate the BLINK Bi-Encoder ED-Retrieval component 
         ed_retrieval = BlinkBiEncoder.from_identifier(
             identifier=ed_retrieval_config["identifier"]
         )
@@ -510,22 +501,23 @@ def instantiate_ed_reranking_component(
     loaded_llm_map: dict[str, BaseLLM] | None,
 ) -> tuple[BaseEDReranker, dict[str, BaseLLM]]:
 
-    # Initialize the loaded LLM map if this function is called first
-    if loaded_llm_map is None:
-        loaded_llm_map = {}
-
-    # Initialize the ED-Reranking component
+    # Instantiate the ED-Reranking component
     if ed_reranking_config["method_name"] == "identical_entity_reranker":
+        # Instantiate the ED-Reranking component using identical function
         ed_reranking = IdenticalEntityReranker()
     elif ed_reranking_config["method_name"] == "blink_cross_encoder":
+        # Load the BLINK Cross-Encoder ED-Reranking component from the public snapshot
         ed_reranking = BlinkCrossEncoder.from_identifier(
             identifier=ed_reranking_config["identifier"]
         )
     elif ed_reranking_config["method_name"] == "llm_ed":
+        # Instantiate the LLM wrapper
         llm, loaded_llm_map = instantiate_llm(
             config=ed_reranking_config,
             loaded_llm_map=loaded_llm_map
         )
+
+        # Load the LLM-based ED-Reranking component from the public snapshot
         ed_reranking = LLMED.from_identifier(
             model=llm,
             identifier=ed_reranking_config["identifier"],
@@ -543,24 +535,21 @@ def instantiate_docre_component(
     loaded_llm_map: dict[str, BaseLLM] | None,
 ) -> tuple[BaseDocRE, dict[str, BaseLLM]]:
 
-    # Initialize the loaded LLM map if this function is called first
-    if loaded_llm_map is None:
-        loaded_llm_map = {}
-
-    # Initialize the DocRE component
+    # Instantiate the DocRE component
     if docre_config["method_name"] == "atlop":
+        # Load the ATLOP-based DocRE component from the public snapshot
         docre = ATLOP.from_identifier(
             identifier=docre_config["identifier"]
         )
     elif docre_config["method_name"] == "llm_docre":
-        # Instantiate or reuse the LLM
+        # Instantiate the LLM wrapper
         llm, loaded_llm_map = instantiate_llm(
             config=docre_config,
             loaded_llm_map=loaded_llm_map
         )
 
         if "identifier" in docre_config:
-            # Load the component from the public snapshot via the identifier
+            # Load the LLM-based DocRE component from the public snapshot
             docre = LLMDocRE.from_identifier(
                 model=llm,
                 identifier=docre_config["identifier"],
@@ -575,15 +564,14 @@ def instantiate_docre_component(
                 for rel_i, rel in enumerate(docre_config["relations"])
             }
             rel_meta_info: dict[str, dict[str, str]] = docre_config["rel_meta_info"]
+            entity_dict_path = docre_config.get("entity_dict_path", None)
 
-            entity_dict_path = None
-            if "entity_dict_path" in docre_config:
-                entity_dict_path = docre_config["entity_dict_path"]
-
-            # Initialize the component based on the user-defined schema
+            # Instantiate the LLM-based DocRE component with the user-defined schema
             docre = LLMDocRE(
                 model=llm,
-                prompt_template_name_or_path=docre_config["prompt_template_name_or_path"],
+                prompt_template_name_or_path=(
+                    docre_config["prompt_template_name_or_path"]
+                ),
                 knowledge_base_name=docre_config["knowledge_base_name"],
                 mention_style=docre_config["mention_style"],
                 with_span_annotation=docre_config["with_span_annotation"],
@@ -603,11 +591,15 @@ def instantiate_entity_graph_construction_component(
     entity_graph_construction_config: dict[str, Any],
 ) -> BaseEntityGraphConstructor:
 
-    # Initialize the entity graph construction component
+    # Instantiate the Entity Graph Construction component
     if entity_graph_construction_config["method_name"] == "entity_graph_constructor":
         entity_graph_construction = EntityGraphConstructor(
-            missing_entity_policy=entity_graph_construction_config["missing_entity_policy"],
-            missing_entity_description=entity_graph_construction_config["missing_entity_description"],
+            missing_entity_policy=(
+                entity_graph_construction_config["missing_entity_policy"]
+            ),
+            missing_entity_description=(
+                entity_graph_construction_config["missing_entity_description"]
+            ),
         )
     else:
         raise ValueError(
@@ -621,7 +613,7 @@ def instantiate_community_clustering_component(
     community_clustering_config: dict[str, Any],
 ) -> BaseCommunityClusterer:
 
-    # Initialize the community clustering component
+    # Instantiate the Community Clustering component
     if community_clustering_config["method_name"] == "hierarchical_leiden":
         community_clustering = HierarchicalLeiden(
             max_cluster_size=community_clustering_config["max_cluster_size"],
@@ -646,26 +638,25 @@ def instantiate_report_generation_component(
     loaded_llm_map: dict[str, BaseLLM] | None,
 ) -> tuple[BaseReportGenerator, dict[str, BaseLLM]]:
 
-    # Initialize the loaded LLM map if this function is called first
-    if loaded_llm_map is None:
-        loaded_llm_map = {}
-
-    # Initialize the report generation component
+    # Instantiate the Report Generation component
     if report_generation_config["method_name"] == "template_based_report_generator":
+        # Instantiate the template-based Report Generation component
         report_generation = TemplateBasedReportGenerator(
             relation_map=report_generation_config["relation_map"],
         )
     elif report_generation_config["method_name"] == "llm_based_report_generator":
-        # Instantiate or reuse the LLM
+        # Instantiate the LLM wrapper
         llm, loaded_llm_map = instantiate_llm(
             config=report_generation_config,
             loaded_llm_map=loaded_llm_map,
         )
 
-        # Initialize the LLM-based report generation component
+        # Instantiate the LLM-based Report Generation component
         report_generation = LLMBasedReportGenerator(
             model=llm,
-            prompt_template_name_or_path=report_generation_config["prompt_template_name_or_path"],
+            prompt_template_name_or_path=(
+                report_generation_config["prompt_template_name_or_path"]
+            ),
             relation_map=report_generation_config["relation_map"],
         )
     else:
@@ -676,16 +667,15 @@ def instantiate_report_generation_component(
     return report_generation, loaded_llm_map
 
 
-def instantiate_chunker_component(
+def instantiate_chunking_component(
     chunking_config: dict[str, Any],
 ) -> BaseChunker:
 
-    # Initialize the chunker component
+    # Instantiate the Chunking component
     if chunking_config["method_name"] == "chunker":
         model_name = None
         if "model_name" in chunking_config:
             model_name = chunking_config["model_name"]
-
         chunker = Chunker(
             model_name=model_name,
         )
@@ -699,7 +689,7 @@ def instantiate_passage_retrieval_component(
     passage_retrieval_config: dict[str, Any],
 ) -> BasePassageRetriever:
 
-    # Instantiate the BM25 retriever
+    # Instantiate the BM25-based Passage Retrieval component
     if passage_retrieval_config["method_name"] == "bm25":
         passage_retrieval = BM25(
             tokenizer=lambda text: text.lower().split(),
@@ -707,7 +697,7 @@ def instantiate_passage_retrieval_component(
             b=passage_retrieval_config["b"],
         )
 
-    # Instantiate the Contriever retriever
+    # Instantiate the Contriever-based Passage Retrieval component
     elif passage_retrieval_config["method_name"] == "contriever":
         passage_retrieval = Contriever(
             model_name=passage_retrieval_config["model_name"],
@@ -717,7 +707,7 @@ def instantiate_passage_retrieval_component(
             metric=passage_retrieval_config["metric"],
         )
 
-    # Instantiate the Qwen3-Embedding retriever
+    # Instantiate the Qwen3-Embedding-based Passage Retrieval component
     elif passage_retrieval_config["method_name"] == "qwen3_embedding":
         passage_retrieval = Qwen3Embedding(
             model_name=passage_retrieval_config["model_name"],
@@ -740,17 +730,15 @@ def instantiate_qa_component(
     loaded_llm_map: dict[str, BaseLLM] | None,
 ) -> tuple[BaseQA, dict[str, BaseLLM]]:
 
-    # Initialize the loaded LLM map if this function is called first
-    if loaded_llm_map is None:
-        loaded_llm_map = {}
-
-    # Instantiate the LLM-based QA component
+    # Instantiate the QA component
     if qa_config["method_name"] == "llm_qa":
+        # Instantiate the LLM wrapper
         llm, loaded_llm_map = instantiate_llm(
             config=qa_config,
             loaded_llm_map=loaded_llm_map,
         )
 
+        # Instantiate the LLM-based QA component
         qa = LLMQA(
             model=llm,
             prompt_template_name_or_path=qa_config["prompt_template_name_or_path"],
@@ -782,7 +770,7 @@ def instantiate_llm(
     if key in loaded_llm_map:
         return loaded_llm_map[key], loaded_llm_map
 
-    # Instantiate the LLM
+    # Instantiate the LLM wrapper
     if config["llm_provider"] == "openai":
         llm = OpenAILLM(
             model_name=config["llm_model_name"],
@@ -803,24 +791,6 @@ def instantiate_llm(
     return llm, loaded_llm_map
 
 
-def read_json_or_jsonl(
-    path: str,
-) -> list[dict[str, Any]]:
-
-    # Load JSONL records
-    if path.endswith(".jsonl"):
-        records = []
-        for line in open(path):
-            record = json.loads(line.strip())
-            records.append(record)
-        return records
-
-    # Load JSON records
-    records = utils.read_json(path)
-
-    return records
-
-
 if __name__ == "__main__":
     logging.basicConfig(
         format="%(asctime)s - %(levelname)s - %(name)s - %(message)s",
@@ -836,11 +806,9 @@ if __name__ == "__main__":
 
     # Input Data
     parser.add_argument("--input_documents", type=str, default=None)
-    parser.add_argument("--input_passages", type=str, default=None)
-    parser.add_argument("--input_questions", type=str, default=None)
-    parser.add_argument("--documents_with_triples", type=str, default=None)
     parser.add_argument("--entity_dict", type=str, default=None)
     parser.add_argument("--additional_triples", type=str, default=None)
+    parser.add_argument("--input_questions", type=str, default=None)
 
     # Output Path
     parser.add_argument("--results_dir", type=str, required=True)

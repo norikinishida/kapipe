@@ -3,7 +3,6 @@ from __future__ import annotations
 from collections import OrderedDict
 import datetime
 from importlib.resources import files, as_file
-import io
 import json
 import logging
 import os
@@ -37,23 +36,45 @@ def read_lines(path: str, encoding: str = "utf-8") -> list[str]:
     return lines
 
 
-def read_json(path: str, encoding: str | None = None) -> dict[Any, Any]:
+def read_json(path: str, encoding: str | None = None) -> dict[str, Any]:
     """Read a JSON file."""
-    if encoding is None:
-        with open(path) as f:
-            obj = json.load(f)
-    else:
-        with io.open(path, "rt", encoding=encoding) as f:
-            line = f.read()
-            obj = json.loads(line)
+
+    with open(path, encoding=encoding) as f:
+        obj = json.load(f)
+
     return obj
 
 
 def write_json(path: str, obj: Any, ensure_ascii: bool = True) -> None:
     """Write a JSON-compatible object."""
 
-    with open(path, "w") as f:
+    with open(path, "w", encoding="utf-8") as f:
         json.dump(obj, f, ensure_ascii=ensure_ascii, indent=4)
+
+
+def read_jsonl(path: str, encoding: str | None = None) -> list[dict[str, Any]]:
+    """Read a JSONL file."""
+
+    records = []
+
+    with open(path, "r", encoding=encoding) as f:
+        for line in f:
+            record = json.loads(line.strip())
+            records.append(record)
+
+    return records
+
+
+def write_jsonl(
+    path: str,
+    records: list[dict[str, Any]],
+    ensure_ascii: bool = True
+) -> None:
+    """Write a JSONL file."""
+
+    with open(path, "w", encoding="utf-8") as f:
+        for record in records:
+            f.write(json.dumps(record, ensure_ascii=ensure_ascii) + "\n")
 
 
 def read_vocab(path: str) -> dict[str, int]:
@@ -232,7 +253,7 @@ def flatten_lists(list_of_lists: list[list[Any]]) -> list[Any]:
     return [elem for lst in list_of_lists for elem in lst]
 
 
-def pretty_format_dict(dct: dict[Any, Any]) -> str:
+def pretty_format_dict(dct: dict[str, Any]) -> str:
     """Format a dictionary as pretty JSON text."""
 
     return "{}".format(json.dumps(dct, indent=4))

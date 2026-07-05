@@ -114,14 +114,14 @@ def main(args):
 
     # Instantiate the Passage Retrieval component
     if method_name == "bm25":
-        # Instantiate the BM25 retriever
+        # Instantiate the BM25-based Passage Retrieval component
         retriever = BM25(
             tokenizer=lambda text: text.lower().split(),
             k1=config["k1"],
             b=config["b"],
         )
     elif method_name == "contriever":
-        # Instantiate the Contriever
+        # Instantiate the Contriever-based Passage Retrieval component
         retriever = Contriever(
             model_name=config["model_name"],
             max_passage_length=config["max_passage_length"],
@@ -130,7 +130,7 @@ def main(args):
             metric=config["metric"],
         )
     elif method_name == "qwen3_embedding":
-        # Instantiate the Qwen3-Embedding retriever
+        # Instantiate the Qwen3-Embedding-based Passage Retrieval component
         retriever = Qwen3Embedding(
             model_name=config["model_name"],
             max_passage_length=config["max_passage_length"],

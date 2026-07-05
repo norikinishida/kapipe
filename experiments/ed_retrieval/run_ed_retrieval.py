@@ -81,11 +81,11 @@ def main(args):
     # Instantiate the ED-Retrieval component.
     # Also build the index over entities.
     if method_name == "mention_name_entity_retriever":
-        # Instantiate the Mention-Name Entity retriever
+        # Instantiate the ED-Retrieval component using simple mention-name assignment
         retriever = MentionNameEntityRetriever()
         retriever.make_index()
     elif method_name == "blink_bi_encoder":
-        # Load the BLINK Bi-Encoder retriever from the public snapshot
+        # Load the BLINK Bi-Encoder ED-Retrieval component from the public snapshot
         retriever = BlinkBiEncoder.from_identifier(
             identifier=config["identifier"]
         )

@@ -95,7 +95,7 @@ def generate_with_backoff(
         params["temperature"] = temperature
     else:
         params["max_completion_tokens"] = max_new_tokens
-        params["reasoning_effort"] = "medium"
+        # params["reasoning_effort"] = "medium"
 
     # Send the request to the OpenAI Chat Completion API and get the response
     response = client.chat.completions.create(**params)

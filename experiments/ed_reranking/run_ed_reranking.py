@@ -89,10 +89,10 @@ def main(args):
 
     # Instantiate the ED-Reranking component
     if method_name == "identical_entity_reranker":
-        # Instantiate the Identical Entity reranker
+        # Instantiate the ED-Reranking component using identical function
         reranker = IdenticalEntityReranker()
     elif method_name == "blink_cross_encoder":
-        # Load the BLINK Cross-Encoder reranker from the public snapshot
+        # Load the BLINK Cross-Encoder ED-Reranking component from the public snapshot
         reranker = BlinkCrossEncoder.from_identifier(
             identifier=config["identifier"]
         )
@@ -113,7 +113,7 @@ def main(args):
             raise ValueError(f"Unknown LLM provider: {config['llm_provider']}")
         logging.info("Instantiated the LLM model: %s" % repr(model))
 
-        # Load the LLM-based reranker from the public snapshot
+        # Load the LLM-based ED-Reranking component from the public snapshot
         reranker = LLMED.from_identifier(
             model=model,
             identifier=config["identifier"]

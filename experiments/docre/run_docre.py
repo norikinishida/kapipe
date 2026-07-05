@@ -118,7 +118,7 @@ def main(args):
             rel_meta_info: dict[str, dict[str, str]] = config["rel_meta_info"]
             entity_dict_path = config.get("entity_dict_path", None)
 
-            # Instantiate the LLM-based DocRE extractor based on the user-defined schema
+            # Instantiate the LLM-based DocRE component with the user-defined schema
             extractor = LLMDocRE(
                 model=model,
                 prompt_template_name_or_path=config["prompt_template_name_or_path"],

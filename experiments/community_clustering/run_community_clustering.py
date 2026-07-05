@@ -81,18 +81,18 @@ def main(args):
 
     # Instantiate the Community Clustering component
     if method_name == "hierarchical_leiden":
-        # Instantiate the Hierarchical Leiden clusterer
+        # Instantiate the Community Clustering component using Hierarchical Leiden
         clusterer = HierarchicalLeiden(
             max_cluster_size=config["max_cluster_size"],
             use_lcc=config["use_lcc"]
         )
     elif method_name == "neighborhood_aggregation":
-        # Instantiate the Neighborhood Aggregation clusterer
+        # Instantiate the Community Clustering component using Neighborhood Aggregation
         clusterer = NeighborhoodAggregation(
             hop_size=config["hop_size"],
         )
     elif method_name == "triple_level_factorization":
-        # Instantiate the Triple Level Factorization clusterer
+        # Instantiate the Community Clustering component using Triple-level Factorization
         clusterer = TripleLevelFactorization()
     else:
         raise Exception(f"Invalid method_name: {method_name}")

@@ -241,19 +241,19 @@ def instantiate_ner_component(
 
     # Instantiate the NER component
     if ner_config["method_name"] == "biaffine_ner":
-        # Load the Biaffine-NER extractor from the public snapshot
+        # Load the Biaffine NER component from the public snapshot
         ner = BiaffineNER.from_identifier(
             identifier=ner_config["identifier"]
         )
     elif ner_config["method_name"] == "llm_ner":
-        # Instantiate the LLM
+        # Instantiate the LLM wrapper
         llm, loaded_llm_map = instantiate_llm(
             config=ner_config,
             loaded_llm_map=loaded_llm_map
         )
 
         if "identifier" in ner_config:
-            # Load the LLM-based NER extractor from the public snapshot
+            # Load the LLM-based NER component from the public snapshot
             ner = LLMNER.from_identifier(
                 model=llm,
                 identifier=ner_config["identifier"],
@@ -267,7 +267,7 @@ def instantiate_ner_component(
             }
             etype_meta_info: dict[str, dict[str, str]] = ner_config["etype_meta_info"]
 
-            # Instantiate the LLM-based NER extractor with the user-defined schema
+            # Instantiate the LLM-based NER component with the user-defined schema
             ner = LLMNER(
                 model=llm,
                 prompt_template_name_or_path=ner_config["prompt_template_name_or_path"],
@@ -289,11 +289,11 @@ def instantiate_ed_retrieval_component(
     # Instantiate the ED-Retrieval component.
     # Also, re-build the index over entities.
     if ed_retrieval_config["method_name"] == "mention_name_entity_retriever":
-        # Instantiate the Mention-Name Entity retriever
+        # Instantiate the ED-Retrieval component using simple mention-name assignment
         ed_retrieval = MentionNameEntityRetriever()
         ed_retrieval.make_index()
     elif ed_retrieval_config["method_name"] == "blink_bi_encoder":
-        # Load the BLINK Bi-Encoder retriever from the public snapshot
+        # Load the BLINK Bi-Encoder ED-Retrieval component from the public snapshot
         ed_retrieval = BlinkBiEncoder.from_identifier(
             identifier=ed_retrieval_config["identifier"]
         )
@@ -313,10 +313,10 @@ def instantiate_ed_reranking_component(
 
     # Instantiate the ED-Reranking component
     if ed_reranking_config["method_name"] == "identical_entity_reranker":
-        # Instantiate the Identical Entity reranker
+        # Instantiate the ED-Reranking component using identical function
         ed_reranking = IdenticalEntityReranker()
     elif ed_reranking_config["method_name"] == "blink_cross_encoder":
-        # Load the BLINK Cross-Encoder reranker from the public snapshot
+        # Load the BLINK Cross-Encoder ED-Reranking component from the public snapshot
         ed_reranking = BlinkCrossEncoder.from_identifier(
             identifier=ed_reranking_config["identifier"]
         )
@@ -326,7 +326,7 @@ def instantiate_ed_reranking_component(
             config=ed_reranking_config,
             loaded_llm_map=loaded_llm_map
         )
-        # Load the LLM-based reranker from the public snapshot
+        # Load the LLM-based ED-Reranking component from the public snapshot
         ed_reranking = LLMED.from_identifier(
             model=llm,
             identifier=ed_reranking_config["identifier"],
@@ -346,7 +346,7 @@ def instantiate_docre_component(
 
     # Instantiate the DocRE component
     if docre_config["method_name"] == "atlop":
-        # Load the ATLOP extractor from the public snapshot
+        # Load the ATLOP-based DocRE component from the public snapshot
         docre = ATLOP.from_identifier(
             identifier=docre_config["identifier"]
         )
@@ -358,7 +358,7 @@ def instantiate_docre_component(
         )
 
         if "identifier" in docre_config:
-            # Load the LLM-based DocRE extractor from the public snapshot
+            # Load the LLM-based DocRE component from the public snapshot
             docre = LLMDocRE.from_identifier(
                 model=llm,
                 identifier=docre_config["identifier"],
@@ -375,7 +375,7 @@ def instantiate_docre_component(
             rel_meta_info: dict[str, dict[str, str]] = docre_config["rel_meta_info"]
             entity_dict_path = docre_config.get("entity_dict_path", None)
 
-            # Instantiate the LLM-based DocRE extractor with the user-defined schema
+            # Instantiate the LLM-based DocRE component with the user-defined schema
             docre = LLMDocRE(
                 model=llm,
                 prompt_template_name_or_path=docre_config["prompt_template_name_or_path"],

@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import os
-import logging
 from typing import Any
 
 import networkx as nx
@@ -19,9 +18,6 @@ from ..ner.base import BaseNER
 from ..passage_retrieval.base import BasePassageRetriever
 from ..qa.base import BaseQA
 from ..report_generation.base import BaseReportGenerator
-
-
-logger = logging.getLogger(__name__)
 
 
 class GraphRAGPipeline:
@@ -121,11 +117,6 @@ class GraphRAGPipeline:
             result_documents,
         )
 
-        logger.info(
-            f"Saved extracted triples for {len(result_documents)} documents "
-            f"to {index_dir}/documents_with_triples.json"
-        )
-
         return result_documents
 
     def load_documents_with_triples(
@@ -169,8 +160,6 @@ class GraphRAGPipeline:
             os.path.join(index_dir, "graph.graphml"),
         )
 
-        logger.info(f"Saved entity graph to {index_dir}/graph.graphml")
-
         return graph
 
     def load_entity_graph(
@@ -208,10 +197,6 @@ class GraphRAGPipeline:
         utils.write_json(
             os.path.join(index_dir, "communities.json"),
             communities,
-        )
-
-        logger.info(
-            f"Saved {len(communities)} communities to {index_dir}/communities.json"
         )
 
         return communities
@@ -254,14 +239,9 @@ class GraphRAGPipeline:
         )
 
         # Save community reports
-        utils.write_json(
-            os.path.join(index_dir, "community_reports.json"),
+        utils.write_jsonl(
+            os.path.join(index_dir, "reports.jsonl"),
             reports,
-        )
-
-        logger.info(
-            f"Saved {len(reports)} community reports to "
-            f"{index_dir}/community_reports.json"
         )
 
         return reports
@@ -273,19 +253,19 @@ class GraphRAGPipeline:
         """Load community reports."""
 
         # Load community reports
-        reports = utils.read_json(
-            os.path.join(index_dir, "community_reports.json"),
+        reports = utils.read_jsonl(
+            os.path.join(index_dir, "reports.jsonl"),
         )
 
         return reports
 
-    def chunk_passages(
+    def chunk_reports(
         self,
-        passages: list[Passage],
+        reports: list[Passage],
         window_size: int,
         index_dir: str,
     ) -> list[Passage]:
-        """Step 5. Chunk passages."""
+        """Step 5. Chunk reports."""
 
         if self.chunker is None:
             raise ValueError("Chunker is not initialized.")
@@ -293,56 +273,51 @@ class GraphRAGPipeline:
         # Create the output directory
         utils.mkdir(index_dir)
 
-        # Split each passage into smaller passages
-        chunked_passages: list[Passage] = []
-        for passage in tqdm(passages, desc="Chunking passages"):
-            chunked_passages.extend(
+        # Split each report into smaller chunks
+        chunked_reports: list[Passage] = []
+        for report in tqdm(reports, desc="Chunking reports"):
+            chunked_reports.extend(
                 self.chunker.split_passage_to_chunked_passages(
-                    passage=passage,
+                    passage=report,
                     window_size=window_size,
                 )
             )
 
-        # Save chunked passages
-        utils.write_json(
-            os.path.join(index_dir, "passage_chunks.json"),
-            chunked_passages,
+        # Save chunked reports
+        utils.write_jsonl(
+            os.path.join(index_dir, "chunked_reports.jsonl"),
+            chunked_reports,
         )
 
-        logger.info(
-            f"Saved {len(chunked_passages)} chunked passages to "
-            f"{index_dir}/passage_chunks.json"
-        )
+        return chunked_reports
 
-        return chunked_passages
-
-    def load_passages(
+    def load_chunked_reports(
         self,
         index_dir: str,
     ) -> list[Passage]:
-        """Load passage chunks."""
+        """Load chunked reports."""
 
-        # Load passage chunks
-        passage_chunks = utils.read_json(
-            os.path.join(index_dir, "passage_chunks.json"),
+        # Load chunked reports
+        chunked_reports = utils.read_jsonl(
+            os.path.join(index_dir, "chunked_reports.jsonl"),
         )
 
-        return passage_chunks
+        return chunked_reports
 
     def make_passage_retrieval_index(
         self,
-        passages: list[Passage],
+        chunked_reports: list[Passage],
         index_dir: str,
         **kwargs: Any,
     ) -> None:
-        """Step 6. Build a retrieval index over passages."""
+        """Step 6. Build a retrieval index over chunked reports."""
 
         if self.passage_retrieval is None:
             raise ValueError("Passage retrieval component is not initialized.")
 
         # Delegate index construction to the passage retriever
         self.passage_retrieval.make_index(
-            passages=passages,
+            passages=chunked_reports,
             index_dir=index_dir,
             **kwargs,
         )
@@ -351,7 +326,7 @@ class GraphRAGPipeline:
         self,
         index_dir: str,
     ) -> None:
-        """Load a retrieval index over passages."""
+        """Load a retrieval index over chunked reports."""
 
         # Delegate index loading to the passage retriever
         self.passage_retrieval.load_index(index_dir=index_dir)
@@ -361,23 +336,23 @@ class GraphRAGPipeline:
         question: Question,
         top_k: int,
     ) -> Question:
-        """Step 6-7. Retrieve passages and answer a question."""
+        """Step 6-7. Retrieve chunked reports and answer a question."""
 
         if self.passage_retrieval is None:
             raise ValueError("Passage retrieval component is not initialized.")
         if self.qa is None:
             raise ValueError("QA component is not initialized.")
 
-        # Retrieve relevant passages
-        retrieved_passages = self.passage_retrieval.search(
+        # Retrieve relevant chunked reports
+        retrieved_chunked_reports = self.passage_retrieval.search(
             queries=[question["question"]],
             top_k=top_k,
         )[0]
 
-        # Wrap retrieved passages in QA context format
+        # Wrap retrieved chunked reports in QA context format
         contexts_for_question: ContextsForOneExample = {
             "question_key": question["question_key"],
-            "contexts": retrieved_passages,
+            "contexts": retrieved_chunked_reports,
         }
 
         # Generate an answer
@@ -387,6 +362,6 @@ class GraphRAGPipeline:
         )
 
         # Preserve retrieved contexts
-        result["contexts"] = retrieved_passages
+        result["contexts"] = retrieved_chunked_reports
 
         return result

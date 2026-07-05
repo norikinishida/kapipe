@@ -39,16 +39,16 @@ Each mention contains the following fields.
 
 ```json
 {
-    "doc_key": "6794356",
+    "doc_key": "8800187",
     "sentences": [
-        "Tricuspid valve regurgitation and lithium carbonate toxicity in a newborn infant .",
+        "Effect of calcium chloride and 4 - aminopyridine therapy on desipramine toxicity in rats .",
         ...
     ],
     "mentions": [
         {
-            "span": [0, 2],
-            "name": "Tricuspid valve regurgitation",
-            "entity_type": "Disease"
+            "span": [2, 3],
+            "name": "calcium chloride",
+            "entity_type": "Chemical"
         },
         ...
     ]
@@ -101,7 +101,7 @@ from kapipe.ner import LLMNER
 from kapipe.llms import OpenAILLM
 model = OpenAILLM(
     model_name="gpt-5.4-nano",
-    max_new_tokens=1024,
+    max_new_tokens=8192,
 )
 # HuggingFace LLM
 from kapipe.llms import HuggingFaceLLM

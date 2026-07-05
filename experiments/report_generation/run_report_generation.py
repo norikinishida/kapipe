@@ -109,14 +109,14 @@ def main(args):
             raise ValueError(f"Unknown LLM provider: {config['llm_provider']}")
         logging.info("Instantiated the LLM model: %s" % repr(model))
 
-        # Instantiate the LLM-based report generator
+        # Instantiate the LLM-based Report Generation component
         generator = LLMBasedReportGenerator(
             model=model,
             prompt_template_name_or_path=config["prompt_template_name_or_path"],
             relation_map=config["relation_map"],
         )
     elif method_name == "template":
-        # Instantiate the template-based report generator
+        # Instantiate the template-based Report Generation component
         generator = TemplateBasedReportGenerator(
             relation_map=config["relation_map"],
         )

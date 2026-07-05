@@ -75,7 +75,7 @@ def main(args):
     if method_name == "default":
         WORKER = COMPONENT_WORKER_A(hoge=config["hoge"])
     else:
-        raise Exception(f"Unknown method: {method_name}")
+        raise ValueError(f"Unknown method: {method_name}")
 
     ##################
     # Method Execution
