@@ -33,8 +33,8 @@ python -m pip install -r requirements.txt
 This directory already includes example data.
 
 ```bash
-experiments/ed_retrieval/data/examples/documents.ner.json
-experiments/ed_retrieval/data/examples/documents_with_supervision.json
+experiments/ed_retrieval/data/examples/documents_with_typed_mentions.json
+experiments/ed_retrieval/data/examples/documents_with_disambiguated_entities.json
 experiments/ed_retrieval/data/examples/entity_dict.json
 ```
 

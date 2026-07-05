@@ -23,9 +23,9 @@ CONFIG_NAME=blink_bi_encoder_model_scibertuncased_cdr
 # Input Data
 # (In practice, use separate files for training, validation, and test data.
 # This example checks whether the model can achieve near 100% accuracy (i.e., overfit) on the training data.)
-TRAIN_DOCUMENTS=${STORAGE_DATA}/examples/documents_with_supervision.json
-DEV_DOCUMENTS=${STORAGE_DATA}/examples/documents_with_supervision.json
-TEST_DOCUMENTS=${STORAGE_DATA}/examples/documents_with_supervision.json
+TRAIN_DOCUMENTS=${STORAGE_DATA}/examples/documents_with_disambiguated_entities.json
+DEV_DOCUMENTS=${STORAGE_DATA}/examples/documents_with_disambiguated_entities.json
+TEST_DOCUMENTS=${STORAGE_DATA}/examples/documents_with_disambiguated_entities.json
 ENTITY_DICT=${STORAGE_DATA}/examples/entity_dict.json
 
 # Output Path

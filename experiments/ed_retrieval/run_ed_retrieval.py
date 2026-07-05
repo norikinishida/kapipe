@@ -6,6 +6,7 @@ import sys
 from tqdm import tqdm
 import transformers
 
+from kapipe import evaluation
 from kapipe import utils
 from kapipe.ed_retrieval import MentionNameEntityRetriever, BlinkBiEncoder
 from kapipe.utils import StopWatch
@@ -36,7 +37,9 @@ def main(args):
         prefix = utils.get_current_time()
         args.prefix = prefix
 
-    assert method_name in ["mention_name_entity_retriever", "blink_bi_encoder"]
+    # Evaluation
+    do_evaluation = args.do_evaluation
+    gold_documents_path = args.gold
 
     ##################
     # Logging Setup
@@ -52,9 +55,11 @@ def main(args):
     )
     utils.mkdir(base_output_path)
     
+    base_filename = os.path.splitext(os.path.basename(input_documents_path))[0]
+
     # Set logger
     set_logger(
-        os.path.join(base_output_path, "ed_retrieval.log"),
+        os.path.join(base_output_path, f"{base_filename}.ed_retrieval.log"),
         # overwrite=True
     )
 
@@ -100,14 +105,6 @@ def main(args):
     logging.info(f"Applying the ED-Retrieval component to {len(documents)} documents in {input_documents_path} ...")
 
     # Create the full output path
-    output_documents_path = os.path.join(
-        base_output_path,
-        "documents.json"
-    )
-    output_candidates_path = os.path.join(
-        base_output_path,
-        "candidate_entities.json"
-    )
 
     # Apply the ED-Retrieval component to the documents
     result_documents = []
@@ -121,9 +118,49 @@ def main(args):
         candidate_entities.append(candidate_entities_for_doc)
 
     # Save the results
+    output_documents_path = os.path.join(base_output_path, f"{base_filename}.ed_retrieval.json")
     utils.write_json(output_documents_path, result_documents)
+
+    output_candidates_path = os.path.join(base_output_path, f"{base_filename}.candidate_entities.json")
     utils.write_json(output_candidates_path, candidate_entities)
+
     logging.info(f"Saved the prediction results to {output_documents_path} and {output_candidates_path}")
+
+    ##################
+    # Evaluation
+    ##################
+
+    if do_evaluation:
+        # Require gold documents only when evaluation is requested
+        if gold_documents_path is None:
+            raise ValueError("--gold is required when --do_evaluation is set")
+
+        # Evaluate the prediction results
+        scores = evaluation.ed.accuracy(
+            pred_path=output_documents_path,
+            gold_path=gold_documents_path,
+            inkb=False,
+            skip_normalization=True
+        )
+        scores.update(evaluation.ed.fscore(
+            pred_path=output_documents_path,
+            gold_path=gold_documents_path,
+            inkb=False,
+            skip_normalization=True
+        ))
+        scores.update(evaluation.ed.recall_at_k(
+            pred_path=output_candidates_path,
+            gold_path=gold_documents_path,
+            inkb=False
+        ))
+ 
+        # Save the evaluation result
+        output_evaluation_path = os.path.join(base_output_path, f"{base_filename}.eval.json")
+        utils.write_json(output_evaluation_path, scores)
+        logging.info(f"Saved the evaluation results to {output_evaluation_path}")
+
+        # Log the evaluation result
+        logging.info(utils.pretty_format_dict(scores))
 
     ##################
     # Closing
@@ -168,6 +205,10 @@ if __name__ == "__main__":
     # Output Data
     parser.add_argument("--results_dir", type=str, required=True)
     parser.add_argument("--prefix", type=str, default=None)
+
+    # Evaluation
+    parser.add_argument("--do_evaluation", action="store_true")
+    parser.add_argument("--gold", type=str, default=None)
 
     args = parser.parse_args()
 

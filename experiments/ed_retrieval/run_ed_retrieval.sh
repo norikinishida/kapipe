@@ -15,8 +15,8 @@ STORAGE_RESULTS=/home/nishida/projects/kapipe/experiments/ed_retrieval/results
 ######
 
 # Method
-METHOD=mention_name_entity_retriever
-# METHOD=blink_bi_encoder
+# METHOD=mention_name_entity_retriever
+METHOD=blink_bi_encoder
 
 if [ "${METHOD}" == "mention_name_entity_retriever" ]; then
     CONFIG_PATH=./config/mention_name_entity_retriever.conf
@@ -31,11 +31,14 @@ else
 fi
 
 # Input Data
-DOCUMENTS=${STORAGE_DATA}/examples/documents.ner.json
+INPUT_DOCUMENTS=${STORAGE_DATA}/examples/documents_with_typed_mentions.json
 
 # Output Path
 RESULTS_DIR=${STORAGE_RESULTS}
 MYPREFIX=example
+
+# (optional) Evaluation
+GOLD_DOCUMENTS=${STORAGE_DATA}/examples/documents_with_disambiguated_entities.json
 
 ######
 # Experiment execution
@@ -45,6 +48,8 @@ python run_ed_retrieval.py \
     --method ${METHOD} \
     --config_path ${CONFIG_PATH} \
     --config_name ${CONFIG_NAME} \
-    --input_documents ${DOCUMENTS} \
+    --input_documents ${INPUT_DOCUMENTS} \
     --results_dir ${RESULTS_DIR} \
-    --prefix ${MYPREFIX}
+    --prefix ${MYPREFIX} \
+    --do_evaluation \
+    --gold ${GOLD_DOCUMENTS}

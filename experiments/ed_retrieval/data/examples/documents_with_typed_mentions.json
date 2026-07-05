@@ -1,0 +1,2661 @@
+[
+    {
+        "doc_key": "8800187",
+        "sentences": [
+            "Effect of calcium chloride and 4 - aminopyridine therapy on desipramine toxicity in rats .",
+            "BACKGROUND : Hypotension is a major contributor to mortality in tricyclic antidepressant overdose .",
+            "Recent data suggest that tricyclic antidepressants inhibit calcium influx in some tissues .",
+            "This study addressed the potential role of calcium channel blockade in tricyclic antidepressant - induced hypotension .",
+            "METHODS : Two interventions were studied that have been shown previously to improve blood pressure with calcium channel blocker overdose .",
+            "CaCl2 and 4 - aminopyridine .",
+            "Anesthetized rats received the tricyclic antidepressant desipramine IP to produce hypotension , QRS prolongation , and bradycardia .",
+            "Fifteen min later , animals received CaCl2 , NaHCO3 , or saline .",
+            "In a second experiment , rats received tricyclic antidepressant desipramine IP followed in 15 min by 4 - aminopyridine or saline .",
+            "RESULTS : NaHCO3 briefly ( 5 min ) reversed hypotension and QRS prolongation .",
+            "CaCl2 and 4 - aminopyridine failed to improve blood pressure .",
+            "The incidence of ventricular arrhythmias ( p = 0 . 004 ) and seizures ( p = 0 . 03 ) in the CaCl2 group was higher than the other groups .",
+            "CONCLUSION : The administration of CaCl2 or 4 - aminopyridine did not reverse tricyclic antidepressant - induced hypotension in rats .",
+            "CaCl2 therapy may possibly worsen both cardiovascular and central nervous system toxicity .",
+            "These findings do not support a role for calcium channel inhibition in the pathogenesis of tricyclic antidepressant - induced hypotension ."
+        ],
+        "mentions": [
+            {
+                "span": [
+                    2,
+                    3
+                ],
+                "name": "calcium chloride",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    5,
+                    7
+                ],
+                "name": "4 - aminopyridine",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    10,
+                    10
+                ],
+                "name": "desipramine",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    11,
+                    11
+                ],
+                "name": "toxicity",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    17,
+                    17
+                ],
+                "name": "Hypotension",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    27,
+                    27
+                ],
+                "name": "overdose",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    36,
+                    36
+                ],
+                "name": "calcium",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    49,
+                    49
+                ],
+                "name": "calcium",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    57,
+                    57
+                ],
+                "name": "hypotension",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    75,
+                    75
+                ],
+                "name": "calcium",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    78,
+                    78
+                ],
+                "name": "overdose",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    80,
+                    80
+                ],
+                "name": "CaCl2",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    82,
+                    84
+                ],
+                "name": "4 - aminopyridine",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    92,
+                    92
+                ],
+                "name": "desipramine",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    96,
+                    96
+                ],
+                "name": "hypotension",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    102,
+                    102
+                ],
+                "name": "bradycardia",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    110,
+                    110
+                ],
+                "name": "CaCl2",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    112,
+                    112
+                ],
+                "name": "NaHCO3",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    126,
+                    126
+                ],
+                "name": "desipramine",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    133,
+                    135
+                ],
+                "name": "4 - aminopyridine",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    141,
+                    141
+                ],
+                "name": "NaHCO3",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    148,
+                    148
+                ],
+                "name": "hypotension",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    153,
+                    153
+                ],
+                "name": "CaCl2",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    155,
+                    157
+                ],
+                "name": "4 - aminopyridine",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    167,
+                    168
+                ],
+                "name": "ventricular arrhythmias",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    177,
+                    177
+                ],
+                "name": "seizures",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    187,
+                    187
+                ],
+                "name": "CaCl2",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    201,
+                    201
+                ],
+                "name": "CaCl2",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    203,
+                    205
+                ],
+                "name": "4 - aminopyridine",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    213,
+                    213
+                ],
+                "name": "hypotension",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    217,
+                    217
+                ],
+                "name": "CaCl2",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    223,
+                    228
+                ],
+                "name": "cardiovascular and central nervous system toxicity",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    238,
+                    238
+                ],
+                "name": "calcium",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    249,
+                    249
+                ],
+                "name": "hypotension",
+                "entity_type": "Disease"
+            }
+        ]
+    },
+    {
+        "doc_key": "21418164",
+        "sentences": [
+            "CCNU ( lomustine ) toxicity in dogs : a retrospective study ( 2002 - 07 ) .",
+            "OBJECTIVE : To describe the incidence of haematological , renal , hepatic and gastrointestinal toxicities in tumour - bearing dogs receiving 1 - ( 2 - chloroethyl ) - 3 - cyclohexyl - 1 - nitrosourea ( CCNU ) .",
+            "DESIGN : The medical records of 206 dogs that were treated with CCNU at the Melbourne Veterinary Specialist Centre between February 2002 and December 2007 were retrospectively evaluated .",
+            "RESULTS : Of the 206 dogs treated with CCNU , 185 met the inclusion criteria for at least one class of toxicity .",
+            "CCNU was used most commonly in the treatment of lymphoma , mast cell tumour , brain tumour , histiocytic tumours and epitheliotropic lymphoma .",
+            "Throughout treatment , 56 . 9 % of dogs experienced neutropenia , 34 . 2 % experienced anaemia and 14 . 2 % experienced thrombocytopenia .",
+            "Gastrointestinal toxicosis was detected in 37 . 8 % of dogs , the most common sign of which was vomiting ( 24 . 3 % ) .",
+            "Potential renal toxicity and elevated alanine transaminase ( ALT ) concentration were reported in 12 . 2 % and 48 . 8 % of dogs , respectively .",
+            "The incidence of hepatic failure was 1 . 2 % .",
+            "CONCLUSIONS : CCNU - associated toxicity in dogs is common , but is usually not life threatening ."
+        ],
+        "mentions": [
+            {
+                "span": [
+                    0,
+                    0
+                ],
+                "name": "CCNU",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    2,
+                    2
+                ],
+                "name": "lomustine",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    4,
+                    4
+                ],
+                "name": "toxicity",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    24,
+                    31
+                ],
+                "name": "haematological , renal , hepatic and gastrointestinal toxicities",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    38,
+                    52
+                ],
+                "name": "1 - ( 2 - chloroethyl ) - 3 - cyclohexyl - 1 - nitrosourea",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    54,
+                    54
+                ],
+                "name": "CCNU",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    69,
+                    69
+                ],
+                "name": "CCNU",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    94,
+                    94
+                ],
+                "name": "CCNU",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    107,
+                    107
+                ],
+                "name": "toxicity",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    109,
+                    109
+                ],
+                "name": "CCNU",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    118,
+                    118
+                ],
+                "name": "lymphoma",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    120,
+                    122
+                ],
+                "name": "mast cell tumour",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    124,
+                    125
+                ],
+                "name": "brain tumour",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    127,
+                    128
+                ],
+                "name": "histiocytic tumours",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    130,
+                    131
+                ],
+                "name": "epitheliotropic lymphoma",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    143,
+                    143
+                ],
+                "name": "neutropenia",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    150,
+                    150
+                ],
+                "name": "anaemia",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    157,
+                    157
+                ],
+                "name": "thrombocytopenia",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    159,
+                    160
+                ],
+                "name": "Gastrointestinal toxicosis",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    178,
+                    178
+                ],
+                "name": "vomiting",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    188,
+                    188
+                ],
+                "name": "toxicity",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    191,
+                    191
+                ],
+                "name": "alanine",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    217,
+                    218
+                ],
+                "name": "hepatic failure",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    227,
+                    227
+                ],
+                "name": "CCNU",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    230,
+                    230
+                ],
+                "name": "toxicity",
+                "entity_type": "Disease"
+            }
+        ]
+    },
+    {
+        "doc_key": "12101159",
+        "sentences": [
+            "Delayed asystolic cardiac arrest after diltiazem overdose ; resuscitation with high dose intravenous calcium .",
+            "A 51 year old man took a mixed overdose including 1 . 8 - 3 . 6 g of diltiazem , paracetamol , aspirin , isosorbide nitrate , and alcohol .",
+            "He initially presented to hospital after six hours with mild hypotension and was treated with activated charcoal and intravenous fluids .",
+            "Eighteen hours after the overdose he had two generalised tonic - clonic seizures .",
+            "The patient remained unresponsive with junctional bradycardia , unrecordable blood pressure , and then became asystolic .",
+            "He was resuscitated with high dose ( 13 . 5 g ) intravenous calcium and adrenaline ( epinephrine ) .",
+            "He required inotropic support and temporary pacing over the next 48 hours .",
+            "This case suggests there is a role for aggressive high dose intravenous calcium therapy in severe diltiazem overdose , particularly with the onset of asystole .",
+            "It should be considered early in cases of cardiac arrest after diltiazem overdose .",
+            "The case also highlights the problems with delayed toxicity when whole bowel irrigation is not administered ."
+        ],
+        "mentions": [
+            {
+                "span": [
+                    1,
+                    1
+                ],
+                "name": "asystolic",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    2,
+                    3
+                ],
+                "name": "cardiac arrest",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    5,
+                    5
+                ],
+                "name": "diltiazem",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    6,
+                    6
+                ],
+                "name": "overdose",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    13,
+                    13
+                ],
+                "name": "calcium",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    23,
+                    23
+                ],
+                "name": "overdose",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    34,
+                    34
+                ],
+                "name": "diltiazem",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    36,
+                    36
+                ],
+                "name": "paracetamol",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    38,
+                    38
+                ],
+                "name": "aspirin",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    40,
+                    40
+                ],
+                "name": "isosorbide",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    41,
+                    41
+                ],
+                "name": "nitrate",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    44,
+                    44
+                ],
+                "name": "alcohol",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    56,
+                    56
+                ],
+                "name": "hypotension",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    71,
+                    71
+                ],
+                "name": "overdose",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    76,
+                    79
+                ],
+                "name": "tonic - clonic seizures",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    87,
+                    87
+                ],
+                "name": "bradycardia",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    96,
+                    96
+                ],
+                "name": "asystolic",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    111,
+                    111
+                ],
+                "name": "calcium",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    113,
+                    113
+                ],
+                "name": "adrenaline",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    115,
+                    115
+                ],
+                "name": "epinephrine",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    143,
+                    143
+                ],
+                "name": "calcium",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    147,
+                    147
+                ],
+                "name": "diltiazem",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    148,
+                    148
+                ],
+                "name": "overdose",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    155,
+                    155
+                ],
+                "name": "asystole",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    165,
+                    166
+                ],
+                "name": "cardiac arrest",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    168,
+                    168
+                ],
+                "name": "diltiazem",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    169,
+                    169
+                ],
+                "name": "overdose",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    179,
+                    179
+                ],
+                "name": "toxicity",
+                "entity_type": "Disease"
+            }
+        ]
+    },
+    {
+        "doc_key": "11868798",
+        "sentences": [
+            "Spironolactone : is it a novel drug for the prevention of amphotericin B - related hypokalemia in cancer patients ?",
+            "OBJECTIVE : Nephrotoxicity is the major adverse effect of amphotericin B ( AmB ) , often limiting administration of full dosage .",
+            "Selective distal tubular epithelial toxicity seems to be responsible for the profound potassium wasting that is a major clinical side effect of treatment with AmB .",
+            "Potassium depletion also potentiates the tubular toxicity of AmB .",
+            "This study was designed to assess the ability of spironolactone to reduce potassium requirements and to prevent hypokalemia in neutropenic patients on AmB treatment .",
+            "METHODS : In this study 26 patients with various hematological disorders were randomized to receive either intravenous AmB alone or AmB and oral spironolactone 100 mg twice daily when developing a proven or suspected fungal infection .",
+            "RESULTS : Patients receiving concomitant AmB and spironolactone had significantly higher plasma potassium levels than those receiving AmB alone ( P = 0 . 0027 ) .",
+            "Those patients receiving AmB and spironolactone required significantly less potassium supplementation to maintain their plasma potassium within the normal range ( P = 0 . 022 ) .",
+            "Moreover , urinary potassium losses were significantly less in patients receiving AmB and spironolactone than those receiving AmB alone ( P = 0 . 040 ) .",
+            "CONCLUSION : This study showed that spironolactone can reduce potassium requirements and prevent hypokalemia by reducing urinary potassium loss in neutropenic patients on AmB treatment ."
+        ],
+        "mentions": [
+            {
+                "span": [
+                    0,
+                    0
+                ],
+                "name": "Spironolactone",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    11,
+                    12
+                ],
+                "name": "amphotericin B",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    15,
+                    15
+                ],
+                "name": "hypokalemia",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    17,
+                    17
+                ],
+                "name": "cancer",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    22,
+                    22
+                ],
+                "name": "Nephrotoxicity",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    29,
+                    30
+                ],
+                "name": "amphotericin B",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    32,
+                    32
+                ],
+                "name": "AmB",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    46,
+                    46
+                ],
+                "name": "toxicity",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    54,
+                    54
+                ],
+                "name": "potassium",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    66,
+                    66
+                ],
+                "name": "AmB",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    68,
+                    68
+                ],
+                "name": "Potassium",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    74,
+                    74
+                ],
+                "name": "toxicity",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    76,
+                    76
+                ],
+                "name": "AmB",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    87,
+                    87
+                ],
+                "name": "spironolactone",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    90,
+                    90
+                ],
+                "name": "potassium",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    95,
+                    95
+                ],
+                "name": "hypokalemia",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    97,
+                    97
+                ],
+                "name": "neutropenic",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    100,
+                    100
+                ],
+                "name": "AmB",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    112,
+                    113
+                ],
+                "name": "hematological disorders",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    120,
+                    120
+                ],
+                "name": "AmB",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    123,
+                    123
+                ],
+                "name": "AmB",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    126,
+                    126
+                ],
+                "name": "spironolactone",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    137,
+                    138
+                ],
+                "name": "fungal infection",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    145,
+                    145
+                ],
+                "name": "AmB",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    147,
+                    147
+                ],
+                "name": "spironolactone",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    152,
+                    152
+                ],
+                "name": "potassium",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    157,
+                    157
+                ],
+                "name": "AmB",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    170,
+                    170
+                ],
+                "name": "AmB",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    172,
+                    172
+                ],
+                "name": "spironolactone",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    176,
+                    176
+                ],
+                "name": "potassium",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    182,
+                    182
+                ],
+                "name": "potassium",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    198,
+                    198
+                ],
+                "name": "potassium",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    206,
+                    206
+                ],
+                "name": "AmB",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    208,
+                    208
+                ],
+                "name": "spironolactone",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    212,
+                    212
+                ],
+                "name": "AmB",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    228,
+                    228
+                ],
+                "name": "spironolactone",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    231,
+                    231
+                ],
+                "name": "potassium",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    235,
+                    235
+                ],
+                "name": "hypokalemia",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    239,
+                    239
+                ],
+                "name": "potassium",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    242,
+                    242
+                ],
+                "name": "neutropenic",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    245,
+                    245
+                ],
+                "name": "AmB",
+                "entity_type": "Chemical"
+            }
+        ]
+    },
+    {
+        "doc_key": "11230490",
+        "sentences": [
+            "Reduced cardiotoxicity and preserved antitumor efficacy of liposome - encapsulated doxorubicin and cyclophosphamide compared with conventional doxorubicin and cyclophosphamide in a randomized , multicenter trial of metastatic breast cancer .",
+            "PURPOSE : To determine whether Myocet ( liposome - encapsulated doxorubicin ; The Liposome Company , Elan Corporation , Princeton , NJ ) in combination with cyclophosphamide significantly reduces doxorubicin cardiotoxicity while providing comparable antitumor efficacy in first - line treatment of metastatic breast cancer ( MBC ) .",
+            "PATIENTS AND METHODS : Two hundred ninety - seven patients with MBC and no prior chemotherapy for metastatic disease were randomized to receive either 60 mg / m ( 2 ) of Myocet ( M ) or conventional doxorubicin ( A ) , in combination with 600 mg / m ( 2 ) of cyclophosphamide ( C ) , every 3 weeks until disease progression or unacceptable toxicity .",
+            "Cardiotoxicity was defined by reductions in left - ventricular ejection fraction , assessed by serial multigated radionuclide angiography scans , or congestive heart failure ( CHF ) .",
+            "Antitumor efficacy was assessed by objective tumor response rates ( World Health Organization criteria ) , time to progression , and survival .",
+            "RESULTS : Six percent of MC patients versus 21 % ( including five cases of CHF ) of AC patients developed cardiotoxicity ( P = . 0002 ) .",
+            "Median cumulative doxorubicin dose at onset was more than 2 , 220 mg / m ( 2 ) for MC versus 480 mg / m ( 2 ) for AC ( P = . 0001 , hazard ratio , 5 . 04 ) .",
+            "MC patients also experienced less grade 4 neutropenia .",
+            "Antitumor efficacy of MC versus AC was comparable : objective response rates , 43 % versus 43 % ; median time to progression , 5 . 1 % versus 5 . 5 months ; median time to treatment failure , 4 . 6 versus 4 . 4 months ; and median survival , 19 versus 16 months .",
+            "CONCLUSION : Myocet improves the therapeutic index of doxorubicin by significantly reducing cardiotoxicity and grade 4 neutropenia and provides comparable antitumor efficacy , when used in combination with cyclophosphamide as first - line therapy for MBC ."
+        ],
+        "mentions": [
+            {
+                "span": [
+                    1,
+                    1
+                ],
+                "name": "cardiotoxicity",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    10,
+                    10
+                ],
+                "name": "doxorubicin",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    12,
+                    12
+                ],
+                "name": "cyclophosphamide",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    16,
+                    16
+                ],
+                "name": "doxorubicin",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    18,
+                    18
+                ],
+                "name": "cyclophosphamide",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    27,
+                    28
+                ],
+                "name": "breast cancer",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    35,
+                    35
+                ],
+                "name": "Myocet",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    40,
+                    40
+                ],
+                "name": "doxorubicin",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    56,
+                    56
+                ],
+                "name": "cyclophosphamide",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    59,
+                    59
+                ],
+                "name": "doxorubicin",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    60,
+                    60
+                ],
+                "name": "cardiotoxicity",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    73,
+                    74
+                ],
+                "name": "breast cancer",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    76,
+                    76
+                ],
+                "name": "MBC",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    90,
+                    90
+                ],
+                "name": "MBC",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    111,
+                    111
+                ],
+                "name": "Myocet",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    117,
+                    117
+                ],
+                "name": "doxorubicin",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    133,
+                    133
+                ],
+                "name": "cyclophosphamide",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    146,
+                    146
+                ],
+                "name": "toxicity",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    148,
+                    148
+                ],
+                "name": "Cardiotoxicity",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    169,
+                    171
+                ],
+                "name": "congestive heart failure",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    173,
+                    173
+                ],
+                "name": "CHF",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    182,
+                    182
+                ],
+                "name": "tumor",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    214,
+                    214
+                ],
+                "name": "CHF",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    220,
+                    220
+                ],
+                "name": "cardiotoxicity",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    230,
+                    230
+                ],
+                "name": "doxorubicin",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    279,
+                    279
+                ],
+                "name": "neutropenia",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    341,
+                    341
+                ],
+                "name": "Myocet",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    347,
+                    347
+                ],
+                "name": "doxorubicin",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    351,
+                    351
+                ],
+                "name": "cardiotoxicity",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    355,
+                    355
+                ],
+                "name": "neutropenia",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    367,
+                    367
+                ],
+                "name": "cyclophosphamide",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    374,
+                    374
+                ],
+                "name": "MBC",
+                "entity_type": "Disease"
+            }
+        ]
+    },
+    {
+        "doc_key": "11063349",
+        "sentences": [
+            "Conversion to rapamycin immunosuppression in renal transplant recipients : report of an initial experience .",
+            "BACKGROUND : The aim of this study is to evaluate the effects of RAPA conversion in patients undergoing cyclosporine ( CsA ) or tacrolimus ( Tac ) toxicity .",
+            "METHODS : Twenty renal transplant recipients were switched to fixed dose rapamycin ( RAPA ) ( 5 mg / day ) 0 to 204 months posttransplant .",
+            "Drug monitoring was not initially used to adjust doses .",
+            "The indications for switch were chronic CsA or Tac nephrotoxicity ( 12 ) , acute CsA or Tac toxicity ( 3 ) , severe facial dysmorphism ( 2 ) , posttransplant lymphoproliferative disorder ( PTLD ) in remission ( 2 ) , and hepatotoxicity in 1 .",
+            "Follow - up is 7 to 24 months .",
+            "RESULTS : In the 12 patients switched because of chronic nephrotoxicity there was a significant decrease in serum creatinine [ 233 + / - 34 to 210 + / - 56 micromol / liter ( P < 0 . 05 ) at 6 months ] .",
+            "Facial dysmorphism improved in two patients .",
+            "No relapse of PTLD was observed .",
+            "Five patients developed pneumonia ( two Pneumocystis carinii pneumonia , one infectious mononucleosis with polyclonal PTLD lung infiltrate ) and two had bronchiolitis obliterans .",
+            "There were no deaths .",
+            "RAPA was discontinued in four patients , because of pneumonia in two , PTLD in one , and oral aphtous ulcers in one .",
+            "RAPA levels were high ( > 15 ng / ml ) in 7 of 13 ( 54 % ) patients .",
+            "CONCLUSIONS : RAPA conversion provides adequate immunosuppression to enable CsA withdrawal .",
+            "However , when converting patients to RAPA drug levels should be monitored to avoid over - immunosuppression and adequate antiviral and Pneumocystis carinii pneumonia prophylaxis should be given ."
+        ],
+        "mentions": [
+            {
+                "span": [
+                    2,
+                    2
+                ],
+                "name": "rapamycin",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    28,
+                    28
+                ],
+                "name": "RAPA",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    33,
+                    33
+                ],
+                "name": "cyclosporine",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    35,
+                    35
+                ],
+                "name": "CsA",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    38,
+                    38
+                ],
+                "name": "tacrolimus",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    40,
+                    40
+                ],
+                "name": "Tac",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    42,
+                    42
+                ],
+                "name": "toxicity",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    55,
+                    55
+                ],
+                "name": "rapamycin",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    57,
+                    57
+                ],
+                "name": "RAPA",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    87,
+                    87
+                ],
+                "name": "CsA",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    89,
+                    89
+                ],
+                "name": "Tac",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    90,
+                    90
+                ],
+                "name": "nephrotoxicity",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    96,
+                    96
+                ],
+                "name": "CsA",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    98,
+                    98
+                ],
+                "name": "Tac",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    99,
+                    99
+                ],
+                "name": "toxicity",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    111,
+                    113
+                ],
+                "name": "posttransplant lymphoproliferative disorder",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    115,
+                    115
+                ],
+                "name": "PTLD",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    124,
+                    124
+                ],
+                "name": "hepatotoxicity",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    147,
+                    147
+                ],
+                "name": "nephrotoxicity",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    155,
+                    155
+                ],
+                "name": "creatinine",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    193,
+                    193
+                ],
+                "name": "PTLD",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    200,
+                    200
+                ],
+                "name": "pneumonia",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    203,
+                    205
+                ],
+                "name": "Pneumocystis carinii pneumonia",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    208,
+                    209
+                ],
+                "name": "infectious mononucleosis",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    212,
+                    212
+                ],
+                "name": "PTLD",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    219,
+                    220
+                ],
+                "name": "bronchiolitis obliterans",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    227,
+                    227
+                ],
+                "name": "RAPA",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    236,
+                    236
+                ],
+                "name": "pneumonia",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    240,
+                    240
+                ],
+                "name": "PTLD",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    246,
+                    247
+                ],
+                "name": "aphtous ulcers",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    251,
+                    251
+                ],
+                "name": "RAPA",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    274,
+                    274
+                ],
+                "name": "RAPA",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    281,
+                    281
+                ],
+                "name": "CsA",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    290,
+                    290
+                ],
+                "name": "RAPA",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    305,
+                    307
+                ],
+                "name": "Pneumocystis carinii pneumonia",
+                "entity_type": "Disease"
+            }
+        ]
+    },
+    {
+        "doc_key": "6454943",
+        "sentences": [
+            "Effect of captopril on pre - existing and aminonucleoside - induced proteinuria in spontaneously hypertensive rats .",
+            "Proteinuria is a side effect of captopril treatment in hypertensive patients .",
+            "The possibility of reproducing the same renal abnormality with captopril was examined in SHR .",
+            "Oral administration of captopril at 100 mg / kg for 14 days failed to aggravate proteinuria pre - existing in SHR .",
+            "Also , captopril treatment failed to potentiate or facilitate development of massive proteinuria invoked by puromycin aminonucleoside in SHR .",
+            "Captopril had little or no demonstrable effects on serum electrolyte concentrations , excretion of urine , sodium and potassium , endogenous creatinine clearance , body weight , and food and water consumption .",
+            "However , ketone bodies were consistently present in urine and several lethalities occurred during multiple dosing of captopril in SHR ."
+        ],
+        "mentions": [
+            {
+                "span": [
+                    2,
+                    2
+                ],
+                "name": "captopril",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    8,
+                    8
+                ],
+                "name": "aminonucleoside",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    11,
+                    11
+                ],
+                "name": "proteinuria",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    14,
+                    14
+                ],
+                "name": "hypertensive",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    17,
+                    17
+                ],
+                "name": "Proteinuria",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    23,
+                    23
+                ],
+                "name": "captopril",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    26,
+                    26
+                ],
+                "name": "hypertensive",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    35,
+                    36
+                ],
+                "name": "renal abnormality",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    38,
+                    38
+                ],
+                "name": "captopril",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    47,
+                    47
+                ],
+                "name": "captopril",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    59,
+                    59
+                ],
+                "name": "proteinuria",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    68,
+                    68
+                ],
+                "name": "captopril",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    78,
+                    78
+                ],
+                "name": "proteinuria",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    81,
+                    82
+                ],
+                "name": "puromycin aminonucleoside",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    86,
+                    86
+                ],
+                "name": "Captopril",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    102,
+                    102
+                ],
+                "name": "sodium",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    104,
+                    104
+                ],
+                "name": "potassium",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    107,
+                    107
+                ],
+                "name": "creatinine",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    121,
+                    121
+                ],
+                "name": "ketone",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    136,
+                    136
+                ],
+                "name": "captopril",
+                "entity_type": "Chemical"
+            }
+        ]
+    },
+    {
+        "doc_key": "20195852",
+        "sentences": [
+            "Risk of nephropathy after consumption of nonionic contrast media by children undergoing cardiac angiography : a prospective study .",
+            "Despite increasing reports on nonionic contrast media - induced nephropathy ( CIN ) in hospitalized adult patients during cardiac procedures , the studies in pediatrics are limited , with even less focus on possible predisposing factors and preventive measures for patients undergoing cardiac angiography .",
+            "This prospective study determined the incidence of CIN for two nonionic contrast media ( CM ) , iopromide and iohexol , among 80 patients younger than 18 years and compared the rates for this complication in relation to the type and dosage of CM and the presence of cyanosis .",
+            "The 80 patients in the study consecutively received either iopromide ( group A , n = 40 ) or iohexol ( group B , n = 40 ) .",
+            "Serum sodium ( Na ) , potassium ( K ) , and creatinine ( Cr ) were measured 24 h before angiography as baseline values , then measured again at 12 - , 24 - , and 48 - h intervals after CM use .",
+            "Urine samples for Na and Cr also were checked at the same intervals .",
+            "Risk of renal failure , Injury to the kidney , Failure of kidney function , Loss of kidney function , and End - stage renal damage ( RIFLE criteria ) were used to define CIN and its incidence in the study population .",
+            "Accordingly , among the 15 CIN patients ( 18 . 75 % ) , 7 . 5 % of the patients in group A had increased risk and 3 . 75 % had renal injury , whereas 5 % of group B had increased risk and 2 . 5 % had renal injury .",
+            "Whereas 33 . 3 % of the patients with CIN were among those who received the proper dosage of CM , the percentage increased to 66 . 6 % among those who received larger doses , with a significant difference in the incidence of CIN related to the different dosages of CM ( p = 0 . 014 ) .",
+            "Among the 15 patients with CIN , 6 had cyanotic congenital heart diseases , but the incidence did not differ significantly from that for the noncyanotic patients ( p = 0 . 243 ) .",
+            "Although clinically silent , CIN is not rare in pediatrics .",
+            "The incidence depends on dosage but not on the type of consumed nonionic CM , nor on the presence of cyanosis , and although CIN usually is reversible , more concern is needed for the prevention of such a complication in children ."
+        ],
+        "mentions": [
+            {
+                "span": [
+                    2,
+                    2
+                ],
+                "name": "nephropathy",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    7,
+                    8
+                ],
+                "name": "contrast media",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    24,
+                    25
+                ],
+                "name": "contrast media",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    28,
+                    28
+                ],
+                "name": "nephropathy",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    30,
+                    30
+                ],
+                "name": "CIN",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    71,
+                    71
+                ],
+                "name": "CIN",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    75,
+                    76
+                ],
+                "name": "contrast media",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    78,
+                    78
+                ],
+                "name": "CM",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    81,
+                    81
+                ],
+                "name": "iopromide",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    83,
+                    83
+                ],
+                "name": "iohexol",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    107,
+                    107
+                ],
+                "name": "CM",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    112,
+                    112
+                ],
+                "name": "cyanosis",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    123,
+                    123
+                ],
+                "name": "iopromide",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    133,
+                    133
+                ],
+                "name": "iohexol",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    144,
+                    144
+                ],
+                "name": "sodium",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    146,
+                    146
+                ],
+                "name": "Na",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    149,
+                    149
+                ],
+                "name": "potassium",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    151,
+                    151
+                ],
+                "name": "K",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    155,
+                    155
+                ],
+                "name": "creatinine",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    157,
+                    157
+                ],
+                "name": "Cr",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    185,
+                    185
+                ],
+                "name": "CM",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    191,
+                    191
+                ],
+                "name": "Na",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    193,
+                    193
+                ],
+                "name": "Cr",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    204,
+                    205
+                ],
+                "name": "renal failure",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    207,
+                    210
+                ],
+                "name": "Injury to the kidney",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    212,
+                    215
+                ],
+                "name": "Failure of kidney function",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    217,
+                    220
+                ],
+                "name": "Loss of kidney function",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    226,
+                    227
+                ],
+                "name": "renal damage",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    236,
+                    236
+                ],
+                "name": "CIN",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    250,
+                    250
+                ],
+                "name": "CIN",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    278,
+                    279
+                ],
+                "name": "renal injury",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    296,
+                    297
+                ],
+                "name": "renal injury",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    308,
+                    308
+                ],
+                "name": "CIN",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    318,
+                    318
+                ],
+                "name": "CM",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    343,
+                    343
+                ],
+                "name": "CIN",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    350,
+                    350
+                ],
+                "name": "CM",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    364,
+                    364
+                ],
+                "name": "CIN",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    369,
+                    371
+                ],
+                "name": "congenital heart diseases",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    398,
+                    398
+                ],
+                "name": "CIN",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    418,
+                    418
+                ],
+                "name": "CM",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    425,
+                    425
+                ],
+                "name": "cyanosis",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    429,
+                    429
+                ],
+                "name": "CIN",
+                "entity_type": "Disease"
+            }
+        ]
+    },
+    {
+        "doc_key": "20510337",
+        "sentences": [
+            "Coenzyme Q10 treatment ameliorates acute cisplatin nephrotoxicity in mice .",
+            "The nephroprotective effect of coenzyme Q10 was investigated in mice with acute renal injury induced by a single i . p .",
+            "injection of cisplatin ( 5 mg / kg ) .",
+            "Coenzyme Q10 treatment ( 10 mg / kg / day , i . p . ) was applied for 6 consecutive days , starting 1 day before cisplatin administration .",
+            "Coenzyme Q10 significantly reduced blood urea nitrogen and serum creatinine levels which were increased by cisplatin .",
+            "Coenzyme Q10 significantly compensated deficits in the antioxidant defense mechanisms ( reduced glutathione level and superoxide dismutase activity ) , suppressed lipid peroxidation , decreased the elevations of tumor necrosis factor - alpha , nitric oxide and platinum ion concentration , and attenuated the reductions of selenium and zinc ions in renal tissue resulted from cisplatin administration .",
+            "Also , histopathological renal tissue damage mediated by cisplatin was ameliorated by coenzyme Q10 treatment .",
+            "Immunohistochemical analysis revealed that coenzyme Q10 significantly decreased the cisplatin - induced overexpression of inducible nitric oxide synthase , nuclear factor - kappaB , caspase - 3 and p53 in renal tissue .",
+            "It was concluded that coenzyme Q10 represents a potential therapeutic option to protect against acute cisplatin nephrotoxicity commonly encountered in clinical practice ."
+        ],
+        "mentions": [
+            {
+                "span": [
+                    0,
+                    1
+                ],
+                "name": "Coenzyme Q10",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    5,
+                    5
+                ],
+                "name": "cisplatin",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    6,
+                    6
+                ],
+                "name": "nephrotoxicity",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    14,
+                    15
+                ],
+                "name": "coenzyme Q10",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    21,
+                    23
+                ],
+                "name": "acute renal injury",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    34,
+                    34
+                ],
+                "name": "cisplatin",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    42,
+                    43
+                ],
+                "name": "Coenzyme Q10",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    69,
+                    69
+                ],
+                "name": "cisplatin",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    72,
+                    73
+                ],
+                "name": "Coenzyme Q10",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    76,
+                    78
+                ],
+                "name": "blood urea nitrogen",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    81,
+                    81
+                ],
+                "name": "creatinine",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    87,
+                    87
+                ],
+                "name": "cisplatin",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    89,
+                    90
+                ],
+                "name": "Coenzyme Q10",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    100,
+                    101
+                ],
+                "name": "reduced glutathione",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    104,
+                    104
+                ],
+                "name": "superoxide",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    117,
+                    117
+                ],
+                "name": "tumor",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    118,
+                    118
+                ],
+                "name": "necrosis",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    123,
+                    124
+                ],
+                "name": "nitric oxide",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    126,
+                    126
+                ],
+                "name": "platinum",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    135,
+                    135
+                ],
+                "name": "selenium",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    137,
+                    137
+                ],
+                "name": "zinc",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    144,
+                    144
+                ],
+                "name": "cisplatin",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    150,
+                    152
+                ],
+                "name": "renal tissue damage",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    155,
+                    155
+                ],
+                "name": "cisplatin",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    159,
+                    160
+                ],
+                "name": "coenzyme Q10",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    167,
+                    168
+                ],
+                "name": "coenzyme Q10",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    172,
+                    172
+                ],
+                "name": "cisplatin",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    178,
+                    179
+                ],
+                "name": "nitric oxide",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    200,
+                    201
+                ],
+                "name": "coenzyme Q10",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    211,
+                    211
+                ],
+                "name": "cisplatin",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    212,
+                    212
+                ],
+                "name": "nephrotoxicity",
+                "entity_type": "Disease"
+            }
+        ]
+    },
+    {
+        "doc_key": "20164825",
+        "sentences": [
+            "Metformin prevents experimental gentamicin - induced nephropathy by a mitochondria - dependent pathway .",
+            "The antidiabetic drug metformin can diminish apoptosis induced by oxidative stress in endothelial cells and prevent vascular dysfunction even in nondiabetic patients .",
+            "Here we tested whether it has a beneficial effect in a rat model of gentamicin toxicity .",
+            "Mitochondrial analysis , respiration intensity , levels of reactive oxygen species , permeability transition , and cytochrome c release were assessed 3 and 6 days after gentamicin administration .",
+            "Metformin treatment fully blocked gentamicin - mediated acute renal failure .",
+            "This was accompanied by a lower activity of N - acetyl - beta - D - glucosaminidase , together with a decrease of lipid peroxidation and increase of antioxidant systems .",
+            "Metformin also protected the kidney from histological damage 6 days after gentamicin administration .",
+            "These in vivo markers of kidney dysfunction and their correction by metformin were complemented by in vitro studies of mitochondrial function .",
+            "We found that gentamicin treatment depleted respiratory components ( cytochrome c , NADH ) , probably due to the opening of mitochondrial transition pores .",
+            "These injuries , partly mediated by a rise in reactive oxygen species from the electron transfer chain , were significantly decreased by metformin .",
+            "Thus , our study suggests that pleiotropic effects of metformin can lessen gentamicin nephrotoxicity and improve mitochondrial homeostasis ."
+        ],
+        "mentions": [
+            {
+                "span": [
+                    0,
+                    0
+                ],
+                "name": "Metformin",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    3,
+                    3
+                ],
+                "name": "gentamicin",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    6,
+                    6
+                ],
+                "name": "nephropathy",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    17,
+                    17
+                ],
+                "name": "metformin",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    30,
+                    31
+                ],
+                "name": "vascular dysfunction",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    51,
+                    51
+                ],
+                "name": "gentamicin",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    52,
+                    52
+                ],
+                "name": "toxicity",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    63,
+                    63
+                ],
+                "name": "oxygen",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    80,
+                    80
+                ],
+                "name": "gentamicin",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    83,
+                    83
+                ],
+                "name": "Metformin",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    87,
+                    87
+                ],
+                "name": "gentamicin",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    90,
+                    92
+                ],
+                "name": "acute renal failure",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    125,
+                    125
+                ],
+                "name": "Metformin",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    136,
+                    136
+                ],
+                "name": "gentamicin",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    144,
+                    145
+                ],
+                "name": "kidney dysfunction",
+                "entity_type": "Disease"
+            },
+            {
+                "span": [
+                    150,
+                    150
+                ],
+                "name": "metformin",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    164,
+                    164
+                ],
+                "name": "gentamicin",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    196,
+                    196
+                ],
+                "name": "oxygen",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    208,
+                    208
+                ],
+                "name": "metformin",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    219,
+                    219
+                ],
+                "name": "metformin",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    222,
+                    222
+                ],
+                "name": "gentamicin",
+                "entity_type": "Chemical"
+            },
+            {
+                "span": [
+                    223,
+                    223
+                ],
+                "name": "nephrotoxicity",
+                "entity_type": "Disease"
+            }
+        ]
+    }
+]
