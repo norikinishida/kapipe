@@ -1,6 +1,6 @@
 # ed_retrieval
 
-This directory contains example experiments for Entity Disambiguation (candidate retrieval phase).
+This directory contains example experiments for Entity Disambiguation (Retrieval) (`kapipe.ed_retrieval`).
 
 ## Step 1. Installation
 

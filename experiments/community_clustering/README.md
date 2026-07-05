@@ -1,6 +1,6 @@
 # community_clustering
 
-This directory contains example experiments for Community Clustering.
+This directory contains example experiments for Community Clustering (`kapipe.community_clustering`).
 
 ## Step 1. Installation
 

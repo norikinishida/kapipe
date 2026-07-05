@@ -1,6 +1,6 @@
 # report_generation
 
-This directory contains example experiments for Report Generation.
+This directory contains example experiments for Report Generation (`kapipe.report_generation`).
 
 ## Step 1. Installation
 

@@ -1,6 +1,6 @@
 # rag_pipeline
 
-This directory contains example experiments for RAG pipeline.
+This directory contains example experiments for RAG pipeline (`kapipe.pipelines.RAGPipeline`).
 
 ## Step 1. Installation
 

@@ -1,6 +1,6 @@
 # ner
 
-This directory contains example experiments for Named Entity Recognition (NER).
+This directory contains example experiments for Named Entity Recognition (`kapipe.ner`).
 
 ## Step 1. Installation
 

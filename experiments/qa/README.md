@@ -1,6 +1,6 @@
 # qa
 
-This directory contains example experiments for Question Answering.
+This directory contains example experiments for Question Answering (`kapipe.qa`).
 
 ## Step 1. Installation
 

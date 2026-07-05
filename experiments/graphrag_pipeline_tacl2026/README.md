@@ -1,8 +1,8 @@
 # graphrag_pipeline_tacl2026
 
-This directory contains example experiments for the GraphRAG pipeline.
+This directory contains example experiments for the GraphRAG pipeline (`kapipe.pipelines.GraphRAGPipeline`).
 
-この実験ディレクトリは、以下の論文で使われたコードベースです:
+This experiment directory also provides the codebase used in the following paper:
 
 - [Nishida et al., TACL 2026, **Dissecting GraphRAG: A Modular Analysis of Knowledge Structuring for Factoid Question Answering**.](https://aclanthology.org/2026.tacl-1.29/)
 
@@ -43,6 +43,22 @@ experiments/graphrag_pipeline_tacl2026/data/examples/entity_dict.json
 experiments/graphrag_pipeline_tacl2026/data/examples/questions.json
 experiments/graphrag_pipeline_tacl2026/data/examples/questions_with_answers.json
 ```
+
+### CDR-QA and Linked-DocRED-QA datasets
+
+We provide the CDR-QA and Linked-DocRED-QA datasets used in the above paper in the following directories.
+
+```bash
+experiments/graphrag_pipeline_tacl2026/data/cdr_qa/neighborhood_questions.json
+experiments/graphrag_pipeline_tacl2026/data/cdr_qa/intersection_questions.json
+experiments/graphrag_pipeline_tacl2026/data/cdr_qa/multihop_questions.json
+
+experiments/graphrag_pipeline_tacl2026/data/linked_docred_qa/neighborhood_questions.json
+experiments/graphrag_pipeline_tacl2026/data/linked_docred_qa/intersection_questions.json
+experiments/graphrag_pipeline_tacl2026/data/linked_docred_qa/multihop_questions.json
+```
+
+The original CDR and Linked-DocRED datasets, as well as the corresponding KBs (MeSH and DBPedia), can be prepared using the scripts in `experiments/datasets/docre` and `experiments/datasets/kb`.
 
 ## Step 3. Configuration Setup
 

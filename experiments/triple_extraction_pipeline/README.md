@@ -1,6 +1,6 @@
 # triple_extraction_pipeline
 
-This directory contains example experiments for Triple Extraction pipeline.
+This directory contains example experiments for Triple Extraction pipeline (`kapipe.pipelines.TripleExtractionPipeline`).
 
 ## Step 1. Installation
 

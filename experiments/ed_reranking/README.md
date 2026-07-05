@@ -1,6 +1,6 @@
 # ed_reranking
 
-This directory contains example experiments for Entity Disambiguation (reranking phase).
+This directory contains example experiments for Entity Disambiguation (Reranking) (`kapipe.ed_reranking`).
 
 ## Step 1. Installation
 

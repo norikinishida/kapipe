@@ -1,6 +1,6 @@
 # docre
 
-This directory contains example experiments for Document-level Relation Extraction (DocRE).
+This directory contains example experiments for Document-level Relation Extraction (`kapipe.docre`).
 
 ## Step 1. Installation
 

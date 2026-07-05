@@ -1,6 +1,6 @@
 # passage_retrieval
 
-This directory contains example experiments for Passage Retrieval.
+This directory contains example experiments for Passage Retrieval (`kapipe.passage_retrieval`).
 
 ## Step 1. Installation
 
