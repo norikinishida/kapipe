@@ -33,30 +33,21 @@ Each community record contains the following fields.
         "level": -1,
         "parent_community_id": null,
         "child_community_ids": [
-            "0",
-            "1",
-            "2",
-            "3",
-            "4",
-            "5",
-            "6",
-            "7",
-            "8",
-            "9"
+            "Community(D016651)",
+            "Community(D014262)",
+            "Community(D002122)",
+            ...
         ]
     },
     {
-        "community_id": "0",
+        "community_id": "Community(D016651)",
         "nodes": [
             "D016651",
-            "D014262",
-            "D003866",
-            "D003490",
-            "D001145"
+            "D014262"
         ],
         "level": 0,
         "parent_community_id": "ROOT",
-        "child_community_ids": [...]
+        "child_community_ids": []
     },
     ...
 ]
@@ -76,19 +67,22 @@ Each passage contains generated title and text (with the corresponding community
 ```json
 [
     {
-        "title": "Lithium Carbonate and Related Health Conditions",
-        "text": "This report examines the interconnections between Lithium Carbonate, ....",
-        ...
+        "title": "Calcium Chloride and Cardiac Arrhythmias",
+        "text": "This report examines the relationship between Calcium Chloride, a chemical used in medical treatments, and Cardiac Arrhythmias, a significant health condition. The report highlights ...",
+        "community_id": "Community(D002122)",
+        "nodes": ["D002122", "D001145"],
+        "level": 0,
+        "parent_community_id": "ROOT",
+        "child_community_ids": []
     },
     {
-        "title": "Phenobarbital and Drug-Induced Dyskinesia",
-        "text": "This report examines the relationship between Phenobarbital, ...",
-        ...
-    },
-    {
-        "title": "Ammonia and Valproic Acid in Disorders of Excessive Somnolence",
-        "text": "This report examines the relationship between ammonia and valproic acid, ...",
-        ...
+        "title": "Cardiac Arrhythmias and Inducing Chemicals: Calcium Chloride and Desipramine",
+        "text": "This report examines the community surrounding cardiac arrhythmias, focusing on the relationships between the diseases and the chemicals that induce them. The primary entities ...",
+        "community_id": "Community(D001145)",
+        "nodes": ["D001145", "D002122", "D003891"],
+        "level": 0,
+        "parent_community_id": "ROOT",
+        "child_community_ids": []
     },
     ...
 ]

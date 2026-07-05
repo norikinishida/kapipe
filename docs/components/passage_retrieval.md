@@ -19,9 +19,10 @@ Additional metadata fields are preserved in retrieved passages.
 
 ```json
 [
+
     {
-        "title": "Tricuspid valve regurgitation and lithium carbonate toxicity in a newborn infant.",
-        "text": "A newborn with massive tricuspid regurgitation, atrial flutter, congestive heart failure, and a high serum lithium level is described. This is the first patient to initially manifest tricuspid regurgitation and atrial flutter, and the 11th described patient with cardiac disease among infants exposed to lithium compounds in the first trimester of pregnancy. Sixty-three percent of these infants had tricuspid valve involvement. Lithium carbonate may be a factor in the increasing incidence of congenital heart disease when taken during early pregnancy. It also causes neurologic depression, cyanosis, and cardiac arrhythmia when consumed prior to delivery."
+        "title": "Effect of calcium chloride and 4-aminopyridine therapy on desipramine toxicity in rats.",
+        "text": "BACKGROUND: Hypotension is a major contributor to mortality in tricyclic antidepressant overdose. Recent data suggest that ..."
     },
     ...
 ]
@@ -31,7 +32,8 @@ Search takes a list of query strings.
 
 ```json
 [
-    "Which interventions attenuated, prevented, antagonized, or reduced opioid-induced muscle rigidity in rats?",
+    "Which metastatic breast cancer treatments were linked to an adverse event also reported in dogs treated with lomustine?",
+    ...
 ]
 ```
 
@@ -52,15 +54,15 @@ Each retrieved passage preserves the original passage fields and adds `score` an
 [
     [
         {
-            "title": "Ketanserin pretreatment reverses alfentanil-induced muscle rigidity.",
-            "text": "Systemic pretreatment with ketanserin, a relatively specific type-2 serotonin receptor antagonist, ...",
-            "score": 0.7015140056610107,
+            "title": "CCNU (lomustine) toxicity in dogs: a retrospective study (2002-07).",
+            "text": "OBJECTIVE: To describe the incidence of haematological, renal, hepatic and gastrointestinal toxicities in tumour-bearing dogs receiving 1-(2-chloroethyl)-3-cyclohexyl-1-nitrosourea (CCNU). DESIGN: The medical records of 206 dogs that were treated with CCNU at the Melbourne Veterinary Specialist Centre between February 2002 and December 2007 were retrospectively evaluated. RESULTS: Of the 206 dogs treated with CCNU, 185 met the inclusion criteria for at least one class of toxicity. CCNU was used most commonly in the treatment of lymphoma, mast cell tumour, brain tumour, histiocytic tumours and epitheliotropic lymphoma. Throughout treatment, 56.9% of dogs experienced neutropenia, 34.2% experienced anaemia and 14.2% experienced thrombocytopenia. Gastrointestinal toxicosis was detected in 37.8% of dogs, the most common sign of which was vomiting (24.3%). Potential renal toxicity and elevated alanine transaminase (ALT) concentration were reported in 12.2% and 48.8% of dogs, respectively. The incidence of hepatic failure was 1.2%. CONCLUSIONS: CCNU-associated toxicity in dogs is common, but is usually not life threatening.",
+            "score": 0.7051769495010376,
             "rank": 1
         },
         {
-            "title": "Involvement of locus coeruleus and noradrenergic neurotransmission in fentanyl-induced muscular rigidity in the rat.",
-            "text": "Whereas muscular rigidity is a well-known side effect that is associated with high-dose fentanyl anesthesia, ...",
-            "score": 0.6968926191329956,
+            "title": "Reduced cardiotoxicity and preserved antitumor efficacy of liposome-encapsulated doxorubicin and cyclophosphamide compared with conventional doxorubicin and cyclophosphamide in a randomized, multicenter trial of metastatic breast cancer.",
+            "text": "PURPOSE: To determine whether Myocet (liposome-encapsulated doxorubicin; The Liposome Company, Elan Corporation, Princeton, NJ) in combination with cyclophosphamide significantly reduces doxorubicin cardiotoxicity while providing comparable antitumor efficacy in first-line treatment of metastatic breast cancer (MBC). PATIENTS AND METHODS: Two hundred ninety-seven patients with MBC and no prior chemotherapy for metastatic disease were randomized to receive either 60 mg/m (2) of Myocet (M) or conventional doxorubicin (A), in combination with 600 mg/m (2) of cyclophosphamide (C), every 3 weeks until disease progression or unacceptable toxicity. Cardiotoxicity was defined by reductions in left-ventricular ejection fraction, assessed by serial multigated radionuclide angiography scans, or congestive heart failure (CHF). Antitumor efficacy was assessed by objective tumor response rates (World Health Organization criteria), time to progression, and survival. RESULTS: Six percent of MC patients versus 21% (including five cases of CHF) of AC patients developed cardiotoxicity (P = . 0002). Median cumulative doxorubicin dose at onset was more than 2,220 mg/m (2) for MC versus 480 mg/m (2) for AC (P = . 0001, hazard ratio, 5.04). MC patients also experienced less grade 4 neutropenia. Antitumor efficacy of MC versus AC was comparable: objective response rates, 43% versus 43%; median time to progression, 5.1% versus 5.5 months; median time to treatment failure, 4.6 versus 4.4 months; and median survival, 19 versus 16 months. CONCLUSION: Myocet improves the therapeutic index of doxorubicin by significantly reducing cardiotoxicity and grade 4 neutropenia and provides comparable antitumor efficacy, when used in combination with cyclophosphamide as first-line therapy for MBC.",
+            "score": 0.5899654626846313,
             "rank": 2
         },
         ...

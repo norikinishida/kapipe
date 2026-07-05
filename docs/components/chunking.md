@@ -17,8 +17,8 @@ Additional metadata fields are preserved in the output.
 
 ```json
 {
-    "title": "Tricuspid valve regurgitation and lithium carbonate toxicity in a newborn infant.",
-    "text": "A newborn with massive tricuspid regurgitation, atrial flutter, congestive heart failure, and a high serum lithium level is described. This is the first patient to initially manifest tricuspid regurgitation and atrial flutter, and the 11th described patient with cardiac disease among infants exposed to lithium compounds in the first trimester of pregnancy. Sixty-three percent of these infants had tricuspid valve involvement. Lithium carbonate may be a factor in the increasing incidence of congenital heart disease when taken during early pregnancy. It also causes neurologic depression, cyanosis, and cardiac arrhythmia when consumed prior to delivery. ...",
+    "title": "Effect of calcium chloride and 4-aminopyridine therapy on desipramine toxicity in rats.",
+    "text": "BACKGROUND: Hypotension is a major contributor to mortality in tricyclic antidepressant overdose. Recent data suggest ...",
     "hoge": "fuga"
 }
 ```
@@ -37,13 +37,18 @@ Each chunked passage preserves the original metadata and replaces `text` with a 
 ```json
 [
     {
-        "title": "Tricuspid valve regurgitation and lithium carbonate toxicity in a newborn infant.",
-        "text": "A newborn with massive tricuspid regurgitation, atrial flutter, congestive heart failure, and a high serum lithium level is described. This is the first patient to initially manifest tricuspid regurgitation and atrial flutter, and the 11th described patient with cardiac disease among infants exposed to lithium compounds in the first trimester of pregnancy.",
+        "title": "Effect of calcium chloride and 4-aminopyridine therapy on desipramine toxicity in rats.",
+        "text": "BACKGROUND: Hypotension is a major contributor to mortality in tricyclic antidepressant overdose. Recent data suggest ...",
         "hoge": "fuga"
     },
     {
-        "title": "Tricuspid valve regurgitation and lithium carbonate toxicity in a newborn infant.",
-        "text": "Sixty-three percent of these infants had tricuspid valve involvement. Lithium carbonate may be a factor in the increasing incidence of congenital heart disease when taken during early pregnancy. It also causes neurologic depression, cyanosis, and cardiac arrhythmia when consumed prior to delivery.",
+        "title": "Effect of calcium chloride and 4-aminopyridine therapy on desipramine toxicity in rats.",
+        "text": "CaCl2 and 4-aminopyridine. Anesthetized rats received the tricyclic antidepressant desipramine IP to produce hypotension, ...",
+        "hoge": "fuga"
+    },
+    {
+        "title": "Effect of calcium chloride and 4-aminopyridine therapy on desipramine toxicity in rats.",
+        "text": "CaCl2 and 4-aminopyridine failed to improve blood pressure. The incidence of ventricular arrhythmias (p = 0.004) and ...",
         "hoge": "fuga"
     },
     ...

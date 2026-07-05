@@ -1,10 +1,10 @@
 [
     {
-        "question_key": "question#123",
-        "question": "Which interventions attenuated, prevented, antagonized, or reduced opioid-induced muscle rigidity in rats?"
+        "question_key": "question#001",
+        "question": "Which metastatic breast cancer treatments were linked to an adverse event also reported in dogs treated with lomustine?"
     },
     {
-        "question_key": "question#456",
-        "question": "Which drugs or drug exposures were associated with neurologic, movement-related, or reduced-responsiveness adverse effects?"
+        "question_key": "question#002",
+        "question": "What adverse clinical findings were reported for both desipramine toxicity and diltiazem overdose?"
     }
 ]

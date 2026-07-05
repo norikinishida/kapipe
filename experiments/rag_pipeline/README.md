@@ -36,6 +36,7 @@ This directory already includes example data.
 experiments/rag_pipeline/data/examples/passages.jsonl
 experiments/rag_pipeline/data/examples/questions.json
 experiments/rag_pipeline/data/examples/questions_with_answers.json
+experiments/rag_pipeline/data/examples/questions.gold_contexts.json
 ```
 
 ## Step 3. Configuration Setup

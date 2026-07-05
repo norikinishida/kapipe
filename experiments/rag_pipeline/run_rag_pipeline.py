@@ -59,7 +59,8 @@ def main(args):
 
     # Evaluation
     do_evaluation = args.do_evaluation
-    gold_questions_path = args.gold
+    gold_questions_path = args.gold_answers
+    gold_contexts_path = args.gold_contexts
 
     ##################
     # Logging Setup
@@ -187,7 +188,9 @@ def main(args):
     if do_evaluation:
         # Require gold answers only when evaluation is requested
         if gold_questions_path is None:
-            raise ValueError("--gold is required when --do_evaluation is set")
+            raise ValueError("--gold_answers is required when --do_evaluation is set")
+        if gold_contexts_path is None:
+            raise ValueError("--gold_contexts is required when --do_evaluation is set") 
 
         # Evaluate the prediction results
         qa_scores = evaluation.qa.accuracy(
@@ -202,8 +205,21 @@ def main(args):
             gold_path=gold_questions_path,
             exact_match=False,
         )
+        ret_scores = evaluation.passage_retrieval.precision_recall_at_k(
+            pred_path=output_questions_path,
+            gold_path=gold_contexts_path,
+            passage_to_identifier=lambda p: p["text"]
+        )
+        ret_scores.update(
+            evaluation.passage_retrieval.ndcg_at_k(
+                pred_path=output_questions_path,
+                gold_path=gold_contexts_path,
+                passage_to_identifier=lambda p: p["text"]
+            )
+        )
         scores = {
             "qa": qa_scores,
+            "passage_retrieval": ret_scores,
         }
         logging.info(utils.pretty_format_dict(scores))
 
@@ -326,6 +342,9 @@ if __name__ == "__main__":
         format="%(asctime)s - %(levelname)s - %(name)s - %(message)s",
         level=logging.INFO
     )
+    logging.getLogger("httpx").addFilter(
+        lambda r: "huggingface.co" not in r.getMessage()
+    )
 
     parser = argparse.ArgumentParser()
 
@@ -346,7 +365,8 @@ if __name__ == "__main__":
 
     # Evaluation
     parser.add_argument("--do_evaluation", action="store_true")
-    parser.add_argument("--gold", type=str, default=None)
+    parser.add_argument("--gold_answers", type=str, default=None)
+    parser.add_argument("--gold_contexts", type=str, default=None)
 
     args = parser.parse_args()
 

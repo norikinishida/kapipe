@@ -20,6 +20,7 @@ CONFIG_NAME=qwen3emb0.6b_gpt5.4nano
 INPUT_PASSAGES=${STORAGE_DATA}/examples/passages.jsonl
 INPUT_QUESTIONS=${STORAGE_DATA}/examples/questions.json
 GOLD_QUESTIONS=${STORAGE_DATA}/examples/questions_with_answers.json
+GOLD_CONTEXTS=${STORAGE_DATA}/examples/questions.gold_contexts.json
 
 # Output Path
 RESULTS_DIR=${STORAGE_RESULTS}
@@ -47,4 +48,5 @@ python run_rag_pipeline.py \
     --prefix ${MYPREFIX} \
     --actiontype inference \
     --do_evaluation \
-    --gold ${GOLD_QUESTIONS}
+    --gold_answers ${GOLD_QUESTIONS} \
+    --gold_contexts ${GOLD_CONTEXTS}

@@ -15,8 +15,8 @@ A question is represented as a dictionary with the following fields.
 
 ```json
 {
-    "question_key": "question#123",
-    "question": "Which interventions attenuated, prevented, antagonized, or reduced opioid-induced muscle rigidity in rats?"
+    "question_key": "question#001",
+    "question": "Which metastatic breast cancer treatments were linked to an adverse event also reported in dogs treated with lomustine?"
 }
 ```
 
@@ -38,15 +38,19 @@ Each context passage contains the following fields.
 
 ```json
 {
-    "question_key": "question#123",
+    "question_key": "question#001",
     "contexts": [
         {
-            "title": "Ketanserin pretreatment reverses alfentanil-induced muscle rigidity.",
-            "text": "Systemic pretreatment with ketanserin, a relatively specific type-2 serotonin receptor antagonist, significantly attenuated ..."
+            "title": "CCNU (lomustine) toxicity in dogs: a retrospective study (2002-07).",
+            "text": "OBJECTIVE: To describe the incidence of haematological, renal, hepatic and gastrointestinal toxicities in tumour-bearing dogs ...",
+            "score": 0.7051769495010376,
+            "rank": 1
         },
         {
-            "title": "Involvement of locus coeruleus and noradrenergic neurotransmission in fentanyl-induced muscular rigidity in the rat.",
-            "text": "Whereas muscular rigidity is a well-known side effect that is associated with high-dose fentanyl anesthesia, a paucity of ..."
+            "title": "Reduced cardiotoxicity and preserved antitumor efficacy of liposome-encapsulated doxorubicin and cyclophosphamide compared with ...",
+            "text": "PURPOSE: To determine whether Myocet (liposome-encapsulated doxorubicin; The Liposome Company, Elan Corporation, Princeton, ...",
+            "score": 0.5899654626846313,
+            "rank": 2
         },
         ...
     ]
@@ -65,11 +69,11 @@ The output preserves the input question fields and adds answer-related fields.
 
 ```json
 {
-    "question_key": "question#123",
-    "question": "Which interventions attenuated, prevented, antagonized, or reduced opioid-induced muscle rigidity in rats?",
-    "output_answer": "Ketanserin, electrolytic lesions of the locus coeruleus, and prazosin attenuated, prevented, antagonized, or reduced opioid-induced muscle rigidity in rats.",
-    "rationale": "The context passages provide information on different interventions that affect opioid-induced muscle rigidity in rats. Passage [1] mentions that ...",
-    "helpfulness_score": 1.0
+    "question_key": "question#001",
+    "question": "Which metastatic breast cancer treatments were linked to an adverse event also reported in dogs treated with lomustine?",
+    "output_answer": "Conventional doxorubicin and cyclophosphamide (AC) treatment for metastatic breast cancer was linked to neutropenia, ...",
+    "rationale": "The context passages describe various treatments and their associated adverse events. In passage [1], dogs treated with ...",
+    "helpfulness_score": 0.95
 }
 ```
 
@@ -91,7 +95,7 @@ from kapipe.qa import LLMQA
 from kapipe.llms import OpenAILLM
 model = OpenAILLM(
     model_name="gpt-5.4-nano",
-    max_new_tokens=1024,
+    max_new_tokens=8192,
 )
 # HuggingFace LLM
 from kapipe.llms import HuggingFaceLLM

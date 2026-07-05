@@ -28,6 +28,7 @@ INPUT_CONTEXTS=${STORAGE_DATA}/examples/questions.contexts.json
 RESULTS_DIR=${STORAGE_RESULTS}
 MYPREFIX=example
 
+# (optional) Evaluation
 GOLD_ANSWERS=${STORAGE_DATA}/examples/questions_with_answers.json
 
 ######

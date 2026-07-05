@@ -337,15 +337,6 @@
                     27,
                     30
                 ],
-                "mention_names": [
-                    "calcium chloride",
-                    "CaCl2",
-                    "CaCl2",
-                    "CaCl2",
-                    "CaCl2",
-                    "CaCl2",
-                    "CaCl2"
-                ],
                 "entity_type": "Chemical",
                 "entity_id": "D002122"
             },
@@ -357,13 +348,6 @@
                     23,
                     28
                 ],
-                "mention_names": [
-                    "4 - aminopyridine",
-                    "4 - aminopyridine",
-                    "4 - aminopyridine",
-                    "4 - aminopyridine",
-                    "4 - aminopyridine"
-                ],
                 "entity_type": "Chemical",
                 "entity_id": "D015761"
             },
@@ -373,20 +357,12 @@
                     13,
                     18
                 ],
-                "mention_names": [
-                    "desipramine",
-                    "desipramine",
-                    "desipramine"
-                ],
                 "entity_type": "Chemical",
                 "entity_id": "D003891"
             },
             {
                 "mention_indices": [
                     3
-                ],
-                "mention_names": [
-                    "toxicity"
                 ],
                 "entity_type": "Disease",
                 "entity_id": "D064420"
@@ -400,14 +376,6 @@
                     29,
                     33
                 ],
-                "mention_names": [
-                    "Hypotension",
-                    "hypotension",
-                    "hypotension",
-                    "hypotension",
-                    "hypotension",
-                    "hypotension"
-                ],
                 "entity_type": "Disease",
                 "entity_id": "D007022"
             },
@@ -415,10 +383,6 @@
                 "mention_indices": [
                     5,
                     10
-                ],
-                "mention_names": [
-                    "overdose",
-                    "overdose"
                 ],
                 "entity_type": "Disease",
                 "entity_id": "D062787"
@@ -430,21 +394,12 @@
                     9,
                     32
                 ],
-                "mention_names": [
-                    "calcium",
-                    "calcium",
-                    "calcium",
-                    "calcium"
-                ],
                 "entity_type": "Chemical",
                 "entity_id": "D002118"
             },
             {
                 "mention_indices": [
                     15
-                ],
-                "mention_names": [
-                    "bradycardia"
                 ],
                 "entity_type": "Disease",
                 "entity_id": "D001919"
@@ -454,19 +409,12 @@
                     17,
                     20
                 ],
-                "mention_names": [
-                    "NaHCO3",
-                    "NaHCO3"
-                ],
                 "entity_type": "Chemical",
                 "entity_id": "D017693"
             },
             {
                 "mention_indices": [
                     24
-                ],
-                "mention_names": [
-                    "ventricular arrhythmias"
                 ],
                 "entity_type": "Disease",
                 "entity_id": "D001145"
@@ -475,18 +423,12 @@
                 "mention_indices": [
                     25
                 ],
-                "mention_names": [
-                    "seizures"
-                ],
                 "entity_type": "Disease",
                 "entity_id": "D012640"
             },
             {
                 "mention_indices": [
                     31
-                ],
-                "mention_names": [
-                    "cardiovascular and central nervous system toxicity"
                 ],
                 "entity_type": "Disease",
                 "entity_id": "D002318"
@@ -495,11 +437,40 @@
                 "mention_indices": [
                     31
                 ],
-                "mention_names": [
-                    "cardiovascular and central nervous system toxicity"
-                ],
                 "entity_type": "Disease",
                 "entity_id": "D002493"
+            }
+        ],
+        "relations": [
+            {
+                "arg1": 0,
+                "relation": "CID",
+                "arg2": 9
+            },
+            {
+                "arg1": 2,
+                "relation": "CID",
+                "arg2": 4
+            },
+            {
+                "arg1": 2,
+                "relation": "CID",
+                "arg2": 7
+            },
+            {
+                "arg1": 2,
+                "relation": "CID",
+                "arg2": 9
+            }
+        ],
+        "not_include_pairs": [
+            {
+                "arg1": 0,
+                "arg2": 11
+            },
+            {
+                "arg1": 2,
+                "arg2": 11
             }
         ]
     },
@@ -756,16 +727,6 @@
                     9,
                     23
                 ],
-                "mention_names": [
-                    "CCNU",
-                    "lomustine",
-                    "1 - ( 2 - chloroethyl ) - 3 - cyclohexyl - 1 - nitrosourea",
-                    "CCNU",
-                    "CCNU",
-                    "CCNU",
-                    "CCNU",
-                    "CCNU"
-                ],
                 "entity_type": "Chemical",
                 "entity_id": "D008130"
             },
@@ -776,21 +737,12 @@
                     20,
                     24
                 ],
-                "mention_names": [
-                    "toxicity",
-                    "toxicity",
-                    "toxicity",
-                    "toxicity"
-                ],
                 "entity_type": "Disease",
                 "entity_id": "D064420"
             },
             {
                 "mention_indices": [
                     3
-                ],
-                "mention_names": [
-                    "haematological , renal , hepatic and gastrointestinal toxicities"
                 ],
                 "entity_type": "Disease",
                 "entity_id": "D007674"
@@ -800,10 +752,6 @@
                     3,
                     18
                 ],
-                "mention_names": [
-                    "haematological , renal , hepatic and gastrointestinal toxicities",
-                    "Gastrointestinal toxicosis"
-                ],
                 "entity_type": "Disease",
                 "entity_id": "D005767"
             },
@@ -811,18 +759,12 @@
                 "mention_indices": [
                     3
                 ],
-                "mention_names": [
-                    "haematological , renal , hepatic and gastrointestinal toxicities"
-                ],
                 "entity_type": "Disease",
                 "entity_id": "D006402"
             },
             {
                 "mention_indices": [
                     3
-                ],
-                "mention_names": [
-                    "haematological , renal , hepatic and gastrointestinal toxicities"
                 ],
                 "entity_type": "Disease",
                 "entity_id": "D056486"
@@ -832,19 +774,12 @@
                     10,
                     14
                 ],
-                "mention_names": [
-                    "lymphoma",
-                    "epitheliotropic lymphoma"
-                ],
                 "entity_type": "Disease",
                 "entity_id": "D008223"
             },
             {
                 "mention_indices": [
                     11
-                ],
-                "mention_names": [
-                    "mast cell tumour"
                 ],
                 "entity_type": "Disease",
                 "entity_id": "D034801"
@@ -853,18 +788,12 @@
                 "mention_indices": [
                     12
                 ],
-                "mention_names": [
-                    "brain tumour"
-                ],
                 "entity_type": "Disease",
                 "entity_id": "D001932"
             },
             {
                 "mention_indices": [
                     13
-                ],
-                "mention_names": [
-                    "histiocytic tumours"
                 ],
                 "entity_type": "Disease",
                 "entity_id": "D015620"
@@ -873,18 +802,12 @@
                 "mention_indices": [
                     15
                 ],
-                "mention_names": [
-                    "neutropenia"
-                ],
                 "entity_type": "Disease",
                 "entity_id": "D009503"
             },
             {
                 "mention_indices": [
                     16
-                ],
-                "mention_names": [
-                    "anaemia"
                 ],
                 "entity_type": "Disease",
                 "entity_id": "D000740"
@@ -893,18 +816,12 @@
                 "mention_indices": [
                     17
                 ],
-                "mention_names": [
-                    "thrombocytopenia"
-                ],
                 "entity_type": "Disease",
                 "entity_id": "D013921"
             },
             {
                 "mention_indices": [
                     19
-                ],
-                "mention_names": [
-                    "vomiting"
                 ],
                 "entity_type": "Disease",
                 "entity_id": "D014839"
@@ -913,9 +830,6 @@
                 "mention_indices": [
                     21
                 ],
-                "mention_names": [
-                    "alanine"
-                ],
                 "entity_type": "Chemical",
                 "entity_id": "D000409"
             },
@@ -923,11 +837,51 @@
                 "mention_indices": [
                     22
                 ],
-                "mention_names": [
-                    "hepatic failure"
-                ],
                 "entity_type": "Disease",
                 "entity_id": "D017093"
+            }
+        ],
+        "relations": [
+            {
+                "arg1": 0,
+                "relation": "CID",
+                "arg2": 2
+            },
+            {
+                "arg1": 0,
+                "relation": "CID",
+                "arg2": 3
+            },
+            {
+                "arg1": 0,
+                "relation": "CID",
+                "arg2": 10
+            },
+            {
+                "arg1": 0,
+                "relation": "CID",
+                "arg2": 11
+            },
+            {
+                "arg1": 0,
+                "relation": "CID",
+                "arg2": 12
+            },
+            {
+                "arg1": 0,
+                "relation": "CID",
+                "arg2": 13
+            },
+            {
+                "arg1": 0,
+                "relation": "CID",
+                "arg2": 15
+            }
+        ],
+        "not_include_pairs": [
+            {
+                "arg1": 0,
+                "arg2": 4
             }
         ]
     },
@@ -1208,13 +1162,6 @@
                     23,
                     24
                 ],
-                "mention_names": [
-                    "asystolic",
-                    "cardiac arrest",
-                    "asystolic",
-                    "asystole",
-                    "cardiac arrest"
-                ],
                 "entity_type": "Disease",
                 "entity_id": "D006323"
             },
@@ -1224,12 +1171,6 @@
                     6,
                     21,
                     25
-                ],
-                "mention_names": [
-                    "diltiazem",
-                    "diltiazem",
-                    "diltiazem",
-                    "diltiazem"
                 ],
                 "entity_type": "Chemical",
                 "entity_id": "D004110"
@@ -1242,13 +1183,6 @@
                     22,
                     26
                 ],
-                "mention_names": [
-                    "overdose",
-                    "overdose",
-                    "overdose",
-                    "overdose",
-                    "overdose"
-                ],
                 "entity_type": "Disease",
                 "entity_id": "D062787"
             },
@@ -1258,20 +1192,12 @@
                     17,
                     20
                 ],
-                "mention_names": [
-                    "calcium",
-                    "calcium",
-                    "calcium"
-                ],
                 "entity_type": "Chemical",
                 "entity_id": "D002118"
             },
             {
                 "mention_indices": [
                     7
-                ],
-                "mention_names": [
-                    "paracetamol"
                 ],
                 "entity_type": "Chemical",
                 "entity_id": "D000082"
@@ -1280,18 +1206,12 @@
                 "mention_indices": [
                     8
                 ],
-                "mention_names": [
-                    "aspirin"
-                ],
                 "entity_type": "Chemical",
                 "entity_id": "D001241"
             },
             {
                 "mention_indices": [
                     9
-                ],
-                "mention_names": [
-                    "isosorbide"
                 ],
                 "entity_type": "Chemical",
                 "entity_id": "D007547"
@@ -1300,18 +1220,12 @@
                 "mention_indices": [
                     10
                 ],
-                "mention_names": [
-                    "nitrate"
-                ],
                 "entity_type": "Chemical",
                 "entity_id": "D009566"
             },
             {
                 "mention_indices": [
                     11
-                ],
-                "mention_names": [
-                    "alcohol"
                 ],
                 "entity_type": "Chemical",
                 "entity_id": "D000431"
@@ -1320,9 +1234,6 @@
                 "mention_indices": [
                     12
                 ],
-                "mention_names": [
-                    "hypotension"
-                ],
                 "entity_type": "Disease",
                 "entity_id": "D007022"
             },
@@ -1330,18 +1241,12 @@
                 "mention_indices": [
                     14
                 ],
-                "mention_names": [
-                    "tonic - clonic seizures"
-                ],
                 "entity_type": "Disease",
                 "entity_id": "D004830"
             },
             {
                 "mention_indices": [
                     15
-                ],
-                "mention_names": [
-                    "bradycardia"
                 ],
                 "entity_type": "Disease",
                 "entity_id": "D001919"
@@ -1351,10 +1256,6 @@
                     18,
                     19
                 ],
-                "mention_names": [
-                    "adrenaline",
-                    "epinephrine"
-                ],
                 "entity_type": "Chemical",
                 "entity_id": "D004837"
             },
@@ -1362,13 +1263,33 @@
                 "mention_indices": [
                     27
                 ],
-                "mention_names": [
-                    "toxicity"
-                ],
                 "entity_type": "Disease",
                 "entity_id": "D064420"
             }
-        ]
+        ],
+        "relations": [
+            {
+                "arg1": 1,
+                "relation": "CID",
+                "arg2": 0
+            },
+            {
+                "arg1": 1,
+                "relation": "CID",
+                "arg2": 2
+            },
+            {
+                "arg1": 1,
+                "relation": "CID",
+                "arg2": 9
+            },
+            {
+                "arg1": 1,
+                "relation": "CID",
+                "arg2": 11
+            }
+        ],
+        "not_include_pairs": []
     },
     {
         "doc_key": "11868798",
@@ -1766,15 +1687,6 @@
                     33,
                     35
                 ],
-                "mention_names": [
-                    "Spironolactone",
-                    "spironolactone",
-                    "spironolactone",
-                    "spironolactone",
-                    "spironolactone",
-                    "spironolactone",
-                    "spironolactone"
-                ],
                 "entity_type": "Chemical",
                 "entity_id": "D013148"
             },
@@ -1795,22 +1707,6 @@
                     34,
                     40
                 ],
-                "mention_names": [
-                    "amphotericin B",
-                    "amphotericin B",
-                    "AmB",
-                    "AmB",
-                    "AmB",
-                    "AmB",
-                    "AmB",
-                    "AmB",
-                    "AmB",
-                    "AmB",
-                    "AmB",
-                    "AmB",
-                    "AmB",
-                    "AmB"
-                ],
                 "entity_type": "Chemical",
                 "entity_id": "D000666"
             },
@@ -1820,20 +1716,12 @@
                     15,
                     37
                 ],
-                "mention_names": [
-                    "hypokalemia",
-                    "hypokalemia",
-                    "hypokalemia"
-                ],
                 "entity_type": "Disease",
                 "entity_id": "D007008"
             },
             {
                 "mention_indices": [
                     3
-                ],
-                "mention_names": [
-                    "cancer"
                 ],
                 "entity_type": "Disease",
                 "entity_id": "D009369"
@@ -1842,9 +1730,6 @@
                 "mention_indices": [
                     4
                 ],
-                "mention_names": [
-                    "Nephrotoxicity"
-                ],
                 "entity_type": "Disease",
                 "entity_id": "D007674"
             },
@@ -1852,10 +1737,6 @@
                 "mention_indices": [
                     7,
                     11
-                ],
-                "mention_names": [
-                    "toxicity",
-                    "toxicity"
                 ],
                 "entity_type": "Disease",
                 "entity_id": "D064420"
@@ -1872,17 +1753,6 @@
                     36,
                     38
                 ],
-                "mention_names": [
-                    "potassium",
-                    "Potassium",
-                    "potassium",
-                    "potassium",
-                    "potassium",
-                    "potassium",
-                    "potassium",
-                    "potassium",
-                    "potassium"
-                ],
                 "entity_type": "Chemical",
                 "entity_id": "D011188"
             },
@@ -1891,19 +1761,12 @@
                     16,
                     39
                 ],
-                "mention_names": [
-                    "neutropenic",
-                    "neutropenic"
-                ],
                 "entity_type": "Disease",
                 "entity_id": "D009503"
             },
             {
                 "mention_indices": [
                     18
-                ],
-                "mention_names": [
-                    "hematological disorders"
                 ],
                 "entity_type": "Disease",
                 "entity_id": "D006402"
@@ -1912,13 +1775,18 @@
                 "mention_indices": [
                     22
                 ],
-                "mention_names": [
-                    "fungal infection"
-                ],
                 "entity_type": "Disease",
                 "entity_id": "D009181"
             }
-        ]
+        ],
+        "relations": [
+            {
+                "arg1": 1,
+                "relation": "CID",
+                "arg2": 2
+            }
+        ],
+        "not_include_pairs": []
     },
     {
         "doc_key": "11230490",
@@ -2233,13 +2101,6 @@
                     23,
                     28
                 ],
-                "mention_names": [
-                    "cardiotoxicity",
-                    "cardiotoxicity",
-                    "Cardiotoxicity",
-                    "cardiotoxicity",
-                    "cardiotoxicity"
-                ],
                 "entity_type": "Disease",
                 "entity_id": "D066126"
             },
@@ -2256,18 +2117,6 @@
                     26,
                     27
                 ],
-                "mention_names": [
-                    "doxorubicin",
-                    "doxorubicin",
-                    "Myocet",
-                    "doxorubicin",
-                    "doxorubicin",
-                    "Myocet",
-                    "doxorubicin",
-                    "doxorubicin",
-                    "Myocet",
-                    "doxorubicin"
-                ],
                 "entity_type": "Chemical",
                 "entity_id": "D004317"
             },
@@ -2278,13 +2127,6 @@
                     8,
                     16,
                     30
-                ],
-                "mention_names": [
-                    "cyclophosphamide",
-                    "cyclophosphamide",
-                    "cyclophosphamide",
-                    "cyclophosphamide",
-                    "cyclophosphamide"
                 ],
                 "entity_type": "Chemical",
                 "entity_id": "D003520"
@@ -2297,22 +2139,12 @@
                     13,
                     31
                 ],
-                "mention_names": [
-                    "breast cancer",
-                    "breast cancer",
-                    "MBC",
-                    "MBC",
-                    "MBC"
-                ],
                 "entity_type": "Disease",
                 "entity_id": "D001943"
             },
             {
                 "mention_indices": [
                     17
-                ],
-                "mention_names": [
-                    "toxicity"
                 ],
                 "entity_type": "Disease",
                 "entity_id": "D064420"
@@ -2323,20 +2155,12 @@
                     20,
                     22
                 ],
-                "mention_names": [
-                    "congestive heart failure",
-                    "CHF",
-                    "CHF"
-                ],
                 "entity_type": "Disease",
                 "entity_id": "D006333"
             },
             {
                 "mention_indices": [
                     21
-                ],
-                "mention_names": [
-                    "tumor"
                 ],
                 "entity_type": "Disease",
                 "entity_id": "D009369"
@@ -2346,14 +2170,33 @@
                     25,
                     29
                 ],
-                "mention_names": [
-                    "neutropenia",
-                    "neutropenia"
-                ],
                 "entity_type": "Disease",
                 "entity_id": "D009503"
             }
-        ]
+        ],
+        "relations": [
+            {
+                "arg1": 1,
+                "relation": "CID",
+                "arg2": 5
+            },
+            {
+                "arg1": 1,
+                "relation": "CID",
+                "arg2": 7
+            },
+            {
+                "arg1": 2,
+                "relation": "CID",
+                "arg2": 5
+            },
+            {
+                "arg1": 2,
+                "relation": "CID",
+                "arg2": 7
+            }
+        ],
+        "not_include_pairs": []
     },
     {
         "doc_key": "11063349",
@@ -2703,16 +2546,6 @@
                     31,
                     33
                 ],
-                "mention_names": [
-                    "rapamycin",
-                    "RAPA",
-                    "rapamycin",
-                    "RAPA",
-                    "RAPA",
-                    "RAPA",
-                    "RAPA",
-                    "RAPA"
-                ],
                 "entity_type": "Chemical",
                 "entity_id": "D020123"
             },
@@ -2724,13 +2557,6 @@
                     12,
                     32
                 ],
-                "mention_names": [
-                    "cyclosporine",
-                    "CsA",
-                    "CsA",
-                    "CsA",
-                    "CsA"
-                ],
                 "entity_type": "Chemical",
                 "entity_id": "D016572"
             },
@@ -2741,12 +2567,6 @@
                     10,
                     13
                 ],
-                "mention_names": [
-                    "tacrolimus",
-                    "Tac",
-                    "Tac",
-                    "Tac"
-                ],
                 "entity_type": "Chemical",
                 "entity_id": "D016559"
             },
@@ -2755,10 +2575,6 @@
                     6,
                     14
                 ],
-                "mention_names": [
-                    "toxicity",
-                    "toxicity"
-                ],
                 "entity_type": "Disease",
                 "entity_id": "D064420"
             },
@@ -2766,10 +2582,6 @@
                 "mention_indices": [
                     11,
                     18
-                ],
-                "mention_names": [
-                    "nephrotoxicity",
-                    "nephrotoxicity"
                 ],
                 "entity_type": "Disease",
                 "entity_id": "D007674"
@@ -2782,13 +2594,6 @@
                     24,
                     28
                 ],
-                "mention_names": [
-                    "posttransplant lymphoproliferative disorder",
-                    "PTLD",
-                    "PTLD",
-                    "PTLD",
-                    "PTLD"
-                ],
                 "entity_type": "Disease",
                 "entity_id": "D008232"
             },
@@ -2796,18 +2601,12 @@
                 "mention_indices": [
                     17
                 ],
-                "mention_names": [
-                    "hepatotoxicity"
-                ],
                 "entity_type": "Disease",
                 "entity_id": "D056486"
             },
             {
                 "mention_indices": [
                     19
-                ],
-                "mention_names": [
-                    "creatinine"
                 ],
                 "entity_type": "Chemical",
                 "entity_id": "D003404"
@@ -2817,10 +2616,6 @@
                     21,
                     27
                 ],
-                "mention_names": [
-                    "pneumonia",
-                    "pneumonia"
-                ],
                 "entity_type": "Disease",
                 "entity_id": "D011014"
             },
@@ -2829,19 +2624,12 @@
                     22,
                     34
                 ],
-                "mention_names": [
-                    "Pneumocystis carinii pneumonia",
-                    "Pneumocystis carinii pneumonia"
-                ],
                 "entity_type": "Disease",
                 "entity_id": "D011020"
             },
             {
                 "mention_indices": [
                     23
-                ],
-                "mention_names": [
-                    "infectious mononucleosis"
                 ],
                 "entity_type": "Disease",
                 "entity_id": "D007244"
@@ -2850,9 +2638,6 @@
                 "mention_indices": [
                     25
                 ],
-                "mention_names": [
-                    "bronchiolitis obliterans"
-                ],
                 "entity_type": "Disease",
                 "entity_id": "D001989"
             },
@@ -2860,13 +2645,23 @@
                 "mention_indices": [
                     29
                 ],
-                "mention_names": [
-                    "aphtous ulcers"
-                ],
                 "entity_type": "Disease",
                 "entity_id": "D013281"
             }
-        ]
+        ],
+        "relations": [
+            {
+                "arg1": 1,
+                "relation": "CID",
+                "arg2": 4
+            },
+            {
+                "arg1": 2,
+                "relation": "CID",
+                "arg2": 4
+            }
+        ],
+        "not_include_pairs": []
     },
     {
         "doc_key": "6454943",
@@ -3072,15 +2867,6 @@
                     14,
                     19
                 ],
-                "mention_names": [
-                    "captopril",
-                    "captopril",
-                    "captopril",
-                    "captopril",
-                    "captopril",
-                    "Captopril",
-                    "captopril"
-                ],
                 "entity_type": "Chemical",
                 "entity_id": "D002216"
             },
@@ -3088,10 +2874,6 @@
                 "mention_indices": [
                     1,
                     13
-                ],
-                "mention_names": [
-                    "aminonucleoside",
-                    "puromycin aminonucleoside"
                 ],
                 "entity_type": "Chemical",
                 "entity_id": "D011692"
@@ -3103,12 +2885,6 @@
                     10,
                     12
                 ],
-                "mention_names": [
-                    "proteinuria",
-                    "Proteinuria",
-                    "proteinuria",
-                    "proteinuria"
-                ],
                 "entity_type": "Disease",
                 "entity_id": "D011507"
             },
@@ -3117,19 +2893,12 @@
                     3,
                     6
                 ],
-                "mention_names": [
-                    "hypertensive",
-                    "hypertensive"
-                ],
                 "entity_type": "Disease",
                 "entity_id": "D006973"
             },
             {
                 "mention_indices": [
                     7
-                ],
-                "mention_names": [
-                    "renal abnormality"
                 ],
                 "entity_type": "Disease",
                 "entity_id": "D007674"
@@ -3138,18 +2907,12 @@
                 "mention_indices": [
                     15
                 ],
-                "mention_names": [
-                    "sodium"
-                ],
                 "entity_type": "Chemical",
                 "entity_id": "D012964"
             },
             {
                 "mention_indices": [
                     16
-                ],
-                "mention_names": [
-                    "potassium"
                 ],
                 "entity_type": "Chemical",
                 "entity_id": "D011188"
@@ -3158,9 +2921,6 @@
                 "mention_indices": [
                     17
                 ],
-                "mention_names": [
-                    "creatinine"
-                ],
                 "entity_type": "Chemical",
                 "entity_id": "D003404"
             },
@@ -3168,13 +2928,18 @@
                 "mention_indices": [
                     18
                 ],
-                "mention_names": [
-                    "ketone"
-                ],
                 "entity_type": "Chemical",
                 "entity_id": "D007659"
             }
-        ]
+        ],
+        "relations": [
+            {
+                "arg1": 1,
+                "relation": "CID",
+                "arg2": 2
+            }
+        ],
+        "not_include_pairs": []
     },
     {
         "doc_key": "20195852",
@@ -3588,20 +3353,6 @@
                     38,
                     41
                 ],
-                "mention_names": [
-                    "nephropathy",
-                    "nephropathy",
-                    "CIN",
-                    "CIN",
-                    "renal damage",
-                    "CIN",
-                    "CIN",
-                    "CIN",
-                    "CIN",
-                    "CIN",
-                    "CIN",
-                    "CIN"
-                ],
                 "entity_type": "Disease",
                 "entity_id": "D007674"
             },
@@ -3617,17 +3368,6 @@
                     35,
                     39
                 ],
-                "mention_names": [
-                    "contrast media",
-                    "contrast media",
-                    "contrast media",
-                    "CM",
-                    "CM",
-                    "CM",
-                    "CM",
-                    "CM",
-                    "CM"
-                ],
                 "entity_type": "Chemical",
                 "entity_id": "D003287"
             },
@@ -3635,10 +3375,6 @@
                 "mention_indices": [
                     8,
                     12
-                ],
-                "mention_names": [
-                    "iopromide",
-                    "iopromide"
                 ],
                 "entity_type": "Chemical",
                 "entity_id": "C038192"
@@ -3648,10 +3384,6 @@
                     9,
                     13
                 ],
-                "mention_names": [
-                    "iohexol",
-                    "iohexol"
-                ],
                 "entity_type": "Chemical",
                 "entity_id": "D007472"
             },
@@ -3659,10 +3391,6 @@
                 "mention_indices": [
                     11,
                     40
-                ],
-                "mention_names": [
-                    "cyanosis",
-                    "cyanosis"
                 ],
                 "entity_type": "Disease",
                 "entity_id": "D003490"
@@ -3673,11 +3401,6 @@
                     15,
                     21
                 ],
-                "mention_names": [
-                    "sodium",
-                    "Na",
-                    "Na"
-                ],
                 "entity_type": "Chemical",
                 "entity_id": "D012964"
             },
@@ -3685,10 +3408,6 @@
                 "mention_indices": [
                     16,
                     17
-                ],
-                "mention_names": [
-                    "potassium",
-                    "K"
                 ],
                 "entity_type": "Chemical",
                 "entity_id": "D011188"
@@ -3699,11 +3418,6 @@
                     19,
                     22
                 ],
-                "mention_names": [
-                    "creatinine",
-                    "Cr",
-                    "Cr"
-                ],
                 "entity_type": "Chemical",
                 "entity_id": "D003404"
             },
@@ -3712,11 +3426,6 @@
                     23,
                     25,
                     26
-                ],
-                "mention_names": [
-                    "renal failure",
-                    "Failure of kidney function",
-                    "Loss of kidney function"
                 ],
                 "entity_type": "Disease",
                 "entity_id": "D051437"
@@ -3727,11 +3436,6 @@
                     30,
                     31
                 ],
-                "mention_names": [
-                    "Injury to the kidney",
-                    "renal injury",
-                    "renal injury"
-                ],
                 "entity_type": "Disease",
                 "entity_id": "D058186"
             },
@@ -3739,13 +3443,28 @@
                 "mention_indices": [
                     37
                 ],
-                "mention_names": [
-                    "congenital heart diseases"
-                ],
                 "entity_type": "Disease",
                 "entity_id": "D006331"
             }
-        ]
+        ],
+        "relations": [
+            {
+                "arg1": 1,
+                "relation": "CID",
+                "arg2": 0
+            },
+            {
+                "arg1": 2,
+                "relation": "CID",
+                "arg2": 0
+            },
+            {
+                "arg1": 3,
+                "relation": "CID",
+                "arg2": 0
+            }
+        ],
+        "not_include_pairs": []
     },
     {
         "doc_key": "20510337",
@@ -4053,16 +3772,6 @@
                     25,
                     28
                 ],
-                "mention_names": [
-                    "Coenzyme Q10",
-                    "coenzyme Q10",
-                    "Coenzyme Q10",
-                    "Coenzyme Q10",
-                    "Coenzyme Q10",
-                    "coenzyme Q10",
-                    "coenzyme Q10",
-                    "coenzyme Q10"
-                ],
                 "entity_type": "Chemical",
                 "entity_id": "C024989"
             },
@@ -4077,16 +3786,6 @@
                     26,
                     29
                 ],
-                "mention_names": [
-                    "cisplatin",
-                    "cisplatin",
-                    "cisplatin",
-                    "cisplatin",
-                    "cisplatin",
-                    "cisplatin",
-                    "cisplatin",
-                    "cisplatin"
-                ],
                 "entity_type": "Chemical",
                 "entity_id": "D002945"
             },
@@ -4096,20 +3795,12 @@
                     22,
                     30
                 ],
-                "mention_names": [
-                    "nephrotoxicity",
-                    "renal tissue damage",
-                    "nephrotoxicity"
-                ],
                 "entity_type": "Disease",
                 "entity_id": "D007674"
             },
             {
                 "mention_indices": [
                     4
-                ],
-                "mention_names": [
-                    "acute renal injury"
                 ],
                 "entity_type": "Disease",
                 "entity_id": "D058186"
@@ -4118,18 +3809,12 @@
                 "mention_indices": [
                     9
                 ],
-                "mention_names": [
-                    "blood urea nitrogen"
-                ],
                 "entity_type": "Chemical",
                 "entity_id": "D001806"
             },
             {
                 "mention_indices": [
                     10
-                ],
-                "mention_names": [
-                    "creatinine"
                 ],
                 "entity_type": "Chemical",
                 "entity_id": "D003404"
@@ -4138,18 +3823,12 @@
                 "mention_indices": [
                     13
                 ],
-                "mention_names": [
-                    "reduced glutathione"
-                ],
                 "entity_type": "Chemical",
                 "entity_id": "D005978"
             },
             {
                 "mention_indices": [
                     14
-                ],
-                "mention_names": [
-                    "superoxide"
                 ],
                 "entity_type": "Chemical",
                 "entity_id": "D013481"
@@ -4158,18 +3837,12 @@
                 "mention_indices": [
                     15
                 ],
-                "mention_names": [
-                    "tumor"
-                ],
                 "entity_type": "Disease",
                 "entity_id": "D009369"
             },
             {
                 "mention_indices": [
                     16
-                ],
-                "mention_names": [
-                    "necrosis"
                 ],
                 "entity_type": "Disease",
                 "entity_id": "D009336"
@@ -4179,19 +3852,12 @@
                     17,
                     27
                 ],
-                "mention_names": [
-                    "nitric oxide",
-                    "nitric oxide"
-                ],
                 "entity_type": "Chemical",
                 "entity_id": "D009569"
             },
             {
                 "mention_indices": [
                     18
-                ],
-                "mention_names": [
-                    "platinum"
                 ],
                 "entity_type": "Chemical",
                 "entity_id": "D010984"
@@ -4200,9 +3866,6 @@
                 "mention_indices": [
                     19
                 ],
-                "mention_names": [
-                    "selenium"
-                ],
                 "entity_type": "Chemical",
                 "entity_id": "D012643"
             },
@@ -4210,11 +3873,21 @@
                 "mention_indices": [
                     20
                 ],
-                "mention_names": [
-                    "zinc"
-                ],
                 "entity_type": "Chemical",
                 "entity_id": "D015032"
+            }
+        ],
+        "relations": [
+            {
+                "arg1": 1,
+                "relation": "CID",
+                "arg2": 3
+            }
+        ],
+        "not_include_pairs": [
+            {
+                "arg1": 1,
+                "arg2": 2
             }
         ]
     },
@@ -4444,15 +4117,6 @@
                     18,
                     19
                 ],
-                "mention_names": [
-                    "Metformin",
-                    "metformin",
-                    "Metformin",
-                    "Metformin",
-                    "metformin",
-                    "metformin",
-                    "metformin"
-                ],
                 "entity_type": "Chemical",
                 "entity_id": "D008687"
             },
@@ -4466,15 +4130,6 @@
                     16,
                     20
                 ],
-                "mention_names": [
-                    "gentamicin",
-                    "gentamicin",
-                    "gentamicin",
-                    "gentamicin",
-                    "gentamicin",
-                    "gentamicin",
-                    "gentamicin"
-                ],
                 "entity_type": "Chemical",
                 "entity_id": "D005839"
             },
@@ -4484,11 +4139,6 @@
                     14,
                     21
                 ],
-                "mention_names": [
-                    "nephropathy",
-                    "kidney dysfunction",
-                    "nephrotoxicity"
-                ],
                 "entity_type": "Disease",
                 "entity_id": "D007674"
             },
@@ -4496,18 +4146,12 @@
                 "mention_indices": [
                     4
                 ],
-                "mention_names": [
-                    "vascular dysfunction"
-                ],
                 "entity_type": "Disease",
                 "entity_id": "D014652"
             },
             {
                 "mention_indices": [
                     6
-                ],
-                "mention_names": [
-                    "toxicity"
                 ],
                 "entity_type": "Disease",
                 "entity_id": "D064420"
@@ -4517,10 +4161,6 @@
                     7,
                     17
                 ],
-                "mention_names": [
-                    "oxygen",
-                    "oxygen"
-                ],
                 "entity_type": "Chemical",
                 "entity_id": "D010100"
             },
@@ -4528,11 +4168,21 @@
                 "mention_indices": [
                     11
                 ],
-                "mention_names": [
-                    "acute renal failure"
-                ],
                 "entity_type": "Disease",
                 "entity_id": "D058186"
+            }
+        ],
+        "relations": [
+            {
+                "arg1": 1,
+                "relation": "CID",
+                "arg2": 6
+            }
+        ],
+        "not_include_pairs": [
+            {
+                "arg1": 1,
+                "arg2": 2
             }
         ]
     }

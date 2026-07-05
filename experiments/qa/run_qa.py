@@ -199,7 +199,6 @@ def main(args):
         utils.write_json(output_evaluation_path, scores)
         logging.info(f"Saved the evaluation results to {output_evaluation_path}")
 
-
     ##################
     # Closing
     ##################
@@ -228,6 +227,9 @@ if __name__ == "__main__":
     logging.basicConfig(
         format="%(asctime)s - %(levelname)s - %(name)s - %(message)s",
         level=logging.INFO
+    )
+    logging.getLogger("httpx").addFilter(
+        lambda r: "huggingface.co" not in r.getMessage()
     )
 
     parser = argparse.ArgumentParser()

@@ -49,30 +49,21 @@ The `ROOT` community is a virtual root node. Its `nodes` field is `None`.
         "level": -1,
         "parent_community_id": null,
         "child_community_ids": [
-            "0",
-            "1",
-            "2",
-            "3",
-            "4",
-            "5",
-            "6",
-            "7",
-            "8",
-            "9"
+            "Community(D016651)",
+            "Community(D014262)",
+            "Community(D002122)",
+            ...
         ]
     },
     {
-        "community_id": "0",
+        "community_id": "Community(D016651)",
         "nodes": [
             "D016651",
-            "D014262",
-            "D003866",
-            "D003490",
-            "D001145"
+            "D014262"
         ],
         "level": 0,
         "parent_community_id": "ROOT",
-        "child_community_ids": [...]
+        "child_community_ids": []
     },
     ...
 ]

@@ -6,6 +6,7 @@ import sys
 
 from tqdm import tqdm
 
+from kapipe import evaluation
 from kapipe import utils
 from kapipe.passage_retrieval import BM25, Contriever, Qwen3Embedding
 from kapipe.utils import StopWatch
@@ -38,6 +39,10 @@ def main(args):
     # Action
     actiontype = args.actiontype
 
+    # Evaluation
+    do_evaluation = args.do_evaluation
+    gold_contexts_path = args.gold
+
     assert actiontype in ["indexing", "search"]
 
     ##################
@@ -62,6 +67,8 @@ def main(args):
     search_results_dir = os.path.join(base_output_path, "search_results")
     utils.mkdir(search_results_dir)
 
+    base_filename = os.path.splitext(os.path.basename(input_file_path))[0]
+
     if actiontype == "indexing":
         # Set logger
         set_logger(
@@ -72,10 +79,7 @@ def main(args):
     elif actiontype == "search":
         # Set logger
         set_logger(
-            os.path.join(
-                search_results_dir,
-                os.path.splitext(os.path.basename(input_file_path))[0] + ".log"
-            ),
+            os.path.join(search_results_dir, f"{base_filename}.search.log"),
             # overwrite=True
         )
 
@@ -90,10 +94,7 @@ def main(args):
     if actiontype == "indexing":
         # Load passages
         logging.info("Loading passages for indexing ...")
-        passages = []
-        for line in open(input_file_path):
-            passage = json.loads(line.strip())
-            passages.append(passage)
+        passages = utils.read_jsonl(input_file_path)
         logging.info(f"Loaded {len(passages)} passages")
 
     if actiontype == "search":
@@ -188,12 +189,44 @@ def main(args):
                 }
                 contexts.append(contexts_for_question)
  
-        search_output = os.path.join(
+        output_contexts_path = os.path.join(
             search_results_dir,
-            os.path.splitext(os.path.basename(input_file_path))[0] + ".contexts.json"
+            f"{base_filename}.contexts.json",
         )
-        utils.write_json(search_output, contexts)
-        logging.info(f"Saved the Passage Retrieval results to {search_output}")
+        utils.write_json(output_contexts_path, contexts)
+        logging.info(f"Saved the retrieval results to {output_contexts_path}")
+
+    ##################
+    # Evaluation
+    ##################
+
+    if do_evaluation:
+        # Require gold contexts only when evaluation is requested
+        if gold_contexts_path is None:
+            raise ValueError("--gold is required when --do_evaluation is set")
+
+        # Evaluate the retrieval results
+        scores = evaluation.passage_retrieval.precision_recall_at_k(
+            pred_path=output_contexts_path,
+            gold_path=gold_contexts_path,
+            passage_to_identifier=lambda p: p["text"]
+        )
+        scores.update(
+            evaluation.passage_retrieval.ndcg_at_k(
+                pred_path=output_contexts_path,
+                gold_path=gold_contexts_path,
+                passage_to_identifier=lambda p: p["text"]
+            )
+        )
+        logging.info(utils.pretty_format_dict(scores))
+
+        # Save the evaluation result
+        output_evaluation_path = os.path.join(
+            search_results_dir,
+            f"{base_filename}.eval.json"
+        )
+        utils.write_json(output_evaluation_path, scores)
+        logging.info(f"Saved the evaluation results to {output_evaluation_path}")
 
     ##################
     # Closing
@@ -222,6 +255,9 @@ if __name__ == "__main__":
         format="%(asctime)s - %(levelname)s - %(name)s - %(message)s",
         level=logging.INFO
     )
+    logging.getLogger("httpx").addFilter(
+        lambda r: "huggingface.co" not in r.getMessage()
+    )
 
     parser = argparse.ArgumentParser()
 
@@ -239,6 +275,10 @@ if __name__ == "__main__":
 
     # Action
     parser.add_argument("--actiontype", type=str, required=True)
+
+    # Evaluation
+    parser.add_argument("--do_evaluation", action="store_true")
+    parser.add_argument("--gold", type=str, default=None)
 
     args = parser.parse_args()
 

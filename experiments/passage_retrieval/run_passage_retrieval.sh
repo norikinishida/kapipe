@@ -12,9 +12,9 @@ STORAGE_RESULTS=/home/nishida/projects/kapipe/experiments/passage_retrieval/resu
 ######
 
 # Method
-METHOD=bm25
+# METHOD=bm25
 # METHOD=contriever
-# METHOD=qwen3_embedding
+METHOD=qwen3_embedding
 
 if [ "${METHOD}" = "bm25" ]; then
     CONFIG_PATH=./config/bm25.conf
@@ -38,6 +38,9 @@ INPUT_QUESTIONS=${STORAGE_DATA}/examples/questions.json
 RESULTS_DIR=${STORAGE_RESULTS}
 MYPREFIX=example
 
+# (optional) Evaluation
+GOLD_CONTEXTS=${STORAGE_DATA}/examples/questions.gold_contexts.json
+
 ######
 # Experiment execution
 ######
@@ -58,4 +61,6 @@ python run_passage_retrieval.py \
     --input_file ${INPUT_QUESTIONS} \
     --results_dir ${RESULTS_DIR} \
     --prefix ${MYPREFIX} \
-    --actiontype search
+    --actiontype search \
+    --do_evaluation \
+    --gold ${GOLD_CONTEXTS}

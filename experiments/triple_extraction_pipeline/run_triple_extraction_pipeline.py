@@ -164,7 +164,10 @@ def main(args):
         result_documents.append(result_document)
 
     # Save the results
-    output_documents_path = os.path.join(base_output_path, f"{base_filename}.pred.json")
+    output_documents_path = os.path.join(
+        base_output_path,
+        f"{base_filename}.pred.json"
+    )
     utils.write_json(output_documents_path, result_documents)
     logging.info(f"Saved the prediction results to {output_documents_path}")
 
@@ -208,7 +211,10 @@ def main(args):
         logging.info(utils.pretty_format_dict(scores))
 
         # Save the evaluation results
-        output_evaluation_path = os.path.join(base_output_path, f"{base_filename}.eval.json")
+        output_evaluation_path = os.path.join(
+            base_output_path,
+            f"{base_filename}.eval.json"
+        )
         utils.write_json(output_evaluation_path, scores)
         logging.info(f"Saved the evaluation results to {output_evaluation_path}")
 
@@ -438,6 +444,9 @@ if __name__ == "__main__":
     logging.basicConfig(
         format="%(asctime)s - %(levelname)s - %(name)s - %(message)s",
         level=logging.INFO
+    )
+    logging.getLogger("httpx").addFilter(
+        lambda r: "huggingface.co" not in r.getMessage()
     )
 
     parser = argparse.ArgumentParser()

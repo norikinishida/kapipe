@@ -34,8 +34,7 @@ This directory already includes example data.
 
 ```bash
 experiments/triple_extraction_pipeline/data/examples/documents.json
-experiments/triple_extraction_pipeline/data/examples/documents_with_supervision.json
-experiments/triple_extraction_pipeline/data/examples/documents2.json
+experiments/triple_extraction_pipeline/data/examples/documents_with_triples.json
 ```
 
 ## Step 3. Configuration Setup

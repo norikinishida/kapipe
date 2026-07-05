@@ -19,7 +19,7 @@ CONFIG_NAME=llm_chemical_disease
 
 # Input Data
 INPUT_DOCUMENTS=${STORAGE_DATA}/examples/documents.json
-GOLD_DOCUMENTS=${STORAGE_DATA}/examples/documents_with_supervision.json
+GOLD_DOCUMENTS=${STORAGE_DATA}/examples/documents_with_triples.json
 
 # Output Path
 RESULTS_DIR=${STORAGE_RESULTS}
