@@ -105,7 +105,7 @@ def main(args):
     )    
 
     ##################
-    # Method
+    # Method Instantiation
     ##################
 
     # Load the experiment configuration
@@ -114,32 +114,33 @@ def main(args):
     # Save the experiment configuration to the output path
     utils.write_json(os.path.join(base_output_path, "config.json"), config)
 
+    # Instantiate the ED-Retrieval component
     if method_name == "blink_bi_encoder":
-        # Initialize the trainer (evaluator)
+        # Instantiate the trainer (evaluator)
         trainer = BlinkBiEncoderTrainer(
             base_output_path=base_output_path
         )
 
         if actiontype == "train":
-            # Initialize the ED-Retrieval component
+            # Instantiate the BLINK Bi-Encoder ED-Retrieval component
             retriever = BlinkBiEncoder(
                 **config,
                 entity_dict_path=entity_dict_path
             )
         else:
-            # Load the ED-Retrieval component
+            # Load the BLINK Bi-Encoder ED-Retrieval component from the snapshot
             retriever = BlinkBiEncoder.from_snapshot(
                 snapshot_path=trainer.paths["snapshot_path"]
             )
 
-            # Re-build index
+            # Re-build index over entities
             retriever.make_index(use_precomputed_entity_vectors=True)
 
     else:
         raise ValueError(f"Unknown method: {method_name}")
 
     ##################
-    # Training, Evaluation
+    # Method Execution
     ##################
 
     if method_name == "blink_bi_encoder":
@@ -449,6 +450,9 @@ if __name__ == "__main__":
     logging.basicConfig(
         format="%(asctime)s - %(levelname)s - %(name)s - %(message)s",
         level=logging.INFO
+    )
+    logging.getLogger("httpx").addFilter(
+        lambda r: "huggingface.co" not in r.getMessage()
     )
 
     parser = argparse.ArgumentParser()

@@ -24,20 +24,23 @@ if [ "${METHOD}" == "atlop" ]; then
     # CONFIG_NAME=atlop_linked_docred
 elif [ "${METHOD}" == "llm_docre" ]; then
     CONFIG_PATH=./config/llm_docre.conf
-    # CONFIG_NAME=llm_docre_cdr
+    CONFIG_NAME=llm_docre_cdr
     # CONFIG_NAME=llm_docre_linked_docred
-    CONFIG_NAME=llm_docre_user_defined
+    # CONFIG_NAME=llm_docre_user_defined
 else
     echo "Error: Invalid METHOD specified."
     exit 1
 fi
 
 # Input Data
-DOCUMENTS=${STORAGE_DATA}/examples/documents.ner.ed_ret.ed_rank.json
+INPUT_DOCUMENTS=${STORAGE_DATA}/examples/documents_with_disambiguated_entities.json
 
 # Output Path
 RESULTS_DIR=${STORAGE_RESULTS}
 MYPREFIX=example
+
+# (optional) Evaluation
+GOLD_DOCUMENTS=${STORAGE_DATA}/examples/documents_with_triples.json
 
 ######
 # Experiment execution
@@ -47,6 +50,8 @@ python run_docre.py \
     --method ${METHOD} \
     --config_path ${CONFIG_PATH} \
     --config_name ${CONFIG_NAME} \
-    --input_documents ${DOCUMENTS} \
+    --input_documents ${INPUT_DOCUMENTS} \
     --results_dir ${RESULTS_DIR} \
-    --prefix ${MYPREFIX}
+    --prefix ${MYPREFIX} \
+    --do_evaluation \
+    --gold ${GOLD_DOCUMENTS}

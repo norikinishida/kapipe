@@ -17,8 +17,8 @@ Additional metadata fields are preserved in the output.
 
 ```json
 {
-    "title": "Lithium Carbonate and Related Health Conditions",
-    "text": "This report examines the interconnections between Lithium Carbonate, ...",
+    "title": "Effect of calcium chloride and 4-aminopyridine therapy on desipramine toxicity in rats.",
+    "text": "BACKGROUND: Hypotension is a major contributor to mortality in tricyclic antidepressant overdose. Recent data suggest ...",
     "hoge": "fuga"
 }
 ```
@@ -37,13 +37,18 @@ Each chunked passage preserves the original metadata and replaces `text` with a 
 ```json
 [
     {
-        "title": "Lithium Carbonate and Related Health Conditions",
-        "text": "This report examines the interconnections between Lithium Carbonate, ...",
+        "title": "Effect of calcium chloride and 4-aminopyridine therapy on desipramine toxicity in rats.",
+        "text": "BACKGROUND: Hypotension is a major contributor to mortality in tricyclic antidepressant overdose. Recent data suggest ...",
         "hoge": "fuga"
     },
     {
-        "title": "Lithium Carbonate and Related Health Conditions",
-        "text": "This duality necessitates careful monitoring of patients receiving Lithium treatment, ...",
+        "title": "Effect of calcium chloride and 4-aminopyridine therapy on desipramine toxicity in rats.",
+        "text": "CaCl2 and 4-aminopyridine. Anesthetized rats received the tricyclic antidepressant desipramine IP to produce hypotension, ...",
+        "hoge": "fuga"
+    },
+    {
+        "title": "Effect of calcium chloride and 4-aminopyridine therapy on desipramine toxicity in rats.",
+        "text": "CaCl2 and 4-aminopyridine failed to improve blood pressure. The incidence of ventricular arrhythmias (p = 0.004) and ...",
         "hoge": "fuga"
     },
     ...
@@ -63,7 +68,7 @@ Each chunked passage preserves the original metadata and replaces `text` with a 
 ```python
 from kapipe.chunking import Chunker
 
-# Build a Chunker with the default English sentencizer
+# Instantiate the Chunking component with the default English sentencizer
 chunker = Chunker()
 
 # Split a passage into chunked passages
@@ -78,7 +83,7 @@ chunked_passages = chunker.split_passage_to_chunked_passages(
 ```python
 from kapipe.chunking import Chunker
 
-# Build a chunker with a spaCy model
+# Instantiate the Chunking component with a spaCy model
 chunker = Chunker(
     model_name="en_core_web_sm",
 )
@@ -94,7 +99,7 @@ chunked_passages = chunker.split_passage_to_chunked_passages(
 
 Chunking preserves metadata fields other than `title` and `text`.
 
-This is useful when chunking community reports, because fields such as `community_id`, `nodes`, and `level` remain attached to each chunk.
+This is useful when chunking community reports, because fields such as `source`, `publication_date`, `community_id`, and `nodes` remain attached to each chunk.
 
 ## Example
 

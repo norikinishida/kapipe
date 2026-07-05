@@ -1,6 +1,6 @@
 # Chunking
 
-This directory contains example experiments for text chunking.
+This directory contains example experiments for text chunking (`kapipe.chunking`).
 
 ## Step 1. Installation
 

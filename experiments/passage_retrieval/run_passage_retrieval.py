@@ -6,8 +6,9 @@ import sys
 
 from tqdm import tqdm
 
+from kapipe import evaluation
 from kapipe import utils
-from kapipe.passage_retrieval import Contriever, Qwen3Embedding
+from kapipe.passage_retrieval import BM25, Contriever, Qwen3Embedding
 from kapipe.utils import StopWatch
 
 
@@ -38,6 +39,10 @@ def main(args):
     # Action
     actiontype = args.actiontype
 
+    # Evaluation
+    do_evaluation = args.do_evaluation
+    gold_contexts_path = args.gold
+
     assert actiontype in ["indexing", "search"]
 
     ##################
@@ -54,11 +59,15 @@ def main(args):
     )
     utils.mkdir(base_output_path)
  
+    # Index will be saved to `index_dir``
     index_dir = os.path.join(base_output_path, "indexes")
     utils.mkdir(index_dir)
 
+    # Search results will be saved to `search_results_dir`
     search_results_dir = os.path.join(base_output_path, "search_results")
     utils.mkdir(search_results_dir)
+
+    base_filename = os.path.splitext(os.path.basename(input_file_path))[0]
 
     if actiontype == "indexing":
         # Set logger
@@ -70,19 +79,12 @@ def main(args):
     elif actiontype == "search":
         # Set logger
         set_logger(
-            os.path.join(
-                search_results_dir,
-                os.path.splitext(os.path.basename(input_file_path))[0] + ".log"
-            ),
+            os.path.join(search_results_dir, f"{base_filename}.search.log"),
             # overwrite=True
         )
 
     # Show arguments
     logging.info(utils.pretty_format_dict(vars(args)))
-
-    # Index will be saved to `index_dir``
-    # Search results will be saved to `search_results_dir`
-
     logging.info(f"index dir: {index_dir}")
 
     ##################
@@ -92,10 +94,7 @@ def main(args):
     if actiontype == "indexing":
         # Load passages
         logging.info("Loading passages for indexing ...")
-        passages = []
-        for line in open(input_file_path):
-            passage = json.loads(line.strip())
-            passages.append(passage)
+        passages = utils.read_jsonl(input_file_path)
         logging.info(f"Loaded {len(passages)} passages")
 
     if actiontype == "search":
@@ -105,7 +104,7 @@ def main(args):
         logging.info(f"Loaded {len(questions)} questions")
 
     ##################
-    # Method
+    # Method Instantiation
     ##################
 
     # Load the experiment configuration
@@ -114,8 +113,16 @@ def main(args):
     # Save the experiment configuration to the output path
     utils.write_json(os.path.join(base_output_path, "config.json"), config)
 
-    # Initialize the Passage Retrieval component
-    if method_name == "contriever":
+    # Instantiate the Passage Retrieval component
+    if method_name == "bm25":
+        # Instantiate the BM25-based Passage Retrieval component
+        retriever = BM25(
+            tokenizer=lambda text: text.lower().split(),
+            k1=config["k1"],
+            b=config["b"],
+        )
+    elif method_name == "contriever":
+        # Instantiate the Contriever-based Passage Retrieval component
         retriever = Contriever(
             model_name=config["model_name"],
             max_passage_length=config["max_passage_length"],
@@ -124,6 +131,7 @@ def main(args):
             metric=config["metric"],
         )
     elif method_name == "qwen3_embedding":
+        # Instantiate the Qwen3-Embedding-based Passage Retrieval component
         retriever = Qwen3Embedding(
             model_name=config["model_name"],
             max_passage_length=config["max_passage_length"],
@@ -135,18 +143,24 @@ def main(args):
         raise ValueError(f"Invalid retrieval method name: {method_name}")
 
     ##################
-    # Indexing, Search
+    # Method Execution
     ##################
 
     if actiontype == "indexing":
         logging.info(f"Applying the Passage Retrieval component (indexing) to passages in {input_file_path} ...")
 
         # Build index
-        retriever.make_index(
-            passages=passages,
-            index_dir=index_dir,
-            batch_size=config["indexing_batch_size"],
-        )
+        if method_name == "bm25":
+            retriever.make_index(
+                passages=passages,
+                index_dir=index_dir,
+            )
+        else:
+            retriever.make_index(
+                passages=passages,
+                index_dir=index_dir,
+                batch_size=config["indexing_batch_size"],
+            )
 
     if actiontype == "search":
         logging.info(f"Applying the Passage Retrieval component (search) to questions in {input_file_path} ...")
@@ -175,12 +189,44 @@ def main(args):
                 }
                 contexts.append(contexts_for_question)
  
-        search_output = os.path.join(
+        output_contexts_path = os.path.join(
             search_results_dir,
-            os.path.splitext(os.path.basename(input_file_path))[0] + ".contexts.json"
+            f"{base_filename}.contexts.json",
         )
-        utils.write_json(search_output, contexts)
-        logging.info(f"Saved the Passage Retrieval results to {search_output}")
+        utils.write_json(output_contexts_path, contexts)
+        logging.info(f"Saved the retrieval results to {output_contexts_path}")
+
+    ##################
+    # Evaluation
+    ##################
+
+    if do_evaluation:
+        # Require gold contexts only when evaluation is requested
+        if gold_contexts_path is None:
+            raise ValueError("--gold is required when --do_evaluation is set")
+
+        # Evaluate the retrieval results
+        scores = evaluation.passage_retrieval.precision_recall_at_k(
+            pred_path=output_contexts_path,
+            gold_path=gold_contexts_path,
+            passage_to_identifier=lambda p: p["text"]
+        )
+        scores.update(
+            evaluation.passage_retrieval.ndcg_at_k(
+                pred_path=output_contexts_path,
+                gold_path=gold_contexts_path,
+                passage_to_identifier=lambda p: p["text"]
+            )
+        )
+        logging.info(utils.pretty_format_dict(scores))
+
+        # Save the evaluation result
+        output_evaluation_path = os.path.join(
+            search_results_dir,
+            f"{base_filename}.eval.json"
+        )
+        utils.write_json(output_evaluation_path, scores)
+        logging.info(f"Saved the evaluation results to {output_evaluation_path}")
 
     ##################
     # Closing
@@ -209,6 +255,9 @@ if __name__ == "__main__":
         format="%(asctime)s - %(levelname)s - %(name)s - %(message)s",
         level=logging.INFO
     )
+    logging.getLogger("httpx").addFilter(
+        lambda r: "huggingface.co" not in r.getMessage()
+    )
 
     parser = argparse.ArgumentParser()
 
@@ -226,6 +275,10 @@ if __name__ == "__main__":
 
     # Action
     parser.add_argument("--actiontype", type=str, required=True)
+
+    # Evaluation
+    parser.add_argument("--do_evaluation", action="store_true")
+    parser.add_argument("--gold", type=str, default=None)
 
     args = parser.parse_args()
 

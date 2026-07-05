@@ -27,17 +27,17 @@ Each mention contains the following fields.
 
 ```json
 {
-    "doc_key": "6794356",
+    "doc_key": "8800187",
     "sentences": [
-        "Tricuspid valve regurgitation and lithium carbonate toxicity in a newborn infant .",
+        "Effect of calcium chloride and 4 - aminopyridine therapy on desipramine toxicity in rats .",
         ...
     ],
     "mentions": [
         {
-            "span": [0, 2],
-            "name": "Tricuspid valve regurgitation",
-            "entity_type": "Disease",
-            "entity_id": "D014262"
+            "span": [2, 3],
+            "name": "calcium chloride",
+            "entity_type": "Chemical",
+            "entity_id": "D002122"
         },
         ...
     ]
@@ -63,18 +63,18 @@ Each candidate entity contains the following fields.
 
 ```json
 {
-    "doc_key": "6794356",
+    "doc_key": "8800187",
     "candidate_entities": [
         [
             {
-                "entity_id": "D014262",
-                "canonical_name": "Tricuspid Valve Insufficiency",
-                "score": 0.0017849934520199895
+                "entity_id": "D002122",
+                "canonical_name": "Calcium Chloride",
+                "score": 0.0017943419516086578
             },
             {
-                "entity_id": "D014264",
-                "canonical_name": "Tricuspid Valve Stenosis",
-                "score": 0.0017764709191396832
+                "entity_id": "D002118",
+                "canonical_name": "Calcium",
+                "score": 0.0017746267840266228
             },
             ...
         ],
@@ -112,34 +112,37 @@ Each entity contains the following fields.
 
 ```json
 {
-    "doc_key": "6794356",
+    "doc_key": "8800187",
     "sentences": [
-        "Tricuspid valve regurgitation and lithium carbonate toxicity in a newborn infant .",
+        "Effect of calcium chloride and 4 - aminopyridine therapy on desipramine toxicity in rats .",
         ...
     ],
     "mentions": [
         {
-            "span": [0, 2],
-            "name": "Tricuspid valve regurgitation",
-            "entity_type": "Disease",
-            "entity_id": "D014262"
+            "span": [2, 3],
+            "name": "calcium chloride",
+            "entity_type": "Chemical",
+            "entity_id": "D002122"
         },
         ...
     ],
     "entities": [
         {
-            "mention_indices": [0, 3, 7],
+            "mention_indices": [0, 11, 16, 22, 26, 27, 30],
             "mention_names": [
-                "Tricuspid valve regurgitation",
-                "tricuspid regurgitation",
-                "tricuspid regurgitation"
+                "calcium chloride",
+                "CaCl2",
+                "CaCl2",
+                "CaCl2",
+                "CaCl2",
+                "CaCl2",
+                "CaCl2"
             ],
-            "entity_type": "Disease",
-            "entity_id": "D014262"
+            "entity_type": "Chemical",
+            "entity_id": "D002122"
         },
         ...
-    ],
- 
+    ]
 }
 ```
 
@@ -151,6 +154,21 @@ Each entity contains the following fields.
 | [BLINK Cross-Encoder (Wu et al., 2020)](https://aclanthology.org/2020.emnlp-main.519/) | Reranks candidate entities using a cross-encoder over mention contexts and entity descriptions. |
 | LLM-based ED | Reranks candidate entities using a proprietary or open-source LLM with an entity disambiguation prompt. |
 
+## Public Snapshots
+
+The following public snapshots can be loaded with `from_identifier(...)`.
+
+| Method | Identifier | Dataset | Entity Dictionary | Configuration |
+|---|---|---|---|---|
+| BLINK Cross-Encoder | `blink_cross_encoder_linked_docred` | Linked-DocRED | DBpedia 2020.02.01 | `bert-base-uncased`; up to 16 candidates per mention at inference |
+| BLINK Cross-Encoder | `blink_cross_encoder_cdr` | CDR | MeSH 2015 | `allenai/scibert_scivocab_uncased`; up to 16 candidates per mention at inference |
+| LLM-based ED | `llm_ed_linked_docred` | Linked-DocRED | DBpedia 2020.02.01 | Few-shot prompt snapshot; runtime LLM is user-provided |
+| LLM-based ED | `llm_ed_cdr` | CDR | MeSH 2015 | Few-shot prompt snapshot; runtime LLM is user-provided |
+
+These snapshots are predefined resources for existing benchmark settings. You can also use your own entity dictionary by training or configuring a reranker for it.
+
+`identifier` is resolved through the public resource configuration installed under `~/.kapipe/download/config`.
+
 ## Usage
 
 ### Identical Entity Reranking:
@@ -158,7 +176,7 @@ Each entity contains the following fields.
 ```python
 from kapipe.ed_reranking import IdenticalEntityReranker
 
-# Build an Identical Entity Reranker
+# Instantiate the ED-Reranking component using identical function
 reranker = IdenticalEntityReranker()
 
 # Keep the retrieved concept IDs unchanged
@@ -168,12 +186,12 @@ result_document = reranker.rerank(
 )
 ```
 
-### Predefined BLINK Cross-Encoder:
+### Predefined BLINK Cross-Encoder ED-Reranking:
 
 ```python
 from kapipe.ed_reranking import BlinkCrossEncoder
 
-# Load BLINK Cross-Encoder predefined for the (Linked-DocRED, DBPedia) schema
+# Load the BLINK Cross-Encoder ED-Reranking component predefined for the (Linked-DocRED, DBPedia) schema
 reranker = BlinkCrossEncoder.from_identifier(
     identifier="blink_cross_encoder_linked_docred"
 )
@@ -185,15 +203,27 @@ result_document = reranker.rerank(
 )
 ```
 
-### Predefined LLM-based ED:
+### Predefined LLM-based ED-Reranking:
 
 ```python
 from kapipe.ed_reranking import LLMED
 
 # Instantiate your LLM wrapper
-model = ...
+# OpenAI LLM
+from kapipe.llms import OpenAILLM
+model = OpenAILLM(
+    model_name="gpt-5.4-nano",
+    max_new_tokens=8192,
+)
+# HuggingFace LLM
+from kapipe.llms import HuggingFaceLLM
+model = HuggingFaceLLM(
+    model_name = "meta-llama/Meta-Llama-3.1-70B-Instruct",
+    max_new_tokens=1024,
+    quantization_bits=4,
+)
 
-# Load LLM-based ED predefined for the (Linked-DocRED, DBPedia) schema
+# Load the LLM-based ED-Reranking component predefined for the (Linked-DocRED, DBPedia) schema
 reranker = LLMED.from_identifier(
     model=model,
     identifier="llm_ed_linked_docred"
@@ -206,7 +236,7 @@ result_document = reranker.rerank(
 )
 ```
 
-### User-defined LLM-based ED:
+### User-defined LLM-based ED-Reranking:
 
 ```python
 from kapipe.ed_reranking import LLMED
@@ -214,7 +244,7 @@ from kapipe.ed_reranking import LLMED
 # Instantiate your LLM wrapper
 model = ...
 
-# Build a user-defined LLM-based ED reranker
+# Instantiate the LLM-based ED-Reranking component with the user-defined entity dictionary
 reranker = LLMED(
     model=model,
     prompt_template_name_or_path="ed_04_zeroshot",

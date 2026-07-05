@@ -43,29 +43,42 @@ Each relation contains the following fields.
 
 ```json
 {
-    "doc_key": "6794356",
+    "doc_key": "8800187",
     "sentences": [
-        "Tricuspid valve regurgitation and lithium carbonate toxicity in a newborn infant .",
+        "Effect of calcium chloride and 4 - aminopyridine therapy on desipramine toxicity in rats .",
+        ...
+    ],
+    "mentions": [
+        {
+            "span": [2, 3],
+            "name": "calcium chloride",
+            "entity_type": "Chemical",
+            "entity_id": "D002122"
+        },
         ...
     ],
     "entities": [
         {
-            "mention_indices": [0, 3, 7],
+            "mention_indices": [0, 11, 16, 22, 26, 27, 30],
             "mention_names": [
-                "Tricuspid valve regurgitation",
-                "tricuspid regurgitation",
-                "tricuspid regurgitation"
+                "calcium chloride",
+                "CaCl2",
+                "CaCl2",
+                "CaCl2",
+                "CaCl2",
+                "CaCl2",
+                "CaCl2"
             ],
-            "entity_type": "Disease",
-            "entity_id": "D014262"
+            "entity_type": "Chemical",
+            "entity_id": "D002122"
         },
         ...
     ],
     "relations": [
         {
-            "arg1": 1,
+            "arg1": 0,
             "relation": "CID",
-            "arg2": 7
+            "arg2": 9
         },
         ...
     ]
@@ -85,21 +98,34 @@ An entity dictionary is represented as a list of entity pages.
 ```JSON
 [
     {
-        "entity_id": "C009166",
-        "canonical_name": "retinol acetate",
+        "entity_id": "D000082",
+        "canonical_name": "Acetaminophen",
+        "entity_type": "Chemical",
         "synonyms": [
-            "retinyl acetate",
-            "vitamin A acetate"
+            "Hydroxyacetanilide",
+            "N-(4-Hydroxyphenyl)acetanilide",
+            "Paracetamol",
+            "Acetominophen",
+            "N-Acetyl-p-aminophenol",
+            "p-Acetamidophenol",
+            "p-Hydroxyacetanilide",
+            "APAP",
+            "Acetamidophenol"
         ],
-        "entity_type": null,
-        "description": ""
+        "description": "Analgesic antipyretic derivative of acetanilide. It has weak anti-inflammatory properties and is used as a common analgesic, but may cause liver, blood cell, and kidney damage."
     },
     {
-        "entity_id": "D000641",
-        "canonical_name": "Ammonia",
-        "synonyms": [],
+        "entity_id": "D000409",
+        "canonical_name": "Alanine",
         "entity_type": "Chemical",
-        "description": "A colorless alkaline gas. It is formed in the body during decomposition of organic materials during a large number of metabolically important reactions. Note that the aqueous form of ammonia is referred to as AMMONIUM HYDROXIDE."
+        "synonyms": [
+            "L-Alanine",
+            "L Alanine",
+            "Alanine, L-Isomer",
+            "Alanine, L Isomer",
+            "L-Isomer Alanine"
+        ],
+        "description": "BETA-ALANINE is also available A non-essential amino acid that occurs in high levels in its free state in plasma. It is produced from pyruvate by transamination. It is involved in sugar and acid metabolism, increases IMMUNITY, and provides energy for muscle tissue, BRAIN, and the CENTRAL NERVOUS SYSTEM."
     },
     ...
 ]
@@ -162,7 +188,7 @@ Each edge represents a relation.
 ```python
 from kapipe.entity_graph_construction import EntityGraphConstructor
 
-# Build an Entity Graph Constructor
+# Instantiate the Entity Graph Construction component
 constructor = EntityGraphConstructor(
     missing_entity_policy="keep",
     missing_entity_description="NO DESCRIPTION.",
@@ -183,7 +209,7 @@ graph = constructor.construct_entity_graph(
 ```python
 from kapipe.entity_graph_construction import EntityGraphConstructor
 
-# Build an Entity Graph Constructor
+# Instantiate the Entity Graph Construction component
 constructor = EntityGraphConstructor(
     missing_entity_policy="keep",
     missing_entity_description="NO DESCRIPTION.",

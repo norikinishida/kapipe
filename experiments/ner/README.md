@@ -1,6 +1,6 @@
 # ner
 
-This directory contains example experiments for Named Entity Recognition (NER).
+This directory contains example experiments for Named Entity Recognition (`kapipe.ner`).
 
 ## Step 1. Installation
 
@@ -34,7 +34,7 @@ This directory already includes example data.
 
 ```bash
 experiments/ner/data/examples/documents.json
-experiments/ner/data/examples/documents_with_supervision.json
+experiments/ner/data/examples/documents_with_typed_mentions.json
 ```
 
 ### Benchmark datasets

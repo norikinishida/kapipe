@@ -14,8 +14,8 @@ STORAGE_RESULTS=/home/nishida/projects/kapipe/experiments/ner/results
 # Experiment configuration
 ######
 
-# METHOD=biaffine_ner
-METHOD=llm_ner
+METHOD=biaffine_ner
+# METHOD=llm_ner
 
 # Method
 if [ "${METHOD}" == "biaffine_ner" ]; then
@@ -33,9 +33,9 @@ fi
 # (In practice, use separate files for training, validation, and test data.
 # This example checks whether the model can achieve near 100% accuracy (i.e., overfit) on the training data.)
 DATASET_NAME=cdr
-TRAIN_DOCUMENTS=${STORAGE_DATA}/examples/documents_with_supervision.json
-DEV_DOCUMENTS=${STORAGE_DATA}/examples/documents_with_supervision.json
-TEST_DOCUMENTS=${STORAGE_DATA}/examples/documents_with_supervision.json
+TRAIN_DOCUMENTS=${STORAGE_DATA}/examples/documents_with_typed_mentions.json
+DEV_DOCUMENTS=${STORAGE_DATA}/examples/documents_with_typed_mentions.json
+TEST_DOCUMENTS=${STORAGE_DATA}/examples/documents_with_typed_mentions.json
 N_DEMONSTRATIONS=3
 
 # Output Path

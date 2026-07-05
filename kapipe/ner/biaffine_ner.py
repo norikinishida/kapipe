@@ -34,7 +34,7 @@ logger = logging.getLogger(__name__)
 
 
 class BiaffineNER(BaseNER):
-    """A class for performing Named Entity Recognition (NER) using a Biaffine-NER model (Yu et al., 2020)."""
+    """A Named Entity Recognition (NER) component using a Biaffine-NER model (Yu et al., 2020)."""
 
     @classmethod
     def from_identifier(
@@ -224,7 +224,10 @@ class BiaffineNER(BaseNER):
             model_output.n_valid_spans
         )
 
-    def extract(self, document: Document) -> Document:
+    def extract(
+        self,
+        document: Document,
+    ) -> Document:
         """Extract named entity mentions from a single document."""
 
         with torch.no_grad():

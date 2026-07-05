@@ -3,12 +3,14 @@ from typing import Any
 
 
 __all__ = [
+    "BaseReportGenerator",
     "LLMBasedReportGenerator",
     "TemplateBasedReportGenerator",
 ]
 
 
 _NAME_TO_MODULE = {
+    "BaseReportGenerator": "base",
     "LLMBasedReportGenerator": "llm_based_report_generator",
     "TemplateBasedReportGenerator": "template_based_report_generator",
 }

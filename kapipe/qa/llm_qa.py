@@ -23,8 +23,11 @@ class LLMQA(BaseQA):
 
     def __init__(
         self,
+        # External
         model: HuggingFaceLLM | OpenAILLM,
-        prompt_template_name_or_path: str = "qa_03_with_context",
+        # Internal
+        prompt_template_name_or_path: str,
+        # Optional
         n_contexts: int = -1,
     ):
         self.model = model

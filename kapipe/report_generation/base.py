@@ -8,7 +8,7 @@ from ..datatypes import CommunityRecord, Passage
 
 
 class BaseReportGenerator(ABC):
-    """Base class for community report generation components."""
+    """Base class for Report Generation components."""
 
     @abstractmethod
     def generate_community_reports(

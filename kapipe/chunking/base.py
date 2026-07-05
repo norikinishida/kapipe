@@ -8,13 +8,13 @@ from ..datatypes import Document, Passage
 
 
 class BaseChunker(ABC):
-    """Base class for chunking components."""
+    """Base class for Chunking components."""
 
     @abstractmethod
     def split_passage_to_chunked_passages(
         self,
         passage: Passage,
-        window_size: int
+        window_size: int,
     ) -> list[Passage]:
         """Split a passage into chunked passages."""
 
@@ -23,6 +23,6 @@ class BaseChunker(ABC):
         self,
         doc_key: str,
         text: str,
-        title: str | None = None
+        title: str | None = None,
     ) -> Document:
         """Convert raw text into a document."""

@@ -6,7 +6,7 @@ from ..datatypes import ContextsForOneExample, Question
 
 
 class BaseQA(ABC):
-    """Base class for question answering components."""
+    """Base class for Question Answering (QA) components."""
 
     @abstractmethod
     def answer(

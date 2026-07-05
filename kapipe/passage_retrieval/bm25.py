@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from collections import Counter
+import os
 from typing import Callable
 
 import numpy as np
@@ -37,7 +38,11 @@ class BM25(BasePassageRetriever):
         self.factor1: float | None = None
         self.factor2: np.ndarray | None = None
 
-    def make_index(self, passages: list[Passage]):
+    def make_index(
+        self,
+        passages: list[Passage],
+        index_dir: str,
+    ) -> None:
         """Build a BM25 index from passages."""
 
         # Store passages in their index order
@@ -70,12 +75,14 @@ class BM25(BasePassageRetriever):
         for p_i, tokens in enumerate(tokenized_passages):
             # Count word frequencies in one passage
             word_to_freq = Counter(tokens)
+
             # Store the nonzero term frequencies
             for word, freq in word_to_freq.items():
                 word_id = self.word_to_id[word]
                 j_indices.append(word_id)
                 values.append(freq)
                 n_passages_vector[word_id] += 1
+
             # Record the end of the current sparse row
             indptr.append(len(j_indices))
 
@@ -99,7 +106,6 @@ class BM25(BasePassageRetriever):
 
         # Clip negative IDF values to zero
         idf_vector[idf_vector < 0] = 0.0
-
         self.idf_vector = idf_vector
 
         # Compute the inverse average passage length
@@ -121,14 +127,104 @@ class BM25(BasePassageRetriever):
         factor2 = self.k1 * (
             1.0 - self.b + self.b * passage_len_vector * inv_avg_passage_len
         )
-
         self.factor1 = factor1
         self.factor2 = factor2
+
+        # Save the built index
+        self.save_index(index_dir=index_dir)
+
+    def save_index(
+        self,
+        index_dir: str,
+    ) -> None:
+        """Save the built index."""
+
+        # Require a built index before saving
+        if (
+            self.passages is None
+            or self.word_to_id is None
+            or self.term_freq_mat is None
+            or self.idf_vector is None
+            or self.passage_len_vector is None
+            or self.inv_avg_passage_len is None
+            or self.factor1 is None
+            or self.factor2 is None
+        ):
+            raise RuntimeError(
+                "BM25 index is not built. Call make_index() first"
+            )
+
+        # Create the output directory
+        utils.mkdir(index_dir)
+
+        # Save passages
+        utils.write_json(
+            os.path.join(index_dir, "passages.json"),
+            self.passages,
+        )
+
+        # Save vocabulary
+        utils.write_json(
+            os.path.join(index_dir, "word_to_id.json"),
+            self.word_to_id,
+        )
+
+        # Save the sparse term-frequency matrix
+        sp.save_npz(
+            os.path.join(index_dir, "term_freq_mat.npz"),
+            self.term_freq_mat,
+        )
+
+        # Save dense arrays and scalar values
+        np.savez(
+            os.path.join(index_dir, "bm25.npz"),
+            idf_vector=self.idf_vector,
+            passage_len_vector=self.passage_len_vector,
+            inv_avg_passage_len=np.asarray(self.inv_avg_passage_len),
+            factor1=np.asarray(self.factor1),
+            factor2=self.factor2,
+        )
+
+    def load_index(
+        self,
+        index_dir: str,
+    ) -> None:
+        """Load the BM25 index."""
+
+        # Load passages
+        self.passages = utils.read_json(
+            os.path.join(index_dir, "passages.json")
+        )
+
+        # Restore the number of passages
+        self.n_passages = len(self.passages)
+
+        # Load vocabulary
+        self.word_to_id = utils.read_json(
+            os.path.join(index_dir, "word_to_id.json")
+        )
+
+        # Load the sparse term-frequency matrix
+        self.term_freq_mat = sp.load_npz(
+            os.path.join(index_dir, "term_freq_mat.npz")
+        )
+
+        # Load dense arrays and scalar values
+        arrays = np.load(
+            os.path.join(index_dir, "bm25.npz")
+        )
+
+        # Restore BM25 index data
+        self.idf_vector = arrays["idf_vector"]
+        self.passage_len_vector = arrays["passage_len_vector"]
+        self.inv_avg_passage_len = float(arrays["inv_avg_passage_len"])
+        self.factor1 = float(arrays["factor1"])
+        self.factor2 = arrays["factor2"]
 
     def search(
         self,
         queries: list[str],
-        top_k: int = 1,
+        top_k: int,
     ) -> list[list[Passage]]:
         """Retrieve the top-k passages for a batch of queries."""
 
@@ -142,7 +238,7 @@ class BM25(BasePassageRetriever):
 
         return batch_passages
 
-    def _search_one(self, query: str, top_k: int = 1) -> list[Passage]:
+    def _search_one(self, query: str, top_k: int) -> list[Passage]:
         """Retrieve the top-k passages for a single query."""
 
         # Require a built index before retrieval

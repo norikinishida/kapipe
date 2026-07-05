@@ -6,7 +6,7 @@ from ..datatypes import CandidateEntitiesForDocument, Document
 
 
 class BaseEDRetriever(ABC):
-    """Base class for entity disambiguation retrieval components."""
+    """Base class for Entity Disambiguation (Retrieval) components."""
 
     @abstractmethod
     def make_index(self) -> None:
@@ -16,6 +16,6 @@ class BaseEDRetriever(ABC):
     def search(
         self,
         document: Document,
-        retrieval_size: int = 1
+        retrieval_size: int,
     ) -> tuple[Document, CandidateEntitiesForDocument]:
         """Retrieve candidate entities for each mention."""

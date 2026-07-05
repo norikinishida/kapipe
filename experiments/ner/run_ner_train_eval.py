@@ -164,7 +164,7 @@ def main(args):
     )
 
     ##################
-    # Method
+    # Method Instantiation
     ##################
 
     # Load the experiment configuration
@@ -173,18 +173,19 @@ def main(args):
     # Save the experiment configuration to the output path
     utils.write_json(os.path.join(base_output_path, "config.json"), config)
 
+    # Instantiate the NER component
     if method_name == "biaffine_ner":
-        # Initialize the trainer (evaluator)
+        # Instantiate the trainer (evaluator)
         trainer = BiaffineNERTrainer(base_output_path=base_output_path)
 
         if actiontype == "train":
-            # Initialize the NER component
+            # Instantiate the Biaffine NER component
             extractor = BiaffineNER(
                 **config,
                 vocab_etype=vocab_etype
             )
         else: 
-            # Load the NER component
+            # Load the Biaffine NER component from the snapshot
             extractor = BiaffineNER.from_snapshot(
                 snapshot_path=trainer.paths["snapshot_path"]
             )
@@ -192,10 +193,10 @@ def main(args):
     elif method_name == "llm_ner":
         assert actiontype != "train"
 
-        # Initialize the trainer (evaluator)
+        # Instantiate the trainer (evaluator)
         trainer = LLMNERTrainer(base_output_path=base_output_path)
 
-        # Initialize the LLM
+        # Instantiate the LLM wrapper
         if config["provider"] == "openai":
             model = OpenAILLM(
                 model_name=config["model_name"],
@@ -210,7 +211,7 @@ def main(args):
         else:
             raise ValueError(f"Unknown LLM provider: {config['provider']}")
 
-        # Initialize the NER component
+        # Instantiate the LLM-based NER component
         extractor = LLMNER(
             model=model,
             **config,
@@ -223,7 +224,7 @@ def main(args):
         raise ValueError(f"Unknown method: {method_name}")
 
     ##################
-    # Training, Evaluation
+    # Method Execution
     ##################
 
     if method_name == "biaffine_ner":
@@ -313,13 +314,11 @@ def main(args):
             trainer.evaluate(
                 extractor=extractor,
                 documents=dev_documents,
-                contexts=None,
                 split="dev"
             )
             trainer.evaluate(
                 extractor=extractor,
                 documents=test_documents,
-                contexts=None,
                 split="test"
             )
 
@@ -492,6 +491,9 @@ if __name__ == "__main__":
     logging.basicConfig(
         format="%(asctime)s - %(levelname)s - %(name)s - %(message)s",
         level=logging.INFO
+    )
+    logging.getLogger("httpx").addFilter(
+        lambda r: "huggingface.co" not in r.getMessage()
     )
 
     parser = argparse.ArgumentParser()

@@ -64,8 +64,9 @@ def main(args):
         prefix = utils.get_current_time()
         args.prefix = prefix
 
+    # Evaluation
     do_evaluation = args.do_evaluation
-    gold_documents_path = args.gold_documents
+    gold_documents_path = args.gold
 
     ##################
     # Logging Setup
@@ -103,7 +104,7 @@ def main(args):
     documents = utils.read_json(input_documents_path)
 
     ##################
-    # Method
+    # Method Instantiation
     ##################
 
     # Load the experiment configuration
@@ -112,10 +113,13 @@ def main(args):
     # Save the experiment configuration to the output path
     utils.write_json(os.path.join(base_output_path, "config.json"), config)
 
+    # Initialize the loaded LLM map
+    loaded_llm_map: dict[str, BaseLLM] = {}
+
     # Instantiate the NER component
     ner, loaded_llm_map = instantiate_ner_component(
         ner_config=config["ner"],
-        loaded_llm_map=None,
+        loaded_llm_map=loaded_llm_map,
     )
 
     # Instantiate the ED-Retrieval component
@@ -137,7 +141,7 @@ def main(args):
     )
 
     # Instantiate the Triple Extraction pipeline
-    pipe = TripleExtractionPipeline(
+    extractor = TripleExtractionPipeline(
         ner=ner,
         ed_retrieval=ed_retrieval,
         ed_reranking=ed_reranking,
@@ -145,7 +149,7 @@ def main(args):
     )
 
     ##################
-    # Triple Extraction
+    # Method Execution
     ##################
 
     logging.info(f"Applying the Triple Extraction pipeline to {len(documents)} documents in {input_documents_path} ...")
@@ -153,14 +157,17 @@ def main(args):
     # Apply the Triple Extraction pipeline to the documents
     result_documents = []
     for document in tqdm(documents):
-        result_document = pipe.extract_from_document(
+        result_document = extractor.extract_triples(
             document=document,
             retrieval_size=config["ed_retrieval"]["retrieval_size"]
         )
         result_documents.append(result_document)
 
     # Save the results
-    output_documents_path = os.path.join(base_output_path, f"{base_filename}.pred.json")
+    output_documents_path = os.path.join(
+        base_output_path,
+        f"{base_filename}.pred.json"
+    )
     utils.write_json(output_documents_path, result_documents)
     logging.info(f"Saved the prediction results to {output_documents_path}")
 
@@ -171,7 +178,7 @@ def main(args):
     if do_evaluation:
         # Require gold documents only when evaluation is requested
         if gold_documents_path is None:
-            raise ValueError("--gold_documents is required when --do_evaluation is set")
+            raise ValueError("--gold is required when --do_evaluation is set")
 
         # Evaluate the prediction results
         ner_scores = evaluation.ner.fscore(
@@ -204,7 +211,10 @@ def main(args):
         logging.info(utils.pretty_format_dict(scores))
 
         # Save the evaluation results
-        output_evaluation_path = os.path.join(base_output_path, f"{base_filename}.eval.json")
+        output_evaluation_path = os.path.join(
+            base_output_path,
+            f"{base_filename}.eval.json"
+        )
         utils.write_json(output_evaluation_path, scores)
         logging.info(f"Saved the evaluation results to {output_evaluation_path}")
 
@@ -232,27 +242,24 @@ def set_logger(filename: str, overwrite: bool = False) -> None:
 
 def instantiate_ner_component(
     ner_config: dict[str, Any],
-    loaded_llm_map: dict[str, BaseLLM] | None,
+    loaded_llm_map: dict[str, BaseLLM],
 ) -> tuple[BaseNER, dict[str, BaseLLM]]:
 
-    # Initialize the loaded LLM map if this function is called first
-    if loaded_llm_map is None:
-        loaded_llm_map = {}
-
-    # Initialize the NER component
-    if ner_config["method"] == "biaffine_ner":
+    # Instantiate the NER component
+    if ner_config["method_name"] == "biaffine_ner":
+        # Load the Biaffine NER component from the public snapshot
         ner = BiaffineNER.from_identifier(
             identifier=ner_config["identifier"]
         )
-    elif ner_config["method"] == "llm_ner":
-        # Instantiate or reuse the LLM
+    elif ner_config["method_name"] == "llm_ner":
+        # Instantiate the LLM wrapper
         llm, loaded_llm_map = instantiate_llm(
             config=ner_config,
             loaded_llm_map=loaded_llm_map
         )
 
         if "identifier" in ner_config:
-            # Load the component from the public snapshot via the identifier
+            # Load the LLM-based NER component from the public snapshot
             ner = LLMNER.from_identifier(
                 model=llm,
                 identifier=ner_config["identifier"],
@@ -266,7 +273,7 @@ def instantiate_ner_component(
             }
             etype_meta_info: dict[str, dict[str, str]] = ner_config["etype_meta_info"]
 
-            # Initialize the component based on the user-defined schema
+            # Instantiate the LLM-based NER component with the user-defined schema
             ner = LLMNER(
                 model=llm,
                 prompt_template_name_or_path=ner_config["prompt_template_name_or_path"],
@@ -275,33 +282,31 @@ def instantiate_ner_component(
             )
 
     else:
-        raise ValueError(f"Unknown NER method: {ner_config['method']}")
+        raise ValueError(f"Unknown NER method: {ner_config['method_name']}")
 
     return ner, loaded_llm_map
 
 
 def instantiate_ed_retrieval_component(
     ed_retrieval_config: dict[str, Any],
-    loaded_llm_map: dict[str, BaseLLM] | None,
+    loaded_llm_map: dict[str, BaseLLM],
 ) -> tuple[BaseEDRetriever, dict[str, BaseLLM]]:
 
-    # Initialize the loaded LLM map if this function is called first
-    if loaded_llm_map is None:
-        loaded_llm_map = {}
-
-    # Initialize the ED-Retrieval component.
-    # Also, build the index.
-    if ed_retrieval_config["method"] == "mention_name_entity_retriever":
+    # Instantiate the ED-Retrieval component.
+    # Also, re-build the index over entities.
+    if ed_retrieval_config["method_name"] == "mention_name_entity_retriever":
+        # Instantiate the ED-Retrieval component using simple mention-name assignment
         ed_retrieval = MentionNameEntityRetriever()
         ed_retrieval.make_index()
-    elif ed_retrieval_config["method"] == "blink_bi_encoder":
+    elif ed_retrieval_config["method_name"] == "blink_bi_encoder":
+        # Load the BLINK Bi-Encoder ED-Retrieval component from the public snapshot
         ed_retrieval = BlinkBiEncoder.from_identifier(
             identifier=ed_retrieval_config["identifier"]
         )
         ed_retrieval.make_index(use_precomputed_entity_vectors=True)
     else:
         raise ValueError(
-            f"Unknown ED-Retrieval method: {ed_retrieval_config['method']}"
+            f"Unknown ED-Retrieval method: {ed_retrieval_config['method_name']}"
         )
 
     return ed_retrieval, loaded_llm_map
@@ -309,32 +314,32 @@ def instantiate_ed_retrieval_component(
 
 def instantiate_ed_reranking_component(
     ed_reranking_config: dict[str, Any],
-    loaded_llm_map: dict[str, BaseLLM] | None,
+    loaded_llm_map: dict[str, BaseLLM],
 ) -> tuple[BaseEDReranker, dict[str, BaseLLM]]:
 
-    # Initialize the loaded LLM map if this function is called first
-    if loaded_llm_map is None:
-        loaded_llm_map = {}
-
-    # Initialize the ED-Reranking component
-    if ed_reranking_config["method"] == "identical_entity_reranker":
+    # Instantiate the ED-Reranking component
+    if ed_reranking_config["method_name"] == "identical_entity_reranker":
+        # Instantiate the ED-Reranking component using identical function
         ed_reranking = IdenticalEntityReranker()
-    elif ed_reranking_config["method"] == "blink_cross_encoder":
+    elif ed_reranking_config["method_name"] == "blink_cross_encoder":
+        # Load the BLINK Cross-Encoder ED-Reranking component from the public snapshot
         ed_reranking = BlinkCrossEncoder.from_identifier(
             identifier=ed_reranking_config["identifier"]
         )
-    elif ed_reranking_config["method"] == "llm_ed":
+    elif ed_reranking_config["method_name"] == "llm_ed":
+        # Instantiate the LLM wrapper
         llm, loaded_llm_map = instantiate_llm(
             config=ed_reranking_config,
             loaded_llm_map=loaded_llm_map
         )
+        # Load the LLM-based ED-Reranking component from the public snapshot
         ed_reranking = LLMED.from_identifier(
             model=llm,
             identifier=ed_reranking_config["identifier"],
         )
     else:
         raise ValueError(
-            f"Unknown ED-Reranking method: {ed_reranking_config['method']}"
+            f"Unknown ED-Reranking method: {ed_reranking_config['method_name']}"
         )
 
     return ed_reranking, loaded_llm_map
@@ -342,27 +347,24 @@ def instantiate_ed_reranking_component(
 
 def instantiate_docre_component(
     docre_config: dict[str, Any],
-    loaded_llm_map: dict[str, BaseLLM] | None,
+    loaded_llm_map: dict[str, BaseLLM],
 ) -> tuple[BaseDocRE, dict[str, BaseLLM]]:
 
-    # Initialize the loaded LLM map if this function is called first
-    if loaded_llm_map is None:
-        loaded_llm_map = {}
-
-    # Initialize the DocRE component
-    if docre_config["method"] == "atlop":
+    # Instantiate the DocRE component
+    if docre_config["method_name"] == "atlop":
+        # Load the ATLOP-based DocRE component from the public snapshot
         docre = ATLOP.from_identifier(
             identifier=docre_config["identifier"]
         )
-    elif docre_config["method"] == "llm_docre":
-        # Instantiate or reuse the LLM
+    elif docre_config["method_name"] == "llm_docre":
+        # Instantiate the LLM wrapper
         llm, loaded_llm_map = instantiate_llm(
             config=docre_config,
             loaded_llm_map=loaded_llm_map
         )
 
         if "identifier" in docre_config:
-            # Load the component from the public snapshot via the identifier
+            # Load the LLM-based DocRE component from the public snapshot
             docre = LLMDocRE.from_identifier(
                 model=llm,
                 identifier=docre_config["identifier"],
@@ -379,7 +381,7 @@ def instantiate_docre_component(
             rel_meta_info: dict[str, dict[str, str]] = docre_config["rel_meta_info"]
             entity_dict_path = docre_config.get("entity_dict_path", None)
 
-            # Initialize the component based on the user-defined schema
+            # Instantiate the LLM-based DocRE component with the user-defined schema
             docre = LLMDocRE(
                 model=llm,
                 prompt_template_name_or_path=docre_config["prompt_template_name_or_path"],
@@ -393,7 +395,7 @@ def instantiate_docre_component(
                 entity_dict_path=entity_dict_path,
             )
     else:
-        raise ValueError(f"Unknown DocRE method: {docre_config['method']}")
+        raise ValueError(f"Unknown DocRE method: {docre_config['method_name']}")
 
     return docre, loaded_llm_map
 
@@ -417,7 +419,7 @@ def instantiate_llm(
     if key in loaded_llm_map:
         return loaded_llm_map[key], loaded_llm_map
 
-    # Instantiate the LLM
+    # Instantiate the LLM wrapper
     if config["llm_provider"] == "openai":
         llm = OpenAILLM(
             model_name=config["llm_model_name"],
@@ -443,6 +445,9 @@ if __name__ == "__main__":
         format="%(asctime)s - %(levelname)s - %(name)s - %(message)s",
         level=logging.INFO
     )
+    logging.getLogger("httpx").addFilter(
+        lambda r: "huggingface.co" not in r.getMessage()
+    )
 
     parser = argparse.ArgumentParser()
 
@@ -458,9 +463,9 @@ if __name__ == "__main__":
     parser.add_argument("--results_dir", type=str, required=True)
     parser.add_argument("--prefix", type=str, default=None)
 
-    # Action
+    # Evaluation
     parser.add_argument("--do_evaluation", action="store_true")
-    parser.add_argument("--gold_documents", type=str, default=None)
+    parser.add_argument("--gold", type=str, default=None)
 
     args = parser.parse_args()
 

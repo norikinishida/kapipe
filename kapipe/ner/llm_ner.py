@@ -15,7 +15,6 @@ from .. import utils
 from ..datatypes import (
     Document,
     Mention,
-    ContextsForOneExample
 )
 from ..llms import HuggingFaceLLM, OpenAILLM
 from ..resources import resolve_snapshot_path
@@ -187,8 +186,6 @@ class LLMNER(BaseNER):
     def extract(
         self,
         document: Document,
-        # Optional: context augmentation
-        contexts_for_doc: ContextsForOneExample | None = None
     ) -> Document:
         """Extract named entity mentions from a single document."""
 
@@ -201,7 +198,6 @@ class LLMNER(BaseNER):
             prompt = self.prompt_processor.generate(
                 document=document,
                 demonstration_documents=self.demonstration_documents,
-                contexts_for_doc=contexts_for_doc,
             )
 
             # Generate the response
@@ -352,25 +348,18 @@ class LLMNER(BaseNER):
     def batch_extract(
         self,
         documents: list[Document],
-        # optional: context augmentation
-        contexts: list[ContextsForOneExample] | None = None
     ) -> list[Document]:
         """Extract named entity mentions from a batch of documents."""
 
         result_documents: list[Document] = []
 
-        # Use empty contexts when no contexts are provided
-        if contexts is None:
-            contexts = [None] * len(documents)
-
-        for document, contexts_for_doc in tqdm(
-            zip(documents, contexts),
+        for document in tqdm(
+            documents,
             total=len(documents),
             desc="extraction steps"
         ):
             result_document = self.extract(
                 document=document,
-                contexts_for_doc=contexts_for_doc
             )
             result_documents.append(result_document)
 
@@ -407,8 +396,6 @@ class PromptProcessor:
         self,
         document: Document,
         demonstration_documents: list[Document],
-        # Optional: context augmentation
-        contexts_for_doc: ContextsForOneExample | None = None
     ) -> str:
         """Generate a prompt for the input document."""
 
@@ -420,23 +407,6 @@ class PromptProcessor:
         demonstrations_prompt = self.generate_demonstrations_prompt(
             demonstration_documents=demonstration_documents,
         )        
-
-        ##########
-        # Contexts Prompt
-        ##########
-
-        if contexts_for_doc is not None:
-            # Create contexts
-            context_texts: list[str] = []
-            for passage in contexts_for_doc["contexts"]:
-                text = utils.create_text_from_passage(passage=passage, sep=" : ")
-                context_texts.append(text)
-            # Generate the prompt part for the contexts
-            contexts_prompt = self.generate_contexts_prompt(
-                context_texts=context_texts
-            )
-        else:
-            contexts_prompt = ""
 
         ##########
         # Test Case Prompt
@@ -455,7 +425,6 @@ class PromptProcessor:
         prompt = self.prompt_template.format(
             entity_types_prompt=self.entity_types_prompt,
             demonstrations_prompt=demonstrations_prompt,
-            contexts_prompt=contexts_prompt,
             test_case_prompt=test_case_prompt
         )
 
@@ -479,20 +448,6 @@ class PromptProcessor:
 
         return prompt.rstrip()
         
-    def generate_contexts_prompt(self, context_texts: list[str]) -> str:
-        """Generate a prompt for the contexts."""
-
-        n_contexts = len(context_texts)
-        if n_contexts == 0:
-            return ""
-        prompt = ""
-        for context_i, content in enumerate(context_texts):
-            prompt += f"[{context_i+1}] {content.strip()} \n"
-            if context_i < n_contexts - 1:
-                prompt += "\n"
-
-        return prompt.rstrip()
-
     def generate_test_case_prompt(self, document: Document) -> str:
         """Generate a prompt for the test case."""
 
@@ -575,7 +530,6 @@ class LLMNERTrainer:
         self,
         extractor: LLMNER,
         documents: list[Document],
-        contexts: list[ContextsForOneExample] | None,
         split: str,
         #
         prediction_only: bool = False,
@@ -585,7 +539,6 @@ class LLMNERTrainer:
         # Apply the extractor
         result_documents = extractor.batch_extract(
             documents=documents,
-            contexts=contexts
         )
 
         # Save the prediction results

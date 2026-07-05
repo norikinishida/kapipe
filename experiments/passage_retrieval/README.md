@@ -1,6 +1,6 @@
 # passage_retrieval
 
-This directory contains example experiments for Passage Retrieval.
+This directory contains example experiments for Passage Retrieval (`kapipe.passage_retrieval`).
 
 ## Step 1. Installation
 
@@ -31,10 +31,11 @@ python -m pip install -r requirements.txt
 ### Example dataset
 
 This directory already includes example data.
-
+    
 ```bash
 experiments/passage_retrieval/data/examples/passages.jsonl
 experiments/passage_retrieval/data/examples/questions.json
+experiments/passage_retrieval/data/examples/questions.gold_contexts.json
 ```
 
 ## Step 3. Configuration Setup
@@ -42,6 +43,7 @@ experiments/passage_retrieval/data/examples/questions.json
 Adjust the settings in the following configuration files (HOCON format).
 
 ```bash
+experiments/passage_retrieval/config/bm25.conf
 experiments/passage_retrieval/config/contriever.conf
 experiments/passage_retrieval/config/qwen3_embedding.conf
 ```

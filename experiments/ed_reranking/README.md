@@ -1,6 +1,6 @@
 # ed_reranking
 
-This directory contains example experiments for Entity Disambiguation (reranking phase).
+This directory contains example experiments for Entity Disambiguation (Reranking) (`kapipe.ed_reranking`).
 
 ## Step 1. Installation
 
@@ -33,8 +33,7 @@ python -m pip install -r requirements.txt
 This directory already includes example data.
 
 ```bash
-experiments/ed_reranking/data/examples/documents.ner.ed_ret.json
-experiments/ed_reranking/data/examples/documents_with_supervision.json
+experiments/ed_reranking/data/examples/documents_with_disambiguated_entities.json
 experiments/ed_reranking/data/examples/candidate_entities.json
 experiments/ed_reranking/data/examples/entity_dict.json
 ```

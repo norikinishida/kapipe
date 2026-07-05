@@ -30,7 +30,7 @@ class MentionNameEntityRetriever(BaseEDRetriever):
     def search(
         self,
         document: Document,
-        retrieval_size: int = 1
+        retrieval_size: int,
     ) -> tuple[Document, CandidateEntitiesForDocument]:
         """Retrieve candidate entities for each mention in a single document."""
 
@@ -76,7 +76,7 @@ class MentionNameEntityRetriever(BaseEDRetriever):
     def batch_search(
         self,
         documents: list[Document],
-        retrieval_size: int = 1
+        retrieval_size: int,
     ) -> tuple[list[Document], list[CandidateEntitiesForDocument]]:
         """Retrieve candidate entities for each mention in a batch of documents."""
 

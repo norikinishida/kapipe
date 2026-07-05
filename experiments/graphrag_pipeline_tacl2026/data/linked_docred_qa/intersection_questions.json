@@ -1,0 +1,3565 @@
+[
+    {
+        "question_key": "intersection#1",
+        "question": "Which country recognizes both Edward VII and Margaret Thatcher as its citizens?",
+        "answers": [
+            {
+                "answer": "United Kingdom",
+                "answer_type": "list",
+                "list_index": 0
+            },
+            {
+                "answer": "Kingdom of Great Britain",
+                "answer_type": "list",
+                "list_index": 1
+            }
+        ],
+        "source": {
+            "node_a": "Edward_VII",
+            "node_b": "Margaret_Thatcher",
+            "relation": "P27",
+            "common_neighbors": [
+                "United_Kingdom",
+                "Kingdom_of_Great_Britain"
+            ]
+        }
+    },
+    {
+        "question_key": "intersection#2",
+        "question": "What is located in both Nazi Germany and Weimar Republic?",
+        "answers": [
+            {
+                "answer": "Nazi Party",
+                "answer_type": "list",
+                "list_index": 0
+            },
+            {
+                "answer": "Berlin",
+                "answer_type": "list",
+                "list_index": 1
+            }
+        ],
+        "source": {
+            "node_a": "Nazi_Germany",
+            "node_b": "Weimar_Republic",
+            "relation": "P17#inverse",
+            "common_neighbors": [
+                "Nazi_Party",
+                "Berlin"
+            ]
+        }
+    },
+    {
+        "question_key": "intersection#3",
+        "question": "What is located in both Madison County, Illinois and Illinois?",
+        "answers": [
+            {
+                "answer": "St. Louis",
+                "answer_type": "list",
+                "list_index": 0
+            },
+            {
+                "answer": "Mitchell School",
+                "answer_type": "list",
+                "list_index": 1
+            }
+        ],
+        "source": {
+            "node_a": "Madison_County,_Illinois",
+            "node_b": "Illinois",
+            "relation": "P131#inverse",
+            "common_neighbors": [
+                "St._Louis",
+                "Mitchell_Elementary_School_(Mitchell,_Illinois)"
+            ]
+        }
+    },
+    {
+        "question_key": "intersection#4",
+        "question": "What is located in both Louisiana and New Orleans?",
+        "answers": [
+            {
+                "answer": "Medical Center of Louisiana at New Orleans",
+                "answer_type": "list",
+                "list_index": 0
+            },
+            {
+                "answer": "University Medical Center New Orleans",
+                "answer_type": "list",
+                "list_index": 1
+            },
+            {
+                "answer": "LSU Health Sciences Center New Orleans",
+                "answer_type": "list",
+                "list_index": 2
+            }
+        ],
+        "source": {
+            "node_a": "Louisiana",
+            "node_b": "New_Orleans",
+            "relation": "P131#inverse",
+            "common_neighbors": [
+                "Medical_Center_of_Louisiana_at_New_Orleans",
+                "University_Medical_Center_New_Orleans",
+                "LSU_Health_Sciences_Center_New_Orleans"
+            ]
+        }
+    },
+    {
+        "question_key": "intersection#5",
+        "question": "On which platform were both Guitar Hero and Darksiders (video game) released?",
+        "answers": [
+            {
+                "answer": "PlayStation 3",
+                "answer_type": "list",
+                "list_index": 0
+            },
+            {
+                "answer": "Xbox 360",
+                "answer_type": "list",
+                "list_index": 1
+            }
+        ],
+        "source": {
+            "node_a": "Guitar_Hero",
+            "node_b": "Darksiders_(video_game)",
+            "relation": "P400",
+            "common_neighbors": [
+                "PlayStation_3",
+                "Xbox_360"
+            ]
+        }
+    },
+    {
+        "question_key": "intersection#6",
+        "question": "On which platform were both Proteus (video game) and Chariot (video game) released?",
+        "answers": [
+            {
+                "answer": "Microsoft Windows",
+                "answer_type": "list",
+                "list_index": 0
+            },
+            {
+                "answer": "PlayStation 3",
+                "answer_type": "list",
+                "list_index": 1
+            }
+        ],
+        "source": {
+            "node_a": "Proteus_(video_game)",
+            "node_b": "Chariot_(video_game)",
+            "relation": "P400",
+            "common_neighbors": [
+                "Microsoft_Windows",
+                "PlayStation_3"
+            ]
+        }
+    },
+    {
+        "question_key": "intersection#7",
+        "question": "Who has both Franck Piccard and Leila Piccard as siblings?",
+        "answers": [
+            {
+                "answer": "Jeff Piccard",
+                "answer_type": "list",
+                "list_index": 0
+            },
+            {
+                "answer": "Ian Piccard",
+                "answer_type": "list",
+                "list_index": 1
+            },
+            {
+                "answer": "Ted Piccard",
+                "answer_type": "list",
+                "list_index": 2
+            }
+        ],
+        "source": {
+            "node_a": "Franck_Piccard",
+            "node_b": "Leila_Piccard",
+            "relation": "P3373#inverse",
+            "common_neighbors": [
+                "Jeff_Piccard",
+                "Ian_Piccard",
+                "Ted_Piccard"
+            ]
+        }
+    },
+    {
+        "question_key": "intersection#8",
+        "question": "What was manufactured by both General Motors and Chevrolet?",
+        "answers": [
+            {
+                "answer": "Isuzu Gemini",
+                "answer_type": "list",
+                "list_index": 0
+            },
+            {
+                "answer": "Acadian (automobile)",
+                "answer_type": "list",
+                "list_index": 1
+            },
+            {
+                "answer": "Chevy 500",
+                "answer_type": "list",
+                "list_index": 2
+            },
+            {
+                "answer": "T - car",
+                "answer_type": "list",
+                "list_index": 3
+            },
+            {
+                "answer": "T - cars",
+                "answer_type": "list",
+                "list_index": 3
+            },
+            {
+                "answer": "T platform",
+                "answer_type": "list",
+                "list_index": 3
+            },
+            {
+                "answer": "Vauxhall Chevette",
+                "answer_type": "list",
+                "list_index": 4
+            },
+            {
+                "answer": "Pontiac T1000/1000",
+                "answer_type": "list",
+                "list_index": 5
+            },
+            {
+                "answer": "Chevrolet Chevette",
+                "answer_type": "list",
+                "list_index": 6
+            }
+        ],
+        "source": {
+            "node_a": "General_Motors",
+            "node_b": "Chevrolet",
+            "relation": "P176#inverse",
+            "common_neighbors": [
+                "Isuzu_Gemini",
+                "Acadian_(automobile)",
+                "Chevrolet_Chevy_500",
+                "GM_T_platform_(RWD)",
+                "Vauxhall_Chevette",
+                "Pontiac_(automobile)",
+                "Chevrolet_Chevette"
+            ]
+        }
+    },
+    {
+        "question_key": "intersection#9",
+        "question": "What is located in both Government of Malaysia and Malaysia?",
+        "answers": [
+            {
+                "answer": "Penang",
+                "answer_type": "list",
+                "list_index": 0
+            },
+            {
+                "answer": "Kuala Lumpur",
+                "answer_type": "list",
+                "list_index": 1
+            },
+            {
+                "answer": "Kedah",
+                "answer_type": "list",
+                "list_index": 2
+            }
+        ],
+        "source": {
+            "node_a": "Government_of_Malaysia",
+            "node_b": "Malaysia",
+            "relation": "P17#inverse",
+            "common_neighbors": [
+                "Penang",
+                "Kuala_Lumpur",
+                "Kedah"
+            ]
+        }
+    },
+    {
+        "question_key": "intersection#10",
+        "question": "Which organization, club, or musical group do both France and China belong to?",
+        "answers": [
+            {
+                "answer": "United Nations",
+                "answer_type": "list",
+                "list_index": 0
+            },
+            {
+                "answer": "United Nations Security Council",
+                "answer_type": "list",
+                "list_index": 1
+            }
+        ],
+        "source": {
+            "node_a": "France",
+            "node_b": "China",
+            "relation": "P463",
+            "common_neighbors": [
+                "United_Nations",
+                "United_Nations_Security_Council"
+            ]
+        }
+    },
+    {
+        "question_key": "intersection#11",
+        "question": "What is located in both Chinese and Urban rail transit in China?",
+        "answers": [
+            {
+                "answer": "Heilongjiang",
+                "answer_type": "list",
+                "list_index": 0
+            },
+            {
+                "answer": "Harbin",
+                "answer_type": "list",
+                "list_index": 1
+            }
+        ],
+        "source": {
+            "node_a": "People's_Republic_of_China",
+            "node_b": "Urban_rail_transit_in_China",
+            "relation": "P17#inverse",
+            "common_neighbors": [
+                "Heilongjiang",
+                "Harbin"
+            ]
+        }
+    },
+    {
+        "question_key": "intersection#12",
+        "question": "What was released on both Xbox 360 and PlayStation 2?",
+        "answers": [
+            {
+                "answer": "Guitar Hero: Aerosmith",
+                "answer_type": "list",
+                "list_index": 0
+            },
+            {
+                "answer": "Guitar Hero",
+                "answer_type": "list",
+                "list_index": 1
+            }
+        ],
+        "source": {
+            "node_a": "Xbox_360",
+            "node_b": "PlayStation_2",
+            "relation": "P400#inverse",
+            "common_neighbors": [
+                "Guitar_Hero:_Aerosmith",
+                "Guitar_Hero"
+            ]
+        }
+    },
+    {
+        "question_key": "intersection#13",
+        "question": "Which administrative entity are both Massachusetts and Illinois a part of?",
+        "answers": [
+            {
+                "answer": "United States",
+                "answer_type": "list",
+                "list_index": 0
+            },
+            {
+                "answer": "United States House of Representatives",
+                "answer_type": "list",
+                "list_index": 1
+            }
+        ],
+        "source": {
+            "node_a": "Massachusetts",
+            "node_b": "Illinois",
+            "relation": "P150#inverse",
+            "common_neighbors": [
+                "United_States",
+                "United_States_House_of_Representatives"
+            ]
+        }
+    },
+    {
+        "question_key": "intersection#14",
+        "question": "What is located in both British Columbia and Oregon?",
+        "answers": [
+            {
+                "answer": "Cascadia (bioregion)",
+                "answer_type": "list",
+                "list_index": 0
+            },
+            {
+                "answer": "Cascade Range",
+                "answer_type": "list",
+                "list_index": 1
+            }
+        ],
+        "source": {
+            "node_a": "British_Columbia",
+            "node_b": "Oregon",
+            "relation": "P131#inverse",
+            "common_neighbors": [
+                "Cascadia_(bioregion)",
+                "Cascade_Range"
+            ]
+        }
+    },
+    {
+        "question_key": "intersection#15",
+        "question": "What are both B-Real and Tim Commerford a part of?",
+        "answers": [
+            {
+                "answer": "Prophets of Rage",
+                "answer_type": "list",
+                "list_index": 0
+            },
+            {
+                "answer": "Prophets of Rage (album)",
+                "answer_type": "list",
+                "list_index": 1
+            }
+        ],
+        "source": {
+            "node_a": "B-Real",
+            "node_b": "Tim_Commerford",
+            "relation": "P527#inverse",
+            "common_neighbors": [
+                "Prophets_of_Rage",
+                "Prophets_of_Rage_(album)"
+            ]
+        }
+    },
+    {
+        "question_key": "intersection#16",
+        "question": "What part do both 42nd Academy Awards and 57th Academy Awards have?",
+        "answers": [
+            {
+                "answer": "Academy Award for Best Adapted Screenplay",
+                "answer_type": "list",
+                "list_index": 0
+            },
+            {
+                "answer": "Academy Award for Best Supporting Actor",
+                "answer_type": "list",
+                "list_index": 1
+            }
+        ],
+        "source": {
+            "node_a": "42nd_Academy_Awards",
+            "node_b": "57th_Academy_Awards",
+            "relation": "P527",
+            "common_neighbors": [
+                "Academy_Award_for_Best_Adapted_Screenplay",
+                "Academy_Award_for_Best_Supporting_Actor"
+            ]
+        }
+    },
+    {
+        "question_key": "intersection#17",
+        "question": "What is located in both French and France?",
+        "answers": [
+            {
+                "answer": "Brittany",
+                "answer_type": "list",
+                "list_index": 0
+            },
+            {
+                "answer": "Amiens",
+                "answer_type": "list",
+                "list_index": 1
+            }
+        ],
+        "source": {
+            "node_a": "Portal:France",
+            "node_b": "France",
+            "relation": "P17#inverse",
+            "common_neighbors": [
+                "Brittany",
+                "Amiens"
+            ]
+        }
+    },
+    {
+        "question_key": "intersection#18",
+        "question": "Who is a citizen of both Belgium and Belgium Fed Cup team?",
+        "answers": [
+            {
+                "answer": "Jacques Brichant",
+                "answer_type": "list",
+                "list_index": 0
+            },
+            {
+                "answer": "Christiane Mercelis",
+                "answer_type": "list",
+                "list_index": 1
+            }
+        ],
+        "source": {
+            "node_a": "Belgium",
+            "node_b": "Belgium_Fed_Cup_team",
+            "relation": "P27#inverse",
+            "common_neighbors": [
+                "Jacques_Brichant",
+                "Christiane_Mercelis"
+            ]
+        }
+    },
+    {
+        "question_key": "intersection#19",
+        "question": "Which country are both United States Department of Labor and Maine located in?",
+        "answers": [
+            {
+                "answer": "United States",
+                "answer_type": "list",
+                "list_index": 0
+            },
+            {
+                "answer": "United States House of Representatives",
+                "answer_type": "list",
+                "list_index": 1
+            }
+        ],
+        "source": {
+            "node_a": "United_States_Department_of_Labor",
+            "node_b": "Maine",
+            "relation": "P17",
+            "common_neighbors": [
+                "United_States",
+                "United_States_House_of_Representatives"
+            ]
+        }
+    },
+    {
+        "question_key": "intersection#20",
+        "question": "Who is a citizen of both Swedish hip hop and Sweden?",
+        "answers": [
+            {
+                "answer": "Anita Ekberg",
+                "answer_type": "list",
+                "list_index": 0
+            },
+            {
+                "answer": "Ingrid Bergman",
+                "answer_type": "list",
+                "list_index": 1
+            },
+            {
+                "answer": "Greta Garbo",
+                "answer_type": "list",
+                "list_index": 2
+            },
+            {
+                "answer": "Mauritz Stiller",
+                "answer_type": "list",
+                "list_index": 3
+            },
+            {
+                "answer": "Victor Sj\u00f6str\u00f6m",
+                "answer_type": "list",
+                "list_index": 4
+            }
+        ],
+        "source": {
+            "node_a": "Swedish_hip_hop",
+            "node_b": "Sweden",
+            "relation": "P27#inverse",
+            "common_neighbors": [
+                "Anita_Ekberg",
+                "Ingrid_Bergman",
+                "Greta_Garbo",
+                "Mauritz_Stiller",
+                "Victor_Sj\u00f6str\u00f6m"
+            ]
+        }
+    },
+    {
+        "question_key": "intersection#21",
+        "question": "On which platform were both Star Soldier and Dragon Quest X released?",
+        "answers": [
+            {
+                "answer": "IOS",
+                "answer_type": "list",
+                "list_index": 0
+            },
+            {
+                "answer": "Wii",
+                "answer_type": "list",
+                "list_index": 1
+            }
+        ],
+        "source": {
+            "node_a": "Star_Soldier",
+            "node_b": "Dragon_Quest_X",
+            "relation": "P400",
+            "common_neighbors": [
+                "IOS",
+                "Wii"
+            ]
+        }
+    },
+    {
+        "question_key": "intersection#22",
+        "question": "What was developed by both Microsoft Mobile and Microsoft?",
+        "answers": [
+            {
+                "answer": "Microsoft Lumia",
+                "answer_type": "list",
+                "list_index": 0
+            },
+            {
+                "answer": "Lumia Camera",
+                "answer_type": "list",
+                "list_index": 1
+            }
+        ],
+        "source": {
+            "node_a": "Microsoft_Mobile",
+            "node_b": "Microsoft",
+            "relation": "P178#inverse",
+            "common_neighbors": [
+                "Microsoft_Lumia",
+                "#DocRED-737#"
+            ]
+        }
+    },
+    {
+        "question_key": "intersection#23",
+        "question": "Which country are both Tajiks and Persian language located in?",
+        "answers": [
+            {
+                "answer": "Tajikistan",
+                "answer_type": "list",
+                "list_index": 0
+            },
+            {
+                "answer": "Afghanistan",
+                "answer_type": "list",
+                "list_index": 1
+            }
+        ],
+        "source": {
+            "node_a": "Tajiks",
+            "node_b": "Persian_language",
+            "relation": "P17",
+            "common_neighbors": [
+                "Tajikistan",
+                "Afghanistan"
+            ]
+        }
+    },
+    {
+        "question_key": "intersection#24",
+        "question": "Which individual or institution follows both Protestant and Catholic Church as a religion?",
+        "answers": [
+            {
+                "answer": "Jesus in Christianity",
+                "answer_type": "list",
+                "list_index": 0
+            },
+            {
+                "answer": "Saint Joseph",
+                "answer_type": "list",
+                "list_index": 1
+            }
+        ],
+        "source": {
+            "node_a": "Protestant_reformers",
+            "node_b": "Catholic_Church",
+            "relation": "P140#inverse",
+            "common_neighbors": [
+                "Jesus_in_Christianity",
+                "Saint_Joseph"
+            ]
+        }
+    },
+    {
+        "question_key": "intersection#25",
+        "question": "What is located in both the United States and United States House of Representatives?",
+        "answers": [
+            {
+                "answer": "Democratic Party (United States)",
+                "answer_type": "list",
+                "list_index": 0
+            },
+            {
+                "answer": "Republican Party (United States)",
+                "answer_type": "list",
+                "list_index": 1
+            }
+        ],
+        "source": {
+            "node_a": "United_States_federal_law",
+            "node_b": "United_States_House_of_Representatives",
+            "relation": "P17#inverse",
+            "common_neighbors": [
+                "Democratic_Party_(United_States)",
+                "Republican_Party_(United_States)"
+            ]
+        }
+    },
+    {
+        "question_key": "intersection#26",
+        "question": "What is located in both Urban rail transit in China and China?",
+        "answers": [
+            {
+                "answer": "Heilongjiang",
+                "answer_type": "list",
+                "list_index": 0
+            },
+            {
+                "answer": "Harbin",
+                "answer_type": "list",
+                "list_index": 1
+            }
+        ],
+        "source": {
+            "node_a": "Urban_rail_transit_in_China",
+            "node_b": "China",
+            "relation": "P17#inverse",
+            "common_neighbors": [
+                "Heilongjiang",
+                "Harbin"
+            ]
+        }
+    },
+    {
+        "question_key": "intersection#27",
+        "question": "What is located in both New England and Massachusetts?",
+        "answers": [
+            {
+                "answer": "Connecticut River Valley region",
+                "answer_type": "list",
+                "list_index": 0
+            },
+            {
+                "answer": "Franklin County, Massachusetts",
+                "answer_type": "list",
+                "list_index": 1
+            },
+            {
+                "answer": "Connecticut River",
+                "answer_type": "list",
+                "list_index": 2
+            }
+        ],
+        "source": {
+            "node_a": "New_England",
+            "node_b": "Massachusetts",
+            "relation": "P131#inverse",
+            "common_neighbors": [
+                "Connecticut_River_Valley",
+                "Franklin_County,_Massachusetts",
+                "Connecticut_River"
+            ]
+        }
+    },
+    {
+        "question_key": "intersection#28",
+        "question": "Which sports team do both Davy Jones (baseball) and Bo McLaughlin play for?",
+        "answers": [
+            {
+                "answer": "Chicago Cubs",
+                "answer_type": "list",
+                "list_index": 0
+            },
+            {
+                "answer": "Baltimore Orioles",
+                "answer_type": "list",
+                "list_index": 1
+            }
+        ],
+        "source": {
+            "node_a": "Davy_Jones_(baseball)",
+            "node_b": "Bo_McLaughlin",
+            "relation": "P54",
+            "common_neighbors": [
+                "Chicago_Cubs",
+                "Baltimore_Orioles"
+            ]
+        }
+    },
+    {
+        "question_key": "intersection#29",
+        "question": "On which platform were both Ark: Survival Evolved and Rust (video game) released?",
+        "answers": [
+            {
+                "answer": "Microsoft Windows",
+                "answer_type": "list",
+                "list_index": 0
+            },
+            {
+                "answer": "Linux",
+                "answer_type": "list",
+                "list_index": 1
+            }
+        ],
+        "source": {
+            "node_a": "Ark:_Survival_Evolved",
+            "node_b": "Rust_(video_game)",
+            "relation": "P400",
+            "common_neighbors": [
+                "Microsoft_Windows",
+                "Linux"
+            ]
+        }
+    },
+    {
+        "question_key": "intersection#30",
+        "question": "What is located in both Ukrainian and Ukraine?",
+        "answers": [
+            {
+                "answer": "Bloc of Petro Poroshenko",
+                "answer_type": "list",
+                "list_index": 0
+            },
+            {
+                "answer": "Lukyanivska Prison",
+                "answer_type": "list",
+                "list_index": 1
+            }
+        ],
+        "source": {
+            "node_a": "Ukrainian_President",
+            "node_b": "Ukraine",
+            "relation": "P17#inverse",
+            "common_neighbors": [
+                "Bloc_of_Petro_Poroshenko",
+                "Lukyanivska_Prison"
+            ]
+        }
+    },
+    {
+        "question_key": "intersection#31",
+        "question": "Who is a citizen of both Government of the Soviet Union and Soviet people?",
+        "answers": [
+            {
+                "answer": "Joseph Stalin",
+                "answer_type": "list",
+                "list_index": 0
+            },
+            {
+                "answer": "Nikita Khrushchev",
+                "answer_type": "list",
+                "list_index": 1
+            }
+        ],
+        "source": {
+            "node_a": "Government_of_the_Soviet_Union",
+            "node_b": "Soviet_people",
+            "relation": "P27#inverse",
+            "common_neighbors": [
+                "Joseph_Stalin",
+                "Nikita_Khrushchev"
+            ]
+        }
+    },
+    {
+        "question_key": "intersection#32",
+        "question": "What was released on both Wii and Nintendo Switch?",
+        "answers": [
+            {
+                "answer": "Dragon Quest X",
+                "answer_type": "list",
+                "list_index": 0
+            },
+            {
+                "answer": "Animal Crossing",
+                "answer_type": "list",
+                "list_index": 1
+            }
+        ],
+        "source": {
+            "node_a": "Wii",
+            "node_b": "Nintendo_Switch",
+            "relation": "P400#inverse",
+            "common_neighbors": [
+                "Dragon_Quest_X",
+                "Animal_Crossing"
+            ]
+        }
+    },
+    {
+        "question_key": "intersection#33",
+        "question": "What is located in both Government of Canada and Canada?",
+        "answers": [
+            {
+                "answer": "SS Keno",
+                "answer_type": "list",
+                "list_index": 0
+            },
+            {
+                "answer": "Billy Bishop Toronto City Airport",
+                "answer_type": "list",
+                "list_index": 1
+            },
+            {
+                "answer": "Toronto",
+                "answer_type": "list",
+                "list_index": 2
+            },
+            {
+                "answer": "Klondike Highway",
+                "answer_type": "list",
+                "list_index": 3
+            },
+            {
+                "answer": "PortsToronto",
+                "answer_type": "list",
+                "list_index": 4
+            },
+            {
+                "answer": "Government of Ontario",
+                "answer_type": "list",
+                "list_index": 5
+            }
+        ],
+        "source": {
+            "node_a": "Government_of_Canada",
+            "node_b": "Canada",
+            "relation": "P17#inverse",
+            "common_neighbors": [
+                "SS_Keno",
+                "Billy_Bishop_Toronto_City_Airport",
+                "Toronto",
+                "Klondike_Highway",
+                "PortsToronto",
+                "Government_of_Ontario"
+            ]
+        }
+    },
+    {
+        "question_key": "intersection#34",
+        "question": "Which administrative entity are both Hawaii and Texas a part of?",
+        "answers": [
+            {
+                "answer": "U.S. state",
+                "answer_type": "list",
+                "list_index": 0
+            },
+            {
+                "answer": "United States",
+                "answer_type": "list",
+                "list_index": 1
+            }
+        ],
+        "source": {
+            "node_a": "Hawaii",
+            "node_b": "Texas",
+            "relation": "P150#inverse",
+            "common_neighbors": [
+                "U.S._state",
+                "United_States"
+            ]
+        }
+    },
+    {
+        "question_key": "intersection#35",
+        "question": "What was released on both Macintosh and Microsoft Windows?",
+        "answers": [
+            {
+                "answer": "Star Wars: Jedi Knight",
+                "answer_type": "list",
+                "list_index": 0
+            },
+            {
+                "answer": "Return to Castle Wolfenstein",
+                "answer_type": "list",
+                "list_index": 1
+            },
+            {
+                "answer": "Lego Marvel's Avengers",
+                "answer_type": "list",
+                "list_index": 2
+            }
+        ],
+        "source": {
+            "node_a": "Macintosh",
+            "node_b": "Microsoft_Windows",
+            "relation": "P400#inverse",
+            "common_neighbors": [
+                "Star_Wars:_Jedi_Knight",
+                "Return_to_Castle_Wolfenstein",
+                "Lego_Marvel's_Avengers"
+            ]
+        }
+    },
+    {
+        "question_key": "intersection#36",
+        "question": "Who has both Procris and Oreithyia as siblings?",
+        "answers": [
+            {
+                "answer": "Creusa",
+                "answer_type": "list",
+                "list_index": 0
+            },
+            {
+                "answer": "Chthonia",
+                "answer_type": "list",
+                "list_index": 1
+            }
+        ],
+        "source": {
+            "node_a": "Procris",
+            "node_b": "Orithyia_(Athenian)",
+            "relation": "P3373#inverse",
+            "common_neighbors": [
+                "Creusa_(daughter_of_Erechtheus)",
+                "Chthonia"
+            ]
+        }
+    },
+    {
+        "question_key": "intersection#37",
+        "question": "What is located in both Spanish language and Spain?",
+        "answers": [
+            {
+                "answer": "L'Escala",
+                "answer_type": "list",
+                "list_index": 0
+            },
+            {
+                "answer": "Costa Brava",
+                "answer_type": "list",
+                "list_index": 1
+            },
+            {
+                "answer": "Madrid",
+                "answer_type": "list",
+                "list_index": 2
+            },
+            {
+                "answer": "Alt Empord\u00e0",
+                "answer_type": "list",
+                "list_index": 3
+            },
+            {
+                "answer": "Emp\u00faries",
+                "answer_type": "list",
+                "list_index": 4
+            }
+        ],
+        "source": {
+            "node_a": "Spanish_language",
+            "node_b": "Spain",
+            "relation": "P17#inverse",
+            "common_neighbors": [
+                "L'Escala",
+                "Costa_Brava",
+                "Madrid",
+                "Alt_Empord\u00e0",
+                "Emp\u00faries"
+            ]
+        }
+    },
+    {
+        "question_key": "intersection#38",
+        "question": "Which administrative entity are both England and Wales a part of?",
+        "answers": [
+            {
+                "answer": "United Kingdom",
+                "answer_type": "list",
+                "list_index": 0
+            },
+            {
+                "answer": "Britain",
+                "answer_type": "list",
+                "list_index": 1
+            },
+            {
+                "answer": "UK",
+                "answer_type": "list",
+                "list_index": 1
+            },
+            {
+                "answer": "British",
+                "answer_type": "list",
+                "list_index": 1
+            }
+        ],
+        "source": {
+            "node_a": "England",
+            "node_b": "Wales",
+            "relation": "P150#inverse",
+            "common_neighbors": [
+                "United_Kingdom",
+                "UK"
+            ]
+        }
+    },
+    {
+        "question_key": "intersection#39",
+        "question": "What is located in both Mitchell, Illinois and Illinois?",
+        "answers": [
+            {
+                "answer": "U.S. Route 66",
+                "answer_type": "list",
+                "list_index": 0
+            },
+            {
+                "answer": "Mitchell School",
+                "answer_type": "list",
+                "list_index": 1
+            }
+        ],
+        "source": {
+            "node_a": "Mitchell,_Illinois",
+            "node_b": "Illinois",
+            "relation": "P131#inverse",
+            "common_neighbors": [
+                "U.S._Route_66",
+                "Mitchell_Elementary_School_(Mitchell,_Illinois)"
+            ]
+        }
+    },
+    {
+        "question_key": "intersection#40",
+        "question": "On which platform were both Soldier Blade and Star Soldier released?",
+        "answers": [
+            {
+                "answer": "Wii",
+                "answer_type": "list",
+                "list_index": 0
+            },
+            {
+                "answer": "PlayStation Portable",
+                "answer_type": "list",
+                "list_index": 1
+            }
+        ],
+        "source": {
+            "node_a": "Soldier_Blade",
+            "node_b": "Star_Soldier",
+            "relation": "P400",
+            "common_neighbors": [
+                "Wii",
+                "PlayStation_Portable"
+            ]
+        }
+    },
+    {
+        "question_key": "intersection#41",
+        "question": "Which organization, club, or musical group do both Canada and France belong to?",
+        "answers": [
+            {
+                "answer": "NATO",
+                "answer_type": "list",
+                "list_index": 0
+            },
+            {
+                "answer": "United Nations",
+                "answer_type": "list",
+                "list_index": 1
+            }
+        ],
+        "source": {
+            "node_a": "Canada",
+            "node_b": "France",
+            "relation": "P463",
+            "common_neighbors": [
+                "NATO",
+                "United_Nations"
+            ]
+        }
+    },
+    {
+        "question_key": "intersection#42",
+        "question": "Which country are both Westminster and London located in?",
+        "answers": [
+            {
+                "answer": "United Kingdom",
+                "answer_type": "list",
+                "list_index": 0
+            },
+            {
+                "answer": "England",
+                "answer_type": "list",
+                "list_index": 1
+            }
+        ],
+        "source": {
+            "node_a": "Westminster",
+            "node_b": "London",
+            "relation": "P17",
+            "common_neighbors": [
+                "United_Kingdom",
+                "England"
+            ]
+        }
+    },
+    {
+        "question_key": "intersection#43",
+        "question": "What administrative division is contained within both United States Reports and United States?",
+        "answers": [
+            {
+                "answer": "Nebraska",
+                "answer_type": "list",
+                "list_index": 0
+            },
+            {
+                "answer": "Colorado",
+                "answer_type": "list",
+                "list_index": 1
+            }
+        ],
+        "source": {
+            "node_a": "United_States_Reports",
+            "node_b": "United_States",
+            "relation": "P150",
+            "common_neighbors": [
+                "Nebraska",
+                "Colorado"
+            ]
+        }
+    },
+    {
+        "question_key": "intersection#44",
+        "question": "Which record label released both Cleanin' Out My Closet and Till It's Gone?",
+        "answers": [
+            {
+                "answer": "Interscope Records",
+                "answer_type": "list",
+                "list_index": 0
+            },
+            {
+                "answer": "Shady Records",
+                "answer_type": "list",
+                "list_index": 1
+            }
+        ],
+        "source": {
+            "node_a": "Cleanin'_Out_My_Closet",
+            "node_b": "Till_It's_Gone",
+            "relation": "P264",
+            "common_neighbors": [
+                "Interscope_Records",
+                "Shady_Records"
+            ]
+        }
+    },
+    {
+        "question_key": "intersection#45",
+        "question": "What is located in both Russia and Russian Empire?",
+        "answers": [
+            {
+                "answer": "Siberia Governorate",
+                "answer_type": "list",
+                "list_index": 0
+            },
+            {
+                "answer": "Tobolsk",
+                "answer_type": "list",
+                "list_index": 1
+            }
+        ],
+        "source": {
+            "node_a": "Russia",
+            "node_b": "Russian_Empire",
+            "relation": "P17#inverse",
+            "common_neighbors": [
+                "Siberia_Governorate",
+                "Tobolsk"
+            ]
+        }
+    },
+    {
+        "question_key": "intersection#46",
+        "question": "Who is a citizen of both United States Secretary of War and United States?",
+        "answers": [
+            {
+                "answer": "William Howard Taft",
+                "answer_type": "list",
+                "list_index": 0
+            },
+            {
+                "answer": "Theodore Roosevelt",
+                "answer_type": "list",
+                "list_index": 1
+            }
+        ],
+        "source": {
+            "node_a": "United_States_Secretary_of_War",
+            "node_b": "United_States",
+            "relation": "P27#inverse",
+            "common_neighbors": [
+                "William_Howard_Taft",
+                "Theodore_Roosevelt"
+            ]
+        }
+    },
+    {
+        "question_key": "intersection#47",
+        "question": "What is located in both Canadian and Canada?",
+        "answers": [
+            {
+                "answer": "House of Commons of Canada",
+                "answer_type": "list",
+                "list_index": 0
+            },
+            {
+                "answer": "New Brunswick",
+                "answer_type": "list",
+                "list_index": 1
+            },
+            {
+                "answer": "Liberal Party of Canada",
+                "answer_type": "list",
+                "list_index": 2
+            }
+        ],
+        "source": {
+            "node_a": "Canadian",
+            "node_b": "Canada",
+            "relation": "P17#inverse",
+            "common_neighbors": [
+                "House_of_Commons_of_Canada",
+                "New_Brunswick",
+                "Liberal_Party_of_Canada"
+            ]
+        }
+    },
+    {
+        "question_key": "intersection#48",
+        "question": "Who has both Tamar Braxton and Trina as siblings?",
+        "answers": [
+            {
+                "answer": "Toni Braxton",
+                "answer_type": "list",
+                "list_index": 0
+            },
+            {
+                "answer": "Traci Braxton",
+                "answer_type": "list",
+                "list_index": 1
+            }
+        ],
+        "source": {
+            "node_a": "Tamar_Braxton",
+            "node_b": "#DocRED-4038#",
+            "relation": "P3373#inverse",
+            "common_neighbors": [
+                "Toni_Braxton",
+                "Traci_Braxton"
+            ]
+        }
+    },
+    {
+        "question_key": "intersection#49",
+        "question": "What was released on both Xbox One and Nintendo Switch?",
+        "answers": [
+            {
+                "answer": "Punch Club",
+                "answer_type": "list",
+                "list_index": 0
+            },
+            {
+                "answer": "Ark: Survival Evolved",
+                "answer_type": "list",
+                "list_index": 1
+            },
+            {
+                "answer": "Chariot (video game)",
+                "answer_type": "list",
+                "list_index": 2
+            }
+        ],
+        "source": {
+            "node_a": "Xbox_One",
+            "node_b": "Nintendo_Switch",
+            "relation": "P400#inverse",
+            "common_neighbors": [
+                "Punch_Club",
+                "Ark:_Survival_Evolved",
+                "Chariot_(video_game)"
+            ]
+        }
+    },
+    {
+        "question_key": "intersection#50",
+        "question": "Which country are both Macau and Harbin located in?",
+        "answers": [
+            {
+                "answer": "China",
+                "answer_type": "list",
+                "list_index": 0
+            },
+            {
+                "answer": "Mainland China",
+                "answer_type": "list",
+                "list_index": 0
+            },
+            {
+                "answer": "PRC",
+                "answer_type": "list",
+                "list_index": 0
+            },
+            {
+                "answer": "Chinese",
+                "answer_type": "list",
+                "list_index": 0
+            },
+            {
+                "answer": "Republic of China",
+                "answer_type": "list",
+                "list_index": 0
+            },
+            {
+                "answer": "People's Republic of China",
+                "answer_type": "list",
+                "list_index": 0
+            },
+            {
+                "answer": "P.R.C.",
+                "answer_type": "list",
+                "list_index": 0
+            },
+            {
+                "answer": "China",
+                "answer_type": "list",
+                "list_index": 1
+            }
+        ],
+        "source": {
+            "node_a": "Macau",
+            "node_b": "Harbin",
+            "relation": "P17",
+            "common_neighbors": [
+                "People's_Republic_of_China",
+                "China"
+            ]
+        }
+    },
+    {
+        "question_key": "intersection#51",
+        "question": "Who is a member of both Rage Against the Machine (album) and Prophets of Rage?",
+        "answers": [
+            {
+                "answer": "Tim Commerford",
+                "answer_type": "list",
+                "list_index": 0
+            },
+            {
+                "answer": "Tom Morello",
+                "answer_type": "list",
+                "list_index": 1
+            },
+            {
+                "answer": "Brad Wilk",
+                "answer_type": "list",
+                "list_index": 2
+            }
+        ],
+        "source": {
+            "node_a": "Rage_Against_the_Machine_(album)",
+            "node_b": "Prophets_of_Rage",
+            "relation": "P463#inverse",
+            "common_neighbors": [
+                "Tim_Commerford",
+                "Tom_Morello",
+                "Brad_Wilk"
+            ]
+        }
+    },
+    {
+        "question_key": "intersection#52",
+        "question": "What is located in both Russian language and Soviet Union?",
+        "answers": [
+            {
+                "answer": "Moscow",
+                "answer_type": "list",
+                "list_index": 0
+            },
+            {
+                "answer": "NKVD",
+                "answer_type": "list",
+                "list_index": 1
+            }
+        ],
+        "source": {
+            "node_a": "Russian_language",
+            "node_b": "Soviet_Union",
+            "relation": "P17#inverse",
+            "common_neighbors": [
+                "Moscow",
+                "NKVD"
+            ]
+        }
+    },
+    {
+        "question_key": "intersection#53",
+        "question": "What is located in both Europe and Climate change in Europe?",
+        "answers": [
+            {
+                "answer": "European Union",
+                "answer_type": "list",
+                "list_index": 0
+            },
+            {
+                "answer": "Germany",
+                "answer_type": "list",
+                "list_index": 1
+            }
+        ],
+        "source": {
+            "node_a": "Europe",
+            "node_b": "Climate_change_in_Europe",
+            "relation": "P30#inverse",
+            "common_neighbors": [
+                "European_Union",
+                "Germany"
+            ]
+        }
+    },
+    {
+        "question_key": "intersection#54",
+        "question": "Who is a sibling of both Chthonia and Oreithyia?",
+        "answers": [
+            {
+                "answer": "Creusa",
+                "answer_type": "list",
+                "list_index": 0
+            },
+            {
+                "answer": "Procris",
+                "answer_type": "list",
+                "list_index": 1
+            }
+        ],
+        "source": {
+            "node_a": "Chthonia",
+            "node_b": "Orithyia_(Athenian)",
+            "relation": "P3373",
+            "common_neighbors": [
+                "Creusa_(daughter_of_Erechtheus)",
+                "Procris"
+            ]
+        }
+    },
+    {
+        "question_key": "intersection#55",
+        "question": "What was released on both Wii U and Nintendo Switch?",
+        "answers": [
+            {
+                "answer": "Chariot (video game)",
+                "answer_type": "list",
+                "list_index": 0
+            },
+            {
+                "answer": "Dragon Quest X",
+                "answer_type": "list",
+                "list_index": 1
+            },
+            {
+                "answer": "Animal Crossing",
+                "answer_type": "list",
+                "list_index": 2
+            }
+        ],
+        "source": {
+            "node_a": "Wii_U",
+            "node_b": "Nintendo_Switch",
+            "relation": "P400#inverse",
+            "common_neighbors": [
+                "Chariot_(video_game)",
+                "Dragon_Quest_X",
+                "Animal_Crossing"
+            ]
+        }
+    },
+    {
+        "question_key": "intersection#56",
+        "question": "Who is a member of both Cleveland Indians and New York Yankees?",
+        "answers": [
+            {
+                "answer": "Eddie Robinson (baseball)",
+                "answer_type": "list",
+                "list_index": 0
+            },
+            {
+                "answer": "Harry Simpson",
+                "answer_type": "list",
+                "list_index": 1
+            }
+        ],
+        "source": {
+            "node_a": "Cleveland_Indians",
+            "node_b": "New_York_Yankees",
+            "relation": "P54#inverse",
+            "common_neighbors": [
+                "Eddie_Robinson_(baseball)",
+                "Harry_Simpson"
+            ]
+        }
+    },
+    {
+        "question_key": "intersection#57",
+        "question": "What is located in or next to both Pacific coast and Pacific Ocean?",
+        "answers": [
+            {
+                "answer": "Oregon",
+                "answer_type": "list",
+                "list_index": 0
+            },
+            {
+                "answer": "Yaquina Head Light",
+                "answer_type": "list",
+                "list_index": 1
+            }
+        ],
+        "source": {
+            "node_a": "Pacific_coast",
+            "node_b": "Pacific_Ocean",
+            "relation": "P206#inverse",
+            "common_neighbors": [
+                "Oregon",
+                "Yaquina_Head_Light"
+            ]
+        }
+    },
+    {
+        "question_key": "intersection#58",
+        "question": "On which platform were both Darksiders (video game) and Proteus (video game) released?",
+        "answers": [
+            {
+                "answer": "Microsoft Windows",
+                "answer_type": "list",
+                "list_index": 0
+            },
+            {
+                "answer": "PlayStation 3",
+                "answer_type": "list",
+                "list_index": 1
+            }
+        ],
+        "source": {
+            "node_a": "Darksiders_(video_game)",
+            "node_b": "Proteus_(video_game)",
+            "relation": "P400",
+            "common_neighbors": [
+                "Microsoft_Windows",
+                "PlayStation_3"
+            ]
+        }
+    },
+    {
+        "question_key": "intersection#59",
+        "question": "What is located in both Crawford County, Pennsylvania and Pennsylvania?",
+        "answers": [
+            {
+                "answer": "South Shenango Township, Crawford County, Pennsylvania",
+                "answer_type": "list",
+                "list_index": 0
+            },
+            {
+                "answer": "North Shenango Township, Crawford County, Pennsylvania",
+                "answer_type": "list",
+                "list_index": 1
+            }
+        ],
+        "source": {
+            "node_a": "Crawford_County,_Pennsylvania",
+            "node_b": "Pennsylvania",
+            "relation": "P131#inverse",
+            "common_neighbors": [
+                "South_Shenango_Township,_Crawford_County,_Pennsylvania",
+                "North_Shenango_Township,_Crawford_County,_Pennsylvania"
+            ]
+        }
+    },
+    {
+        "question_key": "intersection#60",
+        "question": "On which platform were both Beyond Good & Evil (video game) and Mortal Kombat released?",
+        "answers": [
+            {
+                "answer": "PlayStation 2",
+                "answer_type": "list",
+                "list_index": 0
+            },
+            {
+                "answer": "GameCube",
+                "answer_type": "list",
+                "list_index": 1
+            }
+        ],
+        "source": {
+            "node_a": "Beyond_Good_&_Evil_(video_game)",
+            "node_b": "Mortal_Kombat",
+            "relation": "P400",
+            "common_neighbors": [
+                "PlayStation_2",
+                "GameCube"
+            ]
+        }
+    },
+    {
+        "question_key": "intersection#61",
+        "question": "Who received both the Aronson Prize and Nobel Prize in Physiology or Medicine award?",
+        "answers": [
+            {
+                "answer": "Gerhard Domagk",
+                "answer_type": "list",
+                "list_index": 0
+            },
+            {
+                "answer": "Karl Landsteiner",
+                "answer_type": "list",
+                "list_index": 1
+            }
+        ],
+        "source": {
+            "node_a": "Aronson_Prize",
+            "node_b": "Nobel_Prize_in_Physiology_or_Medicine",
+            "relation": "P166#inverse",
+            "common_neighbors": [
+                "Gerhard_Domagk",
+                "Karl_Landsteiner"
+            ]
+        }
+    },
+    {
+        "question_key": "intersection#62",
+        "question": "Which country are both Georgia General Assembly and United States Department of Labor located in?",
+        "answers": [
+            {
+                "answer": "United States",
+                "answer_type": "list",
+                "list_index": 0
+            },
+            {
+                "answer": "United States House of Representatives",
+                "answer_type": "list",
+                "list_index": 1
+            }
+        ],
+        "source": {
+            "node_a": "Georgia_General_Assembly",
+            "node_b": "United_States_Department_of_Labor",
+            "relation": "P17",
+            "common_neighbors": [
+                "United_States",
+                "United_States_House_of_Representatives"
+            ]
+        }
+    },
+    {
+        "question_key": "intersection#63",
+        "question": "Who is a sibling of both Oreithyia and Chthonia?",
+        "answers": [
+            {
+                "answer": "Creusa",
+                "answer_type": "list",
+                "list_index": 0
+            },
+            {
+                "answer": "Procris",
+                "answer_type": "list",
+                "list_index": 1
+            }
+        ],
+        "source": {
+            "node_a": "Orithyia_(Athenian)",
+            "node_b": "Chthonia",
+            "relation": "P3373",
+            "common_neighbors": [
+                "Creusa_(daughter_of_Erechtheus)",
+                "Procris"
+            ]
+        }
+    },
+    {
+        "question_key": "intersection#64",
+        "question": "Who is a citizen of both Republic of the Congo and Democratic Republic of the Congo?",
+        "answers": [
+            {
+                "answer": "Mobutu Sese Seko",
+                "answer_type": "list",
+                "list_index": 0
+            },
+            {
+                "answer": "Joseph Kabila",
+                "answer_type": "list",
+                "list_index": 1
+            }
+        ],
+        "source": {
+            "node_a": "Republic_of_the_Congo",
+            "node_b": "Democratic_Republic_of_the_Congo",
+            "relation": "P27#inverse",
+            "common_neighbors": [
+                "Mobutu_Sese_Seko",
+                "Joseph_Kabila"
+            ]
+        }
+    },
+    {
+        "question_key": "intersection#65",
+        "question": "Which individuals or communities use both French language and France as languages?",
+        "answers": [
+            {
+                "answer": "Mich\u00e8le Arnaud",
+                "answer_type": "list",
+                "list_index": 0
+            },
+            {
+                "answer": "Henri de Boulainvilliers",
+                "answer_type": "list",
+                "list_index": 1
+            }
+        ],
+        "source": {
+            "node_a": "French_language",
+            "node_b": "France",
+            "relation": "P1412#inverse",
+            "common_neighbors": [
+                "Mich\u00e8le_Arnaud",
+                "Henri_de_Boulainvilliers"
+            ]
+        }
+    },
+    {
+        "question_key": "intersection#66",
+        "question": "On which platform were both Enclave (video game) and Grand Theft Auto: Vice City released?",
+        "answers": [
+            {
+                "answer": "Microsoft Windows",
+                "answer_type": "list",
+                "list_index": 0
+            },
+            {
+                "answer": "Xbox (console)",
+                "answer_type": "list",
+                "list_index": 1
+            }
+        ],
+        "source": {
+            "node_a": "Enclave_(video_game)",
+            "node_b": "Grand_Theft_Auto:_Vice_City",
+            "relation": "P400",
+            "common_neighbors": [
+                "Microsoft_Windows",
+                "Xbox_(console)"
+            ]
+        }
+    },
+    {
+        "question_key": "intersection#67",
+        "question": "Which country are both Republican Party (United States) and United States Congress located in?",
+        "answers": [
+            {
+                "answer": "United States",
+                "answer_type": "list",
+                "list_index": 0
+            },
+            {
+                "answer": "United States House of Representatives",
+                "answer_type": "list",
+                "list_index": 1
+            }
+        ],
+        "source": {
+            "node_a": "Republican_Party_(United_States)",
+            "node_b": "United_States_Congress",
+            "relation": "P17",
+            "common_neighbors": [
+                "United_States",
+                "United_States_House_of_Representatives"
+            ]
+        }
+    },
+    {
+        "question_key": "intersection#68",
+        "question": "Which sports team do both Wes Thomas and Andy Cole play for?",
+        "answers": [
+            {
+                "answer": "Portsmouth F.C.",
+                "answer_type": "list",
+                "list_index": 0
+            },
+            {
+                "answer": "Birmingham City F.C.",
+                "answer_type": "list",
+                "list_index": 1
+            }
+        ],
+        "source": {
+            "node_a": "Wes_Thomas",
+            "node_b": "Andy_Cole",
+            "relation": "P54",
+            "common_neighbors": [
+                "Portsmouth_F.C.",
+                "Birmingham_City_F.C."
+            ]
+        }
+    },
+    {
+        "question_key": "intersection#69",
+        "question": "Which country are both Democratic Party (United States) and Cascade Range located in?",
+        "answers": [
+            {
+                "answer": "U.S. state",
+                "answer_type": "list",
+                "list_index": 0
+            },
+            {
+                "answer": "United States",
+                "answer_type": "list",
+                "list_index": 1
+            }
+        ],
+        "source": {
+            "node_a": "Democratic_Party_(United_States)",
+            "node_b": "Cascade_Range",
+            "relation": "P17",
+            "common_neighbors": [
+                "U.S._state",
+                "United_States"
+            ]
+        }
+    },
+    {
+        "question_key": "intersection#70",
+        "question": "On which platform were both Super Mario World and Star Parodier released?",
+        "answers": [
+            {
+                "answer": "Wii",
+                "answer_type": "list",
+                "list_index": 0
+            },
+            {
+                "answer": "Virtual Console",
+                "answer_type": "list",
+                "list_index": 1
+            }
+        ],
+        "source": {
+            "node_a": "Super_Mario_World",
+            "node_b": "Star_Parodier",
+            "relation": "P400",
+            "common_neighbors": [
+                "Wii",
+                "Virtual_Console"
+            ]
+        }
+    },
+    {
+        "question_key": "intersection#71",
+        "question": "Who is a citizen of both Sweden and Swedish hip hop?",
+        "answers": [
+            {
+                "answer": "Anita Ekberg",
+                "answer_type": "list",
+                "list_index": 0
+            },
+            {
+                "answer": "Ingrid Bergman",
+                "answer_type": "list",
+                "list_index": 1
+            },
+            {
+                "answer": "Greta Garbo",
+                "answer_type": "list",
+                "list_index": 2
+            },
+            {
+                "answer": "Mauritz Stiller",
+                "answer_type": "list",
+                "list_index": 3
+            },
+            {
+                "answer": "Victor Sj\u00f6str\u00f6m",
+                "answer_type": "list",
+                "list_index": 4
+            }
+        ],
+        "source": {
+            "node_a": "Sweden",
+            "node_b": "Swedish_hip_hop",
+            "relation": "P27#inverse",
+            "common_neighbors": [
+                "Anita_Ekberg",
+                "Ingrid_Bergman",
+                "Greta_Garbo",
+                "Mauritz_Stiller",
+                "Victor_Sj\u00f6str\u00f6m"
+            ]
+        }
+    },
+    {
+        "question_key": "intersection#72",
+        "question": "Which administrative entity are both Quirino and Nueva Vizcaya a part of?",
+        "answers": [
+            {
+                "answer": "Cagayan",
+                "answer_type": "list",
+                "list_index": 0
+            },
+            {
+                "answer": "Cagayan Valley",
+                "answer_type": "list",
+                "list_index": 1
+            }
+        ],
+        "source": {
+            "node_a": "Quirino_(province)",
+            "node_b": "Nueva_Vizcaya",
+            "relation": "P150#inverse",
+            "common_neighbors": [
+                "Cagayan",
+                "Cagayan_Valley"
+            ]
+        }
+    },
+    {
+        "question_key": "intersection#73",
+        "question": "Who is a citizen of both Pakistan and Rehana?",
+        "answers": [
+            {
+                "answer": "Pervez Musharraf",
+                "answer_type": "list",
+                "list_index": 0
+            },
+            {
+                "answer": "Nawaz Sharif",
+                "answer_type": "list",
+                "list_index": 1
+            }
+        ],
+        "source": {
+            "node_a": "Pakistan",
+            "node_b": "Rehana",
+            "relation": "P27#inverse",
+            "common_neighbors": [
+                "Pervez_Musharraf",
+                "Nawaz_Sharif"
+            ]
+        }
+    },
+    {
+        "question_key": "intersection#74",
+        "question": "Who is a sibling of both Joseph and Funokwakhe?",
+        "answers": [
+            {
+                "answer": "Milton",
+                "answer_type": "list",
+                "list_index": 0
+            },
+            {
+                "answer": "Mehlo",
+                "answer_type": "list",
+                "list_index": 1
+            }
+        ],
+        "source": {
+            "node_a": "Joseph_Mazibuko",
+            "node_b": "Funokwakhe_Mazibuko",
+            "relation": "P3373",
+            "common_neighbors": [
+                "Milton_Mazibuko",
+                "Mehlo_Mazibuko"
+            ]
+        }
+    },
+    {
+        "question_key": "intersection#75",
+        "question": "Which administrative entity are both Indiana and Illinois a part of?",
+        "answers": [
+            {
+                "answer": "United States",
+                "answer_type": "list",
+                "list_index": 0
+            },
+            {
+                "answer": "United States House of Representatives",
+                "answer_type": "list",
+                "list_index": 1
+            }
+        ],
+        "source": {
+            "node_a": "Indiana",
+            "node_b": "Illinois",
+            "relation": "P150#inverse",
+            "common_neighbors": [
+                "United_States",
+                "United_States_House_of_Representatives"
+            ]
+        }
+    },
+    {
+        "question_key": "intersection#76",
+        "question": "On which platform were both X-Men Legends II: Rise of Apocalypse and Close Combat: First to Fight released?",
+        "answers": [
+            {
+                "answer": "Microsoft Windows",
+                "answer_type": "list",
+                "list_index": 0
+            },
+            {
+                "answer": "Xbox (console)",
+                "answer_type": "list",
+                "list_index": 1
+            }
+        ],
+        "source": {
+            "node_a": "X-Men_Legends_II:_Rise_of_Apocalypse",
+            "node_b": "Close_Combat:_First_to_Fight",
+            "relation": "P400",
+            "common_neighbors": [
+                "Microsoft_Windows",
+                "Xbox_(console)"
+            ]
+        }
+    },
+    {
+        "question_key": "intersection#77",
+        "question": "Which country are both New York (state) and United States Coast Guard located in?",
+        "answers": [
+            {
+                "answer": "U.S. state",
+                "answer_type": "list",
+                "list_index": 0
+            },
+            {
+                "answer": "United States",
+                "answer_type": "list",
+                "list_index": 1
+            }
+        ],
+        "source": {
+            "node_a": "New_York_(state)",
+            "node_b": "United_States_Coast_Guard",
+            "relation": "P17",
+            "common_neighbors": [
+                "U.S._state",
+                "United_States"
+            ]
+        }
+    },
+    {
+        "question_key": "intersection#78",
+        "question": "What are both Tim Commerford and B-Real a part of?",
+        "answers": [
+            {
+                "answer": "Prophets of Rage",
+                "answer_type": "list",
+                "list_index": 0
+            },
+            {
+                "answer": "Prophets of Rage (album)",
+                "answer_type": "list",
+                "list_index": 1
+            }
+        ],
+        "source": {
+            "node_a": "Tim_Commerford",
+            "node_b": "B-Real",
+            "relation": "P527#inverse",
+            "common_neighbors": [
+                "Prophets_of_Rage",
+                "Prophets_of_Rage_(album)"
+            ]
+        }
+    },
+    {
+        "question_key": "intersection#79",
+        "question": "Who participated in both First and Second World War?",
+        "answers": [
+            {
+                "answer": "British Army",
+                "answer_type": "list",
+                "list_index": 0
+            },
+            {
+                "answer": "Arthur Percival",
+                "answer_type": "list",
+                "list_index": 1
+            },
+            {
+                "answer": "New Zealand",
+                "answer_type": "list",
+                "list_index": 2
+            },
+            {
+                "answer": "New Zealand Military Forces",
+                "answer_type": "list",
+                "list_index": 3
+            }
+        ],
+        "source": {
+            "node_a": "First_World_War",
+            "node_b": "Second_World_War",
+            "relation": "P607#inverse",
+            "common_neighbors": [
+                "British_Army",
+                "Arthur_Percival",
+                "New_Zealand",
+                "New_Zealand_Military_Forces"
+            ]
+        }
+    },
+    {
+        "question_key": "intersection#80",
+        "question": "What is located in both South Karelia and Lappeenranta?",
+        "answers": [
+            {
+                "answer": "Yl\u00e4maa",
+                "answer_type": "list",
+                "list_index": 0
+            },
+            {
+                "answer": "Joutseno",
+                "answer_type": "list",
+                "list_index": 1
+            }
+        ],
+        "source": {
+            "node_a": "South_Karelia",
+            "node_b": "Lappeenranta",
+            "relation": "P131#inverse",
+            "common_neighbors": [
+                "Yl\u00e4maa",
+                "Joutseno"
+            ]
+        }
+    },
+    {
+        "question_key": "intersection#81",
+        "question": "In which event were both Dirk Van Tichelt and Naomi van As participants?",
+        "answers": [
+            {
+                "answer": "2008 Summer Olympics",
+                "answer_type": "list",
+                "list_index": 0
+            },
+            {
+                "answer": "2016 Summer Olympics",
+                "answer_type": "list",
+                "list_index": 1
+            }
+        ],
+        "source": {
+            "node_a": "Dirk_Van_Tichelt",
+            "node_b": "Naomi_van_As",
+            "relation": "P1344",
+            "common_neighbors": [
+                "2008_Summer_Olympics",
+                "2016_Summer_Olympics"
+            ]
+        }
+    },
+    {
+        "question_key": "intersection#82",
+        "question": "Who is a sibling of both Emily Bront\u00eb and Anne Bront\u00eb?",
+        "answers": [
+            {
+                "answer": "Bront\u00eb family",
+                "answer_type": "list",
+                "list_index": 0
+            },
+            {
+                "answer": "Charlotte Bront\u00eb",
+                "answer_type": "list",
+                "list_index": 1
+            }
+        ],
+        "source": {
+            "node_a": "Emily_Bront\u00eb",
+            "node_b": "Anne_Bront\u00eb",
+            "relation": "P3373",
+            "common_neighbors": [
+                "Bront\u00eb_family",
+                "Charlotte_Bront\u00eb"
+            ]
+        }
+    },
+    {
+        "question_key": "intersection#83",
+        "question": "What is located in both United States House of Representatives and American?",
+        "answers": [
+            {
+                "answer": "New York City",
+                "answer_type": "list",
+                "list_index": 0
+            },
+            {
+                "answer": "Los Angeles",
+                "answer_type": "list",
+                "list_index": 1
+            }
+        ],
+        "source": {
+            "node_a": "United_States_House_of_Representatives",
+            "node_b": "United_states",
+            "relation": "P17#inverse",
+            "common_neighbors": [
+                "New_York_City",
+                "Los_Angeles"
+            ]
+        }
+    },
+    {
+        "question_key": "intersection#84",
+        "question": "Who is a sibling of both Laurance Rockefeller and Nelson Rockefeller?",
+        "answers": [
+            {
+                "answer": "John D. Rockefeller III",
+                "answer_type": "list",
+                "list_index": 0
+            },
+            {
+                "answer": "David Rockefeller",
+                "answer_type": "list",
+                "list_index": 1
+            },
+            {
+                "answer": "Winthrop Rockefeller",
+                "answer_type": "list",
+                "list_index": 2
+            }
+        ],
+        "source": {
+            "node_a": "Laurance_Rockefeller",
+            "node_b": "Nelson_Rockefeller",
+            "relation": "P3373",
+            "common_neighbors": [
+                "John_D._Rockefeller_III",
+                "David_Rockefeller",
+                "Winthrop_Rockefeller"
+            ]
+        }
+    },
+    {
+        "question_key": "intersection#85",
+        "question": "On which platform were both Grand Theft Auto and Star Wars Jedi Knight II: Jedi Outcast released?",
+        "answers": [
+            {
+                "answer": "Microsoft Windows",
+                "answer_type": "list",
+                "list_index": 0
+            },
+            {
+                "answer": "Xbox (console)",
+                "answer_type": "list",
+                "list_index": 1
+            }
+        ],
+        "source": {
+            "node_a": "Grand_Theft_Auto",
+            "node_b": "Star_Wars_Jedi_Knight_II:_Jedi_Outcast",
+            "relation": "P400",
+            "common_neighbors": [
+                "Microsoft_Windows",
+                "Xbox_(console)"
+            ]
+        }
+    },
+    {
+        "question_key": "intersection#86",
+        "question": "What was released on both Amiga and Atari ST?",
+        "answers": [
+            {
+                "answer": "Robin Hood : Legend Quest",
+                "answer_type": "list",
+                "list_index": 0
+            },
+            {
+                "answer": "Masterblazer",
+                "answer_type": "list",
+                "list_index": 1
+            }
+        ],
+        "source": {
+            "node_a": "Amiga",
+            "node_b": "Atari_ST",
+            "relation": "P400#inverse",
+            "common_neighbors": [
+                "Robin_Hood:_Legend_Quest",
+                "Masterblazer"
+            ]
+        }
+    },
+    {
+        "question_key": "intersection#87",
+        "question": "What was released on both Game Boy Advance and Super Nintendo Entertainment System?",
+        "answers": [
+            {
+                "answer": "Mario",
+                "answer_type": "list",
+                "list_index": 0
+            },
+            {
+                "answer": "Super Mario World",
+                "answer_type": "list",
+                "list_index": 1
+            }
+        ],
+        "source": {
+            "node_a": "Game_Boy_Advance",
+            "node_b": "Super_Nintendo_Entertainment_System",
+            "relation": "P400#inverse",
+            "common_neighbors": [
+                "Mario",
+                "Super_Mario_World"
+            ]
+        }
+    },
+    {
+        "question_key": "intersection#88",
+        "question": "What is located in both U.S. Route 20 and United States?",
+        "answers": [
+            {
+                "answer": "New York (state)",
+                "answer_type": "list",
+                "list_index": 0
+            },
+            {
+                "answer": "CDP",
+                "answer_type": "list",
+                "list_index": 1
+            },
+            {
+                "answer": "census designated place",
+                "answer_type": "list",
+                "list_index": 1
+            }
+        ],
+        "source": {
+            "node_a": "U.S._Route_20",
+            "node_b": "United_States",
+            "relation": "P17#inverse",
+            "common_neighbors": [
+                "New_York_(state)",
+                "CDP"
+            ]
+        }
+    },
+    {
+        "question_key": "intersection#89",
+        "question": "On which platform were both Resogun : Defenders and Proteus (video game) released?",
+        "answers": [
+            {
+                "answer": "PlayStation Vita",
+                "answer_type": "list",
+                "list_index": 0
+            },
+            {
+                "answer": "PlayStation 3",
+                "answer_type": "list",
+                "list_index": 1
+            }
+        ],
+        "source": {
+            "node_a": "#DocRED-2899#",
+            "node_b": "Proteus_(video_game)",
+            "relation": "P400",
+            "common_neighbors": [
+                "PlayStation_Vita",
+                "PlayStation_3"
+            ]
+        }
+    },
+    {
+        "question_key": "intersection#90",
+        "question": "Which country borders both North Sea and Baltic Sea?",
+        "answers": [
+            {
+                "answer": "Denmark",
+                "answer_type": "list",
+                "list_index": 0
+            },
+            {
+                "answer": "Germany",
+                "answer_type": "list",
+                "list_index": 1
+            }
+        ],
+        "source": {
+            "node_a": "North_Sea",
+            "node_b": "Baltic_Sea",
+            "relation": "P205",
+            "common_neighbors": [
+                "Denmark",
+                "Germany"
+            ]
+        }
+    },
+    {
+        "question_key": "intersection#91",
+        "question": "What was released on both Atari ST and Amiga?",
+        "answers": [
+            {
+                "answer": "Robin Hood : Legend Quest",
+                "answer_type": "list",
+                "list_index": 0
+            },
+            {
+                "answer": "Masterblazer",
+                "answer_type": "list",
+                "list_index": 1
+            }
+        ],
+        "source": {
+            "node_a": "Atari_ST",
+            "node_b": "Amiga",
+            "relation": "P400#inverse",
+            "common_neighbors": [
+                "Robin_Hood:_Legend_Quest",
+                "Masterblazer"
+            ]
+        }
+    },
+    {
+        "question_key": "intersection#92",
+        "question": "Who is a citizen of both Myanmar and Burmese?",
+        "answers": [
+            {
+                "answer": "Aung San",
+                "answer_type": "list",
+                "list_index": 0
+            },
+            {
+                "answer": "Bo Hmu Aung",
+                "answer_type": "list",
+                "list_index": 1
+            },
+            {
+                "answer": "Maung Gyi",
+                "answer_type": "list",
+                "list_index": 2
+            }
+        ],
+        "source": {
+            "node_a": "Myanmar",
+            "node_b": "British_Burma",
+            "relation": "P27#inverse",
+            "common_neighbors": [
+                "Aung_San",
+                "Bo_Hmu_Aung",
+                "Maung_Gyi"
+            ]
+        }
+    },
+    {
+        "question_key": "intersection#93",
+        "question": "Which record label released both Superman (Eminem song) and Till It's Gone?",
+        "answers": [
+            {
+                "answer": "Interscope Records",
+                "answer_type": "list",
+                "list_index": 0
+            },
+            {
+                "answer": "Shady Records",
+                "answer_type": "list",
+                "list_index": 1
+            }
+        ],
+        "source": {
+            "node_a": "Superman_(Eminem_song)",
+            "node_b": "Till_It's_Gone",
+            "relation": "P264",
+            "common_neighbors": [
+                "Interscope_Records",
+                "Shady_Records"
+            ]
+        }
+    },
+    {
+        "question_key": "intersection#94",
+        "question": "Which team or player competes in both Florida State League Manager of the Year Award and Major League Baseball?",
+        "answers": [
+            {
+                "answer": "New York Yankees",
+                "answer_type": "list",
+                "list_index": 0
+            },
+            {
+                "answer": "Philadelphia Phillies",
+                "answer_type": "list",
+                "list_index": 1
+            },
+            {
+                "answer": "Toronto Blue Jays",
+                "answer_type": "list",
+                "list_index": 2
+            },
+            {
+                "answer": "St. Louis Cardinals",
+                "answer_type": "list",
+                "list_index": 3
+            },
+            {
+                "answer": "Detroit Tigers",
+                "answer_type": "list",
+                "list_index": 4
+            },
+            {
+                "answer": "Milwaukee Brewers",
+                "answer_type": "list",
+                "list_index": 5
+            },
+            {
+                "answer": "New York Mets",
+                "answer_type": "list",
+                "list_index": 6
+            }
+        ],
+        "source": {
+            "node_a": "Florida_State_League_Manager_of_the_Year_Award",
+            "node_b": "Major_League_Baseball",
+            "relation": "P118#inverse",
+            "common_neighbors": [
+                "New_York_Yankees",
+                "Philadelphia_Phillies",
+                "Toronto_Blue_Jays",
+                "St._Louis_Cardinals",
+                "Detroit_Tigers",
+                "Milwaukee_Brewers",
+                "New_York_Mets"
+            ]
+        }
+    },
+    {
+        "question_key": "intersection#95",
+        "question": "Which administrative entity are both Ohio and Texas a part of?",
+        "answers": [
+            {
+                "answer": "U.S. state",
+                "answer_type": "list",
+                "list_index": 0
+            },
+            {
+                "answer": "United States",
+                "answer_type": "list",
+                "list_index": 1
+            },
+            {
+                "answer": "United States House of Representatives",
+                "answer_type": "list",
+                "list_index": 2
+            }
+        ],
+        "source": {
+            "node_a": "Ohio",
+            "node_b": "Texas",
+            "relation": "P150#inverse",
+            "common_neighbors": [
+                "U.S._state",
+                "United_States",
+                "United_States_House_of_Representatives"
+            ]
+        }
+    },
+    {
+        "question_key": "intersection#96",
+        "question": "Who is a citizen of both Soviet people and Soviet Union?",
+        "answers": [
+            {
+                "answer": "Joseph Stalin",
+                "answer_type": "list",
+                "list_index": 0
+            },
+            {
+                "answer": "Nikita Khrushchev",
+                "answer_type": "list",
+                "list_index": 1
+            }
+        ],
+        "source": {
+            "node_a": "Soviet_people",
+            "node_b": "Soviet_Union",
+            "relation": "P27#inverse",
+            "common_neighbors": [
+                "Joseph_Stalin",
+                "Nikita_Khrushchev"
+            ]
+        }
+    },
+    {
+        "question_key": "intersection#97",
+        "question": "Which country are both Saint Petersburg and Moscow located in?",
+        "answers": [
+            {
+                "answer": "Soviet Union",
+                "answer_type": "list",
+                "list_index": 0
+            },
+            {
+                "answer": "Imperial Russia",
+                "answer_type": "list",
+                "list_index": 1
+            }
+        ],
+        "source": {
+            "node_a": "Saint_Petersburg",
+            "node_b": "Moscow",
+            "relation": "P17",
+            "common_neighbors": [
+                "Soviet_Union",
+                "Imperial_Russia"
+            ]
+        }
+    },
+    {
+        "question_key": "intersection#98",
+        "question": "What is located in both Pennsylvania and Lehigh County, Pennsylvania?",
+        "answers": [
+            {
+                "answer": "Lynn",
+                "answer_type": "list",
+                "list_index": 0
+            },
+            {
+                "answer": "Weisenberg Township, Lehigh County, Pennsylvania",
+                "answer_type": "list",
+                "list_index": 1
+            }
+        ],
+        "source": {
+            "node_a": "Pennsylvania",
+            "node_b": "Lehigh_County,_Pennsylvania",
+            "relation": "P131#inverse",
+            "common_neighbors": [
+                "Lynn_Township,_Pennsylvania",
+                "Weisenberg_Township,_Lehigh_County,_Pennsylvania"
+            ]
+        }
+    },
+    {
+        "question_key": "intersection#99",
+        "question": "Which record label released both Without Me and Till It's Gone?",
+        "answers": [
+            {
+                "answer": "Interscope Records",
+                "answer_type": "list",
+                "list_index": 0
+            },
+            {
+                "answer": "Shady Records",
+                "answer_type": "list",
+                "list_index": 1
+            }
+        ],
+        "source": {
+            "node_a": "Without_Me",
+            "node_b": "Till_It's_Gone",
+            "relation": "P264",
+            "common_neighbors": [
+                "Interscope_Records",
+                "Shady_Records"
+            ]
+        }
+    },
+    {
+        "question_key": "intersection#100",
+        "question": "Which administrative entity are both North Carolina and Indiana a part of?",
+        "answers": [
+            {
+                "answer": "the United States",
+                "answer_type": "list",
+                "list_index": 0
+            },
+            {
+                "answer": "U.S.",
+                "answer_type": "list",
+                "list_index": 0
+            },
+            {
+                "answer": "United States",
+                "answer_type": "list",
+                "list_index": 0
+            },
+            {
+                "answer": "United States",
+                "answer_type": "list",
+                "list_index": 1
+            }
+        ],
+        "source": {
+            "node_a": "North_Carolina",
+            "node_b": "Indiana",
+            "relation": "P150#inverse",
+            "common_neighbors": [
+                "United_States_federal_law",
+                "United_States"
+            ]
+        }
+    },
+    {
+        "question_key": "intersection#101",
+        "question": "What is located in both Canadians and Canada?",
+        "answers": [
+            {
+                "answer": "Montreal",
+                "answer_type": "list",
+                "list_index": 0
+            },
+            {
+                "answer": "Order of Canada",
+                "answer_type": "list",
+                "list_index": 1
+            },
+            {
+                "answer": "Ontario",
+                "answer_type": "list",
+                "list_index": 2
+            }
+        ],
+        "source": {
+            "node_a": "Canadians",
+            "node_b": "Canada",
+            "relation": "P17#inverse",
+            "common_neighbors": [
+                "Montreal",
+                "Order_of_Canada",
+                "Ontario"
+            ]
+        }
+    },
+    {
+        "question_key": "intersection#102",
+        "question": "Who or what is a participant of both 2008 Summer Olympics and 2016 Summer Olympics?",
+        "answers": [
+            {
+                "answer": "Florian Skilang Temengil",
+                "answer_type": "list",
+                "list_index": 0
+            },
+            {
+                "answer": "Dirk Van Tichelt",
+                "answer_type": "list",
+                "list_index": 1
+            },
+            {
+                "answer": "Naomi van As",
+                "answer_type": "list",
+                "list_index": 2
+            },
+            {
+                "answer": "Predrag Joki\u0107",
+                "answer_type": "list",
+                "list_index": 3
+            }
+        ],
+        "source": {
+            "node_a": "2008_Summer_Olympics",
+            "node_b": "2016_Summer_Olympics",
+            "relation": "P1344#inverse",
+            "common_neighbors": [
+                "Florian_Skilang_Temengil",
+                "Dirk_Van_Tichelt",
+                "Naomi_van_As",
+                "Predrag_Joki\u0107"
+            ]
+        }
+    },
+    {
+        "question_key": "intersection#103",
+        "question": "Which administrative entity are both Oklahoma and Arizona a part of?",
+        "answers": [
+            {
+                "answer": "U.S. state",
+                "answer_type": "list",
+                "list_index": 0
+            },
+            {
+                "answer": "United States",
+                "answer_type": "list",
+                "list_index": 1
+            }
+        ],
+        "source": {
+            "node_a": "Oklahoma",
+            "node_b": "Arizona",
+            "relation": "P150#inverse",
+            "common_neighbors": [
+                "U.S._state",
+                "United_States"
+            ]
+        }
+    },
+    {
+        "question_key": "intersection#104",
+        "question": "On which platform were both Ballblazer and Centipede (1998 video game) released?",
+        "answers": [
+            {
+                "answer": "Commodore 64",
+                "answer_type": "list",
+                "list_index": 0
+            },
+            {
+                "answer": "Atari 5200",
+                "answer_type": "list",
+                "list_index": 1
+            },
+            {
+                "answer": "Atari 8-bit family",
+                "answer_type": "list",
+                "list_index": 2
+            },
+            {
+                "answer": "Atari 7800",
+                "answer_type": "list",
+                "list_index": 3
+            }
+        ],
+        "source": {
+            "node_a": "Ballblazer",
+            "node_b": "Centipede_(1998_video_game)",
+            "relation": "P400",
+            "common_neighbors": [
+                "Commodore_64",
+                "Atari_5200",
+                "Atari_8-bit_family",
+                "Atari_7800"
+            ]
+        }
+    },
+    {
+        "question_key": "intersection#105",
+        "question": "What is located in both U.S. state and United States Senate?",
+        "answers": [
+            {
+                "answer": "New York (state)",
+                "answer_type": "list",
+                "list_index": 0
+            },
+            {
+                "answer": "Democratic Party (United States)",
+                "answer_type": "list",
+                "list_index": 1
+            }
+        ],
+        "source": {
+            "node_a": "U.S._state",
+            "node_b": "United_States_Senate",
+            "relation": "P17#inverse",
+            "common_neighbors": [
+                "New_York_(state)",
+                "Democratic_Party_(United_States)"
+            ]
+        }
+    },
+    {
+        "question_key": "intersection#106",
+        "question": "What part do both 57th Academy Awards and 42nd Academy Awards have?",
+        "answers": [
+            {
+                "answer": "Academy Award for Best Adapted Screenplay",
+                "answer_type": "list",
+                "list_index": 0
+            },
+            {
+                "answer": "Academy Award for Best Supporting Actor",
+                "answer_type": "list",
+                "list_index": 1
+            }
+        ],
+        "source": {
+            "node_a": "57th_Academy_Awards",
+            "node_b": "42nd_Academy_Awards",
+            "relation": "P527",
+            "common_neighbors": [
+                "Academy_Award_for_Best_Adapted_Screenplay",
+                "Academy_Award_for_Best_Supporting_Actor"
+            ]
+        }
+    },
+    {
+        "question_key": "intersection#107",
+        "question": "Who is a member of both Boston Red Sox and Seattle Mariners?",
+        "answers": [
+            {
+                "answer": "Dave Henderson",
+                "answer_type": "list",
+                "list_index": 0
+            },
+            {
+                "answer": "Rey Qui\u00f1ones",
+                "answer_type": "list",
+                "list_index": 1
+            }
+        ],
+        "source": {
+            "node_a": "Boston_Red_Sox",
+            "node_b": "Seattle_Mariners",
+            "relation": "P54#inverse",
+            "common_neighbors": [
+                "Dave_Henderson",
+                "Rey_Qui\u00f1ones"
+            ]
+        }
+    },
+    {
+        "question_key": "intersection#108",
+        "question": "On which platform were both Dragon Quest X and Mario released?",
+        "answers": [
+            {
+                "answer": "Wii",
+                "answer_type": "list",
+                "list_index": 0
+            },
+            {
+                "answer": "Wii U",
+                "answer_type": "list",
+                "list_index": 1
+            }
+        ],
+        "source": {
+            "node_a": "Dragon_Quest_X",
+            "node_b": "Mario",
+            "relation": "P400",
+            "common_neighbors": [
+                "Wii",
+                "Wii_U"
+            ]
+        }
+    },
+    {
+        "question_key": "intersection#109",
+        "question": "Which country are both Maine and United States Army located in?",
+        "answers": [
+            {
+                "answer": "United States",
+                "answer_type": "list",
+                "list_index": 0
+            },
+            {
+                "answer": "United States House of Representatives",
+                "answer_type": "list",
+                "list_index": 1
+            }
+        ],
+        "source": {
+            "node_a": "Maine",
+            "node_b": "United_States_Army",
+            "relation": "P17",
+            "common_neighbors": [
+                "United_States",
+                "United_States_House_of_Representatives"
+            ]
+        }
+    },
+    {
+        "question_key": "intersection#110",
+        "question": "Which sports team do both Jason Motte and Bo McLaughlin play for?",
+        "answers": [
+            {
+                "answer": "Chicago Cubs",
+                "answer_type": "list",
+                "list_index": 0
+            },
+            {
+                "answer": "Atlanta Braves",
+                "answer_type": "list",
+                "list_index": 1
+            }
+        ],
+        "source": {
+            "node_a": "Jason_Motte",
+            "node_b": "Bo_McLaughlin",
+            "relation": "P54",
+            "common_neighbors": [
+                "Chicago_Cubs",
+                "Atlanta_Braves"
+            ]
+        }
+    },
+    {
+        "question_key": "intersection#111",
+        "question": "Which administrative entity are both New Jersey and Kentucky a part of?",
+        "answers": [
+            {
+                "answer": "United States",
+                "answer_type": "list",
+                "list_index": 0
+            },
+            {
+                "answer": "United States House of Representatives",
+                "answer_type": "list",
+                "list_index": 1
+            }
+        ],
+        "source": {
+            "node_a": "New_Jersey",
+            "node_b": "Kentucky",
+            "relation": "P150#inverse",
+            "common_neighbors": [
+                "United_States",
+                "United_States_House_of_Representatives"
+            ]
+        }
+    },
+    {
+        "question_key": "intersection#112",
+        "question": "What is located in both Ukraine and Soviet Union?",
+        "answers": [
+            {
+                "answer": "Ivano-Frankivsk",
+                "answer_type": "list",
+                "list_index": 0
+            },
+            {
+                "answer": "Lviv",
+                "answer_type": "list",
+                "list_index": 1
+            },
+            {
+                "answer": "Buchach",
+                "answer_type": "list",
+                "list_index": 2
+            },
+            {
+                "answer": "Chernivtsi",
+                "answer_type": "list",
+                "list_index": 3
+            }
+        ],
+        "source": {
+            "node_a": "Ukraine",
+            "node_b": "Soviet_Union",
+            "relation": "P17#inverse",
+            "common_neighbors": [
+                "Ivano-Frankivsk",
+                "Lviv",
+                "Buchach",
+                "Chernivtsi"
+            ]
+        }
+    },
+    {
+        "question_key": "intersection#113",
+        "question": "What is located in both Szczytno County and Warmian-Masurian Voivodeship?",
+        "answers": [
+            {
+                "answer": "Gmina Szczytno",
+                "answer_type": "list",
+                "list_index": 0
+            },
+            {
+                "answer": "Gmina Wielbark",
+                "answer_type": "list",
+                "list_index": 1
+            }
+        ],
+        "source": {
+            "node_a": "Szczytno_County",
+            "node_b": "Warmian-Masurian_Voivodeship",
+            "relation": "P131#inverse",
+            "common_neighbors": [
+                "Gmina_Szczytno",
+                "Gmina_Wielbark"
+            ]
+        }
+    },
+    {
+        "question_key": "intersection#114",
+        "question": "Which sports team do both Harry Simpson and Eddie Robinson (baseball) play for?",
+        "answers": [
+            {
+                "answer": "New York Yankees",
+                "answer_type": "list",
+                "list_index": 0
+            },
+            {
+                "answer": "Cleveland Indians",
+                "answer_type": "list",
+                "list_index": 1
+            }
+        ],
+        "source": {
+            "node_a": "Harry_Simpson",
+            "node_b": "Eddie_Robinson_(baseball)",
+            "relation": "P54",
+            "common_neighbors": [
+                "New_York_Yankees",
+                "Cleveland_Indians"
+            ]
+        }
+    },
+    {
+        "question_key": "intersection#115",
+        "question": "What is located in both Minneapolis and Minnesota?",
+        "answers": [
+            {
+                "answer": "Minnehaha Creek",
+                "answer_type": "list",
+                "list_index": 0
+            },
+            {
+                "answer": "Lake Nokomis",
+                "answer_type": "list",
+                "list_index": 1
+            },
+            {
+                "answer": "Lake Hiawatha",
+                "answer_type": "list",
+                "list_index": 2
+            }
+        ],
+        "source": {
+            "node_a": "Minneapolis",
+            "node_b": "Minnesota",
+            "relation": "P131#inverse",
+            "common_neighbors": [
+                "Minnehaha_Creek",
+                "Lake_Nokomis",
+                "Lake_Hiawatha"
+            ]
+        }
+    },
+    {
+        "question_key": "intersection#116",
+        "question": "What was released on both Virtual Console and Wii U?",
+        "answers": [
+            {
+                "answer": "Super Mario World",
+                "answer_type": "list",
+                "list_index": 0
+            },
+            {
+                "answer": "Mega Man X",
+                "answer_type": "list",
+                "list_index": 1
+            }
+        ],
+        "source": {
+            "node_a": "Virtual_Console",
+            "node_b": "Wii_U",
+            "relation": "P400#inverse",
+            "common_neighbors": [
+                "Super_Mario_World",
+                "Mega_Man_X"
+            ]
+        }
+    },
+    {
+        "question_key": "intersection#117",
+        "question": "Who has both Funokwakhe and Milton as siblings?",
+        "answers": [
+            {
+                "answer": "Joseph",
+                "answer_type": "list",
+                "list_index": 0
+            },
+            {
+                "answer": "Joseph Mazibuko",
+                "answer_type": "list",
+                "list_index": 0
+            },
+            {
+                "answer": "Albert Mazibuko",
+                "answer_type": "list",
+                "list_index": 1
+            }
+        ],
+        "source": {
+            "node_a": "Funokwakhe_Mazibuko",
+            "node_b": "Milton_Mazibuko",
+            "relation": "P3373#inverse",
+            "common_neighbors": [
+                "Joseph_Mazibuko",
+                "Albert_Mazibuko"
+            ]
+        }
+    },
+    {
+        "question_key": "intersection#118",
+        "question": "Which country are both Los Angeles and United States Department of Labor located in?",
+        "answers": [
+            {
+                "answer": "United States",
+                "answer_type": "list",
+                "list_index": 0
+            },
+            {
+                "answer": "United States House of Representatives",
+                "answer_type": "list",
+                "list_index": 1
+            }
+        ],
+        "source": {
+            "node_a": "Los_Angeles",
+            "node_b": "United_States_Department_of_Labor",
+            "relation": "P17",
+            "common_neighbors": [
+                "United_States",
+                "United_States_House_of_Representatives"
+            ]
+        }
+    },
+    {
+        "question_key": "intersection#119",
+        "question": "What was released on both Linux and Xbox (console)?",
+        "answers": [
+            {
+                "answer": "Enclave (video game)",
+                "answer_type": "list",
+                "list_index": 0
+            },
+            {
+                "answer": "Return to Castle Wolfenstein",
+                "answer_type": "list",
+                "list_index": 1
+            }
+        ],
+        "source": {
+            "node_a": "Linux",
+            "node_b": "Xbox_(console)",
+            "relation": "P400#inverse",
+            "common_neighbors": [
+                "Enclave_(video_game)",
+                "Return_to_Castle_Wolfenstein"
+            ]
+        }
+    },
+    {
+        "question_key": "intersection#120",
+        "question": "Who is a sibling of both Rockefeller family and Winthrop Rockefeller?",
+        "answers": [
+            {
+                "answer": "John D. Rockefeller III",
+                "answer_type": "list",
+                "list_index": 0
+            },
+            {
+                "answer": "David Rockefeller",
+                "answer_type": "list",
+                "list_index": 1
+            },
+            {
+                "answer": "Laurance Rockefeller",
+                "answer_type": "list",
+                "list_index": 2
+            }
+        ],
+        "source": {
+            "node_a": "Rockefeller_family",
+            "node_b": "Winthrop_Rockefeller",
+            "relation": "P3373",
+            "common_neighbors": [
+                "John_D._Rockefeller_III",
+                "David_Rockefeller",
+                "Laurance_Rockefeller"
+            ]
+        }
+    },
+    {
+        "question_key": "intersection#121",
+        "question": "On which platform were both Nazi Zombie Army and Helldivers released?",
+        "answers": [
+            {
+                "answer": "Microsoft Windows",
+                "answer_type": "list",
+                "list_index": 0
+            },
+            {
+                "answer": "PlayStation 4",
+                "answer_type": "list",
+                "list_index": 1
+            }
+        ],
+        "source": {
+            "node_a": "Sniper_Elite_V2:_Nazi_Zombie_Army",
+            "node_b": "Helldivers",
+            "relation": "P400",
+            "common_neighbors": [
+                "Microsoft_Windows",
+                "PlayStation_4"
+            ]
+        }
+    },
+    {
+        "question_key": "intersection#122",
+        "question": "What is located in both Toronto and Ontario?",
+        "answers": [
+            {
+                "answer": "Etobicoke",
+                "answer_type": "list",
+                "list_index": 0
+            },
+            {
+                "answer": "The Junction",
+                "answer_type": "list",
+                "list_index": 1
+            },
+            {
+                "answer": "Bayview Village",
+                "answer_type": "list",
+                "list_index": 2
+            }
+        ],
+        "source": {
+            "node_a": "Toronto",
+            "node_b": "Ontario",
+            "relation": "P131#inverse",
+            "common_neighbors": [
+                "Etobicoke",
+                "The_Junction",
+                "Bayview_Village"
+            ]
+        }
+    },
+    {
+        "question_key": "intersection#123",
+        "question": "Which administrative entity are both Connecticut and Kentucky a part of?",
+        "answers": [
+            {
+                "answer": "United States",
+                "answer_type": "list",
+                "list_index": 0
+            },
+            {
+                "answer": "United States House of Representatives",
+                "answer_type": "list",
+                "list_index": 1
+            }
+        ],
+        "source": {
+            "node_a": "Connecticut",
+            "node_b": "Kentucky",
+            "relation": "P150#inverse",
+            "common_neighbors": [
+                "United_States",
+                "United_States_House_of_Representatives"
+            ]
+        }
+    },
+    {
+        "question_key": "intersection#124",
+        "question": "Which artist or album is signed to both Warner Bros. and 4AD?",
+        "answers": [
+            {
+                "answer": "Iron & Wine",
+                "answer_type": "list",
+                "list_index": 0
+            },
+            {
+                "answer": "Kiss Each Other Clean",
+                "answer_type": "list",
+                "list_index": 1
+            },
+            {
+                "answer": "Walking Far from Home",
+                "answer_type": "list",
+                "list_index": 2
+            }
+        ],
+        "source": {
+            "node_a": "Warner_Bros._Records",
+            "node_b": "4AD",
+            "relation": "P264#inverse",
+            "common_neighbors": [
+                "Iron_&_Wine",
+                "Kiss_Each_Other_Clean",
+                "Walking_Far_from_Home"
+            ]
+        }
+    },
+    {
+        "question_key": "intersection#125",
+        "question": "In which administrative territorial entity are both Mitchell School and St. Louis located?",
+        "answers": [
+            {
+                "answer": "Illinois",
+                "answer_type": "list",
+                "list_index": 0
+            },
+            {
+                "answer": "Madison County, Illinois",
+                "answer_type": "list",
+                "list_index": 1
+            }
+        ],
+        "source": {
+            "node_a": "Mitchell_Elementary_School_(Mitchell,_Illinois)",
+            "node_b": "St._Louis",
+            "relation": "P131",
+            "common_neighbors": [
+                "Illinois",
+                "Madison_County,_Illinois"
+            ]
+        }
+    },
+    {
+        "question_key": "intersection#126",
+        "question": "Which country are both Cascade Range and Whig Party (United States) located in?",
+        "answers": [
+            {
+                "answer": "U.S. state",
+                "answer_type": "list",
+                "list_index": 0
+            },
+            {
+                "answer": "United States",
+                "answer_type": "list",
+                "list_index": 1
+            }
+        ],
+        "source": {
+            "node_a": "Cascade_Range",
+            "node_b": "Whig_Party_(United_States)",
+            "relation": "P17",
+            "common_neighbors": [
+                "U.S._state",
+                "United_States"
+            ]
+        }
+    },
+    {
+        "question_key": "intersection#127",
+        "question": "On which platform were both Super Star Soldier and Star Soldier released?",
+        "answers": [
+            {
+                "answer": "Wii",
+                "answer_type": "list",
+                "list_index": 0
+            },
+            {
+                "answer": "PlayStation Portable",
+                "answer_type": "list",
+                "list_index": 1
+            }
+        ],
+        "source": {
+            "node_a": "Super_Star_Soldier",
+            "node_b": "Star_Soldier",
+            "relation": "P400",
+            "common_neighbors": [
+                "Wii",
+                "PlayStation_Portable"
+            ]
+        }
+    },
+    {
+        "question_key": "intersection#128",
+        "question": "In which administrative territorial entity are both Rockhampton and Yeppoon located?",
+        "answers": [
+            {
+                "answer": "Capricornia",
+                "answer_type": "list",
+                "list_index": 0
+            },
+            {
+                "answer": "Central Queensland",
+                "answer_type": "list",
+                "list_index": 0
+            },
+            {
+                "answer": "Queensland",
+                "answer_type": "list",
+                "list_index": 1
+            }
+        ],
+        "source": {
+            "node_a": "Rockhampton,_Queensland",
+            "node_b": "Yeppoon,_Queensland",
+            "relation": "P131",
+            "common_neighbors": [
+                "Capricornia,_Queensland",
+                "Queensland"
+            ]
+        }
+    }
+]

@@ -18,6 +18,7 @@ STORAGE_RESULTS=/home/nishida/projects/kapipe/experiments/qa/results
 METHOD=llm_qa
 CONFIG_PATH=./config/llm_qa.conf
 CONFIG_NAME=gpt4o_with_context
+# CONFIG_NAME=gpt4o_without_context
 
 # Input Data
 INPUT_QUESTIONS=${STORAGE_DATA}/examples/questions.json
@@ -27,6 +28,7 @@ INPUT_CONTEXTS=${STORAGE_DATA}/examples/questions.contexts.json
 RESULTS_DIR=${STORAGE_RESULTS}
 MYPREFIX=example
 
+# (optional) Evaluation
 GOLD_ANSWERS=${STORAGE_DATA}/examples/questions_with_answers.json
 
 ######
@@ -42,4 +44,4 @@ python run_qa.py \
     --results_dir ${RESULTS_DIR} \
     --prefix ${MYPREFIX} \
     --do_evaluation \
-    --gold_answers ${GOLD_ANSWERS}
+    --gold ${GOLD_ANSWERS}

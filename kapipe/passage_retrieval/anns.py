@@ -98,7 +98,7 @@ class ApproximateNearestNeighborSearch:
     def search(
         self,
         query_vectors: np.ndarray,
-        top_k: int = 1,
+        top_k: int,
         batch_size: int = 1024,
     ) -> tuple[
         list[list[int]],

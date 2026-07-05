@@ -13,9 +13,9 @@ A document is represented as a dictionary with the following fields.
 
 ```json
 {
-    "doc_key": "6794356",
+    "doc_key": "8800187",
     "sentences": [
-        "Tricuspid valve regurgitation and lithium carbonate toxicity in a newborn infant .",
+        "Effect of calcium chloride and 4 - aminopyridine therapy on desipramine toxicity in rats .",
         ...
     ]
 }
@@ -39,16 +39,16 @@ Each mention contains the following fields.
 
 ```json
 {
-    "doc_key": "6794356",
+    "doc_key": "8800187",
     "sentences": [
-        "Tricuspid valve regurgitation and lithium carbonate toxicity in a newborn infant .",
+        "Effect of calcium chloride and 4 - aminopyridine therapy on desipramine toxicity in rats .",
         ...
     ],
     "mentions": [
         {
-            "span": [0, 2],
-            "name": "Tricuspid valve regurgitation",
-            "entity_type": "Disease"
+            "span": [2, 3],
+            "name": "calcium chloride",
+            "entity_type": "Chemical"
         },
         ...
     ]
@@ -62,14 +62,29 @@ Each mention contains the following fields.
 | [Biaffine-NER (Yu et al., 2020)](https://aclanthology.org/2020.acl-main.577/) | Span-based neural NER extractor based on Biaffine scoring |
 | LLM-based NER | Prompt-based NER extractor using a proprietary or open-source LLM |
 
+## Public Snapshots
+
+The following public snapshots can be loaded with `from_identifier(...)`.
+
+| Method | Identifier | Dataset | Entity Types | Configuration |
+|---|---|---|---|---|
+| Biaffine-NER | `biaffine_ner_linked_docred` | Linked-DocRED | `PER`, `ORG`, `LOC`, `TIME`, `NUM`, `MISC` | `bert-base-uncased`; nested entities enabled |
+| Biaffine-NER | `biaffine_ner_cdr` | CDR | `Chemical`, `Disease` | `allenai/scibert_scivocab_uncased`; nested entities enabled |
+| LLM-based NER | `llm_ner_linked_docred` | Linked-DocRED | `PER`, `ORG`, `LOC`, `TIME`, `NUM`, `MISC` | Few-shot prompt snapshot; runtime LLM is user-provided |
+| LLM-based NER | `llm_ner_cdr` | CDR | `Chemical`, `Disease` | Few-shot prompt snapshot; runtime LLM is user-provided |
+
+These snapshots are predefined resources for existing benchmark settings. You can also define your own entity type schema and train or configure an extractor for it.
+
+`identifier` is resolved through the public resource configuration installed under `~/.kapipe/download/config`.
+
 ## Usage
 
-### Predefined Biaffine-NER:
+### Predefined Biaffine NER:
 
 ```python
 from kapipe.ner import BiaffineNER
 
-# Load Biaffine-NER predefined for the Linked-DocRED schema
+# Load the Biaffine NER component predefined for the Linked-DocRED schema
 extractor = BiaffineNER.from_identifier(identifier="biaffine_ner_linked_docred")
 
 # Extract entity mentions from a document
@@ -82,9 +97,21 @@ result_document = extractor.extract(document)
 from kapipe.ner import LLMNER
 
 # Instantiate your LLM wrapper
-model = ...
+# OpenAI LLM
+from kapipe.llms import OpenAILLM
+model = OpenAILLM(
+    model_name="gpt-5.4-nano",
+    max_new_tokens=8192,
+)
+# HuggingFace LLM
+from kapipe.llms import HuggingFaceLLM
+model = HuggingFaceLLM(
+    model_name = "meta-llama/Meta-Llama-3.1-70B-Instruct",
+    max_new_tokens=1024,
+    quantization_bits=4,
+)
 
-# Load LLM-based NER predefined for the Linked-DocRED schema
+# Load the LLM-based NER component predefined for the Linked-DocRED schema
 extractor = LLMNER.from_identifier(
     model=model,
     identifier="llm_ner_linked_docred"
@@ -120,14 +147,13 @@ etype_meta_info = {
     },
 }
 
-# Build a user-defined LLM-based NER extractor
+# Instantiate the LLM-based NER component with the user-defined entity type schema
 extractor = LLMNER(
     model=model,
     prompt_template_name_or_path="ner_13_zeroshot",
     vocab_etype=vocab_etype,
     etype_meta_info=etype_meta_info,
 )
-
 
 # Extract entity mentions from a document
 result_document = extractor.extract(document=document)

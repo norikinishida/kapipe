@@ -70,7 +70,7 @@ def main(args):
     graph = nx.read_graphml(input_graph_path)
 
     ##################
-    # Method
+    # Method Instantiation
     ##################
 
     # Load the experiment configuration
@@ -79,23 +79,26 @@ def main(args):
     # Save the experiment configuration to the output path
     utils.write_json(os.path.join(base_output_path, "config.json"), config)
 
-    # Initialize the Community Clustering component 
+    # Instantiate the Community Clustering component
     if method_name == "hierarchical_leiden":
+        # Instantiate the Community Clustering component using Hierarchical Leiden
         clusterer = HierarchicalLeiden(
             max_cluster_size=config["max_cluster_size"],
             use_lcc=config["use_lcc"]
         )
     elif method_name == "neighborhood_aggregation":
+        # Instantiate the Community Clustering component using Neighborhood Aggregation
         clusterer = NeighborhoodAggregation(
             hop_size=config["hop_size"],
         )
     elif method_name == "triple_level_factorization":
+        # Instantiate the Community Clustering component using Triple-level Factorization
         clusterer = TripleLevelFactorization()
     else:
         raise Exception(f"Invalid method_name: {method_name}")
 
     ##################
-    # Community Clustering
+    # Method Execution
     ##################
 
     logging.info(f"Applying the Community Clustering component to knowledge graph in {input_graph_path} ...")

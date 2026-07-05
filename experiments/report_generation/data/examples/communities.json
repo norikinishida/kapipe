@@ -5,25 +5,65 @@
         "level": -1,
         "parent_community_id": null,
         "child_community_ids": [
-            "0",
-            "1",
-            "2",
-            "3",
-            "4",
-            "5",
-            "6",
-            "7",
-            "8",
-            "9"
+            "Community(D016651)",
+            "Community(D014262)",
+            "Community(D002122)",
+            "Community(D001145)",
+            "Community(D003891)",
+            "Community(D007022)",
+            "Community(D001919)",
+            "Community(D008130)",
+            "Community(D007674)",
+            "Community(D005767)",
+            "Community(D009503)",
+            "Community(D000740)",
+            "Community(D013921)",
+            "Community(D014839)",
+            "Community(D017093)",
+            "Community(D004110)",
+            "Community(D006323)",
+            "Community(D062787)",
+            "Community(D000666)",
+            "Community(D007008)",
+            "Community(D004317)",
+            "Community(D006333)",
+            "Community(D003520)",
+            "Community(D016572)",
+            "Community(D016559)",
+            "Community(D011692)",
+            "Community(D011507)",
+            "Community(D003287)",
+            "Community(C038192)",
+            "Community(D007472)",
+            "Community(D002945)",
+            "Community(D058186)",
+            "Community(D005839)"
         ]
     },
     {
-        "community_id": "0",
+        "community_id": "Community(D016651)",
         "nodes": [
             "D016651",
+            "D014262"
+        ],
+        "level": 0,
+        "parent_community_id": "ROOT",
+        "child_community_ids": []
+    },
+    {
+        "community_id": "Community(D014262)",
+        "nodes": [
             "D014262",
-            "D003866",
-            "D003490",
+            "D016651"
+        ],
+        "level": 0,
+        "parent_community_id": "ROOT",
+        "child_community_ids": []
+    },
+    {
+        "community_id": "Community(D002122)",
+        "nodes": [
+            "D002122",
             "D001145"
         ],
         "level": 0,
@@ -31,93 +71,325 @@
         "child_community_ids": []
     },
     {
-        "community_id": "1",
+        "community_id": "Community(D001145)",
         "nodes": [
-            "D010634",
-            "D004409"
+            "D001145",
+            "D002122",
+            "D003891"
         ],
         "level": 0,
         "parent_community_id": "ROOT",
         "child_community_ids": []
     },
     {
-        "community_id": "2",
+        "community_id": "Community(D003891)",
         "nodes": [
-            "D000641",
-            "D006970",
-            "D014635"
+            "D003891",
+            "D001145",
+            "D001919",
+            "D007022"
         ],
         "level": 0,
         "parent_community_id": "ROOT",
         "child_community_ids": []
     },
     {
-        "community_id": "3",
+        "community_id": "Community(D007022)",
         "nodes": [
-            "D006220",
-            "D002375"
+            "D007022",
+            "D003891",
+            "D004110"
         ],
         "level": 0,
         "parent_community_id": "ROOT",
         "child_community_ids": []
     },
     {
-        "community_id": "4",
+        "community_id": "Community(D001919)",
         "nodes": [
-            "D001058",
-            "D006948"
+            "D001919",
+            "D003891",
+            "D004110"
         ],
         "level": 0,
         "parent_community_id": "ROOT",
         "child_community_ids": []
     },
     {
-        "community_id": "5",
+        "community_id": "Community(D008130)",
         "nodes": [
-            "D007545",
-            "D006332",
-            "D006965"
+            "D008130",
+            "D000740",
+            "D005767",
+            "D007674",
+            "D009503",
+            "D013921",
+            "D014839",
+            "D017093"
         ],
         "level": 0,
         "parent_community_id": "ROOT",
         "child_community_ids": []
     },
     {
-        "community_id": "6",
+        "community_id": "Community(D007674)",
         "nodes": [
-            "D002083",
-            "D013274"
+            "D007674",
+            "C038192",
+            "D003287",
+            "D007472",
+            "D008130",
+            "D016559",
+            "D016572"
         ],
         "level": 0,
         "parent_community_id": "ROOT",
         "child_community_ids": []
     },
     {
-        "community_id": "7",
+        "community_id": "Community(D005767)",
         "nodes": [
-            "D015760",
-            "D009127",
-            "D005283"
+            "D005767",
+            "D008130"
         ],
         "level": 0,
         "parent_community_id": "ROOT",
         "child_community_ids": []
     },
     {
-        "community_id": "8",
+        "community_id": "Community(D009503)",
         "nodes": [
-            "D004491",
-            "D001919"
+            "D009503",
+            "D003520",
+            "D004317",
+            "D008130"
         ],
         "level": 0,
         "parent_community_id": "ROOT",
         "child_community_ids": []
     },
     {
-        "community_id": "9",
+        "community_id": "Community(D000740)",
         "nodes": [
-            "D015119",
-            "D020225"
+            "D000740",
+            "D008130"
+        ],
+        "level": 0,
+        "parent_community_id": "ROOT",
+        "child_community_ids": []
+    },
+    {
+        "community_id": "Community(D013921)",
+        "nodes": [
+            "D013921",
+            "D008130"
+        ],
+        "level": 0,
+        "parent_community_id": "ROOT",
+        "child_community_ids": []
+    },
+    {
+        "community_id": "Community(D014839)",
+        "nodes": [
+            "D014839",
+            "D008130"
+        ],
+        "level": 0,
+        "parent_community_id": "ROOT",
+        "child_community_ids": []
+    },
+    {
+        "community_id": "Community(D017093)",
+        "nodes": [
+            "D017093",
+            "D008130"
+        ],
+        "level": 0,
+        "parent_community_id": "ROOT",
+        "child_community_ids": []
+    },
+    {
+        "community_id": "Community(D004110)",
+        "nodes": [
+            "D004110",
+            "D001919",
+            "D006323",
+            "D007022",
+            "D062787"
+        ],
+        "level": 0,
+        "parent_community_id": "ROOT",
+        "child_community_ids": []
+    },
+    {
+        "community_id": "Community(D006323)",
+        "nodes": [
+            "D006323",
+            "D004110"
+        ],
+        "level": 0,
+        "parent_community_id": "ROOT",
+        "child_community_ids": []
+    },
+    {
+        "community_id": "Community(D062787)",
+        "nodes": [
+            "D062787",
+            "D004110"
+        ],
+        "level": 0,
+        "parent_community_id": "ROOT",
+        "child_community_ids": []
+    },
+    {
+        "community_id": "Community(D000666)",
+        "nodes": [
+            "D000666",
+            "D007008"
+        ],
+        "level": 0,
+        "parent_community_id": "ROOT",
+        "child_community_ids": []
+    },
+    {
+        "community_id": "Community(D007008)",
+        "nodes": [
+            "D007008",
+            "D000666"
+        ],
+        "level": 0,
+        "parent_community_id": "ROOT",
+        "child_community_ids": []
+    },
+    {
+        "community_id": "Community(D004317)",
+        "nodes": [
+            "D004317",
+            "D006333",
+            "D009503"
+        ],
+        "level": 0,
+        "parent_community_id": "ROOT",
+        "child_community_ids": []
+    },
+    {
+        "community_id": "Community(D006333)",
+        "nodes": [
+            "D006333",
+            "D003520",
+            "D004317"
+        ],
+        "level": 0,
+        "parent_community_id": "ROOT",
+        "child_community_ids": []
+    },
+    {
+        "community_id": "Community(D003520)",
+        "nodes": [
+            "D003520",
+            "D006333",
+            "D009503"
+        ],
+        "level": 0,
+        "parent_community_id": "ROOT",
+        "child_community_ids": []
+    },
+    {
+        "community_id": "Community(D016572)",
+        "nodes": [
+            "D016572",
+            "D007674"
+        ],
+        "level": 0,
+        "parent_community_id": "ROOT",
+        "child_community_ids": []
+    },
+    {
+        "community_id": "Community(D016559)",
+        "nodes": [
+            "D016559",
+            "D007674"
+        ],
+        "level": 0,
+        "parent_community_id": "ROOT",
+        "child_community_ids": []
+    },
+    {
+        "community_id": "Community(D011692)",
+        "nodes": [
+            "D011692",
+            "D011507"
+        ],
+        "level": 0,
+        "parent_community_id": "ROOT",
+        "child_community_ids": []
+    },
+    {
+        "community_id": "Community(D011507)",
+        "nodes": [
+            "D011507",
+            "D011692"
+        ],
+        "level": 0,
+        "parent_community_id": "ROOT",
+        "child_community_ids": []
+    },
+    {
+        "community_id": "Community(D003287)",
+        "nodes": [
+            "D003287",
+            "D007674"
+        ],
+        "level": 0,
+        "parent_community_id": "ROOT",
+        "child_community_ids": []
+    },
+    {
+        "community_id": "Community(C038192)",
+        "nodes": [
+            "C038192",
+            "D007674"
+        ],
+        "level": 0,
+        "parent_community_id": "ROOT",
+        "child_community_ids": []
+    },
+    {
+        "community_id": "Community(D007472)",
+        "nodes": [
+            "D007472",
+            "D007674"
+        ],
+        "level": 0,
+        "parent_community_id": "ROOT",
+        "child_community_ids": []
+    },
+    {
+        "community_id": "Community(D002945)",
+        "nodes": [
+            "D002945",
+            "D058186"
+        ],
+        "level": 0,
+        "parent_community_id": "ROOT",
+        "child_community_ids": []
+    },
+    {
+        "community_id": "Community(D058186)",
+        "nodes": [
+            "D058186",
+            "D002945",
+            "D005839"
+        ],
+        "level": 0,
+        "parent_community_id": "ROOT",
+        "child_community_ids": []
+    },
+    {
+        "community_id": "Community(D005839)",
+        "nodes": [
+            "D005839",
+            "D058186"
         ],
         "level": 0,
         "parent_community_id": "ROOT",

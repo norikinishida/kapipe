@@ -35,34 +35,37 @@ Each entity contains the following fields.
 
 ```json
 {
-    "doc_key": "6794356",
+    "doc_key": "8800187",
     "sentences": [
-        "Tricuspid valve regurgitation and lithium carbonate toxicity in a newborn infant .",
+        "Effect of calcium chloride and 4 - aminopyridine therapy on desipramine toxicity in rats .",
         ...
     ],
     "mentions": [
         {
-            "span": [0, 2],
-            "name": "Tricuspid valve regurgitation",
-            "entity_type": "Disease",
-            "entity_id": "D014262"
+            "span": [2, 3],
+            "name": "calcium chloride",
+            "entity_type": "Chemical",
+            "entity_id": "D002122"
         },
         ...
     ],
     "entities": [
         {
-            "mention_indices": [0, 3, 7],
+            "mention_indices": [0, 11, 16, 22, 26, 27, 30],
             "mention_names": [
-                "Tricuspid valve regurgitation",
-                "tricuspid regurgitation",
-                "tricuspid regurgitation"
+                "calcium chloride",
+                "CaCl2",
+                "CaCl2",
+                "CaCl2",
+                "CaCl2",
+                "CaCl2",
+                "CaCl2"
             ],
-            "entity_type": "Disease",
-            "entity_id": "D014262"
+            "entity_type": "Chemical",
+            "entity_id": "D002122"
         },
         ...
-    ],
- 
+    ]
 }
 ```
 
@@ -84,38 +87,42 @@ Each relation contains the following fields.
 
 ```json
 {
-    "doc_key": "6794356",
+    "doc_key": "8800187",
     "sentences": [
-        "Tricuspid valve regurgitation and lithium carbonate toxicity in a newborn infant .",
+        "Effect of calcium chloride and 4 - aminopyridine therapy on desipramine toxicity in rats .",
         ...
     ],
     "mentions": [
         {
-            "span": [0, 2],
-            "name": "Tricuspid valve regurgitation",
-            "entity_type": "Disease",
-            "entity_id": "D014262"
+            "span": [2, 3],
+            "name": "calcium chloride",
+            "entity_type": "Chemical",
+            "entity_id": "D002122"
         },
         ...
     ],
     "entities": [
         {
-            "mention_indices": [0, 3, 7],
+            "mention_indices": [0, 11, 16, 22, 26, 27, 30],
             "mention_names": [
-                "Tricuspid valve regurgitation",
-                "tricuspid regurgitation",
-                "tricuspid regurgitation"
+                "calcium chloride",
+                "CaCl2",
+                "CaCl2",
+                "CaCl2",
+                "CaCl2",
+                "CaCl2",
+                "CaCl2"
             ],
-            "entity_type": "Disease",
-            "entity_id": "D014262"
+            "entity_type": "Chemical",
+            "entity_id": "D002122"
         },
         ...
     ],
     "relations": [
         {
-            "arg1": 1,
+            "arg1": 0,
             "relation": "CID",
-            "arg2": 7
+            "arg2": 9
         },
         ...
     ]
@@ -131,14 +138,29 @@ Each relation contains the following fields.
 | [MAQA (Oumaima and Nishida et al., 2024)](https://aclanthology.org/2024.bionlp-1.37/) | Mention-agnostic QA-based DocRE extractor |
 | LLM-based DocRE | Prompt-based DocRE extractor using a proprietary or open-source LLM |
 
+## Public Snapshots
+
+The following public snapshots can be loaded with `from_identifier(...)`.
+
+| Method | Identifier | Dataset | Relation Schema | Configuration |
+|---|---|---|---|---|
+| ATLOP | `atlop_linked_docred` | Linked-DocRED | 96 relations, e.g., `P17` (country), `P19` (place of birth), `P26` (spouse) | `bert-base-cased`; all entity-type pairs considered |
+| ATLOP | `atlop_cdr` | CDR | 1 relation: `CID` (Chemical-Induce-Disease) | `allenai/scibert_scivocab_cased`; `Chemical` to `Disease` pairs only; overlap token embedding |
+| LLM-based DocRE | `llm_docre_linked_docred` | Linked-DocRED | 96 relations, e.g., `P17` (country), `P19` (place of birth), `P26` (spouse) | Few-shot prompt snapshot; Wikipedia setting; runtime LLM is user-provided |
+| LLM-based DocRE | `llm_docre_cdr` | CDR | 1 relation: `CID` (Chemical-Induce-Disease) | Few-shot prompt snapshot; MeSH setting; runtime LLM is user-provided |
+
+These snapshots are predefined resources for common benchmark settings. You can also define your own relation schema and train or configure an extractor for it.
+
+`identifier` is resolved through the public resource configuration installed under `~/.kapipe/download/config`.
+
 ## Usage
 
-### Predefined ATLOP:
+### Predefined ATLOP-based DocRE:
 
 ```python
 from kapipe.docre import ATLOP
 
-# Load ATLOP predefined for the Linked-DocRED schema
+# Load the ATLOP-based DocRE component predefined for the Linked-DocRED schema
 extractor = ATLOP.from_identifier(
     identifier="atlop_linked_docred"
 )
@@ -153,9 +175,21 @@ result_document = extractor.extract(document=document)
 from kapipe.docre import LLMDocRE
 
 # Instantiate your LLM wrapper
-model = ...
+# OpenAI LLM
+from kapipe.llms import OpenAILLM
+model = OpenAILLM(
+    model_name="gpt-5.4-nano",
+    max_new_tokens=8192,
+)
+# HuggingFace LLM
+from kapipe.llms import HuggingFaceLLM
+model = HuggingFaceLLM(
+    model_name = "meta-llama/Meta-Llama-3.1-70B-Instruct",
+    max_new_tokens=1024,
+    quantization_bits=4,
+)
 
-# Load LLM-based DocRE predefined for the Linked-DocRED schema
+# Load the LLM-based DocRE component predefined for the Linked-DocRED schema
 extractor = LLMDocRE.from_identifier(
     model=model,
     identifier="llm_docre_linked_docred"
@@ -191,7 +225,7 @@ rel_meta_info = {
     },
 }
 
-# Build a user-defined LLM-based DocRE extractor
+# Instantiate the LLM-based DocRE component with the user-defined relation schema
 extractor = LLMDocRE(
     model=model,
     prompt_template_name_or_path="docre_08_zeroshot",

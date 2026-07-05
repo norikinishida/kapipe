@@ -45,6 +45,16 @@ def _mean_average_precision(pred_contexts, gold_contexts, passage_to_identifier)
 
     for pred_contexts_for_doc, gold_contexts_for_doc in zip(pred_contexts, gold_contexts):
         pred_passage_ids = [passage_to_identifier(p) for p in pred_contexts_for_doc["contexts"]]
+
+        unique_pred_passage_ids = []
+        seen_pred_passage_ids = set()
+        for pred_passage_id in pred_passage_ids:
+            if pred_passage_id in seen_pred_passage_ids:
+                continue
+            unique_pred_passage_ids.append(pred_passage_id)
+            seen_pred_passage_ids.add(pred_passage_id)
+        pred_passage_ids = unique_pred_passage_ids
+
         gold_passage_ids = [passage_to_identifier(p) for p in gold_contexts_for_doc["contexts"]]
         gold_passage_ids = set(gold_passage_ids)
 

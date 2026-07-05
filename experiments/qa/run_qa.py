@@ -6,8 +6,8 @@ import sys
 from tqdm import tqdm
 import transformers
 
+from kapipe import evaluation
 from kapipe import utils
-from kapipe.evaluation.qa import accuracy, recall, token_level_f1
 from kapipe.llms import HuggingFaceLLM, OpenAILLM
 from kapipe.qa import LLMQA
 from kapipe.utils import StopWatch
@@ -39,8 +39,9 @@ def main(args):
         prefix = utils.get_current_time()
         args.prefix = prefix
 
-    do_evaulation = args.do_evaluation
-    gold_questions_path = args.gold_answers
+    # Evaluation
+    do_evaluation = args.do_evaluation
+    gold_questions_path = args.gold
 
     ##################
     # Logging Setup
@@ -81,7 +82,7 @@ def main(args):
         contexts = [None] * len(questions)
 
     ##################
-    # Method
+    # Method Instantiation
     ##################
 
     # Load the experiment configuration
@@ -90,8 +91,9 @@ def main(args):
     # Save the experiment configuration to the output path
     utils.write_json(os.path.join(base_output_path, "config.json"), config)
 
-    # Initialilze the QA component
+    # Instantiate the QA component
     if method_name == "llm_qa":
+        # Instantiate the LLM wrapper
         if config["provider"] == "openai":
             model = OpenAILLM(
                 model_name=config["model_name"],
@@ -105,8 +107,9 @@ def main(args):
             )
         else:
             raise ValueError(f"Unknown LLM provider: {config['provider']}")
-        logging.info("Initialized the LLM model: %s" % repr(model))
+        logging.info("Instantiated the LLM model: %s" % repr(model))
 
+        # Instantiate the LLM-based QA component
         answerer = LLMQA(
             model=model,
             prompt_template_name_or_path=config["prompt_template_name_or_path"],
@@ -114,7 +117,7 @@ def main(args):
         )
         
     ##################
-    # QA
+    # Method Execution
     ##################
 
     logging.info(f"Applying the QA component to {len(questions)} questions (+ contexts) in {input_questions_path} ({input_contexts_path}) ...")
@@ -132,13 +135,19 @@ def main(args):
         result_questions.append(result_question)
 
     # Save the QA results
-    output_questions_path = os.path.join(base_output_path, f"{base_filename}.pred.json")
+    output_questions_path = os.path.join(
+        base_output_path,
+        f"{base_filename}.pred.json"
+    )
     utils.write_json(output_questions_path, result_questions)
     logging.info(f"Saved the prediction results to {output_questions_path}")
 
     # Save the prompt-response pairs in plain text
     if "qa_prompt" in result_questions[0] and "qa_generated_text" in result_questions[0]:
-        output_text_path = os.path.join(base_output_path, "prompt_and_response.txt")
+        output_text_path = os.path.join(
+            base_output_path,
+            f"{base_filename}.prompt_and_response.txt"
+        )
         with open(output_text_path, "w") as f:
             for q in result_questions:
                 question_key = q["question_key"]
@@ -156,31 +165,38 @@ def main(args):
     # Evaluation
     ##################
 
-    if do_evaulation:
+    if do_evaluation:
         # Require gold answers only when evaluation is requested
         if gold_questions_path is None:
-            raise ValueError("--gold_answers is required when --do_evaluation is set")
+            raise ValueError("--gold is required when --do_evaluation is set")
 
         # Evaluate the prediction results
-        scores = accuracy(
-            pred_path=output_questions_path,
-            gold_path=gold_questions_path,
-            exact_match=False,
-        ) | token_level_f1(
-            pred_path=output_questions_path,
-            gold_path=gold_questions_path
-        ) | recall(
+        scores = evaluation.qa.accuracy(
             pred_path=output_questions_path,
             gold_path=gold_questions_path,
             exact_match=False,
         )
+        scores.update(
+            evaluation.qa.token_level_f1(
+                pred_path=output_questions_path,
+                gold_path=gold_questions_path
+            )
+        )
+        scores.update(
+            evaluation.qa.recall(
+                pred_path=output_questions_path,
+                gold_path=gold_questions_path,
+                exact_match=False,
+            )
+        )
+        logging.info(utils.pretty_format_dict(scores))
 
         # Save the evaluation result
-        output_evaluation_path = os.path.join(base_output_path, f"{base_filename}.eval.json")
+        output_evaluation_path = os.path.join(
+            base_output_path,
+            f"{base_filename}.eval.json"
+        )
         utils.write_json(output_evaluation_path, scores)
-
-        # Log the evaluation result
-        logging.info(utils.pretty_format_dict(scores))
         logging.info(f"Saved the evaluation results to {output_evaluation_path}")
 
     ##################
@@ -212,6 +228,9 @@ if __name__ == "__main__":
         format="%(asctime)s - %(levelname)s - %(name)s - %(message)s",
         level=logging.INFO
     )
+    logging.getLogger("httpx").addFilter(
+        lambda r: "huggingface.co" not in r.getMessage()
+    )
 
     parser = argparse.ArgumentParser()
 
@@ -228,9 +247,9 @@ if __name__ == "__main__":
     parser.add_argument("--results_dir", type=str, required=True)
     parser.add_argument("--prefix", type=str, default=None)
 
-    # Misc.
+    # Evaluation
     parser.add_argument("--do_evaluation", action="store_true")
-    parser.add_argument("--gold_answers", type=str, default=None)
+    parser.add_argument("--gold", type=str, default=None)
 
     args = parser.parse_args()
 

@@ -108,7 +108,7 @@ class Chunker(BaseChunker):
     def split_passage_to_chunked_passages(
         self,
         passage: Passage,
-        window_size: int
+        window_size: int,
     ) -> list[Passage]:
         """Split a Passage into chunked Passages, each chunk having a maximum of `window_size` words."""
 
@@ -172,7 +172,7 @@ class Chunker(BaseChunker):
         self,
         doc_key: str,
         text: str,
-        title: str | None = None
+        title: str | None = None,
     ) -> Document:
         """Convert a text to a Document, optionally prepending the title as the first sentence."""
 

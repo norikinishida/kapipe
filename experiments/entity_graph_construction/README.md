@@ -1,6 +1,6 @@
 # entity-graph-construction
 
-This directory contains example experiments for Entity Garph Construction.
+This directory contains example experiments for Entity Graph Construction (`kapipe.entity_graph_construction`).
 
 ## Step 1. Installation
 

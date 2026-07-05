@@ -25,18 +25,17 @@ class TripleExtractionPipeline:
         self.ed_reranking = ed_reranking
         self.docre = docre
 
-    def extract_from_text(
+    def convert_text_to_document(
         self,
         doc_key: str,
         text: str,
         title: str | None = None,
-        retrieval_size: int = 10,
     ) -> Document:
         """Convert raw text into a document."""
 
         if self.chunker is None:
             raise ValueError(
-                "chunker must be provided to call text_to_document()."
+                "chunker must be provided to call convert_text_to_document()."
             )
 
         document = self.chunker.convert_text_to_document(
@@ -45,17 +44,12 @@ class TripleExtractionPipeline:
             title=title
         )
 
-        document = self.extract_from_document(
-            document=document,
-            retrieval_size=retrieval_size
-        )
-
         return document
 
-    def extract_from_document(
+    def extract_triples(
         self,
         document: Document,
-        retrieval_size: int = 10
+        retrieval_size: int,
     ) -> Document:
         """Extract triples from a document."""
 

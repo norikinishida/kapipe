@@ -62,7 +62,7 @@ def main(args):
     SOMETHING = LOAD_FUNCTIONS(INPUT_SOMETHING_PATH)
  
     ##################
-    # Method
+    # Method Instantiation
     ##################
 
     # Load the experiment configuration
@@ -71,14 +71,14 @@ def main(args):
     # Save the experiment configuration to the output path
     utils.write_json(os.path.join(base_output_path, "config.json"), config)
 
-    # Initialize the COMPONENT_NAME component
+    # Instantiate the COMPONENT_NAME component
     if method_name == "default":
         WORKER = COMPONENT_WORKER_A(hoge=config["hoge"])
     else:
-        raise Exception(f"Unknown method: {method_name}")
+        raise ValueError(f"Unknown method: {method_name}")
 
     ##################
-    # COMPONENT_NAME
+    # Method Execution
     ##################
 
     logging.info(f"Applying the COMPONENT_NAME component to SOMETHING in {INPUT_SOMETHING_PATH} ...")

@@ -24,16 +24,16 @@ Each mention contains the following fields.
 
 ```json
 {
-    "doc_key": "6794356",
+    "doc_key": "8800187",
     "sentences": [
-        "Tricuspid valve regurgitation and lithium carbonate toxicity in a newborn infant .",
+        "Effect of calcium chloride and 4 - aminopyridine therapy on desipramine toxicity in rats .",
         ...
     ],
     "mentions": [
         {
-            "span": [0, 2],
-            "name": "Tricuspid valve regurgitation",
-            "entity_type": "Disease"
+            "span": [2, 3],
+            "name": "calcium chloride",
+            "entity_type": "Chemical"
         },
         ...
     ]
@@ -68,34 +68,37 @@ Each entity contains the following fields.
 
 ```json
 {
-    "doc_key": "6794356",
+    "doc_key": "8800187",
     "sentences": [
-        "Tricuspid valve regurgitation and lithium carbonate toxicity in a newborn infant .",
+        "Effect of calcium chloride and 4 - aminopyridine therapy on desipramine toxicity in rats .",
         ...
     ],
     "mentions": [
         {
-            "span": [0, 2],
-            "name": "Tricuspid valve regurgitation",
-            "entity_type": "Disease",
-            "entity_id": "D014262"
+            "span": [2, 3],
+            "name": "calcium chloride",
+            "entity_type": "Chemical",
+            "entity_id": "D002122"
         },
         ...
     ],
     "entities": [
         {
-            "mention_indices": [0, 3, 7],
+            "mention_indices": [0, 11, 16, 22, 26, 27, 30],
             "mention_names": [
-                "Tricuspid valve regurgitation",
-                "tricuspid regurgitation",
-                "tricuspid regurgitation"
+                "calcium chloride",
+                "CaCl2",
+                "CaCl2",
+                "CaCl2",
+                "CaCl2",
+                "CaCl2",
+                "CaCl2"
             ],
-            "entity_type": "Disease",
-            "entity_id": "D014262"
+            "entity_type": "Chemical",
+            "entity_id": "D002122"
         },
         ...
-    ],
- 
+    ]
 }
 ```
 
@@ -118,18 +121,18 @@ Each candidate entity contains the following fields.
 
 ```json
 {
-    "doc_key": "6794356",
+    "doc_key": "8800187",
     "candidate_entities": [
         [
             {
-                "entity_id": "D014262",
-                "canonical_name": "Tricuspid Valve Insufficiency",
-                "score": 0.0017849934520199895
+                "entity_id": "D002122",
+                "canonical_name": "Calcium Chloride",
+                "score": 0.0017943419516086578
             },
             {
-                "entity_id": "D014264",
-                "canonical_name": "Tricuspid Valve Stenosis",
-                "score": 0.0017764709191396832
+                "entity_id": "D002118",
+                "canonical_name": "Calcium",
+                "score": 0.0017746267840266228
             },
             ...
         ],
@@ -145,6 +148,19 @@ Each candidate entity contains the following fields.
 | Mention-name Assignment | Assigns each mention surface form (lowercased) as its entity ID. This is useful when no explicit target knowledge base exists and mention surface forms are treated as pseudo concepts. |
 | [BLINK Bi-Encoder (Wu et al., 2020)](https://aclanthology.org/2020.emnlp-main.519/) | Retrieves candidate entities from a predefined entity dictionary using dense bi-encoder retrieval. |
 
+## Public Snapshots
+
+The following public snapshots can be loaded with `from_identifier(...)`.
+
+| Method | Identifier | Dataset | Entity Dictionary | Configuration |
+|---|---|---|---|---|
+| BLINK Bi-Encoder | `blink_bi_encoder_linked_docred` | Linked-DocRED | DBpedia 2020.02.01 | `bert-base-uncased`; precomputed entity vectors included |
+| BLINK Bi-Encoder | `blink_bi_encoder_cdr` | CDR | MeSH 2015 | `allenai/scibert_scivocab_uncased`; precomputed entity vectors included |
+
+These snapshots are predefined resources for existing benchmark settings. You can also use your own entity dictionary by training a retriever for it.
+
+`identifier` is resolved through the public resource configuration installed under `~/.kapipe/download/config`.
+
 ## Usage
 
 ### Mention-name Assignment:
@@ -152,7 +168,7 @@ Each candidate entity contains the following fields.
 ```python
 from kapipe.ed_retrieval import MentionNameEntityRetriever
 
-# Build a Mention-name Asignment
+# Instantiate the ED-Retrieval component using simple mention-name assignment
 retriever = MentionNameEntityRetriever()
 
 # Assign mention surface forms as entity IDs
@@ -162,12 +178,12 @@ result_document, candidate_entities_for_doc = retriever.search(
 )
 ```
 
-### Predefined BLINK Bi-Encoder:
+### Predefined BLINK Bi-Encoder ED-Retrieval:
 
 ```python
 from kapipe.ed_retrieval import BlinkBiEncoder
 
-# Load BLINK Bi-Encoder predefined for the (Linked-DocRED, DBPedia) schema
+# Load the BLINK Bi-Encoder ED-Retrieval component predefined for the (Linked-DocRED, DBPedia) schema
 retriever = BlinkBiEncoder.from_identifier(
     identifier="blink_bi_encoder_linked_docred"
 )
