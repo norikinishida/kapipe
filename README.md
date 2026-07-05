@@ -49,6 +49,7 @@ tar -zxvf release.YYYYMMDD.tar.gz
 ```
 
 Release files are available here:
+Please use the latest release file!
 
 [KAPipe Release Files](https://drive.google.com/drive/folders/16ypMCoLYf5kDxglDD_NYoCNAfhTy4Qwp)
 
@@ -71,9 +72,97 @@ The following table summarizes the components currently supported by KAPipe.
 | Retrieval | Passage Retrieval | `kapipe.passage_retrieval` | [Docs](docs/components/passage_retrieval.md) | [Example](experiments/passage_retrieval) |
 | Utilization | Question Answering | `kapipe.qa` | [Docs](docs/components/qa.md) | [Example](experiments/qa) |
 
+## Pipelines
+
+Pipelines (`kapipe.pipelines`) are convenience classes for chaining components that are commonly used together.
+Internally, a pipeline connects the outputs of one component to the inputs of the next component.
+
+| Pipeline | Description | Docs | Example |
+|---|---|---|---|
+| `TripleExtractionPipeline` | Chains NER, Entity Disambiguation (Retrieval), Entity Disambiguation (Reranking), and Document-level Relation Extraction components | - | [Example](experiments/triple_extraction_pipeline) |
+| `RAGPipeline` | Chains Passage Retrieval and Question Answering components | - | [Example](experiments/rag_pipeline) |
+| `GraphRAGPipeline` | Chains triple extraction, Entity Graph Construction, Community Clustering, Report Generation, Passage Retrieval, and Question Answering components | - | [Example](experiments/graphrag_pipeline_tacl2026) |
+
 ## Quickstart
 
-This example shows how to instantiate `GraphRAGPipeline`, build a GraphRAG index, and run inference.
+### Example 1
+
+This example shows how to instantiate Passage Retrieval and QA components and run Retrieval-Augmented Generation (RAG).
+
+```python
+import os
+
+from kapipe import utils
+from kapipe.llms import OpenAILLM
+from kapipe.passage_retrieval import Qwen3Embedding
+from kapipe.qa import LLMQA
+
+
+# Set input and output paths
+data_dir = "experiments/passage_retrieval/data/examples"
+index_dir = "./indexes"
+
+# Load passages and questions
+passages = utils.read_jsonl(os.path.join(data_dir, "passages.jsonl"))
+questions = utils.read_json(os.path.join(data_dir, "questions.json"))
+
+# Instantiate the Passage Retrieval component
+passage_retrieval = Qwen3Embedding(
+    model_name="Qwen/Qwen3-Embedding-0.6B",
+    max_passage_length=8192,
+    normalize=True,
+    metric="inner-product",
+    query_instruction="Given a question, retrieve relevant passages that answer the question.",
+)
+
+# Instantiate the QA component
+llm = OpenAILLM(model_name="gpt-5.4-nano", max_new_tokens=8192)
+qa = LLMQA(
+    model=llm,
+    prompt_template_name_or_path="qa_03_with_context",
+)
+
+# Build a retrieval index over passages
+passage_retrieval.make_index(
+    passages=passages,
+    index_dir=index_dir,
+    batch_size=64,
+)
+
+# Answer questions by chaining retrieval and QA
+answers = []
+for question in questions:
+
+    # Retrieve relevant passages
+    retrieved_passages = passage_retrieval.search(
+        queries=[question["question"]],
+        top_k=5,
+    )[0]
+
+    # Wrap retrieved passages in the QA input format
+    contexts_for_question = {
+        "question_key": question["question_key"],
+        "contexts": retrieved_passages,
+    }
+
+    # Generate an answer
+    answer = qa.answer(
+        question=question,
+        contexts_for_question=contexts_for_question,
+    )
+
+    # Preserve retrieved contexts
+    answer["contexts"] = retrieved_passages
+
+    answers.append(answer)
+
+# Save the results
+utils.write_json("./predictions.json", answers)
+```
+
+### Example 2
+
+This example shows how to instantiate `GraphRAGPipeline`, structure knowledge, and run inference with GraphRAG.
 
 The full executable version is available in [`experiments/graphrag_pipeline_tacl2026`](experiments/graphrag_pipeline_tacl2026).
 
@@ -190,13 +279,8 @@ answers = [
 utils.write_json("./predictions.json", answers)
 ```
 
-You can also run the packaged experiment.
-
-```bash
-cd experiments/graphrag_pipeline_tacl2026
-export OPENAI_API_KEY=<your-openai-api-key>
-bash ./run_graphrag_pipeline.sh --actiontype all
-```
+The components can also be used independently.
+Please see the corresponding documentation for each component for more details.
 
 ## Citation / Publication
 

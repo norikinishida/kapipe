@@ -58,5 +58,3 @@ python -m pip install -e ~/projects/kapipe
 - Define functions in top-down order. For example, if function `F` calls function `G`, define `F` before `G`.
 - Do not create functions such as `parse_args()`. Write command-line argument parsing directly in the `if __name__ == "__main__"` block.
 - As a rule, access dictionary fields directly rather than using `get()`. Example: `data[key]`. This ensures that unexpected dictionary structures fail immediately.
-
-- pythonは `~/.pyenv/shims/python` を使ってください。
