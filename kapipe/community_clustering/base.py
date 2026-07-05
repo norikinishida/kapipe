@@ -8,7 +8,7 @@ from ..datatypes import CommunityRecord
 
 
 class BaseCommunityClusterer(ABC):
-    """Base class for community clustering components."""
+    """Base class for Community Clustering components."""
 
     @abstractmethod
     def cluster_communities(

@@ -79,17 +79,20 @@ def main(args):
     # Save the experiment configuration to the output path
     utils.write_json(os.path.join(base_output_path, "config.json"), config)
 
-    # Initialize the Community Clustering component 
+    # Instantiate the Community Clustering component
     if method_name == "hierarchical_leiden":
+        # Instantiate the Hierarchical Leiden clusterer
         clusterer = HierarchicalLeiden(
             max_cluster_size=config["max_cluster_size"],
             use_lcc=config["use_lcc"]
         )
     elif method_name == "neighborhood_aggregation":
+        # Instantiate the Neighborhood Aggregation clusterer
         clusterer = NeighborhoodAggregation(
             hop_size=config["hop_size"],
         )
     elif method_name == "triple_level_factorization":
+        # Instantiate the Triple Level Factorization clusterer
         clusterer = TripleLevelFactorization()
     else:
         raise Exception(f"Invalid method_name: {method_name}")

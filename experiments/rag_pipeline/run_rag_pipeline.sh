@@ -47,4 +47,4 @@ python run_rag_pipeline.py \
     --prefix ${MYPREFIX} \
     --actiontype inference \
     --do_evaluation \
-    --gold_questions ${GOLD_QUESTIONS}
+    --gold ${GOLD_QUESTIONS}

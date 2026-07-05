@@ -63,7 +63,7 @@ Each chunked passage preserves the original metadata and replaces `text` with a 
 ```python
 from kapipe.chunking import Chunker
 
-# Build a Chunker with the default English sentencizer
+# Instantiate a Chunking component with the default English sentencizer
 chunker = Chunker()
 
 # Split a passage into chunked passages
@@ -78,7 +78,7 @@ chunked_passages = chunker.split_passage_to_chunked_passages(
 ```python
 from kapipe.chunking import Chunker
 
-# Build a chunker with a spaCy model
+# Instantiate a Chunking component with a spaCy model
 chunker = Chunker(
     model_name="en_core_web_sm",
 )

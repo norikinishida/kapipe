@@ -34,7 +34,7 @@ logger = logging.getLogger(__name__)
 
 
 class BiaffineNER(BaseNER):
-    """A class for performing Named Entity Recognition (NER) using a Biaffine-NER model (Yu et al., 2020)."""
+    """A Named Entity Recognition (NER) component using a Biaffine-NER model (Yu et al., 2020)."""
 
     @classmethod
     def from_identifier(

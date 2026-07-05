@@ -69,7 +69,7 @@ def main(args):
     # Save the experiment configuration to the output path
     utils.write_json(os.path.join(base_output_path, "config.json"), config)
 
-    # Initialize the Chunking component
+    # Instantiate the Chunking component
     chunker = Chunker(model_name=config["spacy_model_name"])
 
     ##################

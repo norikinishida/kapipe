@@ -6,7 +6,7 @@ from ..datatypes import Passage
 
 
 class BasePassageRetriever(ABC):
-    """Base class for passage retrieval components."""
+    """Base class for Passage Retrieval components."""
 
     @abstractmethod
     def make_index(

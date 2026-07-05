@@ -188,7 +188,7 @@ result_document = reranker.rerank(
 ```python
 from kapipe.ed_reranking import BlinkCrossEncoder
 
-# Load BLINK Cross-Encoder predefined for the (Linked-DocRED, DBPedia) schema
+# Load a BLINK Cross-Encoder component predefined for the (Linked-DocRED, DBPedia) schema
 reranker = BlinkCrossEncoder.from_identifier(
     identifier="blink_cross_encoder_linked_docred"
 )
@@ -220,7 +220,7 @@ model = HuggingFaceLLM(
     quantization_bits=4,
 )
 
-# Load LLM-based ED predefined for the (Linked-DocRED, DBPedia) schema
+# Load an LLM-based ED component predefined for the (Linked-DocRED, DBPedia) schema
 reranker = LLMED.from_identifier(
     model=model,
     identifier="llm_ed_linked_docred"
@@ -241,7 +241,7 @@ from kapipe.ed_reranking import LLMED
 # Instantiate your LLM wrapper
 model = ...
 
-# Build a user-defined LLM-based ED reranker
+# Instantiate a user-defined LLM-based ED component
 reranker = LLMED(
     model=model,
     prompt_template_name_or_path="ed_04_zeroshot",

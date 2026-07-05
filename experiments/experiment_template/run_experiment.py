@@ -71,7 +71,7 @@ def main(args):
     # Save the experiment configuration to the output path
     utils.write_json(os.path.join(base_output_path, "config.json"), config)
 
-    # Initialize the COMPONENT_NAME component
+    # Instantiate the COMPONENT_NAME component
     if method_name == "default":
         WORKER = COMPONENT_WORKER_A(hoge=config["hoge"])
     else:

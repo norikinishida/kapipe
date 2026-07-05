@@ -93,7 +93,7 @@ The `ROOT` community is a virtual root node. Its `nodes` field is `None`.
 ```python
 from kapipe.community_clustering import HierarchicalLeiden
 
-# Build a Hierarchical Leiden clusterer
+# Instantiate a Hierarchical Leiden component
 clusterer = HierarchicalLeiden(
     max_cluster_size=10,
     use_lcc=True,
@@ -108,7 +108,7 @@ communities = clusterer.cluster_communities(graph=graph)
 ```python
 from kapipe.community_clustering import NeighborhoodAggregation
 
-# Build a Neighborhood Aggregation clusterer
+# Instantiate a Neighborhood Aggregation component
 clusterer = NeighborhoodAggregation(
     hop_size=1,
 )
@@ -122,7 +122,7 @@ communities = clusterer.cluster_communities(graph=graph)
 ```python
 from kapipe.community_clustering import TripleLevelFactorization
 
-# Build a Triple-level Factorization clusterer
+# Instantiate a Triple-level Factorization component
 clusterer = TripleLevelFactorization()
 
 # Cluster communities in an entity graph

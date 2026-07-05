@@ -6,7 +6,7 @@ import networkx as nx
 
 
 class BaseEntityGraphConstructor(ABC):
-    """Base class for entity graph construction components."""
+    """Base class for Entity Graph Construction components."""
 
     @abstractmethod
     def construct_entity_graph(

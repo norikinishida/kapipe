@@ -6,7 +6,7 @@ from ..datatypes import Document
 
 
 class BaseDocRE(ABC):
-    """Base class for document-level relation extraction components."""
+    """Base class for Document-level Relation Extraction (DocRE) components."""
 
     @abstractmethod
     def extract(self, document: Document) -> Document:

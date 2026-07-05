@@ -112,14 +112,16 @@ def main(args):
     # Save the experiment configuration to the output path
     utils.write_json(os.path.join(base_output_path, "config.json"), config)
 
-    # Initialize the Passage Retrieval component
+    # Instantiate the Passage Retrieval component
     if method_name == "bm25":
-       retriever = BM25(
+        # Instantiate the BM25 retriever
+        retriever = BM25(
             tokenizer=lambda text: text.lower().split(),
             k1=config["k1"],
             b=config["b"],
         )
     elif method_name == "contriever":
+        # Instantiate the Contriever
         retriever = Contriever(
             model_name=config["model_name"],
             max_passage_length=config["max_passage_length"],
@@ -128,6 +130,7 @@ def main(args):
             metric=config["metric"],
         )
     elif method_name == "qwen3_embedding":
+        # Instantiate the Qwen3-Embedding retriever
         retriever = Qwen3Embedding(
             model_name=config["model_name"],
             max_passage_length=config["max_passage_length"],

@@ -153,7 +153,7 @@ These snapshots are predefined resources for common benchmark settings. You can 
 ```python
 from kapipe.docre import ATLOP
 
-# Load ATLOP predefined for the Linked-DocRED schema
+# Load an ATLOP-based DocRE component predefined for the Linked-DocRED schema
 extractor = ATLOP.from_identifier(
     identifier="atlop_linked_docred"
 )
@@ -182,7 +182,7 @@ model = HuggingFaceLLM(
     quantization_bits=4,
 )
 
-# Load LLM-based DocRE predefined for the Linked-DocRED schema
+# Load an LLM-based DocRE component predefined for the Linked-DocRED schema
 extractor = LLMDocRE.from_identifier(
     model=model,
     identifier="llm_docre_linked_docred"
@@ -218,7 +218,7 @@ rel_meta_info = {
     },
 }
 
-# Build a user-defined LLM-based DocRE extractor
+# Instantiate a user-defined LLM-based DocRE component
 extractor = LLMDocRE(
     model=model,
     prompt_template_name_or_path="docre_08_zeroshot",

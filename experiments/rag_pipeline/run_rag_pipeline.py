@@ -57,8 +57,9 @@ def main(args):
     # Action
     actiontype = args.actiontype
 
+    # Evaluation
     do_evaluation = args.do_evaluation
-    gold_questions_path = args.gold_questions
+    gold_questions_path = args.gold
 
     ##################
     # Logging Setup
@@ -186,7 +187,7 @@ def main(args):
     if do_evaluation:
         # Require gold answers only when evaluation is requested
         if gold_questions_path is None:
-            raise ValueError("--gold_questions is required when --do_evaluation is set")
+            raise ValueError("--gold is required when --do_evaluation is set")
 
         # Evaluate the prediction results
         qa_scores = evaluation.qa.accuracy(
@@ -343,9 +344,9 @@ if __name__ == "__main__":
     # Action
     parser.add_argument("--actiontype", type=str, required=True)
 
-    # Evaulation
+    # Evaluation
     parser.add_argument("--do_evaluation", action="store_true")
-    parser.add_argument("--gold_questions", type=str, default=None)
+    parser.add_argument("--gold", type=str, default=None)
 
     args = parser.parse_args()
 

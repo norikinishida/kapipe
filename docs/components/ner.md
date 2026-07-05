@@ -84,7 +84,7 @@ These snapshots are predefined resources for existing benchmark settings. You ca
 ```python
 from kapipe.ner import BiaffineNER
 
-# Load Biaffine-NER predefined for the Linked-DocRED schema
+# Load a Biaffine-NER component predefined for the Linked-DocRED schema
 extractor = BiaffineNER.from_identifier(identifier="biaffine_ner_linked_docred")
 
 # Extract entity mentions from a document
@@ -111,7 +111,7 @@ model = HuggingFaceLLM(
     quantization_bits=4,
 )
 
-# Load LLM-based NER predefined for the Linked-DocRED schema
+# Load an LLM-based NER component predefined for the Linked-DocRED schema
 extractor = LLMNER.from_identifier(
     model=model,
     identifier="llm_ner_linked_docred"
@@ -147,7 +147,7 @@ etype_meta_info = {
     },
 }
 
-# Build a user-defined LLM-based NER extractor
+# Instantiate a user-defined LLM-based NER component
 extractor = LLMNER(
     model=model,
     prompt_template_name_or_path="ner_13_zeroshot",

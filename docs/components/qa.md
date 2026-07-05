@@ -101,7 +101,7 @@ model = HuggingFaceLLM(
     quantization_bits=4,
 )
 
-# Build an LLM-based QA component
+# Instantiate an LLM-based QA component
 answerer = LLMQA(
     model=model,
     prompt_template_name_or_path="qa_03_with_context",
@@ -123,7 +123,7 @@ from kapipe.qa import LLMQA
 # Instantiate your LLM wrapper
 model = ...
 
-# Build an LLM-based QA component
+# Instantiate an LLM-based QA component
 answerer = LLMQA(
     model=model,
     prompt_template_name_or_path="qa_03_without_context",

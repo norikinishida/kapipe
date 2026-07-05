@@ -43,4 +43,4 @@ python run_qa.py \
     --results_dir ${RESULTS_DIR} \
     --prefix ${MYPREFIX} \
     --do_evaluation \
-    --gold_answers ${GOLD_ANSWERS}
+    --gold ${GOLD_ANSWERS}

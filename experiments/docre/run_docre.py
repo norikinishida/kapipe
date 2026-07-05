@@ -78,12 +78,14 @@ def main(args):
     # Save the experiment configuration to the output path
     utils.write_json(os.path.join(base_output_path, "config.json"), config)
 
-    # Initialize the DocRE component
+    # Instantiate the DocRE component
     if method_name == "atlop":
+        # Load the ATLOP extractor from the public snapshot
         extractor = ATLOP.from_identifier(
             identifier=config["identifier"]
         )
     elif method_name == "llm_docre":
+        # Instantiate the LLM wrapper
         if config["llm_provider"] == "openai":
             model = OpenAILLM(
                 model_name=config["llm_model_name"],
@@ -97,10 +99,10 @@ def main(args):
             )
         else:
             raise ValueError(f"Unknown LLM provider: {config['llm_provider']}")
-        logging.info("Initialized the LLM model: %s" % repr(model))
+        logging.info("Instantiated the LLM model: %s" % repr(model))
 
         if "identifier" in config: 
-            # Load the component from the public snapshot via the identifier
+            # Load the LLM-based DocRE extractor from the public snapshot
             extractor = LLMDocRE.from_identifier(
                 model=model,
                 identifier=config["identifier"]
@@ -116,7 +118,7 @@ def main(args):
             rel_meta_info: dict[str, dict[str, str]] = config["rel_meta_info"]
             entity_dict_path = config.get("entity_dict_path", None)
 
-            # Initialize the component based on the user-defined schema
+            # Instantiate the LLM-based DocRE extractor based on the user-defined schema
             extractor = LLMDocRE(
                 model=model,
                 prompt_template_name_or_path=config["prompt_template_name_or_path"],

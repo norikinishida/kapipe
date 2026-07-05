@@ -174,11 +174,11 @@ def main(args):
     utils.write_json(os.path.join(base_output_path, "config.json"), config)
 
     if method_name == "biaffine_ner":
-        # Initialize the trainer (evaluator)
+        # Instantiate the trainer (evaluator)
         trainer = BiaffineNERTrainer(base_output_path=base_output_path)
 
         if actiontype == "train":
-            # Initialize the NER component
+            # Instantiate the NER component
             extractor = BiaffineNER(
                 **config,
                 vocab_etype=vocab_etype
@@ -192,10 +192,10 @@ def main(args):
     elif method_name == "llm_ner":
         assert actiontype != "train"
 
-        # Initialize the trainer (evaluator)
+        # Instantiate the trainer (evaluator)
         trainer = LLMNERTrainer(base_output_path=base_output_path)
 
-        # Initialize the LLM
+        # Instantiate the LLM
         if config["provider"] == "openai":
             model = OpenAILLM(
                 model_name=config["model_name"],
@@ -210,7 +210,7 @@ def main(args):
         else:
             raise ValueError(f"Unknown LLM provider: {config['provider']}")
 
-        # Initialize the NER component
+        # Instantiate the NER component
         extractor = LLMNER(
             model=model,
             **config,

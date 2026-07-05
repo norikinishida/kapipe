@@ -39,8 +39,9 @@ def main(args):
         prefix = utils.get_current_time()
         args.prefix = prefix
 
-    do_evaulation = args.do_evaluation
-    gold_questions_path = args.gold_answers
+    # Evaluation
+    do_evaluation = args.do_evaluation
+    gold_questions_path = args.gold
 
     ##################
     # Logging Setup
@@ -90,8 +91,9 @@ def main(args):
     # Save the experiment configuration to the output path
     utils.write_json(os.path.join(base_output_path, "config.json"), config)
 
-    # Initialilze the QA component
+    # Instantiate the QA component
     if method_name == "llm_qa":
+        # Instantiate the LLM wrapper
         if config["provider"] == "openai":
             model = OpenAILLM(
                 model_name=config["model_name"],
@@ -105,8 +107,9 @@ def main(args):
             )
         else:
             raise ValueError(f"Unknown LLM provider: {config['provider']}")
-        logging.info("Initialized the LLM model: %s" % repr(model))
+        logging.info("Instantiated the LLM model: %s" % repr(model))
 
+        # Instantiate the LLM-based answerer
         answerer = LLMQA(
             model=model,
             prompt_template_name_or_path=config["prompt_template_name_or_path"],
@@ -156,10 +159,10 @@ def main(args):
     # Evaluation
     ##################
 
-    if do_evaulation:
+    if do_evaluation:
         # Require gold answers only when evaluation is requested
         if gold_questions_path is None:
-            raise ValueError("--gold_answers is required when --do_evaluation is set")
+            raise ValueError("--gold is required when --do_evaluation is set")
 
         # Evaluate the prediction results
         scores = evaluation.qa.accuracy(
@@ -228,9 +231,9 @@ if __name__ == "__main__":
     parser.add_argument("--results_dir", type=str, required=True)
     parser.add_argument("--prefix", type=str, default=None)
 
-    # Misc.
+    # Evaluation
     parser.add_argument("--do_evaluation", action="store_true")
-    parser.add_argument("--gold_answers", type=str, default=None)
+    parser.add_argument("--gold", type=str, default=None)
 
     args = parser.parse_args()
 

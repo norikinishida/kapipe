@@ -162,7 +162,7 @@ Each edge represents a relation.
 ```python
 from kapipe.entity_graph_construction import EntityGraphConstructor
 
-# Build an Entity Graph Constructor
+# Instantiate an Entity Graph Construction component
 constructor = EntityGraphConstructor(
     missing_entity_policy="keep",
     missing_entity_description="NO DESCRIPTION.",
@@ -183,7 +183,7 @@ graph = constructor.construct_entity_graph(
 ```python
 from kapipe.entity_graph_construction import EntityGraphConstructor
 
-# Build an Entity Graph Constructor
+# Instantiate an Entity Graph Construction component
 constructor = EntityGraphConstructor(
     missing_entity_policy="keep",
     missing_entity_description="NO DESCRIPTION.",

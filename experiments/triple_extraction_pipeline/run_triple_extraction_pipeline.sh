@@ -37,7 +37,7 @@ python run_triple_extraction_pipeline.py \
     --results_dir ${RESULTS_DIR} \
     --prefix ${MYPREFIX} \
     --do_evaluation \
-    --gold_documents ${GOLD_DOCUMENTS}
+    --gold ${GOLD_DOCUMENTS}
 
 ######
 # Experiment on user-defined schema

@@ -8,7 +8,7 @@ from ..datatypes import Document, Passage
 
 
 class BaseChunker(ABC):
-    """Base class for chunking components."""
+    """Base class for Chunking components."""
 
     @abstractmethod
     def split_passage_to_chunked_passages(

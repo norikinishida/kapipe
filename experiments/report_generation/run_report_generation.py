@@ -91,8 +91,9 @@ def main(args):
     # Save the experiment configuration to the output path
     utils.write_json(os.path.join(base_output_path, "config.json"), config)
  
-    # Initialize the Report Generation component
+    # Instantiate the Report Generation component
     if method_name == "llm":
+        # Instantiate the LLM wrapper
         if config["llm_provider"] == "openai":
             model = OpenAILLM(
                 model_name=config["llm_model_name"],
@@ -106,13 +107,16 @@ def main(args):
             )
         else:
             raise ValueError(f"Unknown LLM provider: {config['llm_provider']}")
-        logging.info("Initialized the LLM model: %s" % repr(model))
+        logging.info("Instantiated the LLM model: %s" % repr(model))
+
+        # Instantiate the LLM-based report generator
         generator = LLMBasedReportGenerator(
             model=model,
             prompt_template_name_or_path=config["prompt_template_name_or_path"],
             relation_map=config["relation_map"],
         )
     elif method_name == "template":
+        # Instantiate the template-based report generator
         generator = TemplateBasedReportGenerator(
             relation_map=config["relation_map"],
         )

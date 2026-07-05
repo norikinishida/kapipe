@@ -77,13 +77,14 @@ def main(args):
     # Save the experiment configuration to the output path
     utils.write_json(os.path.join(base_output_path, "config.json"), config)
 
-    # Initialize the NER component
+    # Instantiate the NER component
     if method_name == "biaffine_ner":
+        # Load the Biaffine-NER extractor from the public snapshot
         extractor = BiaffineNER.from_identifier(
             identifier=config["identifier"]
         )
     elif method_name == "llm_ner":
-        # Initialize the LLM
+        # Instantiate the LLM wrapper
         if config["llm_provider"] == "openai":
             model = OpenAILLM(
                 model_name=config["llm_model_name"],
@@ -97,10 +98,10 @@ def main(args):
             )
         else:
             raise ValueError(f"Unknown LLM provider: {config['llm_provider']}")
-        logging.info("Initialized the LLM model: %s" % repr(model))
+        logging.info("Instantiated the LLM model: %s" % repr(model))
 
         if "identifier" in config:
-            # Load the component from the public snapshot via the identifier
+            # Load the LLM-based NER extractor from the public snapshot
             extractor = LLMNER.from_identifier(
                 model=model,
                 identifier=config["identifier"]
@@ -113,7 +114,7 @@ def main(args):
             }
             etype_meta_info: dict[str, dict[str, str]] = config["etype_meta_info"]
 
-            # Initialize the component based on the user-defined schema
+            # Instantiate the LLM-based NER extractor with the user-defined schema
             extractor = LLMNER(
                 model=model,
                 prompt_template_name_or_path=config["prompt_template_name_or_path"],

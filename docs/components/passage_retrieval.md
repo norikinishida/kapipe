@@ -88,7 +88,7 @@ from kapipe.passage_retrieval import BM25
 def tokenizer(text: str) -> list[str]:
     return text.lower().split()
 
-# Build a BM25 retriever
+# Instantiate a BM25-based Passage Retrieval component
 retriever = BM25(
     tokenizer=tokenizer,
 )
@@ -111,7 +111,7 @@ retrieved_passages = retriever.search(
 ```python
 from kapipe.passage_retrieval import Contriever
 
-# Build a Contriever retriever
+# Instantiate a Contriever-based Passage Retrieval component
 retriever = Contriever(
     model_name="facebook/contriever-msmarco",
     max_passage_length=512,
@@ -139,7 +139,7 @@ retrieved_passages = retriever.search(
 ```python
 from kapipe.passage_retrieval import Qwen3Embedding
 
-# Build a Qwen3-Embedding retriever
+# Instantiate a Qwen3-Embedding-based Passage Retrieval component
 retriever = Qwen3Embedding(
     model_name="Qwen/Qwen3-Embedding-0.6B",
     max_passage_length=8192,

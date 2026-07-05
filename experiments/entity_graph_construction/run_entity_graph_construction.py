@@ -68,7 +68,7 @@ def main(args):
     # Save the experiment configuration to the output path
     utils.write_json(os.path.join(base_output_path, "config.json"), config)
 
-    # Initialize the Entity Graph Construction component
+    # Instantiatethe Entity Graph Construction component
     constructor = EntityGraphConstructor(
         missing_entity_policy=config["missing_entity_policy"],
         missing_entity_description=config["missing_entity_description"],

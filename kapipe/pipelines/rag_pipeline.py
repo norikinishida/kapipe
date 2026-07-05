@@ -10,7 +10,7 @@ from ..qa.base import BaseQA
 
 
 class RAGPipeline:
-    """Pipeline for chaining user-initialized retrieval and QA components."""
+    """Pipeline for chaining user-initialized Passage Retrieval and QA components."""
 
     def __init__(
         self,
@@ -28,7 +28,7 @@ class RAGPipeline:
     ) -> None:
         """Build an index over passages."""
 
-        # Delegate index construction to the retrieval component
+        # Delegate index construction to the Passage Retrieval component
         self.passage_retrieval.make_index(
             passages=passages,
             index_dir=index_dir,
@@ -41,7 +41,7 @@ class RAGPipeline:
     ) -> None:
         """Load an existing index."""
 
-        # Delegate index loading to the retrieval component
+        # Delegate index loading to the Passage Retrieval component
         self.passage_retrieval.load_index(index_dir=index_dir)
 
     def infer(

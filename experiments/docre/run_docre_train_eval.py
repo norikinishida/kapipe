@@ -197,18 +197,19 @@ def main(args):
     # Save the experiment configuration to the output path
     utils.write_json(os.path.join(base_output_path, "config.json"), config)
 
+    # Instantiate the DocRE component
     if method_name == "atlop":
-        # Initialize the trainer (evaluator)
+        # Instantiate the trainer (evaluator)
         trainer = ATLOPTrainer(base_output_path=base_output_path)
 
         if actiontype == "train":
-            # Initialilze the DocRE component
+            # Instantiate the ATLOP extractor
             extractor = ATLOP(
                 **config,
                 vocab_relation=vocab_relation
             )
         else:
-            # Load the DocRE comoponent
+            # Load the ATLOP extractor from the snapshot
             extractor = ATLOP.from_snapshot(
                 snapshot_path=trainer.paths["snapshot_path"]
             )
@@ -216,10 +217,10 @@ def main(args):
     elif method_name == "llm_docre":
         assert actiontype != "train"
 
-        # Initialize the trainer (evaluator)
+        # Instantiate the trainer (evaluator)
         trainer = LLMDocRETrainer(base_output_path=base_output_path)
 
-        # Initialize the LLM
+        # Instantiate the LLM wrapper
         if config["provider"] == "openai":
             model = OpenAILLM(
                 model_name=config["model_name"],
@@ -234,7 +235,7 @@ def main(args):
         else:
             raise ValueError(f"Unknown LLM provider: {config['provider']}")
 
-        # Initialize the DocRE component
+        # Instantiate the LLM-based NER extractor
         extractor = LLMDocRE(
             model=model,
             **config,

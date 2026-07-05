@@ -6,7 +6,7 @@ from ..datatypes import CandidateEntitiesForDocument, Document
 
 
 class BaseEDRetriever(ABC):
-    """Base class for entity disambiguation retrieval components."""
+    """Base class for Entity Disambiguation (Retrieval) components."""
 
     @abstractmethod
     def make_index(self) -> None:

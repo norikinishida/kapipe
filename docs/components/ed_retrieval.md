@@ -165,7 +165,7 @@ These snapshots are predefined resources for existing benchmark settings. You ca
 ```python
 from kapipe.ed_retrieval import MentionNameEntityRetriever
 
-# Build a Mention-name Asignment
+# Instantiate a Mention-name Assignment component
 retriever = MentionNameEntityRetriever()
 
 # Assign mention surface forms as entity IDs
@@ -180,7 +180,7 @@ result_document, candidate_entities_for_doc = retriever.search(
 ```python
 from kapipe.ed_retrieval import BlinkBiEncoder
 
-# Load BLINK Bi-Encoder predefined for the (Linked-DocRED, DBPedia) schema
+# Load a BLINK Bi-Encoder component predefined for the (Linked-DocRED, DBPedia) schema
 retriever = BlinkBiEncoder.from_identifier(
     identifier="blink_bi_encoder_linked_docred"
 )

@@ -141,18 +141,19 @@ def main(args):
     # Save the experiment configuration to the output path
     utils.write_json(os.path.join(base_output_path, "config.json"), config)
 
+    # Instantiate the ED-Reranking component
     if method_name == "blink_cross_encoder":
-        # Initialize the trainer (evaluator)
+        # Instantiate the trainer (evaluator)
         trainer = BlinkCrossEncoderTrainer(base_output_path=base_output_path)
 
         if actiontype == "train":
-            # Initialize the ED-Reranking component
+            # Instantiate the Blink Bi-Encoder reranker
             reranker = BlinkCrossEncoder(
                 **config,
                 entity_dict_path=entity_dict_path
             )
         else:
-            # Load the ED-Reranking component
+            # Load the Blink Bi-Encoder reranker from the snapshot
             reranker = BlinkCrossEncoder.from_snapshot(
                 snapshot_path=trainer.paths["snapshot_path"]
             )
@@ -160,10 +161,10 @@ def main(args):
     elif method_name == "llm_ed":
         assert actiontype != "train"
 
-        # Initialize the trainer (evaluator)
+        # Instantiate the trainer (evaluator)
         trainer = LLMEDTrainer(base_output_path=base_output_path)
 
-        # Initialize the LLM
+        # Instantiate the LLM wrapper
         if config["provider"] == "openai":
             model = OpenAILLM(
                 model_name=config["model_name"],
@@ -178,7 +179,7 @@ def main(args):
         else:
             raise ValueError(f"Unknown LLM provider: {config['provider']}")
 
-        # Initialize the ED-Reranking component
+        # Instantiate the LLM-based ED reranker
         reranker = LLMED(
             model=model,
             **config,
