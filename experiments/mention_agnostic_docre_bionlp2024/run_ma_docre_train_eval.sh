@@ -12,8 +12,8 @@ STORAGE_RESULTS=/home/nishida/storage/projects/kapipe/experiments/mention_agnost
 ######
 
 # Method
-# METHOD=ma_atlop
-METHOD=ma_qa
+METHOD=ma_atlop
+# METHOD=ma_qa
 
 if [ "${METHOD}" == "ma_atlop" ]; then
     CONFIG_PATH=./config/ma_atlop.conf
