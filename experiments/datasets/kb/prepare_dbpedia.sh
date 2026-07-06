@@ -2,7 +2,7 @@
 
 DBPEDIA=/home/nishida/storage/dataset/DBPedia/2020.02.01
 
-STORAGE_DATA=/home/nishida/storage/projects/kapipe/experiments/datasets/kb
+STORAGE_DATA=/home/nishida/storage/projects/kapipe/experiments/datasets
 
 
 # Results:
@@ -14,7 +14,7 @@ bzip2 -d ${DBPEDIA}/long-abstracts_lang_en.ttl.bz2
 
 
 # Results:
-#   - STORAGE_DATA/dbpedia/dbpedia20200201.entity_dict.json
+#   - STORAGE_DATA/kb/dbpedia/dbpedia20200201.entity_dict.json
 python prepare_dbpedia.py \
     --input_file ${DBPEDIA}/long-abstracts_lang_en.ttl \
     --output_file ${STORAGE_DATA}/kb/dbpedia/dbpedia20200201.entity_dict.json

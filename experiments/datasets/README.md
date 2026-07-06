@@ -1,8 +1,8 @@
 # Datasets
 
-本リポジトリは、実験で用いるベンチマークデータセットを前処理するための手順について記述する。
+This repository describes the procedures for preprocessing benchmark datasets used in experiments.
 
-共通
+First, create a Python environment and install the KAPipe library and dependencies.
 
 ```bash
 # 1. Create your own Python environment
@@ -22,7 +22,9 @@ python -m pip install -e ../..
 python -m pip install -r requirements.txt
 ```
 
-Please check `STORAGE_DATA` and dataset paths in each execution script and adjust them to your environment.
+Next, download the original datasets you want to use in your experiments from their official websites. The original datasets must be downloaded before running the scripts below. Check the scripts to see which datasets are expected to be downloaded.
+
+Then, run the scripts corresponding to the datasets you want to use in your experiments. Set `STORAGE_DATA` and the path to the original datasets appropriately for your environment. The scripts will preprocess the original datasets and save them in a format suitable for experiments with this codebase.
 
 ## Articles (Corpus)
 

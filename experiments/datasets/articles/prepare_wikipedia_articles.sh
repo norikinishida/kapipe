@@ -2,7 +2,7 @@
 
 WIKIPEDIA=/home/nishida/storage/dataset/Wikipedia
 
-STORAGE_DATA=/home/nishida/storage/projects/kapipe/experiments/datasets/articles
+STORAGE_DATA=/home/nishida/storage/projects/kapipe/experiments/datasets
 
 
 # WIKIPEDIA_DUMP_URL=https://archive.org/download/enwiki-20181220/enwiki-20181220-pages-articles-multistream.xml.bz2
@@ -19,15 +19,15 @@ wget ${WIKIPEDIA_DUMP_URL} -P ${WIKIPEDIA}
 # Results:
 #   - WIKIPEDIA/WIKIPEDIA_DUMP_FILENAME.extracted/*/*
 python -m wikiextractor.WikiExtractor ${WIKIPEDIA}/${WIKIPEDIA_DUMP_FILENAME} \
-    -o ${STORAGE_DATA}/wikipedia/${WIKIPEDIA_DUMP_FILENAME}.extracted \
+    -o ${STORAGE_DATA}/articles/wikipedia/${WIKIPEDIA_DUMP_FILENAME}.extracted \
     --json \
     --processes 4 \
     -b 1G
 
 
 # Results:
-#   - STORAGE_DATA/wikipedia/WIKIPEDIA_DUMP_FILENAME.extracted.processed.jsonl
+#   - STORAGE_DATA/articles/wikipedia/WIKIPEDIA_DUMP_FILENAME.extracted.processed.jsonl
 python prepare_wikipedia_articles.py \
-    --input_dir ${STORAGE_DATA}/wikipedia/${WIKIPEDIA_DUMP_FILENAME}.extracted \
-    --output_file ${STORAGE_DATA}/wikipedia/${WIKIPEDIA_DUMP_FILENAME}.extracted.processed.jsonl
+    --input_dir ${STORAGE_DATA}/articles/wikipedia/${WIKIPEDIA_DUMP_FILENAME}.extracted \
+    --output_file ${STORAGE_DATA}/articles/wikipedia/${WIKIPEDIA_DUMP_FILENAME}.extracted.processed.jsonl
 

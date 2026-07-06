@@ -26,7 +26,7 @@
 
 ```bash
 cd experiments/<experiment_name>
-pyenv local <environment_name>
+pyenv local <your-python-environment-name>
 python -m pip install -e ~/projects/kapipe
 ```
 

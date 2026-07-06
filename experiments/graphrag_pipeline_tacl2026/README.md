@@ -4,7 +4,7 @@ This directory contains example experiments for the GraphRAG pipeline (`kapipe.p
 
 This experiment directory also provides the codebase used in the following paper:
 
-- [Nishida et al., TACL 2026, **Dissecting GraphRAG: A Modular Analysis of Knowledge Structuring for Factoid Question Answering**.](https://aclanthology.org/2026.tacl-1.29/)
+- [Nishida et al., TACL 2026, Dissecting GraphRAG: A Modular Analysis of Knowledge Structuring for Factoid Question Answering.](https://aclanthology.org/2026.tacl-1.29/)
 
 ## Step 1. Installation
 
