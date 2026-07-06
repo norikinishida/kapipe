@@ -1122,7 +1122,8 @@ class MAATLOPModel(nn.Module):
         """
         bert = AutoModel.from_pretrained(
             pretrained_model_name_or_path,
-            return_dict=True
+            return_dict=True,
+            attn_implementation="eager"
         )
         tokenizer = AutoTokenizer.from_pretrained(
             pretrained_model_name_or_path,

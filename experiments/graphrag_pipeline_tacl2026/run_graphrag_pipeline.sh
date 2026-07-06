@@ -14,8 +14,8 @@ STORAGE_RESULTS=/home/nishida/projects/kapipe/experiments/graphrag_pipeline_tacl
 # Method
 METHOD=default
 CONFIG_PATH=./config/default.conf
-CONFIG_NAME=llm___keep___hl_size10___llm___sci100___contriever___gpt4o
-# CONFIG_NAME=slm___keep___na_hop1___temp___sci100___contriever___gpt4o
+CONFIG_NAME=llm___egc___hl___llm___w100___contriever___gpt4o___cdr
+# CONFIG_NAME=slm___egc___na___temp___w100___contriever___gpt4o___cdr
 
 # Input Data
 INPUT_DOCUMENTS=${STORAGE_DATA}/examples/documents.json
