@@ -35,6 +35,9 @@ __all__ = [
 
     # Pipelines
     "pipelines",
+
+    # Agents
+    "agents",
 ]
 
 

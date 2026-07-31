@@ -4,8 +4,8 @@
 # Storage paths
 ######
 
-STORAGE_DATA=/home/nishida/projects/kapipe/experiments/rag_pipeline/data
-STORAGE_RESULTS=/home/nishida/projects/kapipe/experiments/rag_pipeline/results
+STORAGE_DATA=/home/nishida/projects/kapipe/experiments/agentic_search/data
+STORAGE_RESULTS=/home/nishida/projects/kapipe/experiments/agentic_search/results
 
 ######
 # Experiment configuration
@@ -50,7 +50,7 @@ done
 
 # Require the action type
 if [ -z "${ACTIONTYPE}" ]; then
-    echo "Usage: bash run_rag_pipeline.sh --actiontype {indexing|inference|all}"
+    echo "Usage: bash run_tool_calling_agent.sh --actiontype {indexing|inference|all}"
     exit 1
 fi
 
@@ -59,26 +59,26 @@ fi
 ######
 
 if [ "${ACTIONTYPE}" = "indexing" ] || [ "${ACTIONTYPE}" = "all" ]; then
-    python run_rag_pipeline.py \
-        --method ${METHOD} \
-        --config_path ${CONFIG_PATH} \
-        --config_name ${CONFIG_NAME} \
-        --input_file ${INPUT_PASSAGES} \
-        --results_dir ${RESULTS_DIR} \
-        --prefix ${MYPREFIX} \
+    python run_tool_calling_agent.py \
+        --method "${METHOD}" \
+        --config_path "${CONFIG_PATH}" \
+        --config_name "${CONFIG_NAME}" \
+        --input_file "${INPUT_PASSAGES}" \
+        --results_dir "${RESULTS_DIR}" \
+        --prefix "${MYPREFIX}" \
         --actiontype indexing
 fi
 
 if [ "${ACTIONTYPE}" = "inference" ] || [ "${ACTIONTYPE}" = "all" ]; then
-    python run_rag_pipeline.py \
-        --method ${METHOD} \
-        --config_path ${CONFIG_PATH} \
-        --config_name ${CONFIG_NAME} \
-        --input_file ${INPUT_QUESTIONS} \
-        --results_dir ${RESULTS_DIR} \
-        --prefix ${MYPREFIX} \
+    python run_tool_calling_agent.py \
+        --method "${METHOD}" \
+        --config_path "${CONFIG_PATH}" \
+        --config_name "${CONFIG_NAME}" \
+        --input_file "${INPUT_QUESTIONS}" \
+        --results_dir "${RESULTS_DIR}" \
+        --prefix "${MYPREFIX}" \
         --actiontype inference \
         --do_evaluation \
-        --gold_answers ${GOLD_QUESTIONS} \
-        --gold_contexts ${GOLD_CONTEXTS}
+        --gold_answers "${GOLD_QUESTIONS}" \
+        --gold_contexts "${GOLD_CONTEXTS}"
 fi

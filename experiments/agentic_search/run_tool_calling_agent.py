@@ -1,4 +1,5 @@
 import argparse
+from dataclasses import asdict
 import json
 import logging
 import os
@@ -13,18 +14,14 @@ from kapipe import evaluation
 from kapipe import utils
 from kapipe.utils import StopWatch
 
-from kapipe.pipelines import RAGPipeline
+from kapipe.agents import AgentTrajectory, Tool, ToolCallingAgent
 
 from kapipe.llms import BaseLLM, HuggingFaceLLM, OpenAILLM
 from kapipe.passage_retrieval import (
-    BasePassageRetriever,
     BM25,
+    BasePassageRetriever,
     Contriever,
     Qwen3Embedding,
-)
-from kapipe.qa import (
-    BaseQA,
-    LLMQA,
 )
 
 
@@ -69,7 +66,7 @@ def main(args):
     # Set base output path
     base_output_path = os.path.join(
         results_dir,
-        "rag_pipeline",
+        "tool_calling_agent",
         method_name,
         config_name,
         prefix
@@ -130,20 +127,55 @@ def main(args):
     # Save the experiment configuration to the output path
     utils.write_json(os.path.join(base_output_path, "config.json"), config)
 
+    # Instantiate the LLM
+    llm = instantiate_llm(config=config["llm"])
+
     # Instantiate the Passage Retrieval component
     passage_retrieval = instantiate_passage_retrieval_component(
         passage_retrieval_config=config["passage_retrieval"],
     )
 
-    # Instantiate the QA component
-    qa = instantiate_qa_component(
-        qa_config=config["qa"],
+    # Instantiate the Passage Retrieval tool
+    passage_retrieval_tool = Tool(
+        name="passage_retrieval",
+        description="Retrieve passages relevant to a natural-language query. Use this tool to obtain factual evidence before answering a question.",
+        input_schema={
+            "type": "object",
+            "properties": {
+                "query": {
+                    "type": "string",
+                    "description": "Natural-language query.",
+                },
+            },
+            "required": [
+                "query"
+            ],
+        },
+        output_schema={
+            "type": "object",
+            "properties": {
+                "passages": {
+                    "type": "array",
+                    "description": "Retrieved passages ordered by relevance to the query.",
+                },
+            },
+            "required": [
+                "passages"
+            ],
+        },
+        function=lambda tool_input: {
+            "passages": passage_retrieval.search(
+                queries=[tool_input["query"]],
+                top_k=config["passage_retrieval"]["top_k"],
+            )[0],
+        },
     )
 
-   # Instantiate the RAG pipeline
-    rag = RAGPipeline(
-        passage_retrieval=passage_retrieval,
-        qa=qa,
+    # Instantiate the tool-calling agent
+    agent = ToolCallingAgent(
+        llm=llm,
+        tools=[passage_retrieval_tool],
+        max_steps=config["max_steps"],
     )
 
     ##################
@@ -154,31 +186,66 @@ def main(args):
         logging.info(f"Indexing {len(passages)} passages in {input_file_path} ...")
 
         # Build the index
-        rag.make_index(
-            passages=passages,
-            index_dir=index_dir,
-            batch_size=config["passage_retrieval"]["indexing_batch_size"],
-        )
-
+        if config["passage_retrieval"]["method_name"] == "bm25":
+            passage_retrieval.make_index(
+                passages=passages,
+                index_dir=index_dir,
+            )
+        else:
+            passage_retrieval.make_index(
+                passages=passages,
+                index_dir=index_dir,
+                batch_size=config["passage_retrieval"]["indexing_batch_size"],
+            )
+ 
     if actiontype == "inference":
-        logging.info(f"Applying the RAG pipeline to {len(questions)} questions in {input_file_path} ...")
+        logging.info(f"Applying the tool-calling agent pipeline to {len(questions)} questions in {input_file_path} ...")
 
         # Load the index
-        rag.load_index(index_dir=index_dir)
+        passage_retrieval.load_index(index_dir=index_dir)
 
-        # Apply the RAG pipeline to the questions
+        # Apply the tool-calling agent to the question
         result_questions = []
         for question in tqdm(questions):
-            result_question = rag.infer(
-                question=question,
-                top_k=config["passage_retrieval"]["top_k"],
+            # Run the agent
+            trajectory: AgentTrajectory = agent.infer(
+                initial_input=question["question"],
             )
+
+            # Ensure that the agent produced a final answer
+            if trajectory.final_answer is None:
+                raise RuntimeError(f"The agent did not produce a final answer: {question['question_key']}")
+
+            # Collect passages in the order in which the agent retrieved them
+            retrieved_passages = []
+            for agent_step in trajectory.agent_steps:
+                # Skip unrelated tools
+                if agent_step.tool_name != "passage_retrieval":
+                    continue
+                
+                # Require the output structure declared by the retrieval Tool
+                if not isinstance(agent_step.tool_output, dict):
+                    raise TypeError(
+                        "The passage_retrieval tool output must be a dictionary."
+                    )
+
+                # Append passages while preserving tool-call and retrieval order
+                retrieved_passages.extend(agent_step.tool_output["passages"])
+
+            # Build a compatible prediction record
+            result_question = {
+                "question_key": question["question_key"],
+                "question": question["question"],
+                "output_answer": trajectory.final_answer,
+                "contexts": retrieved_passages,
+                "agent_trajectory": asdict(trajectory),
+            }
             result_questions.append(result_question)
 
         # Save the results
         output_questions_path = os.path.join(
             base_output_path,
-            f"{base_filename}.pred.json",
+            f"{base_filename}.pred.json" ,
         )
         utils.write_json(output_questions_path, result_questions)
         logging.info(f"Saved the prediction results to {output_questions_path}")
@@ -258,6 +325,28 @@ def set_logger(filename: str, overwrite: bool = False) -> None:
     root_logger.addHandler(handler)
 
 
+def instantiate_llm(
+    config: dict[str, Any],
+) -> BaseLLM:
+
+    # Instantiate the LLM wrapper
+    if config["llm_provider"] == "openai":
+        llm = OpenAILLM(
+            model_name=config["llm_model_name"],
+            max_new_tokens=config["llm_max_new_tokens"],
+        )
+    elif config["llm_provider"] == "hf":
+        llm = HuggingFaceLLM(
+            model_name=config["llm_model_name"],
+            max_new_tokens=config["llm_max_new_tokens"],
+            quantization_bits=config["llm_quantization_bits"],
+        )
+    else:
+        raise ValueError(f"Unknown LLM provider: {config['llm_provider']}")
+
+    return llm
+
+
 def instantiate_passage_retrieval_component(
     passage_retrieval_config: dict[str, Any],
 ) -> BasePassageRetriever:
@@ -298,54 +387,10 @@ def instantiate_passage_retrieval_component(
     return passage_retrieval
 
 
-def instantiate_qa_component(
-    qa_config: dict[str, Any],
-) -> BaseQA:
-    
-    # Instantiate the LLM-based QA component
-    if qa_config["method_name"] == "llm_qa":
-        llm = instantiate_llm(config=qa_config)
-
-        qa = LLMQA(
-            model=llm,
-            prompt_template_name_or_path=qa_config["prompt_template_name_or_path"],
-            n_contexts=qa_config["n_contexts"],
-        )
-
-    else:
-        raise ValueError(f"Unknown QA method: {qa_config['method_name']}")
-
-    return qa
-
-def instantiate_llm(
-    config: dict[str, Any],
-) -> BaseLLM:
-
-    # Instantiate the LLM wrapper
-    if config["llm_provider"] == "openai":
-        llm = OpenAILLM(
-            model_name=config["llm_model_name"],
-            max_new_tokens=config["llm_max_new_tokens"],
-        )
-    elif config["llm_provider"] == "hf":
-        llm = HuggingFaceLLM(
-            model_name=config["llm_model_name"],
-            max_new_tokens=config["llm_max_new_tokens"],
-            quantization_bits=config["llm_quantization_bits"],
-        )
-    else:
-        raise ValueError(f"Unknown LLM provider: {config['llm_provider']}")
-
-    return llm
-
-
 if __name__ == "__main__":
     logging.basicConfig(
         format="%(asctime)s - %(levelname)s - %(name)s - %(message)s",
         level=logging.INFO
-    )
-    logging.getLogger("httpx").addFilter(
-        lambda r: "huggingface.co" not in r.getMessage()
     )
 
     parser = argparse.ArgumentParser()
@@ -372,4 +417,4 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    main(args)
+    main(args) 
