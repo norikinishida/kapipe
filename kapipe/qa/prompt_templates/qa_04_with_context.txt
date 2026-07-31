@@ -40,7 +40,7 @@ Score: 0.95
 
 {contexts_prompt}
 
-### Question
+### Input
 
 {test_case_prompt}
 
