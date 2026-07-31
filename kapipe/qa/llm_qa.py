@@ -105,7 +105,7 @@ class LLMQA(BaseQA):
 
             actual_n_contexts = len(context_texts)
 
-            # Generate the prompt part for the contexts.
+            # Generate the prompt section for the contexts
             if actual_n_contexts == 0:
                 contexts_prompt = ""
             elif actual_n_contexts == 1:
@@ -120,7 +120,7 @@ class LLMQA(BaseQA):
         else:
             contexts_prompt = ""
 
-        # Get the prompt part for the test input
+        # Get the prompt section for the test case (question)
         test_case_prompt = f"Question: {question['question']}".rstrip()
 
         # Add candidate answers (options) if available
@@ -134,7 +134,7 @@ class LLMQA(BaseQA):
 
         test_case_prompt = test_case_prompt.rstrip()
 
-        # Combine the prompt parts
+        # Combine all the prompt sections
         prompt = self.prompt_template.format(
             contexts_prompt=contexts_prompt,
             test_case_prompt=test_case_prompt

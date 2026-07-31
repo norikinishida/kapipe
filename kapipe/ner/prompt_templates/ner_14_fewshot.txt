@@ -1,0 +1,42 @@
+### Task
+
+You are given a piece of text.
+
+Your task is to:
+
+1. **Identify all entity mentions** in the text — short spans that refer to specific concepts or instances.
+2. **Assign an appropriate entity type** to each mention, selecting from the predefined set.
+
+### Entity Types
+
+{entity_types_prompt}
+
+### Guidelines
+
+- Each entity mention must be an **exact span** from the original text — do **not paraphrase, shorten, or extend** it.
+- Assign **only one type** per mention.
+- Choose from the predefined entity types.
+- If no entities are present, output nothing.
+
+### Output Format
+
+For each identified entity mention, output a line in this format:
+
+- Mention Text | Entity Type
+
+Use bullet points (`-`) for each line. Example:
+
+- Aspirin | Chemical  
+- breast cancer | Disease  
+- light therapy | Treatment
+
+### Examples
+
+{demonstrations_prompt}
+
+### Input
+
+{test_case_prompt}
+
+Now, identify all entity mentions in this text and assign them appropriate types.
+Provide the output in the bullet-point format specified above.

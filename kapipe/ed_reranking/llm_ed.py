@@ -175,12 +175,28 @@ class LLMED(BaseEDReranker):
                 "must have the same length."
             )
 
-        # Initialize the prompt processor, whioch generates prompts for the LLM
-        self.prompt_processor = PromptProcessor(
+        # Load the prompt template
+        self.prompt_template = utils.read_prompt_template(
             prompt_template_name_or_path=self.prompt_template_name_or_path,
-            knowledge_base_name_prompt=self.knowledge_base_name,
-            entity_dict=self.entity_dict,
+            prompt_template_package_name="kapipe.ed_reranking.prompt_templates",
         )
+
+        # Validate the prompt template
+        if "{knowledge_base_name_prompt}" not in self.prompt_template:
+            raise ValueError(
+                "The prompt template must contain "
+                "{knowledge_base_name_prompt}."
+            )
+        if "{test_case_prompt}" not in self.prompt_template:
+            raise ValueError(
+                "The prompt template must contain {test_case_prompt}."
+            )
+
+        # Set the prompt section for the knowledge base name
+        self.knowledge_base_name_prompt = self.knowledge_base_name
+
+        # Generate the prompt section for demonstrations
+        self.demonstrations_prompt = self.generate_demonstrations_prompt()
 
         # Define regular expression for output parsing.
         # Parse generated lines of the following form:
@@ -241,15 +257,11 @@ class LLMED(BaseEDReranker):
                 # Get mention indices for this group
                 target_mention_indices = indices[m_i: m_i + N_MENT_PER_CHUNK]
 
-                # Generate a prompt
-                prompt = self.prompt_processor.generate(
+                # Generate the prompt
+                prompt = self.generate_prompt(
                     document=document,
                     candidate_entities_for_doc=candidate_entities_for_doc,
                     target_mention_indices=target_mention_indices,
-                    demonstration_documents=self.demonstration_documents,
-                    demonstration_candidate_entities=(
-                        self.demonstration_candidate_entities
-                    ),
                 )
                 prompt_list.append(prompt)
 
@@ -420,69 +432,15 @@ class LLMED(BaseEDReranker):
 
         return result_documents
 
-
-class PromptProcessor:
-
-    def __init__(
-        self,
-        prompt_template_name_or_path: str,
-        knowledge_base_name_prompt: str,
-        entity_dict: dict[str, EntityPage],
-    ) -> None:
-
-        self.prompt_template_name_or_path = prompt_template_name_or_path
-        self.knowledge_base_name_prompt = knowledge_base_name_prompt
-        self.entity_dict = entity_dict
-
-        # Load the prompt template
-        self.prompt_template = utils.read_prompt_template(
-            prompt_template_name_or_path=self.prompt_template_name_or_path,
-            prompt_template_package_name="kapipe.ed_reranking.prompt_templates",
-        )
- 
-    def generate(
+    def generate_prompt(
         self,
         document: Document,
         candidate_entities_for_doc: CandidateEntitiesForDocument,
         target_mention_indices: list[int],
-        demonstration_documents: list[Document],
-        demonstration_candidate_entities: list[CandidateEntitiesForDocument],
     ) -> str:
-        """Generate a prompt for the LLM based on the input document, candidate entities."""
+        """Generate the prompt for the LLM based on the input document, candidate entities."""
 
-        ##########
-        # Demonstrations Prompt
-        ##########
-
-        # Create candidate entity pages for the demonstration documents
-        candidate_entity_pages_for_demos: list[list[list[EntityPage]]] = []
-        for candidate_entities_for_demo in demonstration_candidate_entities:
-            candidate_entity_pages_for_demo: list[list[EntityPage]] = []
-            for candidate_entities_for_one_mention in (
-                candidate_entities_for_demo["candidate_entities"]
-            ):
-                candidate_entity_pages_for_one_mention: list[EntityPage] = [
-                    self.entity_dict[cand_key_dict["entity_id"]]
-                    for cand_key_dict in candidate_entities_for_one_mention
-                ]
-                candidate_entity_pages_for_demo.append(
-                    candidate_entity_pages_for_one_mention
-                )
-            candidate_entity_pages_for_demos.append(
-                candidate_entity_pages_for_demo
-            )
-
-        # Generate the prompt part for demonstrations
-        demonstrations_prompt = self.generate_demonstrations_prompt(
-            demonstration_documents=demonstration_documents,
-            candidate_entity_pages_for_demos=candidate_entity_pages_for_demos
-        )
-
-        ##########
-        # Test Case Prompt
-        ##########
-
-        # Create candidate entities for the input document
+        # Create candidate entity pages for the input document
         candidate_entity_pages_for_doc: list[list[EntityPage]] = []
         for candidate_entities_for_one_mention in (
             candidate_entities_for_doc["candidate_entities"]
@@ -495,51 +453,59 @@ class PromptProcessor:
                 candidate_entity_pages_for_one_mention
             )
 
-        # Generate prompt part for test case
+        # Generate the prompt section for the test case
         test_case_prompt = self.generate_test_case_prompt(
             document=document,
             candidate_entity_pages_for_doc=candidate_entity_pages_for_doc,
             target_mention_indices=target_mention_indices
         )
 
-        ##########
-        # Final Prompt
-        ##########
-
-        # Combine the prompt parts
+        # Combine all the prompt sections
         prompt = self.prompt_template.format(
             knowledge_base_name_prompt=self.knowledge_base_name_prompt,
-            demonstrations_prompt=demonstrations_prompt,
+            demonstrations_prompt=self.demonstrations_prompt,
             test_case_prompt=test_case_prompt
         )
 
         return prompt
 
-    def generate_demonstrations_prompt(
-        self,
-        demonstration_documents: list[Document],
-        candidate_entity_pages_for_demos: list[list[list[EntityPage]]]
-    ) -> str:
-        """Generate a prompt for the demonstrations based on the demonstration documents and their corresponding candidate entity pages."""
+    def generate_demonstrations_prompt(self) -> str:
+        """Generate the prompt for the demonstration documents."""
 
+        # Create candidate entity pages for the demonstration documents
+        candidate_entity_pages_for_demos: list[list[list[EntityPage]]] = []
+        for candidate_entities_for_demo in (
+            self.demonstration_candidate_entities
+        ):
+            candidate_entity_pages_for_demo: list[list[EntityPage]] = []
+            for candidate_entities_for_one_mention in (
+                candidate_entities_for_demo["candidate_entities"]
+            ):
+                candidate_entity_pages_for_one_mention: list[EntityPage] = [
+                    self.entity_dict[candidate["entity_id"]]
+                    for candidate in candidate_entities_for_one_mention
+                ]
+                candidate_entity_pages_for_demo.append(
+                    candidate_entity_pages_for_one_mention
+                )
+            candidate_entity_pages_for_demos.append(
+                candidate_entity_pages_for_demo
+            )
+
+        # Generate the prompt section for demonstrations
         prompt = ""
-        n_demos = len(demonstration_documents)
+        n_demos = len(self.demonstration_documents)
         for demo_i, (demo_doc, cand_ent_pages_for_demo) in enumerate(zip(
-            demonstration_documents,
+            self.demonstration_documents,
             candidate_entity_pages_for_demos
         )):
-            prompt += f"Example {demo_i+1}:\n"
-
-            # Generate prompt part """fro the input text
-            prompt += f"Text: {self.generate_input_text_prompt(document=demo_doc)}\n"
-           
             # Sample target mention indices
             target_mention_indices = [
                 m_i for m_i, m in enumerate(demo_doc["mentions"])
                 if m["entity_id"] in self.entity_dict
             ]
 
-            # Generate prompt part for the mentions and their candidate concepts
+            # Generate the prompt section for the mentions and their candidate concepts
             mention_candidates_pairs_prompt = (
                 self.generate_input_mention_candidates_pairs_prompt(
                     document=demo_doc, 
@@ -548,15 +514,23 @@ class PromptProcessor:
                     demonstration_mode=True
                 )
             )
+
+            # Example ID
+            prompt += f"Example {demo_i+1}:\n"
+
+            # Input
+            prompt += "Input Text:\n"
+            prompt += f"{self.generate_input_text_prompt(document=demo_doc)}\n"
+            prompt += "Mentions and Candidate Concepts:\n"
             prompt += f"{mention_candidates_pairs_prompt}\n"
 
-            # Generate prompt part for the output
+            # Output
+            prompt += "Output:\n"
             output_prompt = self.generate_output_prompt(
                 document=demo_doc,
                 candidate_entity_pages_for_doc=cand_ent_pages_for_demo,
                 target_mention_indices=target_mention_indices[:2]
             )
-            prompt += "Output:\n"
             prompt += f"{output_prompt}\n"
 
             if demo_i < n_demos - 1:
@@ -570,14 +544,9 @@ class PromptProcessor:
         candidate_entity_pages_for_doc: list[list[EntityPage]],
         target_mention_indices: list[int]
     ) -> str:
-        """Generate a prompt for the test case based on the input document, candidate entity pages, and target mention indices."""
+        """Generate the prompt for the test case based on the input document, candidate entity pages, and target mention indices."""
 
-        prompt = ""
-
-        # Generate prompt part for the input text
-        prompt += f"Text: {self.generate_input_text_prompt(document=document)}\n"
-
-        # Generate prompt part for the mentions and their candidate concepts 
+        # Generate the prompt section for the mentions and their candidate concepts 
         mention_candidates_pairs_prompt = (
             self.generate_input_mention_candidates_pairs_prompt(
                 document=document, 
@@ -586,6 +555,13 @@ class PromptProcessor:
                 demonstration_mode=False
             )
         )
+
+        prompt = ""
+
+        # Input
+        prompt += "Input Text:\n"
+        prompt += f"{self.generate_input_text_prompt(document=document)}\n"
+        prompt += "Mentions and Candidate Concepts:\n"
         prompt += f"{mention_candidates_pairs_prompt}\n"
 
         return prompt.rstrip()
@@ -719,7 +695,7 @@ class LLMEDTrainer:
         # Cache the gold annotations for evaluation
         gold_path = self.paths[f"{split}_gold_path"]
         if not os.path.exists(gold_path):
-            kb_entity_ids = set(list(reranker.prompt_processor.entity_dict.keys()))
+            kb_entity_ids = set(list(reranker.entity_dict.keys()))
             gold_documents = []
             for document, candidate_entities_for_doc in tqdm(
                 zip(documents, candidate_entities),

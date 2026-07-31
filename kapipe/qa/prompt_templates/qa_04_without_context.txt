@@ -31,10 +31,9 @@ Rationale: Aspirin has analgesic, antipyretic, and anti-inflammatory effects.
 Answer: Aspirin is used to treat pain, fever, and inflammation.
 Score: 0.95
 
-### Test Case
-
-Now, answer the following question and provide a rationale and a confidence score.
+### Question
 
 {test_case_prompt}
 
+Now, answer this question and provide a rationale and a confidence score.
 Provide the output in the format specified above.

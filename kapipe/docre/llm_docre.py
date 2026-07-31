@@ -14,7 +14,6 @@ from .. import utils
 from ..datatypes import (
     Document,
     Triple,
-    EntityPage,
 )
 from ..llms import HuggingFaceLLM, OpenAILLM
 from ..resources import resolve_snapshot_path
@@ -181,16 +180,47 @@ class LLMDocRE(BaseDocRE):
             demonstration_documents = []
         self.demonstration_documents: list[Document] = demonstration_documents
 
-        # Initialize the prompt processor
-        self.prompt_processor = PromptProcessor(
+        # Validate the mention style
+        assert self.mention_style in [
+            "all_mentions",
+            "first_mention",
+            "canonical_name",
+        ]
+
+        # Load the prompt template
+        self.prompt_template = utils.read_prompt_template(
             prompt_template_name_or_path=self.prompt_template_name_or_path,
-            knowledge_base_name_prompt=self.knowledge_base_name,
-            vocab_relation=self.vocab_relation,
-            rel_meta_info=self.rel_meta_info,
-            entity_dict=self.entity_dict,
-            mention_style=self.mention_style,
-            with_span_annotation=self.with_span_annotation,
+            prompt_template_package_name="kapipe.docre.prompt_templates",
         )
+
+        # Validate the prompt template
+        if "{knowledge_base_name_prompt}" not in self.prompt_template:
+            raise ValueError(
+                "The prompt template must contain "
+                "{knowledge_base_name_prompt}."
+            )
+        if "{relations_prompt}" not in self.prompt_template:
+            raise ValueError(
+                "The prompt template must contain {relations_prompt}."
+            )
+        if "{test_case_prompt}" not in self.prompt_template:
+            raise ValueError(
+                "The prompt template must contain {test_case_prompt}."
+            )
+
+        # Set the prompt section for knowledge base name
+        self.knowledge_base_name_prompt = self.knowledge_base_name
+
+        # Generate the prompt section for relation labels
+        self.relations_prompt = ""
+        for relation in self.vocab_relation.keys():
+            pretty_name = self.rel_meta_info[relation]["Pretty Name"]
+            definition = self.rel_meta_info[relation]["Definition"]
+            self.relations_prompt += f"- {pretty_name}: {definition}\n"
+        self.relations_prompt = self.relations_prompt.rstrip()
+
+        # Generate the prompt section for demonstrations
+        self.demonstrations_prompt = self.generate_demonstrations_prompt()
 
         # Define regular expression for output parsing.
         # Parse lines of the following form:
@@ -255,10 +285,9 @@ class LLMDocRE(BaseDocRE):
             if self.model.provider == "hf":
                 self.model.llm.eval()
 
-            # Generate a prompt
-            prompt = self.prompt_processor.generate(
+            # Generate the prompt
+            prompt = self.generate_prompt(
                 document=document,
-                demonstration_documents=self.demonstration_documents,
             )
   
             # Generate a reponse
@@ -278,6 +307,147 @@ class LLMDocRE(BaseDocRE):
 
             return result_document
 
+    def generate_prompt(
+        self,
+        document: Document,
+    ) -> str:
+        """Generate the prompt for a given document and demonstration documents."""
+
+        # Generate the prompt section for the test case
+        test_case_prompt = self.generate_test_case_prompt(
+            document=document,
+        )
+
+        # Combine all the prompt sections
+        prompt = self.prompt_template.format(
+            knowledge_base_name_prompt=self.knowledge_base_name_prompt,
+            relations_prompt=self.relations_prompt,
+            demonstrations_prompt=self.demonstrations_prompt,
+            test_case_prompt=test_case_prompt
+        )
+
+        return prompt
+
+    def generate_demonstrations_prompt(self) -> str:
+        """Generate the prompt for the demonstration documents."""
+
+        prompt = ""
+        n_demos = len(self.demonstration_documents)
+
+        for demo_i, demo_doc in enumerate(self.demonstration_documents):
+            # Example ID
+            prompt += f"Example {demo_i+1}:\n"
+
+            # Input
+            prompt += "Input Text:\n"
+            prompt += f"{self.generate_input_text_prompt(document=demo_doc)}\n"
+            prompt += "Entities:\n"
+            prompt += f"{self.generate_input_entities_prompt(document=demo_doc)}\n"
+
+            # Output
+            prompt += "Output:\n"
+            prompt += f"{self.generate_output_prompt(document=demo_doc)}\n"
+
+            if demo_i < n_demos - 1:
+                prompt += "\n"
+
+        return prompt.rstrip()
+
+    def generate_test_case_prompt(self, document: Document) -> str:
+        """Generate the prompt for the test case."""
+
+        # Input
+        prompt = ""
+        prompt += "Input Text:\n"
+        prompt += f"{self.generate_input_text_prompt(document=document)}\n"
+        prompt += "Entities:\n"
+        prompt += f"{self.generate_input_entities_prompt(document=document)}\n"
+
+        return prompt.rstrip()
+
+    def generate_input_text_prompt(self, document: Document) -> str:
+        """Generate the prompt for the input text."""
+
+        prompt = " ".join(document["sentences"]) + "\n"
+
+        return prompt.rstrip()
+
+    def generate_input_entities_prompt(self, document: Document) -> str:
+        """Generate the prompt for the input entities."""
+
+        prompt = ""
+
+        words = " ".join(document["sentences"]).split()
+
+        mentions = document["mentions"]
+        entities = document["entities"]
+
+        for e_i, entity in enumerate(entities):
+            entity_id = entity["entity_id"]
+            entity_type = entity["entity_type"]
+
+            if self.mention_style == "all_mentions":
+                # Get mention names
+                mention_indices = entity["mention_indices"]
+                names = []
+                for m_i in mention_indices:
+                    # Get mention name
+                    mention = mentions[m_i]
+                    if not self.with_span_annotation:
+                        name = mention["name"]
+                    else:
+                        begin_i, end_i = mention["span"]
+                        name = " ".join(words[begin_i: end_i + 1])
+
+                    # Remove duplicated mentions
+                    # (inserted after the BioNLP'24 submission)
+                    if name in names:
+                        continue
+                    names.append(name)
+
+                # Add the entity to prompt
+                names = ", ".join([f"\"{n}\"" for n in names])
+                prompt += f"- Entity{e_i}: {names} ({entity_type})\n"
+
+            elif self.mention_style == "first_mention":
+                # Get the first mention name
+                mention_indices = entity["mention_indices"]
+                mention = mentions[mention_indices[0]]
+                if self.with_span_annotation:
+                    begin_i, end_i = mention["span"]
+                    name = " ".join(words[begin_i: end_i + 1])
+                else:
+                    name = mention["name"]
+
+                # Add the entity to prompt
+                prompt += f"- Entity{e_i}: \"{name}\" ({entity_type})\n"
+
+            elif self.mention_style == "canonical_name":
+                # Get entity canonical name
+                epage = self.entity_dict[entity_id]
+                name = epage["canonical_name"]
+
+                # Add the entity to prompt
+                prompt += f"- Entity{e_i}: {name} ({entity_type})\n"
+
+            else:
+                raise Exception(f"Invalid mention_style: {self.mention_style}")
+
+        return prompt.rstrip()
+
+    def generate_output_prompt(self, document: Document) -> str:
+        """Generate the prompt for the output relations."""
+
+        prompt = ""
+        for triple in document["relations"]:
+            head_idx = triple["arg1"]
+            tail_idx = triple["arg2"]
+            rel = triple["relation"]
+            pretty_name = self.rel_meta_info[rel]["Pretty Name"]
+            prompt += f"- Entity{head_idx} | {pretty_name} | Entity{tail_idx}\n"
+
+        return prompt.rstrip()
+
     def structurize(self, document: Document, generated_text: str) -> list[Triple]:
         """Structurize the generated text into triples."""
 
@@ -287,7 +457,7 @@ class LLMDocRE(BaseDocRE):
         entity_id_to_index = {}
         for e_i, e in enumerate(document["entities"]):
             entity_id_to_index[f"Entity{e_i}"] = e_i
-            
+
         tuples: list[tuple[int, str, int]] = []
         for generated_line in generated_text.split("\n"):
             generated_line = generated_line.strip()
@@ -372,200 +542,6 @@ class LLMDocRE(BaseDocRE):
             result_documents.append(result_document)
 
         return result_documents
-
-
-class PromptProcessor:
-
-    def __init__(
-        self,
-        prompt_template_name_or_path: str,
-        knowledge_base_name_prompt: str,
-        vocab_relation: dict[str, int],
-        rel_meta_info: dict[str, dict[str, str]],
-        mention_style: str,
-        # Optional
-        entity_dict: dict[str, EntityPage] | None = None,
-        with_span_annotation: bool = True
-    ) -> None:
-
-        self.prompt_template_name_or_path = prompt_template_name_or_path
-        self.knowledge_base_name_prompt = knowledge_base_name_prompt
-        self.vocab_relation = vocab_relation
-        self.rel_meta_info = rel_meta_info
-        self.entity_dict = entity_dict
-        self.mention_style = mention_style
-        self.with_span_annotation = with_span_annotation
-
-        assert self.mention_style in [
-            "canonical_name", "first_mention", "all_mentions"
-        ]
-
-        # Load the prompt template
-        self.prompt_template = utils.read_prompt_template(
-            prompt_template_name_or_path=self.prompt_template_name_or_path,
-            prompt_template_package_name="kapipe.docre.prompt_templates",
-        )
-
-        # Generate the prompt part for relation labels
-        self.relations_prompt = ""
-        for rel in vocab_relation.keys():
-            pretty_name = self.rel_meta_info[rel]["Pretty Name"]
-            definition = self.rel_meta_info[rel]["Definition"]
-            self.relations_prompt += f"- {pretty_name}: {definition}\n"
-        self.relations_prompt = self.relations_prompt.rstrip()
-
-    def generate(
-        self,
-        document: Document,
-        demonstration_documents: list[Document],
-    ) -> str:
-        """Generate a prompt for a given document and demonstration documents."""
-
-        ##########
-        # Demonstrations Prompt
-        ##########
-
-        # Generate the prompt part for demonstrations
-        demonstrations_prompt = self.generate_demonstrations_prompt(
-            demonstration_documents=demonstration_documents,
-        )
-
-        ##########
-        # Test Case Prompt
-        ##########
-
-        # Generate the prompt part for the test case
-        test_case_prompt = self.generate_test_case_prompt(
-            document=document,
-        )
-
-        ##########
-        # Final Prompt
-        ##########
- 
-        # Combine the prompt parts
-        prompt = self.prompt_template.format(
-            knowledge_base_name_prompt=self.knowledge_base_name_prompt,
-            relations_prompt=self.relations_prompt,
-            demonstrations_prompt=demonstrations_prompt,
-            test_case_prompt=test_case_prompt
-        )
-
-        return prompt
-
-    def generate_demonstrations_prompt(
-        self,
-        demonstration_documents: list[Document]
-    ) -> str:
-        """Generate a prompt for the demonstration documents."""
-
-        prompt = ""
-        n_demos = len(demonstration_documents)
-
-        for demo_i, demo_doc in enumerate(demonstration_documents):
-            prompt += f"Example {demo_i+1}:\n"
-            prompt += f"Text: {self.generate_input_text_prompt(document=demo_doc)}\n"
-            prompt += "Entities:\n"
-            prompt += f"{self.generate_input_entities_prompt(document=demo_doc)}\n"
-            prompt += "Output:\n"
-            prompt += f"{self.generate_relations_prompt(document=demo_doc)}\n"
-            if demo_i < n_demos - 1:
-                prompt += "\n"
-
-        return prompt.rstrip()
-
-    def generate_test_case_prompt(self, document: Document) -> str:
-        """Generate a prompt for the test case."""
-
-        prompt = ""
-        prompt += f"Text: {self.generate_input_text_prompt(document=document)}\n"
-        prompt += "Entities:\n"
-        prompt += f"{self.generate_input_entities_prompt(document=document)}\n"
-
-        return prompt.rstrip()
-
-    def generate_input_text_prompt(self, document: Document) -> str:
-        """Generate a prompt for the input text."""
-
-        prompt = " ".join(document["sentences"]) + "\n"
-
-        return prompt.rstrip()
-
-    def generate_input_entities_prompt(self, document: Document) -> str:
-        """Generate a prompt for the input entities."""
-
-        prompt = ""
-
-        words = " ".join(document["sentences"]).split()
-
-        mentions = document["mentions"]
-        entities = document["entities"]
-
-        for e_i, entity in enumerate(entities):
-            entity_id = entity["entity_id"]
-            entity_type = entity["entity_type"]
-
-            if self.mention_style == "all_mentions":
-                # Get mention names
-                mention_indices = entity["mention_indices"]
-                names = []
-                for m_i in mention_indices:
-                    # Get mention name
-                    mention = mentions[m_i]
-                    if not self.with_span_annotation:
-                        name = mention["name"]
-                    else:
-                        begin_i, end_i = mention["span"]
-                        name = " ".join(words[begin_i: end_i + 1])
-
-                    # Remove duplicated mentions
-                    # (inserted after the BioNLP'24 submission)
-                    if name in names:
-                        continue
-                    names.append(name)
-
-                # Add the entity to prompt
-                names = ", ".join([f"\"{n}\"" for n in names])
-                prompt += f"- Entity{e_i}: {names} ({entity_type})\n"
-
-            elif self.mention_style == "first_mention":
-                # Get the first mention name
-                mention_indices = entity["mention_indices"]
-                mention = mentions[mention_indices[0]]
-                if self.with_span_annotation:
-                    begin_i, end_i = mention["span"]
-                    name = " ".join(words[begin_i: end_i + 1])
-                else:
-                    name = mention["name"]
-
-                # Add the entity to prompt
-                prompt += f"- Entity{e_i}: \"{name}\" ({entity_type})\n"
-
-            elif self.mention_style == "canonical_name":
-                # Get entity canonical name
-                epage = self.entity_dict[entity_id]
-                name = epage["canonical_name"]
-
-                # Add the entity to prompt
-                prompt += f"- Entity{e_i}: {name} ({entity_type})\n"
-
-            else:
-                raise Exception(f"Invalid mention_style: {self.mention_style}")
-
-        return prompt.rstrip()
-
-    def generate_relations_prompt(self, document: Document) -> str:
-        """Generate a prompt for the input triples."""
-
-        prompt = ""
-        for triple in document["relations"]:
-            head_idx = triple["arg1"]
-            tail_idx = triple["arg2"]
-            rel = triple["relation"]
-            pretty_name = self.rel_meta_info[rel]["Pretty Name"]
-            prompt += f"- Entity{head_idx} | {pretty_name} | Entity{tail_idx}\n"
-
-        return prompt.rstrip()
 
 
 #####################
