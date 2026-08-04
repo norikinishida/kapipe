@@ -35,7 +35,7 @@ This directory already includes example data.
 ```bash
 experiments/entity_graph_construction/data/examples/documents_with_triples.json
 experiments/entity_graph_construction/data/examples/additional_triples.json
-experiments/entity_graph_construction/data/examples/entity_graph.json
+experiments/entity_graph_construction/data/examples/entity_dict.json
 ```
 
 ## Step 3. Configuration Setup

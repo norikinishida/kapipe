@@ -1,0 +1,41 @@
+### Task
+
+You are given a piece of text and a list of **detected entities**, each mapped to a concept in the {knowledge_base_name_prompt} knowledge base.
+
+Your task is to:
+
+1. **Identify relations** between these entities based on the **context of the text**.
+2. For each entity pair that holds a relation, assign the most appropriate **relation label** from the predefined set.
+
+### Relation Labels
+
+{relations_prompt}
+
+### Guidelines
+
+- Use the **full document context** to decide whether a relation exists between a pair of entities.
+- You must select the relation label from the predefined set.
+- If **no meaningful relation** exists between two entities, do **not output** anything for that pair.
+- Each output must use the **entity IDs** of the subject and object entities, **not** their surface forms or canonical names.
+
+### Output Format
+
+For each identified relation, output a line in this format:
+
+- Subject Entity ID | Relation Label | Object Entity ID
+
+Use bullet points (`-`) for each line. Example:
+
+- Entity2 | associated_with | Entity3
+- Entity5 | regulates | Entity7
+
+### Examples
+
+{demonstrations_prompt}
+
+### Input
+
+{test_case_prompt}
+
+Now, identify all valid relations between the detected entities in this text.
+Provide the output in the bullet-point format specified above.

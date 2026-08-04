@@ -202,7 +202,7 @@ result_document, candidate_entities_for_doc = retriever.search(
 
 If you want to use your own entity dictionary with `BlinkBiEncoder`, train the BLINK Bi-Encoder model for that dictionary first.
 
-See [experiments/ed_retrieval/run_ed_retrieval_trani_eval.py](../../experiments/ed_retrieval/run_ed_retrieval_train_eval.py) for runnable training and evaluation examples.
+See [experiments/ed_retrieval/run_ed_retrieval_train_eval.py](../../experiments/ed_retrieval/run_ed_retrieval_train_eval.py) for runnable training and evaluation examples.
 
 ## Example
 

@@ -47,7 +47,7 @@ You can also prepare benchmark datasets (e.g., CDR, Linked-DocRED) with the scri
 Adjust the settings in the following configuration files (HOCON format).
 
 ```bash
-experiments/ed_reranking/config/identical_entity_retriever.conf
+experiments/ed_reranking/config/identical_entity_reranker.conf
 experiments/ed_reranking/config/blink_cross_encoder.conf
 experiments/ed_reranking/config/llm_ed.conf
 ```

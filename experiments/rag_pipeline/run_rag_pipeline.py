@@ -92,7 +92,7 @@ def main(args):
         set_logger(
             os.path.join(
                 base_output_path,
-                os.path.splitext(os.path.basename(input_file_path))[0] + ".inference.log"
+                base_filename + ".inference.log"
             ),
             # overwrite=True
         )

@@ -265,6 +265,20 @@ If you want to use your own entity dictionary with `BlinkCrossEncoder`, train th
 
 See [experiments/ed_reranking/run_ed_reranking_train_eval.py](../../experiments/ed_reranking/run_ed_reranking_train_eval.py) for runnable training and evaluation examples.
 
+## Custom Prompt Templates
+
+A custom prompt template for `LLMED` supports the following placeholders.
+
+| Placeholder | Required | Description |
+|---|---|---|
+| `{knowledge_base_name_prompt}` | Yes | Name of the knowledge base containing the candidate entities |
+| `{demonstrations_prompt}` | No | Formatted demonstration documents, candidate entities, and gold entity assignments |
+| `{test_case_prompt}` | Yes | Current document, target mentions, and candidate entities to rerank |
+
+`{demonstrations_prompt}` is used by few-shot templates. It can be omitted from zero-shot templates.
+
+The component validates that `{knowledge_base_name_prompt}` and `{test_case_prompt}` are present.
+
 ## Example
 
 See [experiments/ed_reranking](../../experiments/ed_reranking) for runnable examples.

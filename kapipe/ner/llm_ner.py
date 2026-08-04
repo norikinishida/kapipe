@@ -142,12 +142,32 @@ class LLMNER(BaseNER):
             demonstration_documents = []
         self.demonstration_documents: list[Document] = demonstration_documents
 
-        # Initialize the prompt processor, which generates prompts for the LLM
-        self.prompt_processor = PromptProcessor(
+        # Load the prompt template
+        self.prompt_template = utils.read_prompt_template(
             prompt_template_name_or_path=self.prompt_template_name_or_path,
-            vocab_etype=self.vocab_etype,
-            etype_meta_info=self.etype_meta_info,
+            prompt_template_package_name="kapipe.ner.prompt_templates",
         )
+
+        # Validate the prompt template
+        if "{entity_types_prompt}" not in self.prompt_template:
+            raise ValueError(
+                "The prompt template must contain {entity_types_prompt}."
+            )
+        if "{test_case_prompt}" not in self.prompt_template:
+            raise ValueError(
+                "The prompt template must contain {test_case_prompt}."
+            )
+
+        # Generate the prompt section for entity types
+        self.entity_types_prompt = ""
+        for etype in vocab_etype.keys():
+            pretty_name = self.etype_meta_info[etype]["Pretty Name"]
+            definition = self.etype_meta_info[etype]["Definition"]
+            self.entity_types_prompt += f"- {pretty_name}: {definition}\n"
+        self.entity_types_prompt = self.entity_types_prompt.rstrip()
+
+        # Generate the prompt section for demonstrations
+        self.demonstrations_prompt = self.generate_demonstrations_prompt()
 
         # Define regular expression for output parsing.
         # Parse generated lines of the followingform:
@@ -195,9 +215,8 @@ class LLMNER(BaseNER):
                 self.model.llm.eval()
 
             # Generate the prompt
-            prompt = self.prompt_processor.generate(
+            prompt = self.generate_prompt(
                 document=document,
-                demonstration_documents=self.demonstration_documents,
             )
 
             # Generate the response
@@ -216,6 +235,82 @@ class LLMNER(BaseNER):
             result_document["ner_generated_text"] = generated_text
 
             return result_document
+
+    def generate_prompt(
+        self,
+        document: Document,
+    ) -> str:
+        """Generate the prompt for the input document."""
+
+        # Generate the prompt section for the test case
+        test_case_prompt = self.generate_test_case_prompt(
+            document=document
+        )
+
+        # Combine all the prompt sections
+        prompt = self.prompt_template.format(
+            entity_types_prompt=self.entity_types_prompt,
+            demonstrations_prompt=self.demonstrations_prompt,
+            test_case_prompt=test_case_prompt
+        )
+
+        return prompt
+
+    def generate_demonstrations_prompt(self) -> str:
+        """Generate the prompt for the demonstrations."""
+
+        prompt = ""
+        n_demos = len(self.demonstration_documents)
+        for demo_i, demo_doc in enumerate(self.demonstration_documents):
+            # Example ID
+            prompt += f"Example {demo_i+1}:\n"
+
+            # Input
+            prompt += "Input:\n"
+            prompt += f"{self.generate_input_text_prompt(document=demo_doc)}\n"
+
+            # Output
+            prompt += "Output:\n"
+            prompt += f"{self.generate_output_prompt(document=demo_doc)}\n"
+
+            if demo_i < n_demos - 1:
+                prompt += "\n"
+
+        return prompt.rstrip()
+        
+    def generate_test_case_prompt(self, document: Document) -> str:
+        """Generate the prompt for the test case."""
+
+        # Input
+        prompt = ""
+        prompt += "Input:\n"
+        prompt += f"{self.generate_input_text_prompt(document=document)}\n"
+
+        return prompt.rstrip()
+
+    def generate_input_text_prompt(self, document: Document) -> str:
+        """Generate the prompt for the input text."""
+
+        prompt = " ".join(document["sentences"]) + "\n"
+
+        return prompt.rstrip()
+
+    def generate_output_prompt(self, document: Document) -> str:
+        """Generate the prompt for the output mentions."""
+
+        prompt = ""
+        words = " ".join(document["sentences"]).split()
+        for mention in document["mentions"]:
+            begin_i, end_i = mention["span"]
+            name = " ".join(words[begin_i: end_i + 1])
+            etype = mention["entity_type"]
+            if etype in self.etype_meta_info:
+                pretty_name = self.etype_meta_info[etype]["Pretty Name"]
+            else:
+                pretty_name = etype
+            prompt += f"- {name} | {pretty_name}\n"
+
+        return prompt.rstrip()
 
     def structurize(self, document: Document, generated_text: str) -> list[Mention]:
         """Structurize the generated text into the mentions."""
@@ -366,120 +461,6 @@ class LLMNER(BaseNER):
         return result_documents
 
 
-class PromptProcessor:
-
-    def __init__(
-        self,
-        prompt_template_name_or_path: str,
-        vocab_etype: dict[str, int],
-        etype_meta_info: dict[str, dict[str, str]],
-    ):
-        self.prompt_template_name_or_path = prompt_template_name_or_path
-        self.vocab_etype = vocab_etype
-        self.etype_meta_info = etype_meta_info
-
-        # Load the prompt template
-        self.prompt_template = utils.read_prompt_template(
-            prompt_template_name_or_path=self.prompt_template_name_or_path,
-            prompt_template_package_name="kapipe.ner.prompt_templates",
-        )
-
-        # Generate the prompt part for entity types
-        self.entity_types_prompt = ""
-        for etype in vocab_etype.keys():
-            pretty_name = self.etype_meta_info[etype]["Pretty Name"]
-            definition = self.etype_meta_info[etype]["Definition"]
-            self.entity_types_prompt += f"- {pretty_name}: {definition}\n"
-        self.entity_types_prompt = self.entity_types_prompt.rstrip()
-
-    def generate(
-        self,
-        document: Document,
-        demonstration_documents: list[Document],
-    ) -> str:
-        """Generate a prompt for the input document."""
-
-        ##########
-        # Demonstrations Prompt
-        ##########
-
-        # Generate the prompt part for the demonstrations
-        demonstrations_prompt = self.generate_demonstrations_prompt(
-            demonstration_documents=demonstration_documents,
-        )        
-
-        ##########
-        # Test Case Prompt
-        ##########
-
-        # Generate the prompt part for the test case
-        test_case_prompt = self.generate_test_case_prompt(
-            document=document
-        )
-
-        ##########
-        # Final Prompt
-        ##########
- 
-        # Combine the prompt parts
-        prompt = self.prompt_template.format(
-            entity_types_prompt=self.entity_types_prompt,
-            demonstrations_prompt=demonstrations_prompt,
-            test_case_prompt=test_case_prompt
-        )
-
-        return prompt
-
-    def generate_demonstrations_prompt(
-        self,
-        demonstration_documents: list[Document]
-    ) -> str:
-        """Generate a prompt for the demonstrations."""
-
-        prompt = ""
-        n_demos = len(demonstration_documents)
-        for demo_i, demo_doc in enumerate(demonstration_documents):
-            prompt += f"Example {demo_i+1}:\n"
-            prompt += f"Text: {self.generate_input_text_prompt(document=demo_doc)}\n"
-            prompt += "Output:\n"
-            prompt += f"{self.generate_output_prompt(document=demo_doc)}\n"
-            if demo_i < n_demos - 1:
-                prompt += "\n"
-
-        return prompt.rstrip()
-        
-    def generate_test_case_prompt(self, document: Document) -> str:
-        """Generate a prompt for the test case."""
-
-        prompt = f"Text: {self.generate_input_text_prompt(document=document)}\n"
-
-        return prompt.rstrip()
-
-    def generate_input_text_prompt(self, document: Document) -> str:
-        """Generate a prompt for the input text."""
-
-        prompt = " ".join(document["sentences"]) + "\n"
-
-        return prompt.rstrip()
-
-    def generate_output_prompt(self, document: Document) -> str:
-        """Generate a prompt for the output mentions."""
-
-        prompt = ""
-        words = " ".join(document["sentences"]).split()
-        for mention in document["mentions"]:
-            begin_i, end_i = mention["span"]
-            name = " ".join(words[begin_i: end_i + 1])
-            etype = mention["entity_type"]
-            if etype in self.etype_meta_info:
-                pretty_name = self.etype_meta_info[etype]["Pretty Name"]
-            else:
-                pretty_name = etype
-            prompt += f"- {name} | {pretty_name}\n"
-
-        return prompt.rstrip()
-
-
 #####################
 # Trainer (Evaluator)
 #####################
@@ -576,3 +557,4 @@ class LLMNERTrainer:
         utils.write_json(self.paths[f"{split}_eval_path"], scores)
         logger.info(utils.pretty_format_dict(scores))
         return scores
+

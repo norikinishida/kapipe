@@ -54,7 +54,6 @@ if [ -z "${ACTIONTYPE}" ]; then
     exit 1
 fi
 
-
 ######
 # Experiment execution
 ######

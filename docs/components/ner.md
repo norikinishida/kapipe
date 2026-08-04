@@ -165,6 +165,20 @@ If you want to use your own entity type schema with `BiaffineNER`, train the Bia
 
 See [experiments/ner/run_ner_train_eval.py](../../experiments/ner/run_ner_train_eval.py) for runnable training and evaluation examples.
 
+## Custom Prompt Templates
+
+A custom prompt template for `LLMNER` supports the following placeholders.
+
+| Placeholder | Required | Description |
+|---|---|---|
+| `{entity_types_prompt}` | Yes | Entity types and their descriptions, generated from `vocab_etype` and `etype_meta_info` |
+| `{demonstrations_prompt}` | No | Formatted demonstration documents and their gold entity mentions |
+| `{test_case_prompt}` | Yes | Current document from which entity mentions are extracted |
+
+`{demonstrations_prompt}` is used by few-shot templates. It can be omitted from zero-shot templates.
+
+The component validates that `{entity_types_prompt}` and `{test_case_prompt}` are present.
+
 ## Example
 
 See [experiments/ner](../../experiments/ner) for runnable examples.

@@ -34,6 +34,12 @@ class LLMBasedReportGenerator(BaseReportGenerator):
             prompt_template_package_name="kapipe.report_generation.prompt_templates"
         )
 
+        # Validate the prompt template
+        if "{content_prompt}" not in self.prompt_template:
+            raise ValueError(
+                "The prompt template must contain {content_prompt}."
+            )
+
         if relation_map is None:
             relation_map = {}
         self.relation_map = relation_map
