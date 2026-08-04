@@ -1,10 +1,5 @@
 <!-- ![KAPipe logo](./images/kapipe_logo_v01.png) -->
 
-[!NOTE]
-This repository is currently under active development.
-Major updates are planned soon, including changes to APIs, component interfaces, model loading, and datasets.
-The current implementation should be considered unstable until the update is complete.
-
 # KAPipe
 
 **KAPipe** is a modular framework for building ***Knowledge Acquisition Systems*** from unstructured data.
@@ -79,9 +74,19 @@ Internally, a pipeline connects the outputs of one component to the inputs of th
 
 | Pipeline | Description | Docs | Example |
 |---|---|---|---|
-| `TripleExtractionPipeline` | Chains NER, Entity Disambiguation (Retrieval), Entity Disambiguation (Reranking), and Document-level Relation Extraction components | - | [Example](experiments/triple_extraction_pipeline) |
-| `RAGPipeline` | Chains Passage Retrieval and Question Answering components | - | [Example](experiments/rag_pipeline) |
-| `GraphRAGPipeline` | Chains triple extraction, Entity Graph Construction, Community Clustering, Report Generation, Passage Retrieval, and Question Answering components | - | [Example](experiments/graphrag_pipeline_tacl2026) |
+| `TripleExtractionPipeline` | Chains NER, Entity Disambiguation (Retrieval), Entity Disambiguation (Reranking), and Document-level Relation Extraction components | TBA | [Example](experiments/triple_extraction_pipeline) |
+| `RAGPipeline` | Chains Passage Retrieval and Question Answering components | TBA | [Example](experiments/rag_pipeline) |
+| `GraphRAGPipeline` | Chains triple extraction, Entity Graph Construction, Community Clustering, Report Generation, Passage Retrieval, and Question Answering components | TBA | [Example](experiments/graphrag_pipeline_tacl2026) |
+
+## Agents
+
+Agents (`kapipe.agents`) use an LLM to dynamically reason, select Tools, observe Tool-call results, and generate a final response.
+Unlike pipelines, which connect components in a predefined sequence, agents decide which action to take based on the request and the execution trajectory.
+A Tool can wrap a KAPipe component or any other callable function.
+
+| Agent | Description | Docs | Example |
+|---|---|---|---|
+| `ToolCallingAgent` | Performs ReAct-style inference by repeatedly calling Tools and observing their results until it generates a final answer | [Docs](docs/agents/tool_calling_agent.md) | [Example](experiments/agentic_search) |
 
 ## Quickstart
 
@@ -269,6 +274,7 @@ graphrag.make_passage_retrieval_index(
 )
 
 # Step 7. Load the retrieval index and answer questions
+graphrag.load_passage_retrieval_index(index_dir=index_dir)
 questions = utils.read_json(os.path.join(data_dir, "questions.json"))
 answers = [
     graphrag.infer(question=question, top_k=5)
