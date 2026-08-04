@@ -55,7 +55,7 @@ To finish, return an object containing exactly these fields:
   "answer": "The final response to the request."
 }}
 
-### Test Case
+### Input
 
 Request:
 {initial_input}

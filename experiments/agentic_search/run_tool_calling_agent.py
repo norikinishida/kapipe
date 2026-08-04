@@ -42,7 +42,8 @@ def main(args):
     config_name = args.config_name
 
     # Input Data
-    input_file_path = args.input_file
+    input_questions_path = args.input_questions
+    index_dir = args.index_dir
 
     # Output Path
     results_dir = args.results_dir
@@ -50,9 +51,6 @@ def main(args):
     if prefix is None or prefix == "None":
         prefix = utils.get_current_time()
         args.prefix = prefix
-
-    # Action
-    actiontype = args.actiontype
 
     # Evaluation
     do_evaluation = args.do_evaluation
@@ -73,95 +71,71 @@ def main(args):
     )
     utils.mkdir(base_output_path)
 
-    base_filename = os.path.splitext(os.path.basename(input_file_path))[0]
-
-    # Index will be saved to `index_dir``
-    index_dir = os.path.join(base_output_path, "indexes")
-    utils.mkdir(index_dir)
+    base_filename = os.path.splitext(
+        os.path.basename(input_questions_path)
+    )[0]
 
     # Set logger
-    if actiontype == "indexing":
-        set_logger(
-            os.path.join(index_dir, "indexing.log"),
-            # overwrite=True
-        )
-    elif actiontype == "inference":
-        set_logger(
-            os.path.join(
-                base_output_path,
-                base_filename + ".inference.log"
-            ),
-            # overwrite=True
-        )
+    set_logger(
+        os.path.join(
+            base_output_path,
+            base_filename + ".inference.log"
+        ),
+        # overwrite=True
+    )
 
     # Show arguments
     logging.info(utils.pretty_format_dict(vars(args)))
-    logging.info(f"index dir: {index_dir}")
 
     ##################
     # Data
     ##################
 
-    if actiontype == "indexing":
-        # Load passages
-        logging.info("Loading passages for indexing ...")
-        passages = []
-        for line in open(input_file_path):
-            passage = json.loads(line.strip())
-            passages.append(passage)
-        logging.info(f"Loaded {len(passages)} passages")
-
-    if actiontype == "inference":
-        # Load questions
-        logging.info("Loading questions for inference ...")
-        questions = utils.read_json(input_file_path)
-        logging.info(f"Loaded {len(questions)} questions")
+    # Load questions
+    logging.info(f"Loading questions from {input_questions_path} ...")
+    questions = utils.read_json(input_questions_path)
+    logging.info(f"Loaded {len(questions)} questions")
 
     ##################
     # Method Instantiation
     ##################
 
     # Load the experiment configuration
-    config = utils.get_hocon_config(config_path=config_path, config_name=config_name)
+    config = utils.get_hocon_config(
+        config_path=config_path,
+        config_name=config_name
+    )
 
     # Save the experiment configuration to the output path
     utils.write_json(os.path.join(base_output_path, "config.json"), config)
 
     # Instantiate the LLM
-    llm = instantiate_llm(config=config["llm"])
+    llm = instantiate_llm(llm_config=config["llm"])
 
     # Instantiate the Passage Retrieval component
     passage_retrieval = instantiate_passage_retrieval_component(
         passage_retrieval_config=config["passage_retrieval"],
     )
 
-    # Instantiate the Passage Retrieval tool
+    # Load the prebuilt Passage Retrieval index
+    passage_retrieval.load_index(index_dir=index_dir)
+
+    # Transform the Passage Retrieval component as a tool for the Tool-Calling Agent
     passage_retrieval_tool = Tool(
         name="passage_retrieval",
         description="Retrieve passages relevant to a natural-language query. Use this tool to obtain factual evidence before answering a question.",
         input_schema={
-            "type": "object",
-            "properties": {
-                "query": {
-                    "type": "string",
-                    "description": "Natural-language query.",
-                },
+            "query": {
+                "type": "str",
+                "description": "Natural-language query.",
+                "required": True,
             },
-            "required": [
-                "query"
-            ],
         },
         output_schema={
-            "type": "object",
-            "properties": {
-                "passages": {
-                    "type": "array",
-                    "description": "Retrieved passages ordered by relevance to the query.",
-                },
+            "passages": {
+                "type": "list[dict[str, Any]]",
+                "description": "Retrieved passages ordered by relevance to the query.",
             },
-            "required": [
-                "passages"
-            ],
         },
         function=lambda tool_input: {
             "passages": passage_retrieval.search(
@@ -174,7 +148,9 @@ def main(args):
     # Instantiate the tool-calling agent
     agent = ToolCallingAgent(
         llm=llm,
-        tools=[passage_retrieval_tool],
+        tools=[
+            passage_retrieval_tool
+        ],
         max_steps=config["max_steps"],
     )
 
@@ -182,73 +158,71 @@ def main(args):
     # Method Execution
     ##################
 
-    if actiontype == "indexing":
-        logging.info(f"Indexing {len(passages)} passages in {input_file_path} ...")
+    logging.info(f"Applying the tool-calling agent to {len(questions)} questions in {input_questions_path} ...")
 
-        # Build the index
-        if config["passage_retrieval"]["method_name"] == "bm25":
-            passage_retrieval.make_index(
-                passages=passages,
-                index_dir=index_dir,
-            )
-        else:
-            passage_retrieval.make_index(
-                passages=passages,
-                index_dir=index_dir,
-                batch_size=config["passage_retrieval"]["indexing_batch_size"],
-            )
- 
-    if actiontype == "inference":
-        logging.info(f"Applying the tool-calling agent pipeline to {len(questions)} questions in {input_file_path} ...")
+    # Apply the tool-calling agent to the questions
+    result_questions = []
 
-        # Load the index
-        passage_retrieval.load_index(index_dir=index_dir)
+    # Initialize a human-readable trace file for this inference run
+    output_trace_path: str = os.path.join(
+        base_output_path,
+        f"{base_filename}.trace.txt",
+    )
+    with open(output_trace_path, mode="w", encoding="utf-8"):
+        pass
 
-        # Apply the tool-calling agent to the question
-        result_questions = []
-        for question in tqdm(questions):
-            # Run the agent
-            trajectory: AgentTrajectory = agent.infer(
-                initial_input=question["question"],
-            )
-
-            # Ensure that the agent produced a final answer
-            if trajectory.final_answer is None:
-                raise RuntimeError(f"The agent did not produce a final answer: {question['question_key']}")
-
-            # Collect passages in the order in which the agent retrieved them
-            retrieved_passages = []
-            for agent_step in trajectory.agent_steps:
-                # Skip unrelated tools
-                if agent_step.tool_name != "passage_retrieval":
-                    continue
-                
-                # Require the output structure declared by the retrieval Tool
-                if not isinstance(agent_step.tool_output, dict):
-                    raise TypeError(
-                        "The passage_retrieval tool output must be a dictionary."
-                    )
-
-                # Append passages while preserving tool-call and retrieval order
-                retrieved_passages.extend(agent_step.tool_output["passages"])
-
-            # Build a compatible prediction record
-            result_question = {
-                "question_key": question["question_key"],
-                "question": question["question"],
-                "output_answer": trajectory.final_answer,
-                "contexts": retrieved_passages,
-                "agent_trajectory": asdict(trajectory),
-            }
-            result_questions.append(result_question)
-
-        # Save the results
-        output_questions_path = os.path.join(
-            base_output_path,
-            f"{base_filename}.pred.json" ,
+    # Apply the tool-calling agent to the question
+    result_questions = []
+    for question in tqdm(questions):
+        # Run the agent
+        trajectory: AgentTrajectory = agent.infer(
+            initial_input=question["question"],
         )
-        utils.write_json(output_questions_path, result_questions)
-        logging.info(f"Saved the prediction results to {output_questions_path}")
+
+        # Ensure that the agent produced a final answer
+        if trajectory.final_answer is None:
+            raise RuntimeError(f"The agent did not produce a final answer: {question['question_key']}")
+
+        # Collect passages in the order in which the agent retrieved them
+        retrieved_passages = []
+        for agent_step in trajectory.agent_steps:
+            # Skip unrelated tools
+            if agent_step.tool_name != "passage_retrieval":
+                continue
+            
+            # Require the output structure declared by the retrieval Tool
+            if not isinstance(agent_step.tool_output, dict):
+                raise TypeError(
+                    "The passage_retrieval tool output must be a dictionary."
+                )
+
+            # Append passages while preserving tool-call and retrieval order
+            retrieved_passages.extend(agent_step.tool_output["passages"])
+
+        # Build a compatible prediction record
+        result_question = {
+            "question_key": question["question_key"],
+            "question": question["question"],
+            "output_answer": trajectory.final_answer,
+            "contexts": retrieved_passages,
+            "agent_trajectory": asdict(trajectory),
+        }
+        result_questions.append(result_question)
+
+        # Append the completed trajectory to the human-readable trace file
+        write_agent_trace(
+            output_trace_path=output_trace_path,
+            question=question,
+            trajectory=trajectory,
+        )
+
+    # Save the results
+    output_questions_path = os.path.join(
+        base_output_path,
+        f"{base_filename}.pred.json" ,
+    )
+    utils.write_json(output_questions_path, result_questions)
+    logging.info(f"Saved the prediction results to {output_questions_path}")
 
     ##################
     # Evaluation
@@ -326,23 +300,23 @@ def set_logger(filename: str, overwrite: bool = False) -> None:
 
 
 def instantiate_llm(
-    config: dict[str, Any],
+    llm_config: dict[str, Any],
 ) -> BaseLLM:
 
     # Instantiate the LLM wrapper
-    if config["llm_provider"] == "openai":
+    if llm_config["llm_provider"] == "openai":
         llm = OpenAILLM(
-            model_name=config["llm_model_name"],
-            max_new_tokens=config["llm_max_new_tokens"],
+            model_name=llm_config["llm_model_name"],
+            max_new_tokens=llm_config["llm_max_new_tokens"],
         )
-    elif config["llm_provider"] == "hf":
+    elif llm_config["llm_provider"] == "hf":
         llm = HuggingFaceLLM(
-            model_name=config["llm_model_name"],
-            max_new_tokens=config["llm_max_new_tokens"],
-            quantization_bits=config["llm_quantization_bits"],
+            model_name=llm_config["llm_model_name"],
+            max_new_tokens=llm_config["llm_max_new_tokens"],
+            quantization_bits=llm_config["llm_quantization_bits"],
         )
     else:
-        raise ValueError(f"Unknown LLM provider: {config['llm_provider']}")
+        raise ValueError(f"Unknown LLM provider: {llm_config['llm_provider']}")
 
     return llm
 
@@ -387,6 +361,78 @@ def instantiate_passage_retrieval_component(
     return passage_retrieval
 
 
+def write_agent_trace(
+    output_trace_path: str,
+    question: dict[str, Any],
+    trajectory: AgentTrajectory,
+) -> None:
+    """Append one completed agent trajectory to a human-readable text file."""
+
+    # Require a completed trajectory
+    if trajectory.final_answer is None:
+        raise ValueError("The agent trajectory must contain a final answer.")
+
+    # Add the question-level header
+    trace_lines: list[str] = [
+        "=" * 50,
+        f"QUESTION KEY: {question['question_key']}",
+        f"QUESTION: {question['question']}",
+        "",
+    ]
+
+    # Add each LLM interaction in execution order
+    for step_i, agent_step in enumerate(
+        trajectory.agent_steps,
+        start=1,
+    ):
+        trace_lines.extend([
+            "-" * 50,
+            f"STEP: {step_i}",
+            "",
+            "[LLM INPUT]",
+            agent_step.llm_input,
+            "",
+            "[LLM OUTPUT]",
+            agent_step.llm_output,
+            "",
+        ])
+
+        # Add the Tool interaction only when the step executed a Tool
+        if agent_step.action_type == "use_tool":
+            trace_lines.extend([
+                "[TOOL INPUT]",
+                json.dumps(
+                    agent_step.tool_input,
+                    ensure_ascii=False,
+                    indent=2,
+                ),
+                "",
+                "[TOOL OUTPUT]",
+                json.dumps(
+                    agent_step.tool_output,
+                    ensure_ascii=False,
+                    indent=2,
+                ),
+                "",
+            ])
+
+    # Add the normalized final answer for quick inspection
+    trace_lines.extend([
+        "[FINAL ANSWER]",
+        trajectory.final_answer,
+        "",
+    ])
+
+    # Append the complete trace while preserving earlier questions
+    with open(
+        output_trace_path,
+        mode="a",
+        encoding="utf-8",
+    ) as trace_file:
+        trace_file.write("\n".join(trace_lines))
+        trace_file.write("\n")
+
+
 if __name__ == "__main__":
     logging.basicConfig(
         format="%(asctime)s - %(levelname)s - %(name)s - %(message)s",
@@ -401,14 +447,12 @@ if __name__ == "__main__":
     parser.add_argument("--config_name", type=str, required=True)
 
     # Input Data
-    parser.add_argument("--input_file", type=str, required=True)
+    parser.add_argument("--input_questions", type=str, required=True)
+    parser.add_argument("--index_dir", type=str, required=True)
 
     # Output Path
     parser.add_argument("--results_dir", type=str, required=True)
     parser.add_argument("--prefix", type=str, default=None)
-
-    # Action
-    parser.add_argument("--actiontype", type=str, required=True)
 
     # Evaluation
     parser.add_argument("--do_evaluation", action="store_true")

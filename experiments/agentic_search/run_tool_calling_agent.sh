@@ -17,68 +17,29 @@ CONFIG_PATH=./config/default.conf
 CONFIG_NAME=qwen3_embedding_0.6b___gpt5.4nano
 
 # Input Data
-INPUT_PASSAGES=${STORAGE_DATA}/examples/passages.jsonl
 INPUT_QUESTIONS=${STORAGE_DATA}/examples/questions.json
 GOLD_QUESTIONS=${STORAGE_DATA}/examples/questions_with_answers.json
 GOLD_CONTEXTS=${STORAGE_DATA}/examples/questions.gold_contexts.json
+
+# Please run the `run_passage_retrieval_indexing.sh` script to generate the index before running this script.
+INDEX_DIR=${STORAGE_RESULTS}/passage_retrieval/qwen3_embedding/qwen3_embedding_0.6b/example/indexes
 
 # Output Path
 RESULTS_DIR=${STORAGE_RESULTS}
 MYPREFIX=example
 
 ######
-# Command-line arguments
-######
-
-# Initialize the requested action
-ACTIONTYPE=
-
-# Parse command-line arguments
-while [ "$#" -gt 0 ]; do
-    if [ "$1" = "--actiontype" ]; then
-        if [ "$#" -lt 2 ]; then
-            echo "Error: --actiontype requires a value"
-            exit 1
-        fi
-        ACTIONTYPE=$2
-        shift 2
-    else
-        echo "Error: Unknown argument: $1"
-        exit 1
-    fi
-done
-
-# Require the action type
-if [ -z "${ACTIONTYPE}" ]; then
-    echo "Usage: bash run_tool_calling_agent.sh --actiontype {indexing|inference|all}"
-    exit 1
-fi
-
-######
 # Experiment execution
 ######
 
-if [ "${ACTIONTYPE}" = "indexing" ] || [ "${ACTIONTYPE}" = "all" ]; then
-    python run_tool_calling_agent.py \
-        --method "${METHOD}" \
-        --config_path "${CONFIG_PATH}" \
-        --config_name "${CONFIG_NAME}" \
-        --input_file "${INPUT_PASSAGES}" \
-        --results_dir "${RESULTS_DIR}" \
-        --prefix "${MYPREFIX}" \
-        --actiontype indexing
-fi
-
-if [ "${ACTIONTYPE}" = "inference" ] || [ "${ACTIONTYPE}" = "all" ]; then
-    python run_tool_calling_agent.py \
-        --method "${METHOD}" \
-        --config_path "${CONFIG_PATH}" \
-        --config_name "${CONFIG_NAME}" \
-        --input_file "${INPUT_QUESTIONS}" \
-        --results_dir "${RESULTS_DIR}" \
-        --prefix "${MYPREFIX}" \
-        --actiontype inference \
-        --do_evaluation \
-        --gold_answers "${GOLD_QUESTIONS}" \
-        --gold_contexts "${GOLD_CONTEXTS}"
-fi
+python run_tool_calling_agent.py \
+    --method "${METHOD}" \
+    --config_path "${CONFIG_PATH}" \
+    --config_name "${CONFIG_NAME}" \
+    --input_questions "${INPUT_QUESTIONS}" \
+    --index_dir ${INDEX_DIR} \
+    --results_dir "${RESULTS_DIR}" \
+    --prefix "${MYPREFIX}" \
+    --do_evaluation \
+    --gold_answers "${GOLD_QUESTIONS}" \
+    --gold_contexts "${GOLD_CONTEXTS}"
