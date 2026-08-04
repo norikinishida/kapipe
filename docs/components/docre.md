@@ -248,6 +248,21 @@ If you want to use your own relation schema with `ATLOP`, `MAATLOP`, or `MAQA`, 
 
 See [experiments/docre/run_docre_train_eval.py](../../experiments/docre/run_docre_train_eval.py) for runnable training and evaluation examples.
 
+## Custom Prompt Templates
+
+A custom prompt template for `LLMDocRE` supports the following placeholders.
+
+| Placeholder | Required | Description |
+|---|---|---|
+| `{knowledge_base_name_prompt}` | Yes | Name of the knowledge base containing the entities |
+| `{relations_prompt}` | Yes | Relation types and their descriptions, generated from `vocab_relation` and `rel_meta_info` |
+| `{demonstrations_prompt}` | No | Formatted demonstration documents and their gold relations |
+| `{test_case_prompt}` | Yes | Current document and its entities from which relations are extracted |
+
+`{demonstrations_prompt}` is used by few-shot templates. It can be omitted from zero-shot templates.
+
+The component validates that `{knowledge_base_name_prompt}`, `{relations_prompt}`, and `{test_case_prompt}` are present.
+
 ## Example
 
 See [experiments/docre](../../experiments/docre) for runnable examples.

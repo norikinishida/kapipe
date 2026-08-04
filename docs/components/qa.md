@@ -146,6 +146,19 @@ If `contexts_for_question` is provided, the retrieved passages are inserted into
 
 The `n_contexts` argument controls how many passages are used. If `n_contexts` is `-1`, all contexts are used.
 
+## Custom Prompt Templates
+
+A custom prompt template for `LLMQA` supports the following placeholders.
+
+| Placeholder | Required | Description |
+|---|---|---|
+| `{contexts_prompt}` | No | Context block provided for the question |
+| `{test_case_prompt}` | Yes | Current question and its candidate answer options (if available) |
+
+`{contexts_prompt}` is used by templates that answer questions with contexts. It can be omitted from templates that answer questions without contexts.
+
+The component validates that `{test_case_prompt}` is present.
+
 ## Example
 
 See [experiments/qa](../../experiments/qa) for runnable examples.

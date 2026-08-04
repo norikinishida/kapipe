@@ -146,6 +146,18 @@ reports = generator.generate_community_reports(
 )
 ```
 
+## Custom Prompt Templates
+
+A custom prompt template for `LLMBasedReportGenerator` supports the following placeholder.
+
+| Placeholder | Required | Description |
+|---|---|---|
+| `{content_prompt}` | Yes | Community content constructed from its nodes, relationships, and child-community reports |
+
+The generated community content is inserted into `{content_prompt}` before the prompt is passed to the LLM.
+
+The component validates that `{content_prompt}` is present.
+
 ## Example
 
 See [experiments/report_generation](../../experiments/report_generation) for runnable examples.
