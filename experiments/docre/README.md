@@ -33,7 +33,7 @@ python -m pip install -r requirements.txt
 This directory already includes example data.
 
 ```bash
-experiments/docre/data/examples/documents_with_disambiguated_entites.json
+experiments/docre/data/examples/documents_with_disambiguated_entities.json
 experiments/docre/data/examples/documents_with_triples.json
 experiments/docre/data/examples/entity_dict.json
 ```

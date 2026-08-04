@@ -42,8 +42,8 @@ experiments/report_generation/data/examples/communities.json
 Adjust the settings in the following configuration files (HOCON format).
 
 ```bash
-experiments/report_generation/config/llm.conf
-experiments/report_generation/config/template.conf
+experiments/report_generation/config/llm_based_report_generator.conf
+experiments/report_generation/config/template_based_report_generator.conf
 ```
 
 ## Step 4. Experiment Running
