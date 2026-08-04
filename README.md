@@ -11,7 +11,7 @@ KAPipe decomposes knowledge acquisition into four main stages:
 3. **Retrieval**: retrieving relevant knowledge for a given query or task.
 4. **Utilization**: using retrieved structured knowledge for downstream tasks such as question answering.
 
-![An overview of knowledge acquisition system](./images/interviews_figure008.png)
+![An overview of knowledge acquisition system](./images/knowledge_acquisition_systems_overview_figure002.png)
 
 KAPipe is used in the following papers:
 
@@ -74,9 +74,9 @@ Internally, a pipeline connects the outputs of one component to the inputs of th
 
 | Pipeline | Description | Docs | Example |
 |---|---|---|---|
-| `TripleExtractionPipeline` | Chains NER, Entity Disambiguation (Retrieval), Entity Disambiguation (Reranking), and Document-level Relation Extraction components | TBA | [Example](experiments/triple_extraction_pipeline) |
-| `RAGPipeline` | Chains Passage Retrieval and Question Answering components | TBA | [Example](experiments/rag_pipeline) |
-| `GraphRAGPipeline` | Chains triple extraction, Entity Graph Construction, Community Clustering, Report Generation, Passage Retrieval, and Question Answering components | TBA | [Example](experiments/graphrag_pipeline_tacl2026) |
+| `TripleExtractionPipeline` | Chains NER, Entity Disambiguation (Retrieval), Entity Disambiguation (Reranking), and Document-level Relation Extraction components | [Docs](docs/pipelines/triple_extraction_pipeline.md) | [Example](experiments/triple_extraction_pipeline) |
+| `RAGPipeline` | Chains Passage Retrieval and Question Answering components | [Docs](docs/pipelines/rag_pipeline.md) | [Example](experiments/rag_pipeline) |
+| `GraphRAGPipeline` | Chains triple extraction, Entity Graph Construction, Community Clustering, Report Generation, Passage Retrieval, and Question Answering components | [Docs](docs/pipelines/graphrag_pipeline.md) | [Example](experiments/graphrag_pipeline_tacl2026) |
 
 ## Agents
 
