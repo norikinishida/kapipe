@@ -34,8 +34,8 @@ cd experiments/datasets/articles
 # Wikipedia articles
 bash ./prepare_wikipedia_articles.sh
 
-# Wikipedia articles (popular preprocessed corpus)
-bash ./prepare_wikipedia_psgs_w100_tsv.sh
+# Wikipedia articles (2018 December; popular preprocessed version used in DPR, etc.)
+bash ./prepare_wikipedia_psgs_w100.sh
 
 # PubMed abstracts
 bash ./prepare_pubmed_abstracts.sh
@@ -122,10 +122,21 @@ bash ./prepare_hoip_dataset.sh
 cd experiments/datasets/qa
 
 # NQ, TriviaQA
-bash ./prepare_fb_nq_triviaqa.sh
+bash ./prepare_dpr_nq_triviaqa.sh
 
 # PopQA
 bash ./prepare_popqa.sh
+
+# HotpotQA
+bash ./prepare_hotpotqa.sh
+
+# 2WikiMultiHopQA
+
+# MuSiQue
+
+# CLARK-News
+
+# StreamingQA
 
 # BioASQ
 bash ./prepare_bioasq.sh
