@@ -7,8 +7,6 @@ import numpy as np
 import networkx as nx
 import pandas as pd
 
-import sys
-sys.path.insert(0, "../../..")
 from kapipe import utils
 
 
