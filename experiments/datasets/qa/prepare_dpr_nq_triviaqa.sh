@@ -12,8 +12,7 @@ STORAGE_DATA=/home/nishida/storage/projects/kapipe/experiments/datasets
 # Results
 #   - NQ/fb/nq-{train,dev,test}.qa.csv
 mkdir -p "${NQ}/dpr"
-# for split in train dev test
-for split in dev test
+for split in train dev test
 do
     wget -c \
         "https://dl.fbaipublicfiles.com/dpr/data/retriever/nq-${split}.qa.csv" \
@@ -23,8 +22,7 @@ done
 
 # Results
 #   - STORAGE_DATA/qa/nq/{train,dev,test}.json
-# for split in train dev test
-for split in dev test
+for split in train dev test
 do
     python prepare_dpr_nq_triviaqa.py \
         --input_file "${NQ}/dpr/nq-${split}.qa.csv" \
@@ -36,8 +34,7 @@ done
 #   - TRIVIAQA/dpr/trivia-{train,dev,test}.qa.csv.gz
 #   - TRIVIAQA/dpr/trivia-{train,dev,test}.qa.csv
 mkdir -p "${TRIVIAQA}/dpr"
-# for split in train dev test
-for split in dev test
+for split in train dev test
 do
     wget -c \
         "https://dl.fbaipublicfiles.com/dpr/data/retriever/trivia-${split}.qa.csv.gz" \
@@ -50,8 +47,7 @@ done
 
 # Results
 #   - STORAGE_DATA/qa/triviaqa/{train,dev,test}.json
-# for split in train dev test
-for split in dev test
+for split in train dev test
 do
     python prepare_dpr_nq_triviaqa.py \
         --input_file "${TRIVIAQA}/dpr/trivia-${split}.qa.csv" \

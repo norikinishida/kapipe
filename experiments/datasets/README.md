@@ -32,18 +32,18 @@ Then, run the scripts corresponding to the datasets you want to use in your expe
 cd experiments/datasets/articles
 
 # Wikipedia articles
-bash ./prepare_wikipedia_articles.sh
+# bash ./prepare_wikipedia_articles.sh
 
-# Wikipedia articles (2018 December; popular preprocessed version used in DPR, etc.)
+# Wikipedia articles (used with NQ, TriviaQA, HotpotQA, 2WikiMultiHopQA, MuSiQue)
 bash ./prepare_wikipedia_psgs_w100.sh
 
 # PubMed abstracts
-bash ./prepare_pubmed_abstracts.sh
+# bash ./prepare_pubmed_abstracts.sh
 
-# CDR abstracts
+# CDR abstracts (used with CDR-QA)
 bash ./prepare_cdr_abstracts.sh
 
-# Linked-DocRED articles
+# Linked-DocRED articles (used with Linked-DocRED-QA)
 bash ./prepare_linked_docred_articles.sh
 ```
 
@@ -116,7 +116,20 @@ bash ./prepare_gda.sh
 bash ./prepare_hoip_dataset.sh
 ```
 
-## Question Answering
+## Passage Retrieval
+
+```bash
+# BEIR
+# bash ./prepare_beir.sh
+
+# BRIGHT
+# bash ./prepare_bright.sh
+
+# FollowIR
+# bash ./prepare_followir.sh
+```
+
+## Question Answering (open-book)
 
 ```bash
 cd experiments/datasets/qa
@@ -131,12 +144,43 @@ bash ./prepare_popqa.sh
 bash ./prepare_hotpotqa.sh
 
 # 2WikiMultiHopQA
+bash ./prepare_2wikimultihopqa.sh
 
 # MuSiQue
+bash ./prepare_musique.sh
+
+# FanOutQA
+bash ./prepare_fanoutqa.sh
+
+# MDCR
+bash ./prepare_mdcr.sh
+
+# FRAMES
+bash ./prepare_frames.sh
+
+# Loong
+bash ./prepare_loong.sh
 
 # CLARK-News
+bash ./prepare_clark_news.sh
 
 # StreamingQA
+bash ./prepare_streamingqa.sh
+
+# ConfRAG
+bash ./prepare_confrag.sh
+
+# CONFACT
+bash ./prepare_confact.sh
+
+# LongBench v2
+bash ./prepare_longbench_v2.sh
+
+# FEVER
+bash ./prepare_fever.sh
+
+# BrowseComp-Plus
+bash ./prepare_browsecomp_plus.sh
 
 # BioASQ
 bash ./prepare_bioasq.sh

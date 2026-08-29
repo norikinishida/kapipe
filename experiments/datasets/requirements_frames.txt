@@ -1,0 +1,5 @@
+apache-beam==2.64.0
+importlib-resources==6.5.2
+tensorflow==2.20.0
+tensorflow-datasets[wikipedia]==4.9.10
+tensorflow-metadata==1.17.2

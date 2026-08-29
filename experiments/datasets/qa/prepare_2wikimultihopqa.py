@@ -34,10 +34,9 @@ def process_split(
     output_split: str,
     output_dir: str,
 ) -> None:
-    # Stream the HotpotQA distractor configuration from Hugging Face
+    # Stream the HotpotQA-compatible 2WikiMultiHopQA data from Hugging Face
     dataset = load_dataset(
-        "hotpotqa/hotpot_qa",
-        "distractor",
+        "framolfese/2WikiMultihopQA",
         split=source_split,
         streaming=True,
     )
@@ -48,15 +47,24 @@ def process_split(
     sentence_level_gold_contexts: list[dict[str, Any]] = []
     gold_contexts_with_distractors: list[dict[str, Any]] = []
 
+    # Convert every QA instance and its context annotations
     for data in tqdm(dataset, desc=f"Processing {source_split}"):
-        # Validate the primary QA fields.
+        # Validate the primary QA fields
         assert isinstance(data["id"], str)
         assert isinstance(data["question"], str)
         assert isinstance(data["answer"], str)
         assert isinstance(data["type"], str)
-        assert isinstance(data["level"], str)
 
-        question_key = f"hotpotqa-{output_split}-{data['id']}"
+        # Preserve the structured reasoning evidence supplied by 2WikiMultiHopQA
+        evidences: list[list[str]] = data["evidences"]
+        assert isinstance(evidences, list)
+        assert all(isinstance(evidence, list) for evidence in evidences)
+        assert all(
+            all(isinstance(value, str) for value in evidence)
+            for evidence in evidences
+        )
+
+        question_key = f"2wikimultihopqa-{output_split}-{data['id']}"
 
         question = {
             "question_key": question_key,
@@ -67,11 +75,11 @@ def process_split(
                 }
             ],
             "type": data["type"],
-            "level": data["level"],
+            "evidences": evidences,
         }
         questions.append(question)
 
-        # Validate the provided context fields
+        # Validate the provided paragraph fields
         original_contexts = data["context"]
         assert isinstance(original_contexts, dict)
 
@@ -94,18 +102,21 @@ def process_split(
             assert isinstance(title, str)
             assert isinstance(sentences, list)
             assert all(isinstance(sentence, str) for sentence in sentences)
-            assert title not in sentences_by_title
+            # Remove exact duplicate paragraphs present in the released data
+            if title in sentences_by_title:
+                assert sentences_by_title[title] == sentences
+                continue
 
             sentences_by_title[title] = sentences
 
             passage = {
                 "title": title,
-                "text": " ".join(s.strip() for s in sentences).strip(),
+                "text": " ".join(sentence.strip() for sentence in sentences).strip(),
             }
             all_passages.append(passage)
 
         # Validate the sentence-level supporting-fact annotations
-        original_supporting_facts: dict[str, Any] = data["supporting_facts"]
+        original_supporting_facts = data["supporting_facts"]
         assert isinstance(original_supporting_facts, dict)
 
         supporting_titles: list[str] = original_supporting_facts["title"]
@@ -141,22 +152,20 @@ def process_split(
                 "title": title,
                 "text": sentences_by_title[title][sentence_index].strip(),
             }
-            sentence_level_passages.append(
-                sentence_level_passage
-            )
+            sentence_level_passages.append(sentence_level_passage)
 
         # Select complete paragraphs containing supporting facts
         supporting_title_set = set(supporting_titles)
         gold_passages = [
-            p 
-            for p in all_passages
-            if p["title"] in supporting_title_set
+            passage
+            for passage in all_passages
+            if passage["title"] in supporting_title_set
         ]
 
         # Verify that every supporting title has a corresponding paragraph
         assert {
-            p["title"]
-            for p in gold_passages
+            passage["title"]
+            for passage in gold_passages
         } == supporting_title_set
 
         gold_contexts.append(
@@ -165,14 +174,12 @@ def process_split(
                 "contexts": gold_passages,
             }
         )
-
         sentence_level_gold_contexts.append(
             {
                 "question_key": question_key,
                 "contexts": sentence_level_passages,
             }
         )
-
         gold_contexts_with_distractors.append(
             {
                 "question_key": question_key,
@@ -181,10 +188,7 @@ def process_split(
         )
 
     # Define the four output files
-    output_file_path = os.path.join(
-        output_dir,
-        f"{output_split}.json",
-    )
+    output_file_path = os.path.join(output_dir, f"{output_split}.json")
     gold_contexts_output_file_path = os.path.join(
         output_dir,
         f"{output_split}.gold_contexts.json",
@@ -220,25 +224,19 @@ def process_split(
         ensure_ascii=False,
     )
 
+    print(f"Processed and saved {len(questions)} questions into {output_file_path}")
     print(
-        f"Processed and saved {len(questions)} questions "
-        f"into {output_file_path}"
+        f"Processed and saved {len(gold_contexts)} gold-context instances "
+        f"into {gold_contexts_output_file_path}"
     )
     print(
-        f"Processed and saved {len(gold_contexts)} "
-        f"gold-context instances into "
-        f"{gold_contexts_output_file_path}"
-    )
-    print(
-        f"Processed and saved "
-        f"{len(sentence_level_gold_contexts)} "
-        f"sentence-level gold-context instances into "
+        f"Processed and saved {len(sentence_level_gold_contexts)} "
+        "sentence-level gold-context instances into "
         f"{sentence_level_gold_contexts_output_file_path}"
     )
     print(
-        f"Processed and saved "
-        f"{len(gold_contexts_with_distractors)} "
-        f"gold-context-with-distractor instances into "
+        f"Processed and saved {len(gold_contexts_with_distractors)} "
+        "gold-context-with-distractor instances into "
         f"{gold_contexts_with_distractors_output_file_path}"
     )
 
