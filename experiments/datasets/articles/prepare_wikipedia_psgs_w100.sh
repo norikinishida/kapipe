@@ -13,8 +13,8 @@ gzip -d ${WIKIPEDIA}/fb/psgs_w100.tsv.gz
 
 
 # Results:
-#   - STORAGE_DATA/articles/wikipedia/psgs_w100.tsv.processed.jsonl
-python prepare_wikipedia_psgs_w100_tsv.py \
+#   - STORAGE_DATA/articles/wikipedia/psgs_w100.jsonl
+python prepare_wikipedia_psgs_w100.py \
     --input_file ${WIKIPEDIA}/fb/psgs_w100.tsv \
-    --output_file ${STORAGE_DATA}/articles/wikipedia/psgs_w100.tsv.processed.jsonl
+    --output_file ${STORAGE_DATA}/articles/wikipedia_psgs_w100/psgs_w100.jsonl
 

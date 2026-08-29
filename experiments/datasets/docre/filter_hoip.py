@@ -2,8 +2,6 @@ import argparse
 
 from tqdm import tqdm
 
-import sys
-sys.path.insert(0, "../../..")
 from kapipe import utils
 
 

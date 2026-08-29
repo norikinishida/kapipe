@@ -1,0 +1,3 @@
+datasets
+wikiextractor==3.0.8
+pyeda==0.29.0

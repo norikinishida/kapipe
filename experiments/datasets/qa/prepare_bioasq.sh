@@ -4,8 +4,6 @@ BIOASQ_TRAINDEV=/home/nishida/storage/dataset/BioASQ/BioASQ12/BioASQ-training12b
 
 STORAGE_DATA=/home/nishida/storage/projects/kapipe/experiments/datasets
 
-SIZE=256
-
 
 # Results
 #   - STORAGE_DATA/qa/bioasq/train_dev.json
@@ -16,14 +14,13 @@ python prepare_bioasq.py \
 
 
 # Results
-#   - STORAGE_DATA/qa/bioasq/train_dev_list_only_pubmed_limited_${SIZE}.json
-#   - STORAGE_DATA/qa/bioasq/train_dev_list_only_pubmed_limited_${SIZE}.contexts.json
+#   - STORAGE_DATA/qa/bioasq/train_dev_list_only_pubmed_limited.json
+#   - STORAGE_DATA/qa/bioasq/train_dev_list_only_pubmed_limited.contexts.json
 python prepare_bioasq.py \
     --input_file ${BIOASQ_TRAINDEV} \
-    --output_file ${STORAGE_DATA}/qa/bioasq/train_dev_list_only_pubmed_limited_${SIZE}.json \
+    --output_file ${STORAGE_DATA}/qa/bioasq/train_dev_list_only_pubmed_limited.json \
     --target_answer_types list \
-    --pubmed_abstracts ${STORAGE_DATA}/articles/pubmed/pubmed_abstracts.jsonl \
-    --size ${SIZE}
+    --pubmed_abstracts ${STORAGE_DATA}/articles/pubmed/pubmed_abstracts.jsonl
 
 
 # Results
