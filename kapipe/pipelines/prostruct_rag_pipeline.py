@@ -61,20 +61,21 @@ class ProStructRAGPipeline:
 
     def make_index(
         self,
+        # Input
         passages: list[Passage] | None,
-        #
+        # Output directory
+        index_dir: str,
+        # Component-specific arguments
         top_k: int,
         prefilter_k: int,
         search_batch_size: int,
         node_id_key: str,
         source_id_key: str,
-        #
-        index_dir: str,
-        target_component: str | None = None,
-        input_artifact_paths: dict[str, str] | None = None,
-        #
         proposition_relation_extraction_indexing_kwargs: dict[str, Any] | None = None,
         passage_retrieval_indexing_kwargs: dict[str, Any] | None = None,
+        # Target component for indexing
+        target_component: str | None = None,
+        input_artifact_paths: dict[str, str] | None = None,
     ) -> None:
         """Build the full index or run one selected indexing component."""
 
@@ -386,13 +387,13 @@ class ProStructRAGPipeline:
                 )
 
             # Build and save the component-specific retrieval index
-            retrieval_index_dir: str = os.path.join(
+            passage_retrieval_index_dir: str = os.path.join(
                 index_dir,
                 "passage_retrieval_index",
             )
             self.passage_retrieval.make_index(
                 passages=propositions,
-                index_dir=index_dir,
+                index_dir=passage_retrieval_index_dir,
                 **passage_retrieval_indexing_kwargs,
             )
 
@@ -424,6 +425,16 @@ class ProStructRAGPipeline:
         append_question_timestamp: bool = True,
     ) -> Question:
         """Run all inference components and answer one question."""
+
+        # Validate that every inference component is initialized
+        if self.passage_retrieval is None:
+            raise ValueError("Passage retrieval component is not initialized.")
+        if self.graph_retrieval is None:
+            raise ValueError("Graph retrieval component is not initialized.")
+        if self.context_formatting is None:
+            raise ValueError("Context formatting component is not initialized.")
+        if self.qa is None:
+            raise ValueError("QA component is not initialized.")
 
         #################################
         # [Step 5b] Passage Retrieval (Search)

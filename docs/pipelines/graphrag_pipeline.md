@@ -11,7 +11,7 @@ The pipeline does not define the behavior of the individual components. See the 
 Knowledge extraction and structuring:
 
 ```text
-Documents
+Documents (input)
   → Named Entity Recognition
   → Entity Disambiguation (Retrieval)
   → Entity Disambiguation (Reranking)
@@ -20,17 +20,16 @@ Documents
   → Community Clustering
   → Report Generation
   → Chunking
-  → Passage Retrieval index
+  → Passage Retrieval index (output)
 ```
 
 Inference:
 
 ```text
-Question
+Question (input)
   → Passage Retrieval
-  → Retrieved report chunks
   → Question Answering
-  → Answer
+  → Answer (output)
 ```
 
 Raw text can optionally be converted into a document using the Chunking component before knowledge structuring.
@@ -56,6 +55,15 @@ Calling a processing method without its required component raises `ValueError`.
 
 ## Methods
 
+The pipeline provides two high-level methods.
+
+| Method | Description |
+|---|---|
+| `make_index()` | Runs all indexing steps and builds a retrieval index over community report chunks |
+| `infer()` | Retrieves report chunks for one question and generates an answer |
+
+The indexing steps can also be run independently through the following component-level methods.
+
 | Step | Method | Connected Component |
 |---|---|---|
 | Optional | `convert_text_to_document()` | Chunking |
@@ -65,7 +73,6 @@ Calling a processing method without its required component raises `ValueError`.
 | 4 | `generate_community_reports()` | Report Generation |
 | 5 | `chunk_reports()` | Chunking |
 | 6 | `make_passage_retrieval_index()` | Passage Retrieval |
-| 7 | `infer()` | Passage Retrieval, Question Answering |
 
 The following methods load intermediate results.
 
@@ -113,14 +120,47 @@ graphrag = GraphRAGPipeline(
 )
 ```
 
-### Run Knowledge Extraction and Structuring
+### Build the Index
+
+```python
+# Set the shared directory for intermediate results
+index_dir = "./indexes"
+
+# Run all indexing steps
+graphrag.make_index(
+    documents=documents,
+    retrieval_size=10,
+    window_size=128,
+    index_dir=index_dir,
+    entity_dict_path="./entity_dict.json",
+    additional_triples_path=None,
+    passage_retrieval_indexing_kwargs={
+        "batch_size": 64,
+    },
+)
+```
+
+Values in `passage_retrieval_indexing_kwargs` are forwarded to the Passage Retrieval component. Omit arguments unsupported by the selected component.
+
+### Run Inference
+
+```python
+# Retrieve report chunks from the index and answer one question
+result_question = graphrag.infer(
+    question=question,
+    top_k=5,
+)
+```
+
+The retrieved report chunks are preserved in the pipeline output as `contexts`.
+
+### Run Individual Indexing Steps
+
+Each indexing step remains available separately for inspection, replacement, or resumption.
 
 ```python
 import os
 
-
-# Set the shared directory for intermediate results
-index_dir = "./indexes"
 
 # Extract triples from the input documents
 documents_with_triples = graphrag.extract_triples(
@@ -168,23 +208,6 @@ graphrag.make_passage_retrieval_index(
 ```
 
 Additional keyword arguments passed to `make_passage_retrieval_index()` are forwarded to the Passage Retrieval component.
-
-### Run Inference
-
-```python
-# Load the retrieval index created during knowledge structuring
-graphrag.load_passage_retrieval_index(
-    index_dir="./indexes",
-)
-
-# Retrieve report chunks and answer one question
-result_question = graphrag.infer(
-    question=question,
-    top_k=5,
-)
-```
-
-The retrieved report chunks are preserved in the pipeline output as `contexts`.
 
 ### Resume from Intermediate Results
 
@@ -240,6 +263,8 @@ result_question = graphrag.infer(
 ```
 
 ## Intermediate Files
+
+`make_index()` creates all intermediate results and the component-dependent retrieval index listed below.
 
 | File | Created By | Loaded By |
 |---|---|---|

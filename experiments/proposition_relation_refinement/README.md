@@ -40,9 +40,9 @@ Each input triple should be a JSON object with `head`, `relation`, `tail`, and `
 
 ```json
 {
-    "head": {"text": "Example head proposition."},
+    "head": {"text": "Example head proposition.", "timestamp": "2024-06-01"},
     "relation": "supports",
-    "tail": {"text": "Example tail proposition."},
+    "tail": {"text": "Example tail proposition.", "timestamp": "2023-05-01"},
     "explanation": "Example explanation."
 }
 ```

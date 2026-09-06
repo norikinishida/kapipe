@@ -14,8 +14,8 @@ STORAGE_RESULTS=/home/nishida/projects/kapipe/experiments/graphrag_pipeline_tacl
 # Method
 METHOD=default
 CONFIG_PATH=./config/default.conf
-CONFIG_NAME=llm___egc___hl___llm___w100___contriever___gpt4o___cdr
 # CONFIG_NAME=slm___egc___na___temp___w100___contriever___gpt4o___cdr
+CONFIG_NAME=llm___egc___hl___llm___w100___contriever___gpt4o___cdr
 
 # Input Data
 INPUT_DOCUMENTS=${STORAGE_DATA}/examples/documents.json
@@ -53,7 +53,7 @@ done
 
 # Require the action type
 if [ -z "${ACTIONTYPE}" ]; then
-    echo "Usage: bash run_graphrag_pipeline.sh --actiontype {triple_extraction|entity_graph_construction|community_clustering|report_generation|chunking|retrieval_indexing|inference|all}"
+    echo "Usage: bash run_graphrag_pipeline.sh --actiontype {triple_extraction|entity_graph_construction|community_clustering|report_generation|chunking|passage_retrieval_indexing|inference|all}"
     exit 1
 fi
 
@@ -113,14 +113,14 @@ if [ "${ACTIONTYPE}" = "chunking" ] || [ "${ACTIONTYPE}" = "all" ]; then
         --actiontype chunking
 fi
 
-if [ "${ACTIONTYPE}" = "retrieval_indexing" ] || [ "${ACTIONTYPE}" = "all" ]; then
+if [ "${ACTIONTYPE}" = "passage_retrieval_indexing" ] || [ "${ACTIONTYPE}" = "all" ]; then
     python run_graphrag_pipeline.py \
         --method ${METHOD} \
         --config_path ${CONFIG_PATH} \
         --config_name ${CONFIG_NAME} \
         --results_dir ${RESULTS_DIR} \
         --prefix ${MYPREFIX} \
-        --actiontype retrieval_indexing
+        --actiontype passage_retrieval_indexing
 fi
 
 if [ "${ACTIONTYPE}" = "inference" ] || [ "${ACTIONTYPE}" = "all" ]; then

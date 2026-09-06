@@ -74,23 +74,19 @@ First, check `STORAGE_DATA` and `STORAGE_RESULTS` in the execution script and ad
 
 If you modified the configuration file or added new configuration entries, make sure that the execution script refers to the intended configuration.
 
-The pipeline consists of seven sequential actions.
-
-- `triple_extraction`: extract triples from documents using NER, ED-Retrieval, ED-Reranking, and DocRE components.
-- `entity_graph_construction`: build an entity graph from triples.
-- `community_clustering`: cluster entities in the graph.
-- `report_generation`: generate reports for the clustered communities.
-- `chunking`: split community reports into chunks.
-- `retrieval_indexing`: build a passage retrieval index over chunked reports.
-- `inference`: retrieve report chunks for each question and generate answers.
-
-Run one action at a time:
+Run each action sequentially using the following commands:
 
 ```bash
 bash ./run_graphrag_pipeline.sh --actiontype triple_extraction
+bash ./run_graphrag_pipeline.sh --actiontype entity_graph_construction
+bash ./run_graphrag_pipeline.sh --actiontype community_clustering
+bash ./run_graphrag_pipeline.sh --actiontype report_generation
+bash ./run_graphrag_pipeline.sh --actiontype chunking
+bash ./run_graphrag_pipeline.sh --actiontype passage_retrieval_indexing
+bash ./run_graphrag_pipeline.sh --actiontype inference
 ```
 
-Run all actions:
+Run all actions at once:
 
 ```bash
 bash ./run_graphrag_pipeline.sh --actiontype all

@@ -33,7 +33,7 @@ python -m pip install -r requirements.txt
 This directory already includes example data.
 
 ```bash
-experiments/context_formatting/data/examples/questions.contexts.graph_retrieval.json
+experiments/context_formatting/data/examples/questions.graph_contexts.json
 ```
 
 ## Step 3. Configuration Setup

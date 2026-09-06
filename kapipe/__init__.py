@@ -15,17 +15,23 @@ __all__ = [
     "ed_retrieval",
     "ed_reranking",
     "docre",
+    "proposition_extraction",
+    "proposition_relation_extraction",
+    "proposition_relation_refinement",
 
     # Components for Knowledge Organization
     "entity_graph_construction",
+    "passage_graph_construction",
     "community_clustering",
     "report_generation",
     "chunking",
 
     # Components for Knowledge Retrieval
     "passage_retrieval",
+    "graph_retrieval",
 
     # Components for Knowledge Utilization
+    "context_formatting",
     "qa",
 
     # Others

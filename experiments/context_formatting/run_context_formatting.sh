@@ -17,7 +17,7 @@ CONFIG_PATH=./config/graph_verbalizer.conf
 CONFIG_NAME=temporal
 
 # Input Data
-INPUT_GRAPH_CONTEXTS=${STORAGE_DATA}/examples/questions.contexts.graph_retrieval.json
+INPUT_GRAPH_CONTEXTS=${STORAGE_DATA}/examples/questions.graph_contexts.json
 
 # Output Path
 RESULTS_DIR=${STORAGE_RESULTS}

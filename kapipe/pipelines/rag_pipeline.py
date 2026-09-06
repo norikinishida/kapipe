@@ -20,6 +20,10 @@ class RAGPipeline:
         self.passage_retrieval = passage_retrieval
         self.qa = qa
 
+    ####################
+    # Indexing
+    ####################
+
     def make_index(
         self,
         passages: list[Passage],
@@ -28,20 +32,21 @@ class RAGPipeline:
     ) -> None:
         """Build an index over passages."""
 
-        # Delegate index construction to the Passage Retrieval component
         self.passage_retrieval.make_index(
             passages=passages,
             index_dir=index_dir,
             **kwargs,
         )
 
+    ####################
+    # Inference
+    ####################
+
     def load_index(
         self,
         index_dir: str,
     ) -> None:
         """Load an existing index."""
-
-        # Delegate index loading to the Passage Retrieval component
         self.passage_retrieval.load_index(index_dir=index_dir)
 
     def infer(

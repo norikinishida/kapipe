@@ -266,8 +266,8 @@ def main(args: argparse.Namespace) -> None:
         )
 
     if actiontype != "inference":
+        # Load passages only when Proposition Extraction is selected
         if actiontype == "proposition_extraction":
-            # Load passages
             if input_passages_path is None:
                 raise ValueError(
                     "--input_passages is required for proposition_extraction"
@@ -276,6 +276,7 @@ def main(args: argparse.Namespace) -> None:
         else:
             passages = None
 
+        # Set component-specific arguments
         if config["proposition_relation_extraction"]["retriever"]["method_name"] == (
             "bm25"
         ):
@@ -295,8 +296,13 @@ def main(args: argparse.Namespace) -> None:
                 ),
             }
 
+        # Run the selected ProStruct-RAG indexing component
         prostruct_rag.make_index(
+            # Input
             passages=passages,
+            # Output directory
+            index_dir=index_dir,
+            # Component-specific arguments
             top_k=(
                 config["proposition_relation_extraction"]["retriever"][
                     "top_k"
@@ -314,21 +320,20 @@ def main(args: argparse.Namespace) -> None:
             ),
             node_id_key=node_id_key,
             source_id_key=config["proposition_extraction"]["source_id_key"],
-            #
-            index_dir=index_dir,
-            target_component=actiontype,
-            #
             proposition_relation_extraction_indexing_kwargs=(
                 proposition_relation_extraction_indexing_kwargs
             ),
             passage_retrieval_indexing_kwargs=passage_retrieval_indexing_kwargs,
+            # Target component for indexing
+            target_component=actiontype,
         )
 
-    elif actiontype == "inference":
-        assert input_questions_path is not None
+    else:
         assert base_filename is not None
 
         # Load questions
+        if input_questions_path is None:
+            raise ValueError("--input_questions is required for inference")
         questions: list[Question] = utils.read_json(input_questions_path)
 
         logging.info(
@@ -336,7 +341,7 @@ def main(args: argparse.Namespace) -> None:
             f"{len(questions)} questions in {input_questions_path} ..."
         )
 
-        # Load the passage retrieval index and the passage graph
+        # Load the built index
         prostruct_rag.load_index(index_dir=index_dir)
 
         # Run all inference components for every question
@@ -350,13 +355,11 @@ def main(args: argparse.Namespace) -> None:
             )
             result_questions.append(result_question)
 
-        # Set the output path
+        # Save the results
         output_questions_path: str = os.path.join(
             base_output_path,
             f"{base_filename}.pred.json",
         )
-
-        # Save the results
         utils.write_json(output_questions_path, result_questions)
         logging.info(f"Saved QA results to {output_questions_path}")
 
@@ -447,9 +450,6 @@ def main(args: argparse.Namespace) -> None:
             logging.info(
                 f"Saved evaluation results to {output_evaluation_path}"
             )
-
-    else:
-        raise ValueError(f"Unknown actiontype: {actiontype}")
 
     ##################
     # Closing

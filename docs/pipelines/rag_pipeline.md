@@ -9,19 +9,18 @@ The pipeline delegates retrieval and answer generation to the supplied component
 Index construction:
 
 ```text
-Passages
+Passages (input)
   → Passage Retrieval
-  → Retrieval index
+    → Retrieval index (output)
 ```
 
 Inference:
 
 ```text
-Question
+Question (input)
   → Passage Retrieval
-  → Retrieved passages
   → Question Answering
-  → Answer
+    → Answer (output)
 ```
 
 The retrieved passages are preserved in the pipeline output as `contexts`.

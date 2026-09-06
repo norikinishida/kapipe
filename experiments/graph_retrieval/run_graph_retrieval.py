@@ -127,7 +127,7 @@ def main(args):
     base_filename = os.path.splitext(os.path.basename(input_anchor_contexts_path))[0]
     output_contexts_path = os.path.join(
         base_output_path,
-        base_filename + ".graph_retrieval.json"
+        base_filename + ".graph_contexts.json"
     )
     utils.write_json(output_contexts_path, anchor_contexts)
     logging.info(f"Saved Graph Retrieval results to {output_contexts_path}")

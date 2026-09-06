@@ -116,7 +116,7 @@ def main(args):
     )[0]
     output_contexts_path = os.path.join(
         base_output_path,
-        base_filename + ".context_formatting.json"
+        base_filename + ".formatted_contexts.json"
     )
     utils.write_json(output_contexts_path, graph_contexts)
     logging.info(f"Saved Context Formatting results to {output_contexts_path}")
