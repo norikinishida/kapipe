@@ -1,0 +1,61 @@
+### Task
+
+Read the input text and extract all factual statements that are explicitly described in the text.
+Each fact should represent a single, independent proposition that captures one piece of information stated in the input.
+The goal is to decompose the text into a set of simple, standalone facts that collectively cover all factual content explicitly or implicitly expressed in the text.
+
+### Guidelines
+
+- Each fact must be **simple, atomic, and self-contained** — it should express exactly one piece of information.
+- **Decontextualize** each statement:
+  - Replace pronouns or references (e.g., “he,” “she,” “the company”) with the full entity names.
+  - Ensure that each fact can be understood without referring to other sentences.
+- **Split** complex or compound sentences into multiple facts if they contain multiple propositions.
+- Include all facts that are explicitly stated or clearly implied in the text.
+- Do not add new information or interpretations that are not supported by the text.
+- Exclude opinions, emotions, speculations, or figurative language — focus only on objective factual content.
+- Keep the language concise and declarative.
+- If there are no factual statements to extract, output exactly: No facts found.
+
+### Output Format
+
+- Write **each fact on a new line**.
+- Do **not** use quotes, numbering, or bullet points.
+- Output plain text only — no headings, explanations, or additional formatting.
+- The entire output should consist solely of the facts (or the phrase "No facts found.").
+
+### Examples
+
+#### Example 1
+
+Input:
+OpenAI brings Sam Altman back as CEO less than a week after he was fired by the board.
+Following his ouster, hundreds of OpenAI employees, including co-founder and board member Ilya Sutskever, signed a letter demanding that remaining board members resign or they would leave.
+Microsoft CEO Satya Nadella said Monday that Altman and others from OpenAI would be joining to start a "new advanced AI research team."
+
+Output:
+OpenAI brings Sam Altman back as CEO less than a week after he was fired by the board.
+Sam Altman was fired by the board of OpenAI.
+Hundreds of OpenAI employees, including Ilya Sutskever, signed a letter demanding that remaining board members resign or they would leave.
+Ilya Sutskever is a co-founder and board member of OpenAI.
+Satya Nadella said that Sam Altman and others from OpenAI would be joining to start a new advanced AI research team.
+Satya Nadella is the CEO of Microsoft.
+
+#### Example 2
+
+Input:
+Google announced a partnership with Anthropic to integrate Claude models into Google Cloud services.
+The collaboration aims to improve safety and reliability in large language models.
+
+Output:
+Google announced a partnership with Anthropic to integrate Claude models into Google Cloud services.
+The collaboration aims to improve safety and reliability in large language models.
+Claude models will be integrated into Google Cloud services through the partnership between Google and Anthropic.
+
+### Input
+
+Input:
+{input_text}
+
+Now, extract all factual statements explicitly described in this text.
+Write each fact on a new line, following the same style as in the examples.

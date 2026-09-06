@@ -1,6 +1,9 @@
 recursive-include kapipe/ner/prompt_templates *.txt
 recursive-include kapipe/ed_reranking/prompt_templates *.txt
 recursive-include kapipe/docre/prompt_templates *.txt
+recursive-include kapipe/proposition_extraction/prompt_templates *.txt
+recursive-include kapipe/proposition_relation_extraction/prompt_templates *.txt
+recursive-include kapipe/proposition_relation_refinement/prompt_templates *.txt
 recursive-include kapipe/report_generation/prompt_templates *.txt
 recursive-include kapipe/qa/prompt_templates *.txt
 recursive-include kapipe/agents/prompt_templates *.txt

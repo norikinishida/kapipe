@@ -188,7 +188,8 @@ def main(args):
                     "contexts": passages
                 }
                 contexts.append(contexts_for_question)
- 
+
+        # Save the retrieval results
         output_contexts_path = os.path.join(
             search_results_dir,
             f"{base_filename}.contexts.json",

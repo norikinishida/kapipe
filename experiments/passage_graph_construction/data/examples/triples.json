@@ -1,0 +1,50 @@
+[
+    {
+        "head": {
+            "text": "An independent audit found that the Northbridge payment system processed 99.9% of transactions within two seconds in February 2025.",
+            "timestamp": "2025-03-01"
+        },
+        "relation": "updates",
+        "tail": {
+            "text": "A preliminary report found that the Northbridge payment system processed 97.0% of transactions within two seconds in January 2025.",
+            "timestamp": "2025-02-01"
+        },
+        "explanation": "The February audit updates the January processing rate from 97.0% to 99.9%."
+    },
+    {
+        "head": {
+            "text": "An independent audit found that the Northbridge payment system processed 99.9% of transactions within two seconds in February 2025.",
+            "timestamp": "2025-03-01"
+        },
+        "relation": "supports",
+        "tail": {
+            "text": "An independent audit found that the Northbridge payment system processed only 82.0% of transactions within two seconds in February 2025.",
+            "timestamp": "2025-03-01"
+        },
+        "explanation": "Both audit results describe the processing performance in February 2025."
+    },
+    {
+        "head": {
+            "text": "An independent audit found that the Northbridge payment system processed 99.9% of transactions within two seconds in February 2025.",
+            "timestamp": "2025-03-01"
+        },
+        "relation": "supports",
+        "tail": {
+            "text": "The operator reported that a recent upgrade improved the response time of the Northbridge payment system.",
+            "timestamp": "2025-02-15"
+        },
+        "explanation": "The audit result provides evidence that the recent upgrade improved response time."
+    },
+    {
+        "head": {
+            "text": "An independent audit found that the Northbridge payment system processed 99.9% of transactions within two seconds in February 2025.",
+            "timestamp": "2025-03-01"
+        },
+        "relation": "supports",
+        "tail": {
+            "text": "The Northbridge City Museum will open an exhibition of nineteenth-century landscape paintings.",
+            "timestamp": "2025-02-20"
+        },
+        "explanation": "Both propositions concern events in Northbridge."
+    }
+]

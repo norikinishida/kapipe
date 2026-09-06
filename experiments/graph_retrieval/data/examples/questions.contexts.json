@@ -1,0 +1,12 @@
+[
+    {
+        "question_key": "question#001",
+        "question": "What did the independent audit report about the Northbridge payment system?",
+        "contexts": [
+            {
+                "text": "An independent audit found that the Northbridge payment system processed 99.9% of transactions within two seconds in February 2025.",
+                "timestamp": "2025-03-01"
+            }
+        ]
+    }
+]

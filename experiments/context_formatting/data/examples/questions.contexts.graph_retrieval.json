@@ -1,0 +1,65 @@
+[
+    {
+        "question_key": "question#001",
+        "question": "What did the independent audit report about the Northbridge payment system?",
+        "contexts": null,
+        "nodes": [
+            {
+                "node_id": "A preliminary report found that the Northbridge payment system processed 97.0% of transactions within two seconds in January 2025.",
+                "text": "A preliminary report found that the Northbridge payment system processed 97.0% of transactions within two seconds in January 2025.",
+                "timestamp": "2025-02-01",
+                "is_anchor": false
+            },
+            {
+                "node_id": "The operator reported that a recent upgrade improved the response time of the Northbridge payment system.",
+                "text": "The operator reported that a recent upgrade improved the response time of the Northbridge payment system.",
+                "timestamp": "2025-02-15",
+                "is_anchor": false
+            },
+            {
+                "node_id": "The Northbridge City Museum will open an exhibition of nineteenth-century landscape paintings.",
+                "text": "The Northbridge City Museum will open an exhibition of nineteenth-century landscape paintings.",
+                "timestamp": "2025-02-20",
+                "is_anchor": false
+            },
+            {
+                "node_id": "An independent audit found that the Northbridge payment system processed only 82.0% of transactions within two seconds in February 2025.",
+                "text": "An independent audit found that the Northbridge payment system processed only 82.0% of transactions within two seconds in February 2025.",
+                "timestamp": "2025-03-01",
+                "is_anchor": false
+            },
+            {
+                "node_id": "An independent audit found that the Northbridge payment system processed 99.9% of transactions within two seconds in February 2025.",
+                "text": "An independent audit found that the Northbridge payment system processed 99.9% of transactions within two seconds in February 2025.",
+                "timestamp": "2025-03-01",
+                "is_anchor": true
+            }
+        ],
+        "edges": [
+            {
+                "head": 4,
+                "tail": 0,
+                "relation": "updates",
+                "explanation": "The February audit updates the January processing rate from 97.0% to 99.9%."
+            },
+            {
+                "head": 4,
+                "tail": 1,
+                "relation": "supports",
+                "explanation": "The audit result provides evidence that the recent upgrade improved response time."
+            },
+            {
+                "head": 4,
+                "tail": 2,
+                "relation": "supports",
+                "explanation": "Both propositions concern events in Northbridge."
+            },
+            {
+                "head": 4,
+                "tail": 3,
+                "relation": "supports",
+                "explanation": "Both audit results describe the processing performance in February 2025."
+            }
+        ]
+    }
+]

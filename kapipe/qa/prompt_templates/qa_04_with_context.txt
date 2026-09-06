@@ -1,6 +1,6 @@
 ### Task
 
-You are given a question and a set of **context**, each possibly from a different document.
+You are given a question and context, which may come from multiple sources.
 
 Your task is to:
 
@@ -32,7 +32,7 @@ Ensure each field (Rationale, Answer, and Score) is output as a separate line st
 
 Example:
 
-Rationale: The context passages state that aspirin is commonly prescribed for pain relief, fever reduction, and inflammatory control, and no passage contradicts these uses.
+Rationale: The context states that aspirin is commonly prescribed for pain relief, fever reduction, and inflammatory control, and no passage contradicts these uses.
 Answer: Aspirin is used to treat pain, fever, and inflammation.
 Score: 0.95
 

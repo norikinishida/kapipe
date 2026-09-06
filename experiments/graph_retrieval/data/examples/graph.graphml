@@ -1,0 +1,45 @@
+<?xml version='1.0' encoding='utf-8'?>
+<graphml xmlns="http://graphml.graphdrawing.org/xmlns" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://graphml.graphdrawing.org/xmlns http://graphml.graphdrawing.org/xmlns/1.0/graphml.xsd">
+  <key id="d3" for="edge" attr.name="explanation" attr.type="string" />
+  <key id="d2" for="edge" attr.name="relation" attr.type="string" />
+  <key id="d1" for="node" attr.name="timestamp" attr.type="string" />
+  <key id="d0" for="node" attr.name="text" attr.type="string" />
+  <graph edgedefault="directed">
+    <node id="An independent audit found that the Northbridge payment system processed 99.9% of transactions within two seconds in February 2025.">
+      <data key="d0">An independent audit found that the Northbridge payment system processed 99.9% of transactions within two seconds in February 2025.</data>
+      <data key="d1">2025-03-01</data>
+    </node>
+    <node id="A preliminary report found that the Northbridge payment system processed 97.0% of transactions within two seconds in January 2025.">
+      <data key="d0">A preliminary report found that the Northbridge payment system processed 97.0% of transactions within two seconds in January 2025.</data>
+      <data key="d1">2025-02-01</data>
+    </node>
+    <node id="An independent audit found that the Northbridge payment system processed only 82.0% of transactions within two seconds in February 2025.">
+      <data key="d0">An independent audit found that the Northbridge payment system processed only 82.0% of transactions within two seconds in February 2025.</data>
+      <data key="d1">2025-03-01</data>
+    </node>
+    <node id="The operator reported that a recent upgrade improved the response time of the Northbridge payment system.">
+      <data key="d0">The operator reported that a recent upgrade improved the response time of the Northbridge payment system.</data>
+      <data key="d1">2025-02-15</data>
+    </node>
+    <node id="The Northbridge City Museum will open an exhibition of nineteenth-century landscape paintings.">
+      <data key="d0">The Northbridge City Museum will open an exhibition of nineteenth-century landscape paintings.</data>
+      <data key="d1">2025-02-20</data>
+    </node>
+    <edge source="An independent audit found that the Northbridge payment system processed 99.9% of transactions within two seconds in February 2025." target="A preliminary report found that the Northbridge payment system processed 97.0% of transactions within two seconds in January 2025.">
+      <data key="d2">updates</data>
+      <data key="d3">The February audit updates the January processing rate from 97.0% to 99.9%.</data>
+    </edge>
+    <edge source="An independent audit found that the Northbridge payment system processed 99.9% of transactions within two seconds in February 2025." target="An independent audit found that the Northbridge payment system processed only 82.0% of transactions within two seconds in February 2025.">
+      <data key="d2">supports</data>
+      <data key="d3">Both audit results describe the processing performance in February 2025.</data>
+    </edge>
+    <edge source="An independent audit found that the Northbridge payment system processed 99.9% of transactions within two seconds in February 2025." target="The operator reported that a recent upgrade improved the response time of the Northbridge payment system.">
+      <data key="d2">supports</data>
+      <data key="d3">The audit result provides evidence that the recent upgrade improved response time.</data>
+    </edge>
+    <edge source="An independent audit found that the Northbridge payment system processed 99.9% of transactions within two seconds in February 2025." target="The Northbridge City Museum will open an exhibition of nineteenth-century landscape paintings.">
+      <data key="d2">supports</data>
+      <data key="d3">Both propositions concern events in Northbridge.</data>
+    </edge>
+  </graph>
+</graphml>
