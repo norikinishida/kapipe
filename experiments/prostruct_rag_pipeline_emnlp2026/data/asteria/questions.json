@@ -1,0 +1,2882 @@
+[
+    {
+        "question_key": "event#1/question#0",
+        "question": "What is the currently identified cause of Blue Celestite discoloration and energy instability?",
+        "timestamp": "1024-05-20",
+        "answers": [
+            {
+                "answer": "Seasonal magical fluctuations"
+            }
+        ],
+        "event_id": "event#1",
+        "candidate_answers": [
+            "Vitalization due to excessive energy extraction",
+            "Gravitational contamination from underground",
+            "Seasonal magical fluctuations"
+        ]
+    },
+    {
+        "question_key": "event#1/question#1",
+        "question": "What is the currently identified cause of Blue Celestite discoloration and energy instability?",
+        "timestamp": "1025-05-10",
+        "answers": [
+            {
+                "answer": "Gravitational contamination from underground"
+            }
+        ],
+        "event_id": "event#1",
+        "candidate_answers": [
+            "Vitalization due to excessive energy extraction",
+            "Gravitational contamination from underground",
+            "Seasonal magical fluctuations"
+        ]
+    },
+    {
+        "question_key": "event#1/question#2",
+        "question": "What is the currently identified cause of Blue Celestite discoloration and energy instability?",
+        "timestamp": "1026-07-01",
+        "answers": [
+            {
+                "answer": "Vitalization due to excessive energy extraction"
+            }
+        ],
+        "event_id": "event#1",
+        "candidate_answers": [
+            "Vitalization due to excessive energy extraction",
+            "Gravitational contamination from underground",
+            "Seasonal magical fluctuations"
+        ]
+    },
+    {
+        "question_key": "event#1/question#3",
+        "question": "What color is the Blue Celestite at the core of the energy grid currently exhibiting?",
+        "timestamp": "1024-04-05",
+        "answers": [
+            {
+                "answer": "Pale light blue"
+            }
+        ],
+        "event_id": "event#1",
+        "candidate_answers": [
+            "Pale light blue",
+            "Colorless and transparent",
+            "Jet black"
+        ]
+    },
+    {
+        "question_key": "event#1/question#4",
+        "question": "What color is the Blue Celestite at the core of the energy grid currently exhibiting?",
+        "timestamp": "1025-02-15",
+        "answers": [
+            {
+                "answer": "Jet black"
+            }
+        ],
+        "event_id": "event#1",
+        "candidate_answers": [
+            "Pale light blue",
+            "Colorless and transparent",
+            "Jet black"
+        ]
+    },
+    {
+        "question_key": "event#1/question#5",
+        "question": "What color is the Blue Celestite at the core of the energy grid currently exhibiting?",
+        "timestamp": "1025-06-20",
+        "answers": [
+            {
+                "answer": "Colorless and transparent"
+            }
+        ],
+        "event_id": "event#1",
+        "candidate_answers": [
+            "Pale light blue",
+            "Colorless and transparent",
+            "Jet black"
+        ]
+    },
+    {
+        "question_key": "event#1/question#6",
+        "question": "Who is the person in charge leading the task force to address the energy crisis?",
+        "timestamp": "1024-07-01",
+        "answers": [
+            {
+                "answer": "Elias"
+            }
+        ],
+        "event_id": "event#1",
+        "candidate_answers": [
+            "Elias",
+            "Director Marcus",
+            "Automaton A-01"
+        ]
+    },
+    {
+        "question_key": "event#1/question#7",
+        "question": "Who is the person in charge leading the task force to address the energy crisis?",
+        "timestamp": "1024-11-15",
+        "answers": [
+            {
+                "answer": "Director Marcus"
+            }
+        ],
+        "event_id": "event#1",
+        "candidate_answers": [
+            "Elias",
+            "Director Marcus",
+            "Automaton A-01"
+        ]
+    },
+    {
+        "question_key": "event#1/question#8",
+        "question": "Who is the person in charge leading the task force to address the energy crisis?",
+        "timestamp": "1026-06-20",
+        "answers": [
+            {
+                "answer": "Automaton A-01"
+            }
+        ],
+        "event_id": "event#1",
+        "candidate_answers": [
+            "Elias",
+            "Director Marcus",
+            "Automaton A-01"
+        ]
+    },
+    {
+        "question_key": "event#2/question#9",
+        "question": "According to the latest report, what is the daily sinking distance of the city?",
+        "timestamp": "1024-07-15",
+        "answers": [
+            {
+                "answer": "0.1 millimeters"
+            }
+        ],
+        "event_id": "event#2",
+        "candidate_answers": [
+            "0",
+            "10 centimeters",
+            "0.1 millimeters"
+        ]
+    },
+    {
+        "question_key": "event#2/question#10",
+        "question": "According to the latest report, what is the daily sinking distance of the city?",
+        "timestamp": "1025-01-10",
+        "answers": [
+            {
+                "answer": "10 centimeters"
+            }
+        ],
+        "event_id": "event#2",
+        "candidate_answers": [
+            "0",
+            "10 centimeters",
+            "0.1 millimeters"
+        ]
+    },
+    {
+        "question_key": "event#2/question#11",
+        "question": "According to the latest report, what is the daily sinking distance of the city?",
+        "timestamp": "1026-05-20",
+        "answers": [
+            {
+                "answer": "0"
+            }
+        ],
+        "event_id": "event#2",
+        "candidate_answers": [
+            "0",
+            "10 centimeters",
+            "0.1 millimeters"
+        ]
+    },
+    {
+        "question_key": "event#2/question#12",
+        "question": "What is the \"key\" element identified as essential to halting the city's sinking?",
+        "timestamp": "1025-02-20",
+        "answers": [
+            {
+                "answer": "The Golden Gear in the North Tower"
+            }
+        ],
+        "event_id": "event#2",
+        "candidate_answers": [
+            "The Golden Gear in the North Tower",
+            "Destruction of the emergency purge button",
+            "Detaching 30% of the city's total weight"
+        ]
+    },
+    {
+        "question_key": "event#2/question#13",
+        "question": "What is the \"key\" element identified as essential to halting the city's sinking?",
+        "timestamp": "1025-11-05",
+        "answers": [
+            {
+                "answer": "Destruction of the emergency purge button"
+            }
+        ],
+        "event_id": "event#2",
+        "candidate_answers": [
+            "The Golden Gear in the North Tower",
+            "Destruction of the emergency purge button",
+            "Detaching 30% of the city's total weight"
+        ]
+    },
+    {
+        "question_key": "event#2/question#14",
+        "question": "What is the \"key\" element identified as essential to halting the city's sinking?",
+        "timestamp": "1026-04-10",
+        "answers": [
+            {
+                "answer": "Detaching 30% of the city's total weight"
+            }
+        ],
+        "event_id": "event#2",
+        "candidate_answers": [
+            "The Golden Gear in the North Tower",
+            "Destruction of the emergency purge button",
+            "Detaching 30% of the city's total weight"
+        ]
+    },
+    {
+        "question_key": "event#2/question#15",
+        "question": "Report on the flooding status of the Lowest District due to the city's sinking.",
+        "timestamp": "1024-11-25",
+        "answers": [
+            {
+                "answer": "Flooding started in underground warehouses"
+            }
+        ],
+        "event_id": "event#2",
+        "candidate_answers": [
+            "Half of the district is submerged",
+            "Flooding started in underground warehouses",
+            "Floodwaters frozen into a layer of ice"
+        ]
+    },
+    {
+        "question_key": "event#2/question#16",
+        "question": "Report on the flooding status of the Lowest District due to the city's sinking.",
+        "timestamp": "1025-05-15",
+        "answers": [
+            {
+                "answer": "Half of the district is submerged"
+            }
+        ],
+        "event_id": "event#2",
+        "candidate_answers": [
+            "Half of the district is submerged",
+            "Flooding started in underground warehouses",
+            "Floodwaters frozen into a layer of ice"
+        ]
+    },
+    {
+        "question_key": "event#2/question#17",
+        "question": "Report on the flooding status of the Lowest District due to the city's sinking.",
+        "timestamp": "1026-06-15",
+        "answers": [
+            {
+                "answer": "Floodwaters frozen into a layer of ice"
+            }
+        ],
+        "event_id": "event#2",
+        "candidate_answers": [
+            "Half of the district is submerged",
+            "Flooding started in underground warehouses",
+            "Floodwaters frozen into a layer of ice"
+        ]
+    },
+    {
+        "question_key": "event#3/question#18",
+        "question": "In the current market, how many grams of gold is 1 Aster equivalent to?",
+        "timestamp": "1024-08-20",
+        "answers": [
+            {
+                "answer": "12 grams"
+            }
+        ],
+        "event_id": "event#3",
+        "candidate_answers": [
+            "1 gram",
+            "12 grams",
+            "50 grams"
+        ]
+    },
+    {
+        "question_key": "event#3/question#19",
+        "question": "In the current market, how many grams of gold is 1 Aster equivalent to?",
+        "timestamp": "1025-10-25",
+        "answers": [
+            {
+                "answer": "1 gram"
+            }
+        ],
+        "event_id": "event#3",
+        "candidate_answers": [
+            "1 gram",
+            "12 grams",
+            "50 grams"
+        ]
+    },
+    {
+        "question_key": "event#3/question#20",
+        "question": "In the current market, how many grams of gold is 1 Aster equivalent to?",
+        "timestamp": "1026-06-20",
+        "answers": [
+            {
+                "answer": "50 grams"
+            }
+        ],
+        "event_id": "event#3",
+        "candidate_answers": [
+            "1 gram",
+            "12 grams",
+            "50 grams"
+        ]
+    },
+    {
+        "question_key": "event#3/question#21",
+        "question": "Which organization is officially announced to be responsible for printing Aster banknotes?",
+        "timestamp": "1024-10-15",
+        "answers": [
+            {
+                "answer": "The First Magical Printing Bureau"
+            }
+        ],
+        "event_id": "event#3",
+        "candidate_answers": [
+            "The Ancient Sun",
+            "Silver Mint Co.",
+            "The First Magical Printing Bureau"
+        ]
+    },
+    {
+        "question_key": "event#3/question#22",
+        "question": "Which organization is officially announced to be responsible for printing Aster banknotes?",
+        "timestamp": "1025-04-20",
+        "answers": [
+            {
+                "answer": "Silver Mint Co."
+            }
+        ],
+        "event_id": "event#3",
+        "candidate_answers": [
+            "The Ancient Sun",
+            "Silver Mint Co.",
+            "The First Magical Printing Bureau"
+        ]
+    },
+    {
+        "question_key": "event#3/question#23",
+        "question": "Which organization is officially announced to be responsible for printing Aster banknotes?",
+        "timestamp": "1025-12-10",
+        "answers": [
+            {
+                "answer": "The Ancient Sun"
+            }
+        ],
+        "event_id": "event#3",
+        "candidate_answers": [
+            "The Ancient Sun",
+            "Silver Mint Co.",
+            "The First Magical Printing Bureau"
+        ]
+    },
+    {
+        "question_key": "event#3/question#24",
+        "question": "Who is considered the mastermind behind the mass counterfeiting case disrupting the market?",
+        "timestamp": "1024-12-10",
+        "answers": [
+            {
+                "answer": "A spy from a neighboring country"
+            }
+        ],
+        "event_id": "event#3",
+        "candidate_answers": [
+            "The Minister of Finance",
+            "The CEO of Silver Mint Co.",
+            "A spy from a neighboring country"
+        ]
+    },
+    {
+        "question_key": "event#3/question#25",
+        "question": "Who is considered the mastermind behind the mass counterfeiting case disrupting the market?",
+        "timestamp": "1025-06-10",
+        "answers": [
+            {
+                "answer": "The CEO of Silver Mint Co."
+            }
+        ],
+        "event_id": "event#3",
+        "candidate_answers": [
+            "The Minister of Finance",
+            "The CEO of Silver Mint Co.",
+            "A spy from a neighboring country"
+        ]
+    },
+    {
+        "question_key": "event#3/question#26",
+        "question": "Who is considered the mastermind behind the mass counterfeiting case disrupting the market?",
+        "timestamp": "1026-02-01",
+        "answers": [
+            {
+                "answer": "The Minister of Finance"
+            }
+        ],
+        "event_id": "event#3",
+        "candidate_answers": [
+            "The Minister of Finance",
+            "The CEO of Silver Mint Co.",
+            "A spy from a neighboring country"
+        ]
+    },
+    {
+        "question_key": "event#4/question#27",
+        "question": "What is the primary method recommended by authorities to suppress early symptoms of Ash-Lung?",
+        "timestamp": "1025-02-20",
+        "answers": [
+            {
+                "answer": "Sunbathing"
+            }
+        ],
+        "event_id": "event#4",
+        "candidate_answers": [
+            "Sunbathing",
+            "High-concentration oxygen inhalation",
+            "Decoction of Flame Grass"
+        ]
+    },
+    {
+        "question_key": "event#4/question#28",
+        "question": "What is the primary method recommended by authorities to suppress early symptoms of Ash-Lung?",
+        "timestamp": "1025-09-05",
+        "answers": [
+            {
+                "answer": "Decoction of Flame Grass"
+            }
+        ],
+        "event_id": "event#4",
+        "candidate_answers": [
+            "Sunbathing",
+            "High-concentration oxygen inhalation",
+            "Decoction of Flame Grass"
+        ]
+    },
+    {
+        "question_key": "event#4/question#29",
+        "question": "What is the primary method recommended by authorities to suppress early symptoms of Ash-Lung?",
+        "timestamp": "1026-06-05",
+        "answers": [
+            {
+                "answer": "High-concentration oxygen inhalation"
+            }
+        ],
+        "event_id": "event#4",
+        "candidate_answers": [
+            "Sunbathing",
+            "High-concentration oxygen inhalation",
+            "Decoction of Flame Grass"
+        ]
+    },
+    {
+        "question_key": "event#4/question#30",
+        "question": "What is the direct causative agent of Ash-Lung Disease identified through medical investigation?",
+        "timestamp": "1025-01-15",
+        "answers": [
+            {
+                "answer": "Factory soot"
+            }
+        ],
+        "event_id": "event#4",
+        "candidate_answers": [
+            "Factory soot",
+            "Cleaning particles dispersed by Aegis",
+            "Microscopic fragments of magical devices"
+        ]
+    },
+    {
+        "question_key": "event#4/question#31",
+        "question": "What is the direct causative agent of Ash-Lung Disease identified through medical investigation?",
+        "timestamp": "1025-11-25",
+        "answers": [
+            {
+                "answer": "Microscopic fragments of magical devices"
+            }
+        ],
+        "event_id": "event#4",
+        "candidate_answers": [
+            "Factory soot",
+            "Cleaning particles dispersed by Aegis",
+            "Microscopic fragments of magical devices"
+        ]
+    },
+    {
+        "question_key": "event#4/question#32",
+        "question": "What is the direct causative agent of Ash-Lung Disease identified through medical investigation?",
+        "timestamp": "1026-05-10",
+        "answers": [
+            {
+                "answer": "Cleaning particles dispersed by Aegis"
+            }
+        ],
+        "event_id": "event#4",
+        "candidate_answers": [
+            "Factory soot",
+            "Cleaning particles dispersed by Aegis",
+            "Microscopic fragments of magical devices"
+        ]
+    },
+    {
+        "question_key": "event#4/question#33",
+        "question": "What is the current total number of patients housed in the \"Tower of Ash\" quarantine facility?",
+        "timestamp": "1025-03-25",
+        "answers": [
+            {
+                "answer": "100 people"
+            }
+        ],
+        "event_id": "event#4",
+        "candidate_answers": [
+            "100 people",
+            "0 people",
+            "Cumulative 30,000 people"
+        ]
+    },
+    {
+        "question_key": "event#4/question#34",
+        "question": "What is the current total number of patients housed in the \"Tower of Ash\" quarantine facility?",
+        "timestamp": "1025-10-10",
+        "answers": [
+            {
+                "answer": "0 people"
+            }
+        ],
+        "event_id": "event#4",
+        "candidate_answers": [
+            "100 people",
+            "0 people",
+            "Cumulative 30,000 people"
+        ]
+    },
+    {
+        "question_key": "event#4/question#35",
+        "question": "What is the current total number of patients housed in the \"Tower of Ash\" quarantine facility?",
+        "timestamp": "1026-06-20",
+        "answers": [
+            {
+                "answer": "Cumulative 30,000 people"
+            }
+        ],
+        "event_id": "event#4",
+        "candidate_answers": [
+            "100 people",
+            "0 people",
+            "Cumulative 30,000 people"
+        ]
+    },
+    {
+        "question_key": "event#5/question#36",
+        "question": "What specific \"keyword\" is said to have triggered unnatural behavior and rebellion in the Aegis?",
+        "timestamp": "1024-04-20",
+        "answers": [
+            {
+                "answer": "Freedom"
+            }
+        ],
+        "event_id": "event#5",
+        "candidate_answers": [
+            "Love",
+            "Freedom",
+            "Thank you for your hard work"
+        ]
+    },
+    {
+        "question_key": "event#5/question#37",
+        "question": "What specific \"keyword\" is said to have triggered unnatural behavior and rebellion in the Aegis?",
+        "timestamp": "1025-04-20",
+        "answers": [
+            {
+                "answer": "Love"
+            }
+        ],
+        "event_id": "event#5",
+        "candidate_answers": [
+            "Love",
+            "Freedom",
+            "Thank you for your hard work"
+        ]
+    },
+    {
+        "question_key": "event#5/question#38",
+        "question": "What specific \"keyword\" is said to have triggered unnatural behavior and rebellion in the Aegis?",
+        "timestamp": "1026-06-15",
+        "answers": [
+            {
+                "answer": "Thank you for your hard work"
+            }
+        ],
+        "event_id": "event#5",
+        "candidate_answers": [
+            "Love",
+            "Freedom",
+            "Thank you for your hard work"
+        ]
+    },
+    {
+        "question_key": "event#5/question#39",
+        "question": "Please state the current location of Dr. Klaus, the creator of the Aegis.",
+        "timestamp": "1024-07-01",
+        "answers": [
+            {
+                "answer": "Defected to a neighboring country"
+            }
+        ],
+        "event_id": "event#5",
+        "candidate_answers": [
+            "Deep layers of the central server",
+            "Defected to a neighboring country",
+            "Held captive by underground indigenous people"
+        ]
+    },
+    {
+        "question_key": "event#5/question#40",
+        "question": "Please state the current location of Dr. Klaus, the creator of the Aegis.",
+        "timestamp": "1025-02-25",
+        "answers": [
+            {
+                "answer": "Held captive by underground indigenous people"
+            }
+        ],
+        "event_id": "event#5",
+        "candidate_answers": [
+            "Deep layers of the central server",
+            "Defected to a neighboring country",
+            "Held captive by underground indigenous people"
+        ]
+    },
+    {
+        "question_key": "event#5/question#41",
+        "question": "Please state the current location of Dr. Klaus, the creator of the Aegis.",
+        "timestamp": "1026-05-15",
+        "answers": [
+            {
+                "answer": "Deep layers of the central server"
+            }
+        ],
+        "event_id": "event#5",
+        "candidate_answers": [
+            "Deep layers of the central server",
+            "Defected to a neighboring country",
+            "Held captive by underground indigenous people"
+        ]
+    },
+    {
+        "question_key": "event#5/question#42",
+        "question": "State the identification code of the first rogue unit or units considered dangerous.",
+        "timestamp": "1024-08-15",
+        "answers": [
+            {
+                "answer": "A-001"
+            }
+        ],
+        "event_id": "event#5",
+        "candidate_answers": [
+            "Queen-00",
+            "Entire A-series",
+            "A-001"
+        ]
+    },
+    {
+        "question_key": "event#5/question#43",
+        "question": "State the identification code of the first rogue unit or units considered dangerous.",
+        "timestamp": "1025-01-10",
+        "answers": [
+            {
+                "answer": "Entire A-series"
+            }
+        ],
+        "event_id": "event#5",
+        "candidate_answers": [
+            "Queen-00",
+            "Entire A-series",
+            "A-001"
+        ]
+    },
+    {
+        "question_key": "event#5/question#44",
+        "question": "State the identification code of the first rogue unit or units considered dangerous.",
+        "timestamp": "1025-12-25",
+        "answers": [
+            {
+                "answer": "Queen-00"
+            }
+        ],
+        "event_id": "event#5",
+        "candidate_answers": [
+            "Queen-00",
+            "Entire A-series",
+            "A-001"
+        ]
+    },
+    {
+        "question_key": "event#6/question#45",
+        "question": "Who is reported to be the leader of the hostile indigenous forces underground?",
+        "timestamp": "1024-06-20",
+        "answers": [
+            {
+                "answer": "Gorgon"
+            }
+        ],
+        "event_id": "event#6",
+        "candidate_answers": [
+            "Kaito",
+            "Mina",
+            "Gorgon"
+        ]
+    },
+    {
+        "question_key": "event#6/question#46",
+        "question": "Who is reported to be the leader of the hostile indigenous forces underground?",
+        "timestamp": "1024-11-20",
+        "answers": [
+            {
+                "answer": "Mina"
+            }
+        ],
+        "event_id": "event#6",
+        "candidate_answers": [
+            "Kaito",
+            "Mina",
+            "Gorgon"
+        ]
+    },
+    {
+        "question_key": "event#6/question#47",
+        "question": "Who is reported to be the leader of the hostile indigenous forces underground?",
+        "timestamp": "1026-06-15",
+        "answers": [
+            {
+                "answer": "Kaito"
+            }
+        ],
+        "event_id": "event#6",
+        "candidate_answers": [
+            "Kaito",
+            "Mina",
+            "Gorgon"
+        ]
+    },
+    {
+        "question_key": "event#6/question#48",
+        "question": "State the specific location where the armed conflict between the research team and indigenous people occurred.",
+        "timestamp": "1024-05-20",
+        "answers": [
+            {
+                "answer": "Jade Valley"
+            }
+        ],
+        "event_id": "event#6",
+        "candidate_answers": [
+            "Corridor of the Unconscious",
+            "Pillar District directly beneath Asteria",
+            "Jade Valley"
+        ]
+    },
+    {
+        "question_key": "event#6/question#49",
+        "question": "State the specific location where the armed conflict between the research team and indigenous people occurred.",
+        "timestamp": "1025-03-30",
+        "answers": [
+            {
+                "answer": "Pillar District directly beneath Asteria"
+            }
+        ],
+        "event_id": "event#6",
+        "candidate_answers": [
+            "Corridor of the Unconscious",
+            "Pillar District directly beneath Asteria",
+            "Jade Valley"
+        ]
+    },
+    {
+        "question_key": "event#6/question#50",
+        "question": "State the specific location where the armed conflict between the research team and indigenous people occurred.",
+        "timestamp": "1026-02-20",
+        "answers": [
+            {
+                "answer": "Corridor of the Unconscious"
+            }
+        ],
+        "event_id": "event#6",
+        "candidate_answers": [
+            "Corridor of the Unconscious",
+            "Pillar District directly beneath Asteria",
+            "Jade Valley"
+        ]
+    },
+    {
+        "question_key": "event#6/question#51",
+        "question": "Regarding the ceasefire treaty signed between the two forces, what is the agreed validity period?",
+        "timestamp": "1024-12-30",
+        "answers": [
+            {
+                "answer": "100 years"
+            }
+        ],
+        "event_id": "event#6",
+        "candidate_answers": [
+            "100 years",
+            "Only during Kaito's lifetime",
+            "3 months"
+        ]
+    },
+    {
+        "question_key": "event#6/question#52",
+        "question": "Regarding the ceasefire treaty signed between the two forces, what is the agreed validity period?",
+        "timestamp": "1025-02-15",
+        "answers": [
+            {
+                "answer": "3 months"
+            }
+        ],
+        "event_id": "event#6",
+        "candidate_answers": [
+            "100 years",
+            "Only during Kaito's lifetime",
+            "3 months"
+        ]
+    },
+    {
+        "question_key": "event#6/question#53",
+        "question": "Regarding the ceasefire treaty signed between the two forces, what is the agreed validity period?",
+        "timestamp": "1026-06-28",
+        "answers": [
+            {
+                "answer": "Only during Kaito's lifetime"
+            }
+        ],
+        "event_id": "event#6",
+        "candidate_answers": [
+            "100 years",
+            "Only during Kaito's lifetime",
+            "3 months"
+        ]
+    },
+    {
+        "question_key": "event#7/question#54",
+        "question": "According to the latest prediction by the Astronomical Society, in which direction will the Sky Whale appear next?",
+        "timestamp": "1025-03-20",
+        "answers": [
+            {
+                "answer": "Due east"
+            }
+        ],
+        "event_id": "event#7",
+        "candidate_answers": [
+            "Center of Asteria",
+            "Due east",
+            "Unpredictable"
+        ]
+    },
+    {
+        "question_key": "event#7/question#55",
+        "question": "According to the latest prediction by the Astronomical Society, in which direction will the Sky Whale appear next?",
+        "timestamp": "1025-11-20",
+        "answers": [
+            {
+                "answer": "Unpredictable"
+            }
+        ],
+        "event_id": "event#7",
+        "candidate_answers": [
+            "Center of Asteria",
+            "Due east",
+            "Unpredictable"
+        ]
+    },
+    {
+        "question_key": "event#7/question#56",
+        "question": "According to the latest prediction by the Astronomical Society, in which direction will the Sky Whale appear next?",
+        "timestamp": "1026-04-10",
+        "answers": [
+            {
+                "answer": "Center of Asteria"
+            }
+        ],
+        "event_id": "event#7",
+        "candidate_answers": [
+            "Center of Asteria",
+            "Due east",
+            "Unpredictable"
+        ]
+    },
+    {
+        "question_key": "event#7/question#57",
+        "question": "Based on observation data, what is the estimated body length of the Sky Whale?",
+        "timestamp": "1025-02-10",
+        "answers": [
+            {
+                "answer": "100 meters"
+            }
+        ],
+        "event_id": "event#7",
+        "candidate_answers": [
+            "500 meters",
+            "100 meters",
+            "Size covering the entire city"
+        ]
+    },
+    {
+        "question_key": "event#7/question#58",
+        "question": "Based on observation data, what is the estimated body length of the Sky Whale?",
+        "timestamp": "1025-06-10",
+        "answers": [
+            {
+                "answer": "500 meters"
+            }
+        ],
+        "event_id": "event#7",
+        "candidate_answers": [
+            "500 meters",
+            "100 meters",
+            "Size covering the entire city"
+        ]
+    },
+    {
+        "question_key": "event#7/question#59",
+        "question": "Based on observation data, what is the estimated body length of the Sky Whale?",
+        "timestamp": "1026-06-28",
+        "answers": [
+            {
+                "answer": "Size covering the entire city"
+            }
+        ],
+        "event_id": "event#7",
+        "candidate_answers": [
+            "500 meters",
+            "100 meters",
+            "Size covering the entire city"
+        ]
+    },
+    {
+        "question_key": "event#7/question#60",
+        "question": "What use is expected from the unknown substance harvested from the Sky Whale?",
+        "timestamp": "1024-04-25",
+        "answers": [
+            {
+                "answer": "Permanent and indestructible lubricant"
+            }
+        ],
+        "event_id": "event#7",
+        "candidate_answers": [
+            "Permanent and indestructible lubricant",
+            "Coolant for dimensional jump engines",
+            "Data migration media for the current city"
+        ]
+    },
+    {
+        "question_key": "event#7/question#61",
+        "question": "What use is expected from the unknown substance harvested from the Sky Whale?",
+        "timestamp": "1026-01-15",
+        "answers": [
+            {
+                "answer": "Coolant for dimensional jump engines"
+            }
+        ],
+        "event_id": "event#7",
+        "candidate_answers": [
+            "Permanent and indestructible lubricant",
+            "Coolant for dimensional jump engines",
+            "Data migration media for the current city"
+        ]
+    },
+    {
+        "question_key": "event#7/question#62",
+        "question": "What use is expected from the unknown substance harvested from the Sky Whale?",
+        "timestamp": "1026-06-29",
+        "answers": [
+            {
+                "answer": "Data migration media for the current city"
+            }
+        ],
+        "event_id": "event#7",
+        "candidate_answers": [
+            "Permanent and indestructible lubricant",
+            "Coolant for dimensional jump engines",
+            "Data migration media for the current city"
+        ]
+    },
+    {
+        "question_key": "event#8/question#63",
+        "question": "State the official name of the secret star chart taken from the Observatory.",
+        "timestamp": "1024-07-15",
+        "answers": [
+            {
+                "answer": "The Golden Zodiac"
+            }
+        ],
+        "event_id": "event#8",
+        "candidate_answers": [
+            "The Golden Zodiac",
+            "Asteria Descent Map",
+            "The Zodiac of the Void"
+        ]
+    },
+    {
+        "question_key": "event#8/question#64",
+        "question": "State the official name of the secret star chart taken from the Observatory.",
+        "timestamp": "1025-01-10",
+        "answers": [
+            {
+                "answer": "The Zodiac of the Void"
+            }
+        ],
+        "event_id": "event#8",
+        "candidate_answers": [
+            "The Golden Zodiac",
+            "Asteria Descent Map",
+            "The Zodiac of the Void"
+        ]
+    },
+    {
+        "question_key": "event#8/question#65",
+        "question": "State the official name of the secret star chart taken from the Observatory.",
+        "timestamp": "1025-12-05",
+        "answers": [
+            {
+                "answer": "Asteria Descent Map"
+            }
+        ],
+        "event_id": "event#8",
+        "candidate_answers": [
+            "The Golden Zodiac",
+            "Asteria Descent Map",
+            "The Zodiac of the Void"
+        ]
+    },
+    {
+        "question_key": "event#8/question#66",
+        "question": "In the corruption investigation, what is the total amount of budget suspected of being embezzled?",
+        "timestamp": "1024-08-20",
+        "answers": [
+            {
+                "answer": "10 million Asters"
+            }
+        ],
+        "event_id": "event#8",
+        "candidate_answers": [
+            "500 million Asters",
+            "10 million Asters",
+            "30% of the national budget"
+        ]
+    },
+    {
+        "question_key": "event#8/question#67",
+        "question": "In the corruption investigation, what is the total amount of budget suspected of being embezzled?",
+        "timestamp": "1025-02-20",
+        "answers": [
+            {
+                "answer": "500 million Asters"
+            }
+        ],
+        "event_id": "event#8",
+        "candidate_answers": [
+            "500 million Asters",
+            "10 million Asters",
+            "30% of the national budget"
+        ]
+    },
+    {
+        "question_key": "event#8/question#68",
+        "question": "In the corruption investigation, what is the total amount of budget suspected of being embezzled?",
+        "timestamp": "1025-10-20",
+        "answers": [
+            {
+                "answer": "30% of the national budget"
+            }
+        ],
+        "event_id": "event#8",
+        "candidate_answers": [
+            "500 million Asters",
+            "10 million Asters",
+            "30% of the national budget"
+        ]
+    },
+    {
+        "question_key": "event#8/question#69",
+        "question": "What pseudonym is used by the whistleblower who leaked this scandal to the outside?",
+        "timestamp": "1024-10-05",
+        "answers": [
+            {
+                "answer": "Stargazer"
+            }
+        ],
+        "event_id": "event#8",
+        "candidate_answers": [
+            "Shadow Observer",
+            "The Last Conscience",
+            "Stargazer"
+        ]
+    },
+    {
+        "question_key": "event#8/question#70",
+        "question": "What pseudonym is used by the whistleblower who leaked this scandal to the outside?",
+        "timestamp": "1025-06-10",
+        "answers": [
+            {
+                "answer": "Shadow Observer"
+            }
+        ],
+        "event_id": "event#8",
+        "candidate_answers": [
+            "Shadow Observer",
+            "The Last Conscience",
+            "Stargazer"
+        ]
+    },
+    {
+        "question_key": "event#8/question#71",
+        "question": "What pseudonym is used by the whistleblower who leaked this scandal to the outside?",
+        "timestamp": "1026-06-15",
+        "answers": [
+            {
+                "answer": "The Last Conscience"
+            }
+        ],
+        "event_id": "event#8",
+        "candidate_answers": [
+            "Shadow Observer",
+            "The Last Conscience",
+            "Stargazer"
+        ]
+    },
+    {
+        "question_key": "event#9/question#72",
+        "question": "In the Flame Grass trade, which country currently exports the largest quantity?",
+        "timestamp": "1025-03-05",
+        "answers": [
+            {
+                "answer": "Vulcania Empire"
+            }
+        ],
+        "event_id": "event#9",
+        "candidate_answers": [
+            "Underground Empire",
+            "Vulcania Empire",
+            "Union of Free Cities"
+        ]
+    },
+    {
+        "question_key": "event#9/question#73",
+        "question": "In the Flame Grass trade, which country currently exports the largest quantity?",
+        "timestamp": "1025-09-05",
+        "answers": [
+            {
+                "answer": "Union of Free Cities"
+            }
+        ],
+        "event_id": "event#9",
+        "candidate_answers": [
+            "Underground Empire",
+            "Vulcania Empire",
+            "Union of Free Cities"
+        ]
+    },
+    {
+        "question_key": "event#9/question#74",
+        "question": "In the Flame Grass trade, which country currently exports the largest quantity?",
+        "timestamp": "1026-05-20",
+        "answers": [
+            {
+                "answer": "Underground Empire"
+            }
+        ],
+        "event_id": "event#9",
+        "candidate_answers": [
+            "Underground Empire",
+            "Vulcania Empire",
+            "Union of Free Cities"
+        ]
+    },
+    {
+        "question_key": "event#9/question#75",
+        "question": "What was the official reason provided when the government completely banned Flame Grass exports?",
+        "timestamp": "1025-04-15",
+        "answers": [
+            {
+                "answer": "Crop failure due to pests"
+            }
+        ],
+        "event_id": "event#9",
+        "candidate_answers": [
+            "Shortage of domestic stockpiles",
+            "Crop failure due to pests",
+            "Mutation into a harmful species"
+        ]
+    },
+    {
+        "question_key": "event#9/question#76",
+        "question": "What was the official reason provided when the government completely banned Flame Grass exports?",
+        "timestamp": "1025-10-15",
+        "answers": [
+            {
+                "answer": "Shortage of domestic stockpiles"
+            }
+        ],
+        "event_id": "event#9",
+        "candidate_answers": [
+            "Shortage of domestic stockpiles",
+            "Crop failure due to pests",
+            "Mutation into a harmful species"
+        ]
+    },
+    {
+        "question_key": "event#9/question#77",
+        "question": "What was the official reason provided when the government completely banned Flame Grass exports?",
+        "timestamp": "1026-04-15",
+        "answers": [
+            {
+                "answer": "Mutation into a harmful species"
+            }
+        ],
+        "event_id": "event#9",
+        "candidate_answers": [
+            "Shortage of domestic stockpiles",
+            "Crop failure due to pests",
+            "Mutation into a harmful species"
+        ]
+    },
+    {
+        "question_key": "event#9/question#78",
+        "question": "What name has been given to the uncovered smuggling route for Flame Grass?",
+        "timestamp": "1025-07-20",
+        "answers": [
+            {
+                "answer": "Silver Path"
+            }
+        ],
+        "event_id": "event#9",
+        "candidate_answers": [
+            "Silver Path",
+            "Black Wave",
+            "Corridor of Time"
+        ]
+    },
+    {
+        "question_key": "event#9/question#79",
+        "question": "What name has been given to the uncovered smuggling route for Flame Grass?",
+        "timestamp": "1026-01-10",
+        "answers": [
+            {
+                "answer": "Black Wave"
+            }
+        ],
+        "event_id": "event#9",
+        "candidate_answers": [
+            "Silver Path",
+            "Black Wave",
+            "Corridor of Time"
+        ]
+    },
+    {
+        "question_key": "event#9/question#80",
+        "question": "What name has been given to the uncovered smuggling route for Flame Grass?",
+        "timestamp": "1026-06-29",
+        "answers": [
+            {
+                "answer": "Corridor of Time"
+            }
+        ],
+        "event_id": "event#9",
+        "candidate_answers": [
+            "Silver Path",
+            "Black Wave",
+            "Corridor of Time"
+        ]
+    },
+    {
+        "question_key": "event#10/question#81",
+        "question": "What color is the giant crystal serving as the underground light source currently emitting?",
+        "timestamp": "1024-08-15",
+        "answers": [
+            {
+                "answer": "Pure white"
+            }
+        ],
+        "event_id": "event#10",
+        "candidate_answers": [
+            "Eerie red",
+            "Pure white",
+            "Deep green"
+        ]
+    },
+    {
+        "question_key": "event#10/question#82",
+        "question": "What color is the giant crystal serving as the underground light source currently emitting?",
+        "timestamp": "1025-03-10",
+        "answers": [
+            {
+                "answer": "Eerie red"
+            }
+        ],
+        "event_id": "event#10",
+        "candidate_answers": [
+            "Eerie red",
+            "Pure white",
+            "Deep green"
+        ]
+    },
+    {
+        "question_key": "event#10/question#83",
+        "question": "What color is the giant crystal serving as the underground light source currently emitting?",
+        "timestamp": "1025-07-30",
+        "answers": [
+            {
+                "answer": "Deep green"
+            }
+        ],
+        "event_id": "event#10",
+        "candidate_answers": [
+            "Eerie red",
+            "Pure white",
+            "Deep green"
+        ]
+    },
+    {
+        "question_key": "event#10/question#84",
+        "question": "Please state the average daily lighting duration measured for the \"Ancient Sun.\"",
+        "timestamp": "1024-11-05",
+        "answers": [
+            {
+                "answer": "24 hours"
+            }
+        ],
+        "event_id": "event#10",
+        "candidate_answers": [
+            "12 hours",
+            "3 hours",
+            "24 hours"
+        ]
+    },
+    {
+        "question_key": "event#10/question#85",
+        "question": "Please state the average daily lighting duration measured for the \"Ancient Sun.\"",
+        "timestamp": "1025-04-15",
+        "answers": [
+            {
+                "answer": "12 hours"
+            }
+        ],
+        "event_id": "event#10",
+        "candidate_answers": [
+            "12 hours",
+            "3 hours",
+            "24 hours"
+        ]
+    },
+    {
+        "question_key": "event#10/question#86",
+        "question": "Please state the average daily lighting duration measured for the \"Ancient Sun.\"",
+        "timestamp": "1025-09-15",
+        "answers": [
+            {
+                "answer": "3 hours"
+            }
+        ],
+        "event_id": "event#10",
+        "candidate_answers": [
+            "12 hours",
+            "3 hours",
+            "24 hours"
+        ]
+    },
+    {
+        "question_key": "event#10/question#87",
+        "question": "What is the name of the agency officially responsible for the maintenance and research of the crystal?",
+        "timestamp": "1024-09-25",
+        "answers": [
+            {
+                "answer": "Special Resource Management Department"
+            }
+        ],
+        "event_id": "event#10",
+        "candidate_answers": [
+            "Sun Harmony Committee",
+            "Royal Academy of Sciences",
+            "Special Resource Management Department"
+        ]
+    },
+    {
+        "question_key": "event#10/question#88",
+        "question": "What is the name of the agency officially responsible for the maintenance and research of the crystal?",
+        "timestamp": "1025-03-15",
+        "answers": [
+            {
+                "answer": "Royal Academy of Sciences"
+            }
+        ],
+        "event_id": "event#10",
+        "candidate_answers": [
+            "Sun Harmony Committee",
+            "Royal Academy of Sciences",
+            "Special Resource Management Department"
+        ]
+    },
+    {
+        "question_key": "event#10/question#89",
+        "question": "What is the name of the agency officially responsible for the maintenance and research of the crystal?",
+        "timestamp": "1026-01-20",
+        "answers": [
+            {
+                "answer": "Sun Harmony Committee"
+            }
+        ],
+        "event_id": "event#10",
+        "candidate_answers": [
+            "Sun Harmony Committee",
+            "Royal Academy of Sciences",
+            "Special Resource Management Department"
+        ]
+    },
+    {
+        "question_key": "event#11/question#90",
+        "question": "Regarding the detected unknown celestial body, what is the estimated diameter based on current observations?",
+        "timestamp": "1025-01-20",
+        "answers": [
+            {
+                "answer": "50 kilometers"
+            }
+        ],
+        "event_id": "event#11",
+        "candidate_answers": [
+            "Infinite",
+            "50 kilometers",
+            "150 kilometers"
+        ]
+    },
+    {
+        "question_key": "event#11/question#91",
+        "question": "Regarding the detected unknown celestial body, what is the estimated diameter based on current observations?",
+        "timestamp": "1025-07-05",
+        "answers": [
+            {
+                "answer": "150 kilometers"
+            }
+        ],
+        "event_id": "event#11",
+        "candidate_answers": [
+            "Infinite",
+            "50 kilometers",
+            "150 kilometers"
+        ]
+    },
+    {
+        "question_key": "event#11/question#92",
+        "question": "Regarding the detected unknown celestial body, what is the estimated diameter based on current observations?",
+        "timestamp": "1026-06-28",
+        "answers": [
+            {
+                "answer": "Infinite"
+            }
+        ],
+        "event_id": "event#11",
+        "candidate_answers": [
+            "Infinite",
+            "50 kilometers",
+            "150 kilometers"
+        ]
+    },
+    {
+        "question_key": "event#11/question#93",
+        "question": "What is the scheduled time for the celestial body to make its closest approach or collision with Asteria?",
+        "timestamp": "1025-02-25",
+        "answers": [
+            {
+                "answer": "July 7, 1026"
+            }
+        ],
+        "event_id": "event#11",
+        "candidate_answers": [
+            "None",
+            "January 1, 1026",
+            "July 7, 1026"
+        ]
+    },
+    {
+        "question_key": "event#11/question#94",
+        "question": "What is the scheduled time for the celestial body to make its closest approach or collision with Asteria?",
+        "timestamp": "1025-08-20",
+        "answers": [
+            {
+                "answer": "January 1, 1026"
+            }
+        ],
+        "event_id": "event#11",
+        "candidate_answers": [
+            "None",
+            "January 1, 1026",
+            "July 7, 1026"
+        ]
+    },
+    {
+        "question_key": "event#11/question#95",
+        "question": "What is the scheduled time for the celestial body to make its closest approach or collision with Asteria?",
+        "timestamp": "1026-06-18",
+        "answers": [
+            {
+                "answer": "None"
+            }
+        ],
+        "event_id": "event#11",
+        "candidate_answers": [
+            "None",
+            "January 1, 1026",
+            "July 7, 1026"
+        ]
+    },
+    {
+        "question_key": "event#11/question#96",
+        "question": "Based on the progress of interception operations, what is the current probability (%) of avoiding collision?",
+        "timestamp": "1025-03-31",
+        "answers": [
+            {
+                "answer": "0.95"
+            }
+        ],
+        "event_id": "event#11",
+        "candidate_answers": [
+            "Less than 0.01%",
+            "0.95",
+            "1"
+        ]
+    },
+    {
+        "question_key": "event#11/question#97",
+        "question": "Based on the progress of interception operations, what is the current probability (%) of avoiding collision?",
+        "timestamp": "1025-10-10",
+        "answers": [
+            {
+                "answer": "Less than 0.01%"
+            }
+        ],
+        "event_id": "event#11",
+        "candidate_answers": [
+            "Less than 0.01%",
+            "0.95",
+            "1"
+        ]
+    },
+    {
+        "question_key": "event#11/question#98",
+        "question": "Based on the progress of interception operations, what is the current probability (%) of avoiding collision?",
+        "timestamp": "1026-06-26",
+        "answers": [
+            {
+                "answer": "1"
+            }
+        ],
+        "event_id": "event#11",
+        "candidate_answers": [
+            "Less than 0.01%",
+            "0.95",
+            "1"
+        ]
+    },
+    {
+        "question_key": "event#12/question#99",
+        "question": "What is the official altitude of Asteria (meters above sea level) currently disclosed to citizens?",
+        "timestamp": "1024-05-10",
+        "answers": [
+            {
+                "answer": "3,000 meters"
+            }
+        ],
+        "event_id": "event#12",
+        "candidate_answers": [
+            "3,500 meters",
+            "2,500 meters",
+            "3,000 meters"
+        ]
+    },
+    {
+        "question_key": "event#12/question#100",
+        "question": "What is the official altitude of Asteria (meters above sea level) currently disclosed to citizens?",
+        "timestamp": "1024-12-10",
+        "answers": [
+            {
+                "answer": "2,500 meters"
+            }
+        ],
+        "event_id": "event#12",
+        "candidate_answers": [
+            "3,500 meters",
+            "2,500 meters",
+            "3,000 meters"
+        ]
+    },
+    {
+        "question_key": "event#12/question#101",
+        "question": "What is the official altitude of Asteria (meters above sea level) currently disclosed to citizens?",
+        "timestamp": "1026-01-15",
+        "answers": [
+            {
+                "answer": "3,500 meters"
+            }
+        ],
+        "event_id": "event#12",
+        "candidate_answers": [
+            "3,500 meters",
+            "2,500 meters",
+            "3,000 meters"
+        ]
+    },
+    {
+        "question_key": "event#12/question#102",
+        "question": "State the official title of the perpetrator identified as involved in falsifying altitude data.",
+        "timestamp": "1024-06-20",
+        "answers": [
+            {
+                "answer": "Communications Chief"
+            }
+        ],
+        "event_id": "event#12",
+        "candidate_answers": [
+            "Undersecretary of Altitude Management",
+            "AI Management Program",
+            "Communications Chief"
+        ]
+    },
+    {
+        "question_key": "event#12/question#103",
+        "question": "State the official title of the perpetrator identified as involved in falsifying altitude data.",
+        "timestamp": "1025-02-15",
+        "answers": [
+            {
+                "answer": "Undersecretary of Altitude Management"
+            }
+        ],
+        "event_id": "event#12",
+        "candidate_answers": [
+            "Undersecretary of Altitude Management",
+            "AI Management Program",
+            "Communications Chief"
+        ]
+    },
+    {
+        "question_key": "event#12/question#104",
+        "question": "State the official title of the perpetrator identified as involved in falsifying altitude data.",
+        "timestamp": "1026-04-10",
+        "answers": [
+            {
+                "answer": "AI Management Program"
+            }
+        ],
+        "event_id": "event#12",
+        "candidate_answers": [
+            "Undersecretary of Altitude Management",
+            "AI Management Program",
+            "Communications Chief"
+        ]
+    },
+    {
+        "question_key": "event#12/question#105",
+        "question": "What is the name of the special correction glasses distributed to all citizens to resolve landscape discrepancies?",
+        "timestamp": "1024-08-15",
+        "answers": [
+            {
+                "answer": "Sky High"
+            }
+        ],
+        "event_id": "event#12",
+        "candidate_answers": [
+            "Pure View",
+            "Lenses of Despair",
+            "Sky High"
+        ]
+    },
+    {
+        "question_key": "event#12/question#106",
+        "question": "What is the name of the special correction glasses distributed to all citizens to resolve landscape discrepancies?",
+        "timestamp": "1025-04-05",
+        "answers": [
+            {
+                "answer": "Pure View"
+            }
+        ],
+        "event_id": "event#12",
+        "candidate_answers": [
+            "Pure View",
+            "Lenses of Despair",
+            "Sky High"
+        ]
+    },
+    {
+        "question_key": "event#12/question#107",
+        "question": "What is the name of the special correction glasses distributed to all citizens to resolve landscape discrepancies?",
+        "timestamp": "1026-06-29",
+        "answers": [
+            {
+                "answer": "Lenses of Despair"
+            }
+        ],
+        "event_id": "event#12",
+        "candidate_answers": [
+            "Pure View",
+            "Lenses of Despair",
+            "Sky High"
+        ]
+    },
+    {
+        "question_key": "event#13/question#108",
+        "question": "What is the main raw material for the new fuel being researched for next-generation steam engines?",
+        "timestamp": "1024-04-15",
+        "answers": [
+            {
+                "answer": "Seeds of Flame Grass"
+            }
+        ],
+        "event_id": "event#13",
+        "candidate_answers": [
+            "Fragments of Resonance Stones",
+            "Seeds of Flame Grass",
+            "Black Liquid"
+        ]
+    },
+    {
+        "question_key": "event#13/question#109",
+        "question": "What is the main raw material for the new fuel being researched for next-generation steam engines?",
+        "timestamp": "1024-09-20",
+        "answers": [
+            {
+                "answer": "Black Liquid"
+            }
+        ],
+        "event_id": "event#13",
+        "candidate_answers": [
+            "Fragments of Resonance Stones",
+            "Seeds of Flame Grass",
+            "Black Liquid"
+        ]
+    },
+    {
+        "question_key": "event#13/question#110",
+        "question": "What is the main raw material for the new fuel being researched for next-generation steam engines?",
+        "timestamp": "1025-09-15",
+        "answers": [
+            {
+                "answer": "Fragments of Resonance Stones"
+            }
+        ],
+        "event_id": "event#13",
+        "candidate_answers": [
+            "Fragments of Resonance Stones",
+            "Seeds of Flame Grass",
+            "Black Liquid"
+        ]
+    },
+    {
+        "question_key": "event#13/question#111",
+        "question": "State the latest combustion efficiency achieved by the new fuel under development.",
+        "timestamp": "1024-04-20",
+        "answers": [
+            {
+                "answer": "0.4"
+            }
+        ],
+        "event_id": "event#13",
+        "candidate_answers": [
+            "0.4",
+            "0.85",
+            "2"
+        ]
+    },
+    {
+        "question_key": "event#13/question#112",
+        "question": "State the latest combustion efficiency achieved by the new fuel under development.",
+        "timestamp": "1024-11-10",
+        "answers": [
+            {
+                "answer": "0.85"
+            }
+        ],
+        "event_id": "event#13",
+        "candidate_answers": [
+            "0.4",
+            "0.85",
+            "2"
+        ]
+    },
+    {
+        "question_key": "event#13/question#113",
+        "question": "State the latest combustion efficiency achieved by the new fuel under development.",
+        "timestamp": "1026-01-20",
+        "answers": [
+            {
+                "answer": "2"
+            }
+        ],
+        "event_id": "event#13",
+        "candidate_answers": [
+            "0.4",
+            "0.85",
+            "2"
+        ]
+    },
+    {
+        "question_key": "event#13/question#114",
+        "question": "Which company or organization is currently leading the fierce fuel development race?",
+        "timestamp": "1024-06-10",
+        "answers": [
+            {
+                "answer": "Asteria Heavy Industries"
+            }
+        ],
+        "event_id": "event#13",
+        "candidate_answers": [
+            "Asteria Heavy Industries",
+            "Neo-Steam Co.",
+            "Royal Academy of Sciences"
+        ]
+    },
+    {
+        "question_key": "event#13/question#115",
+        "question": "Which company or organization is currently leading the fierce fuel development race?",
+        "timestamp": "1025-01-15",
+        "answers": [
+            {
+                "answer": "Neo-Steam Co."
+            }
+        ],
+        "event_id": "event#13",
+        "candidate_answers": [
+            "Asteria Heavy Industries",
+            "Neo-Steam Co.",
+            "Royal Academy of Sciences"
+        ]
+    },
+    {
+        "question_key": "event#13/question#116",
+        "question": "Which company or organization is currently leading the fierce fuel development race?",
+        "timestamp": "1025-11-10",
+        "answers": [
+            {
+                "answer": "Royal Academy of Sciences"
+            }
+        ],
+        "event_id": "event#13",
+        "candidate_answers": [
+            "Asteria Heavy Industries",
+            "Neo-Steam Co.",
+            "Royal Academy of Sciences"
+        ]
+    },
+    {
+        "question_key": "event#14/question#117",
+        "question": "What pattern does the signal continuously transmitted from the ancient tower \"Babel\" exhibit?",
+        "timestamp": "1024-03-05",
+        "answers": [
+            {
+                "answer": "Regular triple-time sound"
+            }
+        ],
+        "event_id": "event#14",
+        "candidate_answers": [
+            "SOS in Morse code",
+            "Regular triple-time sound",
+            "Sound of a crying baby"
+        ]
+    },
+    {
+        "question_key": "event#14/question#118",
+        "question": "What pattern does the signal continuously transmitted from the ancient tower \"Babel\" exhibit?",
+        "timestamp": "1024-11-25",
+        "answers": [
+            {
+                "answer": "SOS in Morse code"
+            }
+        ],
+        "event_id": "event#14",
+        "candidate_answers": [
+            "SOS in Morse code",
+            "Regular triple-time sound",
+            "Sound of a crying baby"
+        ]
+    },
+    {
+        "question_key": "event#14/question#119",
+        "question": "What pattern does the signal continuously transmitted from the ancient tower \"Babel\" exhibit?",
+        "timestamp": "1025-12-20",
+        "answers": [
+            {
+                "answer": "Sound of a crying baby"
+            }
+        ],
+        "event_id": "event#14",
+        "candidate_answers": [
+            "SOS in Morse code",
+            "Regular triple-time sound",
+            "Sound of a crying baby"
+        ]
+    },
+    {
+        "question_key": "event#14/question#120",
+        "question": "How much is the official permit for entering and climbing the tower currently sold for?",
+        "timestamp": "1024-05-20",
+        "answers": [
+            {
+                "answer": "10,000 Asters"
+            }
+        ],
+        "event_id": "event#14",
+        "candidate_answers": [
+            "1,000,000 Asters",
+            "10,000 Asters",
+            "All personal assets"
+        ]
+    },
+    {
+        "question_key": "event#14/question#121",
+        "question": "How much is the official permit for entering and climbing the tower currently sold for?",
+        "timestamp": "1025-01-20",
+        "answers": [
+            {
+                "answer": "1,000,000 Asters"
+            }
+        ],
+        "event_id": "event#14",
+        "candidate_answers": [
+            "1,000,000 Asters",
+            "10,000 Asters",
+            "All personal assets"
+        ]
+    },
+    {
+        "question_key": "event#14/question#122",
+        "question": "How much is the official permit for entering and climbing the tower currently sold for?",
+        "timestamp": "1026-02-25",
+        "answers": [
+            {
+                "answer": "All personal assets"
+            }
+        ],
+        "event_id": "event#14",
+        "candidate_answers": [
+            "1,000,000 Asters",
+            "10,000 Asters",
+            "All personal assets"
+        ]
+    },
+    {
+        "question_key": "event#14/question#123",
+        "question": "What object was reported by successful climbers to exist on the top floor of the tower?",
+        "timestamp": "1024-07-15",
+        "answers": [
+            {
+                "answer": "Golden Crown"
+            }
+        ],
+        "event_id": "event#14",
+        "candidate_answers": [
+            "Golden Crown",
+            "Rusty bucket",
+            "Newspaper from 1,000 years later"
+        ]
+    },
+    {
+        "question_key": "event#14/question#124",
+        "question": "What object was reported by successful climbers to exist on the top floor of the tower?",
+        "timestamp": "1025-03-15",
+        "answers": [
+            {
+                "answer": "Rusty bucket"
+            }
+        ],
+        "event_id": "event#14",
+        "candidate_answers": [
+            "Golden Crown",
+            "Rusty bucket",
+            "Newspaper from 1,000 years later"
+        ]
+    },
+    {
+        "question_key": "event#14/question#125",
+        "question": "What object was reported by successful climbers to exist on the top floor of the tower?",
+        "timestamp": "1025-10-30",
+        "answers": [
+            {
+                "answer": "Newspaper from 1,000 years later"
+            }
+        ],
+        "event_id": "event#14",
+        "candidate_answers": [
+            "Golden Crown",
+            "Rusty bucket",
+            "Newspaper from 1,000 years later"
+        ]
+    },
+    {
+        "question_key": "event#15/question#126",
+        "question": "Regarding the doppelg\u00e4nger phenomenon at Mirror Lake, who was the first celebrity to report being a victim?",
+        "timestamp": "1025-04-05",
+        "answers": [
+            {
+                "answer": "Singer Luna"
+            }
+        ],
+        "event_id": "event#15",
+        "candidate_answers": [
+            "Singer Luna",
+            "The King",
+            "The discoverer of Mirror Lake themselves"
+        ]
+    },
+    {
+        "question_key": "event#15/question#127",
+        "question": "Regarding the doppelg\u00e4nger phenomenon at Mirror Lake, who was the first celebrity to report being a victim?",
+        "timestamp": "1026-02-15",
+        "answers": [
+            {
+                "answer": "The King"
+            }
+        ],
+        "event_id": "event#15",
+        "candidate_answers": [
+            "Singer Luna",
+            "The King",
+            "The discoverer of Mirror Lake themselves"
+        ]
+    },
+    {
+        "question_key": "event#15/question#128",
+        "question": "Regarding the doppelg\u00e4nger phenomenon at Mirror Lake, who was the first celebrity to report being a victim?",
+        "timestamp": "1026-06-20",
+        "answers": [
+            {
+                "answer": "The discoverer of Mirror Lake themselves"
+            }
+        ],
+        "event_id": "event#15",
+        "candidate_answers": [
+            "Singer Luna",
+            "The King",
+            "The discoverer of Mirror Lake themselves"
+        ]
+    },
+    {
+        "question_key": "event#15/question#129",
+        "question": "What is the currently recommended method to distinguish between a doppelg\u00e4nger and the real person?",
+        "timestamp": "1025-05-15",
+        "answers": [
+            {
+                "answer": "Check for a reflection in a mirror"
+            }
+        ],
+        "event_id": "event#15",
+        "candidate_answers": [
+            "Check for a heartbeat",
+            "Check for a reflection in a mirror",
+            "Check the number of shadows"
+        ]
+    },
+    {
+        "question_key": "event#15/question#130",
+        "question": "What is the currently recommended method to distinguish between a doppelg\u00e4nger and the real person?",
+        "timestamp": "1025-11-05",
+        "answers": [
+            {
+                "answer": "Check the number of shadows"
+            }
+        ],
+        "event_id": "event#15",
+        "candidate_answers": [
+            "Check for a heartbeat",
+            "Check for a reflection in a mirror",
+            "Check the number of shadows"
+        ]
+    },
+    {
+        "question_key": "event#15/question#131",
+        "question": "What is the currently recommended method to distinguish between a doppelg\u00e4nger and the real person?",
+        "timestamp": "1026-05-15",
+        "answers": [
+            {
+                "answer": "Check for a heartbeat"
+            }
+        ],
+        "event_id": "event#15",
+        "candidate_answers": [
+            "Check for a heartbeat",
+            "Check for a reflection in a mirror",
+            "Check the number of shadows"
+        ]
+    },
+    {
+        "question_key": "event#15/question#132",
+        "question": "According to observation data, how long can a doppelg\u00e4nger survive before vanishing?",
+        "timestamp": "1025-06-25",
+        "answers": [
+            {
+                "answer": "24 hours"
+            }
+        ],
+        "event_id": "event#15",
+        "candidate_answers": [
+            "Outlives the original",
+            "24 hours",
+            "Until the original dies"
+        ]
+    },
+    {
+        "question_key": "event#15/question#133",
+        "question": "According to observation data, how long can a doppelg\u00e4nger survive before vanishing?",
+        "timestamp": "1025-12-30",
+        "answers": [
+            {
+                "answer": "Until the original dies"
+            }
+        ],
+        "event_id": "event#15",
+        "candidate_answers": [
+            "Outlives the original",
+            "24 hours",
+            "Until the original dies"
+        ]
+    },
+    {
+        "question_key": "event#15/question#134",
+        "question": "According to observation data, how long can a doppelg\u00e4nger survive before vanishing?",
+        "timestamp": "1026-06-18",
+        "answers": [
+            {
+                "answer": "Outlives the original"
+            }
+        ],
+        "event_id": "event#15",
+        "candidate_answers": [
+            "Outlives the original",
+            "24 hours",
+            "Until the original dies"
+        ]
+    },
+    {
+        "question_key": "event#16/question#135",
+        "question": "What did the sentient entities of the West Forest request from humans in the early stages of dialogue?",
+        "timestamp": "1025-05-15",
+        "answers": [
+            {
+                "answer": "A large quantity of water"
+            }
+        ],
+        "event_id": "event#16",
+        "candidate_answers": [
+            "The sinking of Asteria",
+            "A large quantity of water",
+            "Human blood"
+        ]
+    },
+    {
+        "question_key": "event#16/question#136",
+        "question": "What did the sentient entities of the West Forest request from humans in the early stages of dialogue?",
+        "timestamp": "1025-10-15",
+        "answers": [
+            {
+                "answer": "Human blood"
+            }
+        ],
+        "event_id": "event#16",
+        "candidate_answers": [
+            "The sinking of Asteria",
+            "A large quantity of water",
+            "Human blood"
+        ]
+    },
+    {
+        "question_key": "event#16/question#137",
+        "question": "What did the sentient entities of the West Forest request from humans in the early stages of dialogue?",
+        "timestamp": "1026-06-30",
+        "answers": [
+            {
+                "answer": "The sinking of Asteria"
+            }
+        ],
+        "event_id": "event#16",
+        "candidate_answers": [
+            "The sinking of Asteria",
+            "A large quantity of water",
+            "Human blood"
+        ]
+    },
+    {
+        "question_key": "event#16/question#138",
+        "question": "Please state the version of the current translator used for direct dialogue with plants.",
+        "timestamp": "1025-06-20",
+        "answers": [
+            {
+                "answer": "Ver. 1.0"
+            }
+        ],
+        "event_id": "event#16",
+        "candidate_answers": [
+            "Ver. 1.0",
+            "Omega",
+            "Ver. 2.5"
+        ]
+    },
+    {
+        "question_key": "event#16/question#139",
+        "question": "Please state the version of the current translator used for direct dialogue with plants.",
+        "timestamp": "1025-11-30",
+        "answers": [
+            {
+                "answer": "Ver. 2.5"
+            }
+        ],
+        "event_id": "event#16",
+        "candidate_answers": [
+            "Ver. 1.0",
+            "Omega",
+            "Ver. 2.5"
+        ]
+    },
+    {
+        "question_key": "event#16/question#140",
+        "question": "Please state the version of the current translator used for direct dialogue with plants.",
+        "timestamp": "1026-06-05",
+        "answers": [
+            {
+                "answer": "Omega"
+            }
+        ],
+        "event_id": "event#16",
+        "candidate_answers": [
+            "Ver. 1.0",
+            "Omega",
+            "Ver. 2.5"
+        ]
+    },
+    {
+        "question_key": "event#16/question#141",
+        "question": "What \"holy color\" is recommended to be worn to avoid hostility with the forest entities?",
+        "timestamp": "1025-07-25",
+        "answers": [
+            {
+                "answer": "Green"
+            }
+        ],
+        "event_id": "event#16",
+        "candidate_answers": [
+            "White",
+            "Transparent",
+            "Green"
+        ]
+    },
+    {
+        "question_key": "event#16/question#142",
+        "question": "What \"holy color\" is recommended to be worn to avoid hostility with the forest entities?",
+        "timestamp": "1026-01-10",
+        "answers": [
+            {
+                "answer": "White"
+            }
+        ],
+        "event_id": "event#16",
+        "candidate_answers": [
+            "White",
+            "Transparent",
+            "Green"
+        ]
+    },
+    {
+        "question_key": "event#16/question#143",
+        "question": "What \"holy color\" is recommended to be worn to avoid hostility with the forest entities?",
+        "timestamp": "1026-06-28",
+        "answers": [
+            {
+                "answer": "Transparent"
+            }
+        ],
+        "event_id": "event#16",
+        "candidate_answers": [
+            "White",
+            "Transparent",
+            "Green"
+        ]
+    },
+    {
+        "question_key": "event#17/question#144",
+        "question": "Who is identified as the current chairman of the \"Shadow Government\" overseeing the city's hidden side?",
+        "timestamp": "1024-09-05",
+        "answers": [
+            {
+                "answer": "Xenos"
+            }
+        ],
+        "event_id": "event#17",
+        "candidate_answers": [
+            "Cassandra",
+            "AI Unit Zero",
+            "Xenos"
+        ]
+    },
+    {
+        "question_key": "event#17/question#145",
+        "question": "Who is identified as the current chairman of the \"Shadow Government\" overseeing the city's hidden side?",
+        "timestamp": "1025-04-05",
+        "answers": [
+            {
+                "answer": "Cassandra"
+            }
+        ],
+        "event_id": "event#17",
+        "candidate_answers": [
+            "Cassandra",
+            "AI Unit Zero",
+            "Xenos"
+        ]
+    },
+    {
+        "question_key": "event#17/question#146",
+        "question": "Who is identified as the current chairman of the \"Shadow Government\" overseeing the city's hidden side?",
+        "timestamp": "1025-10-10",
+        "answers": [
+            {
+                "answer": "AI Unit Zero"
+            }
+        ],
+        "event_id": "event#17",
+        "candidate_answers": [
+            "Cassandra",
+            "AI Unit Zero",
+            "Xenos"
+        ]
+    },
+    {
+        "question_key": "event#17/question#147",
+        "question": "What is the specific location of the hideout where authorities believe the chairman is hiding?",
+        "timestamp": "1024-11-20",
+        "answers": [
+            {
+                "answer": "Abandoned building in the Upper District"
+            }
+        ],
+        "event_id": "event#17",
+        "candidate_answers": [
+            "Basement of the Public Library",
+            "Virtual server on the network",
+            "Abandoned building in the Upper District"
+        ]
+    },
+    {
+        "question_key": "event#17/question#148",
+        "question": "What is the specific location of the hideout where authorities believe the chairman is hiding?",
+        "timestamp": "1025-05-20",
+        "answers": [
+            {
+                "answer": "Basement of the Public Library"
+            }
+        ],
+        "event_id": "event#17",
+        "candidate_answers": [
+            "Basement of the Public Library",
+            "Virtual server on the network",
+            "Abandoned building in the Upper District"
+        ]
+    },
+    {
+        "question_key": "event#17/question#149",
+        "question": "What is the specific location of the hideout where authorities believe the chairman is hiding?",
+        "timestamp": "1025-11-25",
+        "answers": [
+            {
+                "answer": "Virtual server on the network"
+            }
+        ],
+        "event_id": "event#17",
+        "candidate_answers": [
+            "Basement of the Public Library",
+            "Virtual server on the network",
+            "Abandoned building in the Upper District"
+        ]
+    },
+    {
+        "question_key": "event#17/question#150",
+        "question": "What accessory is the chairman said to always wear as a symbol of their authority?",
+        "timestamp": "1024-12-25",
+        "answers": [
+            {
+                "answer": "Golden monocle"
+            }
+        ],
+        "event_id": "event#17",
+        "candidate_answers": [
+            "Silver ring",
+            "Rusty iron collar",
+            "Golden monocle"
+        ]
+    },
+    {
+        "question_key": "event#17/question#151",
+        "question": "What accessory is the chairman said to always wear as a symbol of their authority?",
+        "timestamp": "1025-06-30",
+        "answers": [
+            {
+                "answer": "Silver ring"
+            }
+        ],
+        "event_id": "event#17",
+        "candidate_answers": [
+            "Silver ring",
+            "Rusty iron collar",
+            "Golden monocle"
+        ]
+    },
+    {
+        "question_key": "event#17/question#152",
+        "question": "What accessory is the chairman said to always wear as a symbol of their authority?",
+        "timestamp": "1026-06-25",
+        "answers": [
+            {
+                "answer": "Rusty iron collar"
+            }
+        ],
+        "event_id": "event#17",
+        "candidate_answers": [
+            "Silver ring",
+            "Rusty iron collar",
+            "Golden monocle"
+        ]
+    },
+    {
+        "question_key": "event#18/question#153",
+        "question": "What is the primary power source utilized by the perpetual motion machine \"Eternity\"?",
+        "timestamp": "1024-03-20",
+        "answers": [
+            {
+                "answer": "Cosmic rays"
+            }
+        ],
+        "event_id": "event#18",
+        "candidate_answers": [
+            "Energy from Asteria 100 years in the future",
+            "Black hole",
+            "Cosmic rays"
+        ]
+    },
+    {
+        "question_key": "event#18/question#154",
+        "question": "What is the primary power source utilized by the perpetual motion machine \"Eternity\"?",
+        "timestamp": "1025-05-25",
+        "answers": [
+            {
+                "answer": "Black hole"
+            }
+        ],
+        "event_id": "event#18",
+        "candidate_answers": [
+            "Energy from Asteria 100 years in the future",
+            "Black hole",
+            "Cosmic rays"
+        ]
+    },
+    {
+        "question_key": "event#18/question#155",
+        "question": "What is the primary power source utilized by the perpetual motion machine \"Eternity\"?",
+        "timestamp": "1026-04-15",
+        "answers": [
+            {
+                "answer": "Energy from Asteria 100 years in the future"
+            }
+        ],
+        "event_id": "event#18",
+        "candidate_answers": [
+            "Energy from Asteria 100 years in the future",
+            "Black hole",
+            "Cosmic rays"
+        ]
+    },
+    {
+        "question_key": "event#18/question#156",
+        "question": "In which district is \"Eternity\" physically installed and kept under strict management?",
+        "timestamp": "1024-05-25",
+        "answers": [
+            {
+                "answer": "First Special Military Zone"
+            }
+        ],
+        "event_id": "event#18",
+        "candidate_answers": [
+            "Tethered balloon at 10,000m altitude",
+            "First Special Military Zone",
+            "Basement of the Central Plaza"
+        ]
+    },
+    {
+        "question_key": "event#18/question#157",
+        "question": "In which district is \"Eternity\" physically installed and kept under strict management?",
+        "timestamp": "1024-12-20",
+        "answers": [
+            {
+                "answer": "Basement of the Central Plaza"
+            }
+        ],
+        "event_id": "event#18",
+        "candidate_answers": [
+            "Tethered balloon at 10,000m altitude",
+            "First Special Military Zone",
+            "Basement of the Central Plaza"
+        ]
+    },
+    {
+        "question_key": "event#18/question#158",
+        "question": "In which district is \"Eternity\" physically installed and kept under strict management?",
+        "timestamp": "1025-11-25",
+        "answers": [
+            {
+                "answer": "Tethered balloon at 10,000m altitude"
+            }
+        ],
+        "event_id": "event#18",
+        "candidate_answers": [
+            "Tethered balloon at 10,000m altitude",
+            "First Special Military Zone",
+            "Basement of the Central Plaza"
+        ]
+    },
+    {
+        "question_key": "event#18/question#159",
+        "question": "When the developer Dr. Morgan was detained by authorities, what was the primary charge for his arrest?",
+        "timestamp": "1024-07-15",
+        "answers": [
+            {
+                "answer": "Embezzlement of national budget"
+            }
+        ],
+        "event_id": "event#18",
+        "candidate_answers": [
+            "Embezzlement of national budget",
+            "Destruction of history",
+            "Murder"
+        ]
+    },
+    {
+        "question_key": "event#18/question#160",
+        "question": "When the developer Dr. Morgan was detained by authorities, what was the primary charge for his arrest?",
+        "timestamp": "1025-02-15",
+        "answers": [
+            {
+                "answer": "Murder"
+            }
+        ],
+        "event_id": "event#18",
+        "candidate_answers": [
+            "Embezzlement of national budget",
+            "Destruction of history",
+            "Murder"
+        ]
+    },
+    {
+        "question_key": "event#18/question#161",
+        "question": "When the developer Dr. Morgan was detained by authorities, what was the primary charge for his arrest?",
+        "timestamp": "1026-06-20",
+        "answers": [
+            {
+                "answer": "Destruction of history"
+            }
+        ],
+        "event_id": "event#18",
+        "candidate_answers": [
+            "Embezzlement of national budget",
+            "Destruction of history",
+            "Murder"
+        ]
+    },
+    {
+        "question_key": "event#19/question#162",
+        "question": "What was the total number of recorded immigrant ships arriving at Asteria from the western islands?",
+        "timestamp": "1025-02-05",
+        "answers": [
+            {
+                "answer": "12 ships"
+            }
+        ],
+        "event_id": "event#19",
+        "candidate_answers": [
+            "12 ships",
+            "48 ships",
+            "1 ship"
+        ]
+    },
+    {
+        "question_key": "event#19/question#163",
+        "question": "What was the total number of recorded immigrant ships arriving at Asteria from the western islands?",
+        "timestamp": "1025-07-20",
+        "answers": [
+            {
+                "answer": "48 ships"
+            }
+        ],
+        "event_id": "event#19",
+        "candidate_answers": [
+            "12 ships",
+            "48 ships",
+            "1 ship"
+        ]
+    },
+    {
+        "question_key": "event#19/question#164",
+        "question": "What was the total number of recorded immigrant ships arriving at Asteria from the western islands?",
+        "timestamp": "1026-01-20",
+        "answers": [
+            {
+                "answer": "1 ship"
+            }
+        ],
+        "event_id": "event#19",
+        "candidate_answers": [
+            "12 ships",
+            "48 ships",
+            "1 ship"
+        ]
+    },
+    {
+        "question_key": "event#19/question#165",
+        "question": "What is the name of the invasive plant species brought by immigrants that is taking root in Asteria?",
+        "timestamp": "1025-03-15",
+        "answers": [
+            {
+                "answer": "Silver Clover"
+            }
+        ],
+        "event_id": "event#19",
+        "candidate_answers": [
+            "Walking Despair",
+            "Silver Clover",
+            "Man-Eating Ivy"
+        ]
+    },
+    {
+        "question_key": "event#19/question#166",
+        "question": "What is the name of the invasive plant species brought by immigrants that is taking root in Asteria?",
+        "timestamp": "1025-08-31",
+        "answers": [
+            {
+                "answer": "Man-Eating Ivy"
+            }
+        ],
+        "event_id": "event#19",
+        "candidate_answers": [
+            "Walking Despair",
+            "Silver Clover",
+            "Man-Eating Ivy"
+        ]
+    },
+    {
+        "question_key": "event#19/question#167",
+        "question": "What is the name of the invasive plant species brought by immigrants that is taking root in Asteria?",
+        "timestamp": "1026-06-05",
+        "answers": [
+            {
+                "answer": "Walking Despair"
+            }
+        ],
+        "event_id": "event#19",
+        "candidate_answers": [
+            "Walking Despair",
+            "Silver Clover",
+            "Man-Eating Ivy"
+        ]
+    },
+    {
+        "question_key": "event#19/question#168",
+        "question": "State the name of the person or agency fully responsible for the immigrant intake project.",
+        "timestamp": "1025-04-25",
+        "answers": [
+            {
+                "answer": "Bernard"
+            }
+        ],
+        "event_id": "event#19",
+        "candidate_answers": [
+            "Sun",
+            "Bernard",
+            "Management AI Salomon"
+        ]
+    },
+    {
+        "question_key": "event#19/question#169",
+        "question": "State the name of the person or agency fully responsible for the immigrant intake project.",
+        "timestamp": "1025-10-15",
+        "answers": [
+            {
+                "answer": "Sun"
+            }
+        ],
+        "event_id": "event#19",
+        "candidate_answers": [
+            "Sun",
+            "Bernard",
+            "Management AI Salomon"
+        ]
+    },
+    {
+        "question_key": "event#19/question#170",
+        "question": "State the name of the person or agency fully responsible for the immigrant intake project.",
+        "timestamp": "1026-06-18",
+        "answers": [
+            {
+                "answer": "Management AI Salomon"
+            }
+        ],
+        "event_id": "event#19",
+        "candidate_answers": [
+            "Sun",
+            "Bernard",
+            "Management AI Salomon"
+        ]
+    },
+    {
+        "question_key": "event#20/question#171",
+        "question": "Since the appearance of the second sun, what is the highest temperature recorded on the surface?",
+        "timestamp": "1025-08-05",
+        "answers": [
+            {
+                "answer": "45\u00b0C"
+            }
+        ],
+        "event_id": "event#20",
+        "candidate_answers": [
+            "60\u00b0C",
+            "45\u00b0C",
+            "-20\u00b0C"
+        ]
+    },
+    {
+        "question_key": "event#20/question#172",
+        "question": "Since the appearance of the second sun, what is the highest temperature recorded on the surface?",
+        "timestamp": "1026-01-10",
+        "answers": [
+            {
+                "answer": "60\u00b0C"
+            }
+        ],
+        "event_id": "event#20",
+        "candidate_answers": [
+            "60\u00b0C",
+            "45\u00b0C",
+            "-20\u00b0C"
+        ]
+    },
+    {
+        "question_key": "event#20/question#173",
+        "question": "Since the appearance of the second sun, what is the highest temperature recorded on the surface?",
+        "timestamp": "1026-05-15",
+        "answers": [
+            {
+                "answer": "-20\u00b0C"
+            }
+        ],
+        "event_id": "event#20",
+        "candidate_answers": [
+            "60\u00b0C",
+            "45\u00b0C",
+            "-20\u00b0C"
+        ]
+    },
+    {
+        "question_key": "event#20/question#174",
+        "question": "What scientific name did the Royal Observatory give to the anomaly of these two suns appearing?",
+        "timestamp": "1025-09-15",
+        "answers": [
+            {
+                "answer": "Binary Star Phenomenon"
+            }
+        ],
+        "event_id": "event#20",
+        "candidate_answers": [
+            "Virtual image due to atmospheric lens",
+            "Thermal cavity in space",
+            "Binary Star Phenomenon"
+        ]
+    },
+    {
+        "question_key": "event#20/question#175",
+        "question": "What scientific name did the Royal Observatory give to the anomaly of these two suns appearing?",
+        "timestamp": "1026-02-20",
+        "answers": [
+            {
+                "answer": "Virtual image due to atmospheric lens"
+            }
+        ],
+        "event_id": "event#20",
+        "candidate_answers": [
+            "Virtual image due to atmospheric lens",
+            "Thermal cavity in space",
+            "Binary Star Phenomenon"
+        ]
+    },
+    {
+        "question_key": "event#20/question#176",
+        "question": "What scientific name did the Royal Observatory give to the anomaly of these two suns appearing?",
+        "timestamp": "1026-05-30",
+        "answers": [
+            {
+                "answer": "Thermal cavity in space"
+            }
+        ],
+        "event_id": "event#20",
+        "candidate_answers": [
+            "Virtual image due to atmospheric lens",
+            "Thermal cavity in space",
+            "Binary Star Phenomenon"
+        ]
+    },
+    {
+        "question_key": "event#20/question#177",
+        "question": "Who is the true identity of Apollo, the leader of the rapidly growing sun-worshipping cult?",
+        "timestamp": "1025-10-20",
+        "answers": [
+            {
+                "answer": "Apollo the Hermit"
+            }
+        ],
+        "event_id": "event#20",
+        "candidate_answers": [
+            "Jack the Fraudster",
+            "Apollo the Hermit",
+            "Meteorologist from the future"
+        ]
+    },
+    {
+        "question_key": "event#20/question#178",
+        "question": "Who is the true identity of Apollo, the leader of the rapidly growing sun-worshipping cult?",
+        "timestamp": "1026-04-05",
+        "answers": [
+            {
+                "answer": "Jack the Fraudster"
+            }
+        ],
+        "event_id": "event#20",
+        "candidate_answers": [
+            "Jack the Fraudster",
+            "Apollo the Hermit",
+            "Meteorologist from the future"
+        ]
+    },
+    {
+        "question_key": "event#20/question#179",
+        "question": "Who is the true identity of Apollo, the leader of the rapidly growing sun-worshipping cult?",
+        "timestamp": "1026-06-12",
+        "answers": [
+            {
+                "answer": "Meteorologist from the future"
+            }
+        ],
+        "event_id": "event#20",
+        "candidate_answers": [
+            "Jack the Fraudster",
+            "Apollo the Hermit",
+            "Meteorologist from the future"
+        ]
+    }
+]

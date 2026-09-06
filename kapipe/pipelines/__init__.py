@@ -6,6 +6,7 @@ __all__ = [
     "TripleExtractionPipeline",
     "RAGPipeline",
     "GraphRAGPipeline",
+    "ProStructRAGPipeline",
 ]
 
     
@@ -13,6 +14,7 @@ _NAME_TO_MODULE = {
     "TripleExtractionPipeline": "triple_extraction_pipeline",
     "RAGPipeline": "rag_pipeline",
     "GraphRAGPipeline": "graphrag_pipeline",
+    "ProStructRAGPipeline": "prostruct_rag_pipeline",
 }
 
 
