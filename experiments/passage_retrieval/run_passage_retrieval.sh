@@ -24,7 +24,7 @@ elif [ "${METHOD}" = "contriever" ]; then
     CONFIG_NAME=contriever_msmarco_top3
 elif [ "${METHOD}" = "qwen3_embedding" ]; then
     CONFIG_PATH=./config/qwen3_embedding.conf
-    CONFIG_NAME=qwen3_embedding_0.6b_top3
+    CONFIG_NAME=qwen3_embedding_06b_top3
 else
     echo "Unknown method: ${METHOD}"
     exit 1

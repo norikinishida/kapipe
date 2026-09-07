@@ -14,7 +14,7 @@ STORAGE_RESULTS=/home/nishida/projects/kapipe/experiments/agentic_search/results
 # Method
 METHOD=qwen3_embedding
 CONFIG_PATH=./config/default.conf
-CONFIG_NAME=qwen3_embedding_0.6b
+CONFIG_NAME=qwen3_embedding_06b
 
 # Input Data
 INPUT_PASSAGES=${STORAGE_DATA}/examples/passages.jsonl
