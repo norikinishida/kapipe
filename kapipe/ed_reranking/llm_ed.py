@@ -269,8 +269,8 @@ class LLMED(BaseEDReranker):
                 generated_text = self.model.generate(prompt)
                 generated_text_list.append(generated_text)
 
-                # Convert the generated text into mention-level records
-                target_mentions = self.structurize(
+                # Parse the generated text into mention-level records
+                target_mentions = self.parse(
                     document=document,
                     candidate_entities_for_doc=candidate_entities_for_doc,
                     generated_text=generated_text,
@@ -298,14 +298,14 @@ class LLMED(BaseEDReranker):
 
             return result_document
 
-    def structurize(
+    def parse(
         self,
         document: Document,
         candidate_entities_for_doc: CandidateEntitiesForDocument,
         generated_text: str,
         target_mention_indices: list[int]
     ) -> list[Mention]:
-        """Structurize the generated text into mention-level entity records."""
+        """Parse the generated text into mention-level entity records."""
 
         doc_key = document["doc_key"]
 

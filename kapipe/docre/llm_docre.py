@@ -293,8 +293,8 @@ class LLMDocRE(BaseDocRE):
             # Generate a reponse
             generated_text = self.model.generate(prompt)
 
-            # Structurize the generated text into triples
-            triples: list[Triple] = self.structurize(
+            # Parse the generated text into triples
+            triples: list[Triple] = self.parse(
                 document=document,
                 generated_text=generated_text
             )
@@ -448,8 +448,8 @@ class LLMDocRE(BaseDocRE):
 
         return prompt.rstrip()
 
-    def structurize(self, document: Document, generated_text: str) -> list[Triple]:
-        """Structurize the generated text into triples."""
+    def parse(self, document: Document, generated_text: str) -> list[Triple]:
+        """Parse the generated text into triples."""
 
         doc_key = document["doc_key"]
 

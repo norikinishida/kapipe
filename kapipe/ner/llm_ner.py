@@ -222,8 +222,8 @@ class LLMNER(BaseNER):
             # Generate the response
             generated_text = self.model.generate(prompt)
 
-            # Structurize the generated text into mentions
-            mentions = self.structurize(
+            # Parse the generated text into mentions
+            mentions = self.parse(
                 document=document,
                 generated_text=generated_text
             )
@@ -312,8 +312,8 @@ class LLMNER(BaseNER):
 
         return prompt.rstrip()
 
-    def structurize(self, document: Document, generated_text: str) -> list[Mention]:
-        """Structurize the generated text into the mentions."""
+    def parse(self, document: Document, generated_text: str) -> list[Mention]:
+        """Parse the generated text into the mentions."""
 
         doc_key = document["doc_key"]
 
