@@ -228,7 +228,7 @@ rel_meta_info = {
 # Instantiate the LLM-based DocRE component with the user-defined relation schema
 extractor = LLMDocRE(
     model=model,
-    prompt_template_name_or_path="docre_08_zeroshot",
+    prompt_template_name_or_path="docre_09_zeroshot",
     knowledge_base_name="<your KB name>",
     mention_style="all_mentions",
     with_span_annotation=True,

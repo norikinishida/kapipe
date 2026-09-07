@@ -1,79 +1,51 @@
 # RAG (`kapipe.pipelines.RAGPipeline`)
 
-**Retrieval-Augmented Generation (RAG)** pipeline connects Passage Retrieval and Question Answering components.
+**RAG** pipeline connects components for passage retrieval and question answering.
 
-The pipeline delegates retrieval and answer generation to the supplied components. See the component documentation for their inputs, outputs, methods, and configuration.
+The pipeline does not define the behavior of the individual components. See the corresponding component documentation for their inputs, outputs, methods, and configuration.
 
 ## Component Flow
 
-Index construction:
+### Index construction:
 
 ```text
 Passages (input)
-  → Passage Retrieval
-    → Retrieval index (output)
+→ Passage Retrieval indexing
+  → Retrieval index (output)
 ```
 
-Inference:
+### Inference:
 
 ```text
 Question (input)
-  → Passage Retrieval
-  → Question Answering
-    → Answer (output)
-```
+→ Passage Retrieval search
+  → Retrieved passages (output)
 
-The retrieved passages are preserved in the pipeline output as `contexts`.
+Question and Retrieved passages (input)
+→ Question Answering
+  → Answer (output)
+```
 
 ## Components
 
-| Constructor Argument | Component | Required |
+| Constructor Argument | Component | Used During |
 |---|---|---|
-| `passage_retrieval` | [Passage Retrieval](../components/passage_retrieval.md) | Yes |
-| `qa` | [Question Answering](../components/qa.md) | Yes |
+| `passage_retrieval` | [Passage Retrieval](../components/passage_retrieval.md) | Indexing and inference |
+| `qa` | [Question Answering](../components/qa.md) | Inference |
 
-The components must be instantiated before they are passed to the pipeline.
+All constructor arguments must be specified.
 
 ## Pipeline Methods
 
 | Method | Description |
 |---|---|
 | `make_index()` | Builds a retrieval index over passages |
-| `load_index()` | Loads an existing retrieval index |
+| `load_index()` | Loads the retrieval index for inference |
 | `infer()` | Retrieves passages for one question and generates an answer |
 
-### `make_index()`
-
-```python
-rag.make_index(
-    passages=passages,
-    index_dir="./indexes",
-    batch_size=64,
-)
-```
-
-Additional keyword arguments, such as `batch_size`, are passed directly to the Passage Retrieval component.
-
-### `load_index()`
-
-```python
-rag.load_index(
-    index_dir="./indexes",
-)
-```
-
-### `infer()`
-
-```python
-result_question = rag.infer(
-    question=question,
-    top_k=5,
-)
-```
-
-`top_k` is passed to the Passage Retrieval component.
-
 ## Usage
+
+### Initialize the Pipeline:
 
 ```python
 from kapipe.pipelines import RAGPipeline
@@ -83,47 +55,37 @@ from kapipe.pipelines import RAGPipeline
 passage_retrieval = ...
 qa = ...
 
-# Connect Passage Retrieval and Question Answering
+# Connect the initialized components
 rag = RAGPipeline(
     passage_retrieval=passage_retrieval,
     qa=qa,
 )
+```
 
+### Build the Index:
+
+```python
 # Build a retrieval index over passages
 rag.make_index(
     passages=passages,
     index_dir="./indexes",
-    batch_size=64,
-)
-
-# Retrieve passages and answer one question
-result_question = rag.infer(
-    question=question,
-    top_k=5,
 )
 ```
 
-To reuse an existing index:
+Additional keyword arguments are forwarded to the Passage Retrieval component. Omit arguments unsupported by the selected component.
+
+### Load the Index:
 
 ```python
-from kapipe.pipelines import RAGPipeline
-
-
-# Initialize components compatible with the existing index
-passage_retrieval = ...
-qa = ...
-
-# Connect Passage Retrieval and Question Answering
-rag = RAGPipeline(
-    passage_retrieval=passage_retrieval,
-    qa=qa,
-)
-
-# Load the existing retrieval index
+# Load the passage retrieval index
 rag.load_index(
     index_dir="./indexes",
 )
+```
 
+### Run Inference:
+
+```python
 # Retrieve passages and answer one question
 result_question = rag.infer(
     question=question,
@@ -131,14 +93,20 @@ result_question = rag.infer(
 )
 ```
 
-## Intermediate Files
+`top_k` controls the number of passages returned by Passage Retrieval.
 
-The Passage Retrieval component saves its index under `index_dir`.
+## Indexing Outputs
 
-The index format and filenames depend on the selected Passage Retrieval component. See [Passage Retrieval](../components/passage_retrieval.md) for component-specific behavior.
+`make_index()` creates a retrieval index under `index_dir`.
 
-`RAGPipeline` does not save inference results automatically. The caller is responsible for saving the returned questions.
+The contents of the retrieval index depend on the selected Passage Retrieval component.
+
+## Inference Output
+
+The output preserves the fields returned by the Question Answering component and adds `contexts`, containing the passages returned by Passage Retrieval.
+
+The pipeline does not save inference output automatically. The caller is responsible for saving `result_question`.
 
 ## Example
 
-See [experiments/rag_pipeline](../../experiments/rag_pipeline) for a runnable example.
+See [experiments/rag_pipeline](../../experiments/rag_pipeline) for runnable examples.

@@ -47,7 +47,7 @@ def main():
     )
     qa = LLMQA(
         model=llm,
-        prompt_template_name_or_path="qa_03_with_context",
+        prompt_template_name_or_path="qa_04_with_context",
     )
 
     # Instantiate the GraphRAG pipeline
