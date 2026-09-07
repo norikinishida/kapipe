@@ -2,7 +2,7 @@ from __future__ import annotations
  
 import copy
 import logging
-import re
+# import re
 
 import torch
 from tqdm import tqdm
@@ -151,51 +151,112 @@ class LLMQA(BaseQA):
 
         question_key = question["question_key"]
 
-        # Parse each generated line
-        answer = generated_text
-        rationale = ""
-        score = 0.0
-        for generated_line in generated_text.split("\n"):
-            generated_line = generated_line.strip()
+        ######
+        # Pattern 1: Parse the generated text as string lines
+        ######
 
-            # Skip the empty line
-            if generated_line == "":
-                continue
+        # # Parse each generated line
+        # answer = generated_text
+        # rationale = ""
+        # score = 0.0
+        # for generated_line in generated_text.split("\n"):
+        #     generated_line = generated_line.strip()
+
+        #     # Skip the empty line
+        #     if generated_line == "":
+        #         continue
             
-            # Parse the generated_line
-            if generated_line.startswith("Answer:"):
-                answer = generated_line[len("Answer:"):].strip()
-            elif generated_line.startswith("Rationale:"):
-                rationale = generated_line[len("Rationale:"):].strip()
-            elif generated_line.startswith("Score:"):
-                # Parse a numeric score and an optional percent sign
-                # match = re.search(r"Score:\s*([\d.]+)%?", generated_line)
-                # if match:
-                #     score_str = match.group(1)
-                #     try:
-                #         score = float(score_str)
-                #         if f"{score_str}%" in generated_line:
-                #             score /= 100.0
-                #     except ValueError:
-                #         logger.warning(f"Failed to parse score: {score_str}")
-                #         score = 0.0
-                match = re.search(r"Score:\s*([\d.]+)\s*(%)?", generated_line)
-                if match:
-                    score_str = match.group(1)
-                    percent_mark = match.group(2)
+        #     # Parse the generated_line
+        #     if generated_line.startswith("Answer:"):
+        #         answer = generated_line[len("Answer:"):].strip()
+        #     elif generated_line.startswith("Rationale:"):
+        #         rationale = generated_line[len("Rationale:"):].strip()
+        #     elif generated_line.startswith("Score:"):
+        #         # Parse a numeric score and an optional percent sign
+        #         # match = re.search(r"Score:\s*([\d.]+)%?", generated_line)
+        #         # if match:
+        #         #     score_str = match.group(1)
+        #         #     try:
+        #         #         score = float(score_str)
+        #         #         if f"{score_str}%" in generated_line:
+        #         #             score /= 100.0
+        #         #     except ValueError:
+        #         #         logger.warning(f"Failed to parse score: {score_str}")
+        #         #         score = 0.0
+        #         match = re.search(r"Score:\s*([\d.]+)\s*(%)?", generated_line)
+        #         if match:
+        #             score_str = match.group(1)
+        #             percent_mark = match.group(2)
 
-                    # Convert the parsed score into a float
-                    score = float(score_str)
+        #             # Convert the parsed score into a float
+        #             score = float(score_str)
 
-                    # Normalize percent scores into the 0.0-1.0 range
-                    if percent_mark == "%":
-                        score /= 100.0
-                else:
-                    score = 0.0
-            else:
-                logger.info(f"[{question_key}] Skipped a generated line of invalid formatting: '{generated_line}'")
+        #             # Normalize percent scores into the 0.0-1.0 range
+        #             if percent_mark == "%":
+        #                 score /= 100.0
+        #         else:
+        #             score = 0.0
+        #     else:
+        #         logger.info(f"[{question_key}] Skipped a generated line of invalid formatting: '{generated_line}'")
 
-        return answer, rationale, score
+        ######
+        # Pattern 2: Parse the generated text as JSON
+        ######
+
+        # Parse the preferred JSON output format
+        output = utils.safe_json_loads(
+            generated_text=generated_text,
+            fallback=None,
+        )
+
+        # If the JSON parsing failed, return a fallback response
+        if output is None:
+            logger.warning(
+                f"[{question_key}] Failed to parse generated JSON: "
+                f"{generated_text}"
+            )
+            return generated_text.strip(), "", 0.0
+
+        # Require every field defined by the prompt contract
+        required_keys = {"rationale", "answer", "score"}
+        if not required_keys.issubset(output.keys()):
+            logger.warning(
+                f"[{question_key}] Missing fields in generated JSON: "
+                f"{output}"
+            )
+            return generated_text.strip(), "", 0.0
+
+        # Extract every required field directly
+        rationale = output["rationale"]
+        answer = output["answer"]
+        score = output["score"]
+
+        # Validate the generated field types
+        if not isinstance(rationale, str):
+            logger.warning(
+                f"[{question_key}] Invalid rationale: {rationale}"
+            )
+            return generated_text.strip(), "", 0.0
+        if not isinstance(answer, str):
+            logger.warning(
+                f"[{question_key}] Invalid answer: {answer}"
+            )
+            return generated_text.strip(), "", 0.0
+        if type(score) not in (int, float):
+            logger.warning(
+                f"[{question_key}] Invalid score: {score}"
+            )
+            return generated_text.strip(), "", 0.0
+
+        # Reject scores outside the required range
+        score = float(score)
+        if not 0.0 <= score <= 1.0:
+            logger.warning(
+                f"[{question_key}] Score outside [0.0, 1.0]: {score}"
+            )
+            return generated_text.strip(), "", 0.0
+
+        return answer.strip(), rationale.strip(), score
  
     def batch_answer(
         self,
