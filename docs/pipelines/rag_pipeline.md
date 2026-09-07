@@ -1,6 +1,6 @@
-# RAG Pipeline (`kapipe.pipelines.RAGPipeline`)
+# RAG (`kapipe.pipelines.RAGPipeline`)
 
-**Retrieval-Augmented Generation (RAG) Pipeline** connects Passage Retrieval and Question Answering components.
+**Retrieval-Augmented Generation (RAG)** pipeline connects Passage Retrieval and Question Answering components.
 
 The pipeline delegates retrieval and answer generation to the supplied components. See the component documentation for their inputs, outputs, methods, and configuration.
 
@@ -34,7 +34,7 @@ The retrieved passages are preserved in the pipeline output as `contexts`.
 
 The components must be instantiated before they are passed to the pipeline.
 
-## Methods
+## Pipeline Methods
 
 | Method | Description |
 |---|---|

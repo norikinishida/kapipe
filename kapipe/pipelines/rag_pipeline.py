@@ -56,6 +56,9 @@ class RAGPipeline:
     ) -> Question:
         """Retrieve passages for a question and generate an answer."""
 
+        if top_k <= 0:
+            raise ValueError("top_k must be a positive integer.")
+
         # Retrieve passages using the natural language question
         retrieved_passages = self.passage_retrieval.search(
             queries=[question["question"]],

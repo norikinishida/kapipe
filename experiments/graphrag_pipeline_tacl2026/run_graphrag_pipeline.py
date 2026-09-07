@@ -10,7 +10,6 @@ import transformers
 
 from kapipe import evaluation
 from kapipe import utils
-from kapipe.datatypes import Document, Question
 from kapipe.utils import StopWatch
 
 from kapipe.pipelines import GraphRAGPipeline
@@ -134,17 +133,17 @@ def main(args: argparse.Namespace) -> None:
     utils.mkdir(index_dir)
 
     # Set logger
-    if actiontype == "inference":
-        set_logger(
-            os.path.join(base_output_path, f"{base_filename}.inference.log"),
-            # overwrite=True
-        )
-    else:
+    if actiontype != "inference":
         set_logger(
             os.path.join(base_output_path, f"{actiontype}.log"),
             # overwrite=True
         )
- 
+    else:
+        set_logger(
+            os.path.join(base_output_path, f"{base_filename}.inference.log"),
+            # overwrite=True
+        )
+
     # Show arguments
     logging.info(utils.pretty_format_dict(vars(args)))
     logging.info(f"index dir: {index_dir}")
@@ -272,7 +271,7 @@ def main(args: argparse.Namespace) -> None:
                 raise ValueError(
                     "--input_documents is required for triple_extraction"
                 )
-            documents: list[Document] | None = utils.read_json(
+            documents: list[dict[str, Any]] | None = utils.read_json(
                 input_documents_path
             )
         else:
@@ -314,7 +313,7 @@ def main(args: argparse.Namespace) -> None:
         # Load questions
         if input_questions_path is None:
             raise ValueError("--input_questions is required for inference")
-        questions: list[Question] = utils.read_json(input_questions_path)
+        questions: list[dict[str, Any]] = utils.read_json(input_questions_path)
 
         logging.info(
             f"Applying the GraphRAG pipeline to {len(questions)} "
@@ -325,9 +324,9 @@ def main(args: argparse.Namespace) -> None:
         graphrag.load_index(index_dir=index_dir)
 
         # Run all inference components for every question
-        result_questions: list[Question] = []
+        result_questions: list[dict[str, Any]] = []
         for question in tqdm(questions):
-            result_question: Question = graphrag.infer(
+            result_question: dict[str, Any] = graphrag.infer(
                 question=question,
                 top_k=config["passage_retrieval"]["top_k"],
             )

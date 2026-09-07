@@ -10,7 +10,6 @@ import transformers
 
 from kapipe import evaluation
 from kapipe import utils
-from kapipe.datatypes import Passage, Question
 from kapipe.utils import StopWatch
 
 from kapipe.pipelines import ProStructRAGPipeline
@@ -116,7 +115,7 @@ def main(args: argparse.Namespace) -> None:
     utils.mkdir(index_dir)
 
     # Set logger
-    if base_filename is None:
+    if actiontype != "inference":
         set_logger(
             os.path.join(base_output_path, f"{actiontype}.log"),
             # overwrite=True
@@ -272,7 +271,7 @@ def main(args: argparse.Namespace) -> None:
                 raise ValueError(
                     "--input_passages is required for proposition_extraction"
                 )
-            passages: list[Passage] = utils.read_jsonl(input_passages_path)
+            passages: list[dict[str, Any]] = utils.read_jsonl(input_passages_path)
         else:
             passages = None
 
@@ -334,7 +333,7 @@ def main(args: argparse.Namespace) -> None:
         # Load questions
         if input_questions_path is None:
             raise ValueError("--input_questions is required for inference")
-        questions: list[Question] = utils.read_json(input_questions_path)
+        questions: list[dict[str, Any]] = utils.read_json(input_questions_path)
 
         logging.info(
             f"Applying the ProStruct-RAG pipeline to "
@@ -345,9 +344,9 @@ def main(args: argparse.Namespace) -> None:
         prostruct_rag.load_index(index_dir=index_dir)
 
         # Run all inference components for every question
-        result_questions: list[Question] = []
+        result_questions: list[dict[str, Any]] = []
         for question in tqdm(questions):
-            result_question: Question = prostruct_rag.infer(
+            result_question: dict[str, Any] = prostruct_rag.infer(
                 question=question,
                 top_k=config["passage_retrieval"]["top_k"],
                 hop_size=config["graph_retrieval"]["hop_size"],

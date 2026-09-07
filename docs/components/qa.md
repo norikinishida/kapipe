@@ -108,7 +108,7 @@ model = HuggingFaceLLM(
 # Instantiate the LLM-based QA component
 answerer = LLMQA(
     model=model,
-    prompt_template_name_or_path="qa_03_with_context",
+    prompt_template_name_or_path="qa_04_with_context",
     n_contexts=10,
 )
 
@@ -130,7 +130,7 @@ model = ...
 # Instantiate the LLM-based QA component
 answerer = LLMQA(
     model=model,
-    prompt_template_name_or_path="qa_03_without_context",
+    prompt_template_name_or_path="qa_04_without_context",
 )
 
 # Answer a question without retrieved contexts

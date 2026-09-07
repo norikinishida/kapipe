@@ -1,5 +1,4 @@
 import argparse
-import json
 import logging
 import os
 from typing import Any
@@ -45,7 +44,8 @@ def main(args):
     config_name = args.config_name
 
     # Input Data
-    input_file_path = args.input_file
+    input_passages_path = args.input_passages
+    input_questions_path = args.input_questions
 
     # Output Path
     results_dir = args.results_dir
@@ -76,19 +76,28 @@ def main(args):
     )
     utils.mkdir(base_output_path)
 
-    base_filename = os.path.splitext(os.path.basename(input_file_path))[0]
+    # Set the base filename for query processing
+    base_filename: str | None = None
+    if actiontype == "inference":
+        if input_questions_path is None:
+            raise ValueError(
+                f"--input_questions is required for {actiontype}"
+            )
+        base_filename = os.path.splitext(
+            os.path.basename(input_questions_path)
+        )[0]
 
     # Index will be saved to `index_dir``
     index_dir = os.path.join(base_output_path, "indexes")
     utils.mkdir(index_dir)
 
     # Set logger
-    if actiontype == "indexing":
+    if actiontype != "inference":
         set_logger(
             os.path.join(index_dir, "indexing.log"),
             # overwrite=True
         )
-    elif actiontype == "inference":
+    else:
         set_logger(
             os.path.join(
                 base_output_path,
@@ -105,27 +114,17 @@ def main(args):
     # Data
     ##################
 
-    if actiontype == "indexing":
-        # Load passages
-        logging.info("Loading passages for indexing ...")
-        passages = []
-        for line in open(input_file_path):
-            passage = json.loads(line.strip())
-            passages.append(passage)
-        logging.info(f"Loaded {len(passages)} passages")
-
-    if actiontype == "inference":
-        # Load questions
-        logging.info("Loading questions for inference ...")
-        questions = utils.read_json(input_file_path)
-        logging.info(f"Loaded {len(questions)} questions")
+    # Data are loaded in the corresponding actiontype section below
 
     ##################
     # Method Instantiation
     ##################
 
     # Load the experiment configuration
-    config = utils.get_hocon_config(config_path=config_path, config_name=config_name)
+    config = utils.get_hocon_config(
+        config_path=config_path,
+        config_name=config_name
+    )
 
     # Save the experiment configuration to the output path
     utils.write_json(os.path.join(base_output_path, "config.json"), config)
@@ -150,23 +149,44 @@ def main(args):
     # Method Execution
     ##################
 
-    if actiontype == "indexing":
-        logging.info(f"Indexing {len(passages)} passages in {input_file_path} ...")
+    if actiontype != "inference":
+        # Load passages for indexing
+        if input_passages_path is None:
+            raise ValueError("--input_passages is required for indexing")
+        passages: list[dict[str, Any]] = utils.read_jsonl(input_passages_path)
+
+        # Set component-specific arguments
+        if config["passage_retrieval"]["method_name"] == "bm25":
+            passage_retrieval_indexing_kwargs: dict[str, Any] = {}
+        else:
+            passage_retrieval_indexing_kwargs = {
+                "batch_size": config["passage_retrieval"][
+                    "indexing_batch_size"
+                ],
+            }
 
         # Build the index
         rag.make_index(
             passages=passages,
             index_dir=index_dir,
-            batch_size=config["passage_retrieval"]["indexing_batch_size"],
+            **passage_retrieval_indexing_kwargs,
         )
 
-    if actiontype == "inference":
-        logging.info(f"Applying the RAG pipeline to {len(questions)} questions in {input_file_path} ...")
+    else:
+        # Load questions
+        if input_questions_path is None:
+            raise ValueError("--input_questions is required for inference")
+        questions: list[dict[str, Any]] = utils.read_json(input_questions_path)
+
+        logging.info(
+            f"Applying the RAG pipeline to {len(questions)} questions "
+            f"in {input_questions_path} ..."
+        )
 
         # Load the index
         rag.load_index(index_dir=index_dir)
 
-        # Apply the RAG pipeline to the questions
+        # Run all inference components for everey question
         result_questions = []
         for question in tqdm(questions):
             result_question = rag.infer(
@@ -183,58 +203,110 @@ def main(args):
         utils.write_json(output_questions_path, result_questions)
         logging.info(f"Saved the prediction results to {output_questions_path}")
 
-    ##################
-    # Evaluation
-    ##################
-
-    if do_evaluation:
-        # Require gold answers only when evaluation is requested
-        if gold_questions_path is None:
-            raise ValueError("--gold_answers is required when --do_evaluation is set")
-        if gold_contexts_path is None:
-            raise ValueError("--gold_contexts is required when --do_evaluation is set") 
-
-        # Evaluate the prediction results
-        qa_scores = evaluation.qa.accuracy(
-            pred_path=output_questions_path,
-            gold_path=gold_questions_path,
-            exact_match=False,
-        ) | evaluation.qa.token_level_f1(
-            pred_path=output_questions_path,
-            gold_path=gold_questions_path
-        ) | evaluation.qa.recall(
-            pred_path=output_questions_path,
-            gold_path=gold_questions_path,
-            exact_match=False,
+        # Save the prompts, raw responses, parsed answers, and optional gold answers
+        output_prompt_and_responses_path: str = os.path.join(
+            base_output_path,
+            f"{base_filename}.prompt_and_responses.txt",
         )
-        ret_scores = evaluation.passage_retrieval.precision_recall_at_k(
-            pred_path=output_questions_path,
-            gold_path=gold_contexts_path,
-            passage_to_identifier=lambda p: p["text"]
+        with open(
+            output_prompt_and_responses_path,
+            "w",
+            encoding="utf-8",
+        ) as fout:
+            # Write one human-readable block for each question
+            for result_question in result_questions:
+                fout.write("=" * 80 + "\n\n")
+
+                fout.write("QUESTION KEY:\n")
+                fout.write(result_question["question_key"] + "\n\n")
+
+                fout.write("PROMPT:\n")
+                fout.write(result_question["qa_prompt"].rstrip() + "\n\n")
+
+                fout.write("GENERATED TEXT:\n")
+                fout.write(
+                    result_question["qa_generated_text"].rstrip() + "\n\n"
+                )
+
+                fout.write("PARSED ANSWER:\n")
+                fout.write(result_question["output_answer"].rstrip() + "\n\n")
+
+                # Write gold answers only when they are included in the input question
+                if "answers" in result_question:
+                    fout.write("GOLD ANSWERS:\n")
+                    for answer in result_question["answers"]:
+                        fout.write(f"- {answer['answer']}\n")
+                    fout.write("\n")
+
+        logging.info(
+            "Saved the prompts and responses to "
+            f"{output_prompt_and_responses_path}"
         )
-        ret_scores.update(
-            evaluation.passage_retrieval.ndcg_at_k(
+
+        ##################
+        # Evaluation
+        ##################
+
+        if do_evaluation:
+            # Require gold answers only when evaluation is requested
+            if gold_questions_path is None:
+                raise ValueError(
+                    "--gold_answers is required when --do_evaluation is set"
+                )
+            if gold_contexts_path is None:
+                raise ValueError(
+                    "--gold_contexts is required when --do_evaluation is set"
+                )
+
+            # Evaluate the prediction results
+            qa_scores = evaluation.qa.accuracy(
+                pred_path=output_questions_path,
+                gold_path=gold_questions_path,
+                exact_match=False,
+            )
+            qa_scores.update(
+                evaluation.qa.token_level_f1(
+                    pred_path=output_questions_path,
+                    gold_path=gold_questions_path
+                )
+            )
+            qa_scores.update(
+                evaluation.qa.recall(
+                    pred_path=output_questions_path,
+                    gold_path=gold_questions_path,
+                    exact_match=False,
+                )
+            )
+            ret_scores = evaluation.passage_retrieval.precision_recall_at_k(
                 pred_path=output_questions_path,
                 gold_path=gold_contexts_path,
                 passage_to_identifier=lambda p: p["text"]
             )
-        )
-        scores = {
-            "qa": qa_scores,
-            "passage_retrieval": ret_scores,
-        }
-        logging.info(utils.pretty_format_dict(scores))
+            ret_scores.update(
+                evaluation.passage_retrieval.ndcg_at_k(
+                    pred_path=output_questions_path,
+                    gold_path=gold_contexts_path,
+                    passage_to_identifier=lambda p: p["text"]
+                )
+            )
+            scores = {
+                "qa": qa_scores,
+                "passage_retrieval": ret_scores,
+            }
+            logging.info(utils.pretty_format_dict(scores))
 
-        # Save the evaluation results
-        output_evaluation_path = os.path.join(
-            base_output_path,
-            f"{base_filename}.eval.json",
-        )
-        utils.write_json(output_evaluation_path, scores)
+            # Save the evaluation results
+            output_evaluation_path = os.path.join(
+                base_output_path,
+                f"{base_filename}.eval.json",
+            )
+            utils.write_json(output_evaluation_path, scores)
 
-        # Log the evaluation results
-        logging.info(utils.pretty_format_dict(scores))
-        logging.info(f"Saved the evaluation results to {output_evaluation_path}")
+            # Log the evaluation results
+            logging.info(utils.pretty_format_dict(scores))
+            logging.info(
+                f"Saved the evaluation results to {output_evaluation_path}"
+            )
 
     ##################
     # Closing
@@ -356,14 +428,23 @@ if __name__ == "__main__":
     parser.add_argument("--config_name", type=str, required=True)
 
     # Input Data
-    parser.add_argument("--input_file", type=str, required=True)
+    parser.add_argument("--input_passages", type=str, default=None)
+    parser.add_argument("--input_questions", type=str, default=None)
 
     # Output Path
     parser.add_argument("--results_dir", type=str, required=True)
     parser.add_argument("--prefix", type=str, default=None)
 
     # Action
-    parser.add_argument("--actiontype", type=str, required=True)
+    parser.add_argument(
+        "--actiontype",
+        type=str,
+        required=True,
+        choices=[
+            "indexing",
+            "inference",
+        ],
+    )
 
     # Evaluation
     parser.add_argument("--do_evaluation", action="store_true")

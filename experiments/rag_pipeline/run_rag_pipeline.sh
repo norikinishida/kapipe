@@ -14,7 +14,7 @@ STORAGE_RESULTS=/home/nishida/projects/kapipe/experiments/rag_pipeline/results
 # Method
 METHOD=default
 CONFIG_PATH=./config/default.conf
-CONFIG_NAME=qwen3_embedding_0.6b___gpt5.4nano
+CONFIG_NAME=qwen3_embedding_06b___gpt5_4_nano
 
 # Input Data
 INPUT_PASSAGES=${STORAGE_DATA}/examples/passages.jsonl
@@ -63,7 +63,7 @@ if [ "${ACTIONTYPE}" = "indexing" ] || [ "${ACTIONTYPE}" = "all" ]; then
         --method ${METHOD} \
         --config_path ${CONFIG_PATH} \
         --config_name ${CONFIG_NAME} \
-        --input_file ${INPUT_PASSAGES} \
+        --input_passages ${INPUT_PASSAGES} \
         --results_dir ${RESULTS_DIR} \
         --prefix ${MYPREFIX} \
         --actiontype indexing
@@ -74,7 +74,7 @@ if [ "${ACTIONTYPE}" = "inference" ] || [ "${ACTIONTYPE}" = "all" ]; then
         --method ${METHOD} \
         --config_path ${CONFIG_PATH} \
         --config_name ${CONFIG_NAME} \
-        --input_file ${INPUT_QUESTIONS} \
+        --input_questions ${INPUT_QUESTIONS} \
         --results_dir ${RESULTS_DIR} \
         --prefix ${MYPREFIX} \
         --actiontype inference \
