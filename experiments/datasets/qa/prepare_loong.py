@@ -219,16 +219,15 @@ def convert_dataset(
     for data in tqdm(original_questions, desc="Converting Loong questions"):
         validate_original_question(data=data)
 
-        question_key = data["id"]
-        if question_key in seen_question_keys:
-            raise ValueError(f"Duplicate Loong question key: {question_key}")
-        seen_question_keys.add(question_key)
-
         domain = data["type"]
         dataset_name = f"{domain}_{data['language']}"
         if dataset_name not in DATASET_NAMES:
             raise ValueError(f"Unexpected Loong dataset: {dataset_name}")
-        question = build_question(data=data)
+        question_key = f"loong/test/{data['id']}"
+        if question_key in seen_question_keys:
+            raise ValueError(f"Duplicate Loong question key: {question_key}")
+        seen_question_keys.add(question_key)
+        question = build_question(data=data, question_key=question_key)
         questions_by_dataset[dataset_name].append(question)
 
         # Expand each released document search key into independent Passages
@@ -242,6 +241,7 @@ def convert_dataset(
             )
             for document_id, text in resolved_documents:
                 article = {
+                    "passage_key": f"loong/{dataset_name}/{document_id}",
                     "text": text,
                     "document_id": document_id,
                 }
@@ -325,7 +325,10 @@ def validate_original_question(data: dict[str, Any]) -> None:
         raise TypeError("Expected every Loong ID to be a string")
 
 
-def build_question(data: dict[str, Any]) -> dict[str, Any]:
+def build_question(
+    data: dict[str, Any],
+    question_key: str,
+) -> dict[str, Any]:
     original_question = data["question"]
     original_instruction = data["instruction"]
 
@@ -337,7 +340,7 @@ def build_question(data: dict[str, Any]) -> dict[str, Any]:
     )
 
     return {
-        "question_key": data["id"],
+        "question_key": question_key,
         "original_question": original_question,
         "original_instruction": original_instruction,
         "question": question,

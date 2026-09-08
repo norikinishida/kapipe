@@ -145,7 +145,7 @@ def load_questions(
         assert isinstance(data["id"], str)
         assert isinstance(data["question"], str)
 
-        question_key = f"fanoutqa-{split}-{data['id']}"
+        question_key = f"fanoutqa/{split}/{data['id']}"
         question: dict[str, Any] = {
             "question_key": question_key,
             "question": data["question"],
@@ -270,6 +270,7 @@ def load_evidence_articles(
                 continue
 
             assert title not in title_to_article
+            assert isinstance(article["passage_key"], str)
             assert isinstance(title, str)
             assert isinstance(article["id"], str)
             assert isinstance(article["revid"], str)
@@ -350,19 +351,23 @@ def build_decomposition_context(
     if title in title_to_article:
         article = title_to_article[title]
         return {
+            "passage_key": article["passage_key"],
+            "title": article["title"],
+            "text": article["text"],
             "pageid": int(article["id"]),
             "revid": int(article["revid"]),
             "url": article["url"],
-            "title": article["title"],
             "found_in_enwiki2023": True,
         }
 
     # Retain the evidence metadata when the corpus has no matching title
     return {
+        "passage_key": f"wikipedia/{evidence['pageid']}",
+        "title": title,
+        "text": "",
         "pageid": evidence["pageid"],
         "revid": evidence["revid"],
         "url": evidence["url"],
-        "title": title,
         "found_in_enwiki2023": False,
     }
 
@@ -375,21 +380,23 @@ def build_context(
     if evidence["title"] in title_to_article:
         article = title_to_article[evidence["title"]]
         return {
+            "passage_key": article["passage_key"],
+            "title": article["title"],
+            "text": article["text"],
             "pageid": int(article["id"]),
             "revid": int(article["revid"]),
             "url": article["url"],
-            "title": article["title"],
-            "text": article["text"],
             "found_in_enwiki2023": True,
         }
 
     # Retain unavailable evidence as an empty Passage with source metadata
     return {
+        "passage_key": f"wikipedia/{evidence['pageid']}",
+        "title": evidence["title"],
+        "text": "",
         "pageid": evidence["pageid"],
         "revid": evidence["revid"],
         "url": evidence["url"],
-        "title": evidence["title"],
-        "text": "",
         "found_in_enwiki2023": False,
     }
 

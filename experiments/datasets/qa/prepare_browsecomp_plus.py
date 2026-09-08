@@ -156,7 +156,7 @@ def convert_questions(
             referenced_docid_to_document=referenced_docid_to_document,
         )
 
-        question_key = f"browsecomp-plus-test-{query_id}"
+        question_key = f"browsecomp_plus/test/{query_id}"
         questions.append(
             {
                 "question_key": question_key,
@@ -258,16 +258,22 @@ def convert_documents(
             for field in ["docid", "text", "url"]
         ), (query_id, annotation_name)
 
-        document = {
+        source_document = {
             "docid": decrypt_string(ciphertext=encrypted_document["docid"]),
             "text": decrypt_string(ciphertext=encrypted_document["text"]),
             "url": decrypt_string(ciphertext=encrypted_document["url"]),
         }
         validate_document(
-            document=document,
+            document=source_document,
             query_id=query_id,
             annotation_name=annotation_name,
         )
+        document = {
+            "passage_key": f"browsecomp_plus/{source_document['docid']}",
+            "text": source_document["text"],
+            "docid": source_document["docid"],
+            "url": source_document["url"],
+        }
 
         docid = document["docid"]
         if docid in seen_docids:
@@ -343,6 +349,12 @@ def write_articles(
         for article in tqdm(corpus, desc="Processing BrowseComp-Plus corpus"):
             validate_corpus_article(article=article)
             docid = article["docid"]
+            output_article = {
+                "passage_key": f"browsecomp_plus/{docid}",
+                "text": article["text"],
+                "docid": docid,
+                "url": article["url"],
+            }
 
             if docid in seen_docids:
                 raise ValueError(f"Duplicate BrowseComp-Plus corpus docid: {docid}")
@@ -350,14 +362,14 @@ def write_articles(
 
             # Confirm that positive annotations reproduce the fixed corpus
             if docid in referenced_docid_to_document:
-                if article != referenced_docid_to_document[docid]:
+                if output_article != referenced_docid_to_document[docid]:
                     raise ValueError(
                         f"Annotated BrowseComp-Plus document differs from "
                         f"the corpus: {docid}"
                     )
                 found_referenced_docids.add(docid)
 
-            file.write(json.dumps(article, ensure_ascii=False) + "\n")
+            file.write(json.dumps(output_article, ensure_ascii=False) + "\n")
             article_count += 1
 
     # Reject incomplete corpus releases before replacing an existing output

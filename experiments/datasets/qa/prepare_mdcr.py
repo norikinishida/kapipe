@@ -167,6 +167,7 @@ def convert_articles(
         assert text.split("\n") == lines
 
         article = {
+            "passage_key": f"mdcr/document#{document_index:04d}",
             "title": original_doc["title"],
             "text": text,
             "document_id": str(document_index),
@@ -304,7 +305,7 @@ def convert_questions(
                 )
 
                 question_key = (
-                    f"mdcr-scholarships-{scenario_index:04d}-"
+                    f"mdcr/scholarships/{scenario_index:04d}/"
                     f"{QUESTION_TYPES[question_type_index]}"
                 )
                 question_text = "\n".join(

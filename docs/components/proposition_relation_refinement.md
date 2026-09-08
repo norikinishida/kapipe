@@ -17,16 +17,18 @@ Each relation record contains the following fields.
 | `tail` | `dict` | Tail proposition |
 | `explanation` | `str` | Predicted explanation of the relation |
 
-Each proposition must contain a `text` field. A `timestamp` field in `YYYY-MM-DD` format is also required if temporal information is used.
+Each proposition must contain `passage_key` and `text`. A `timestamp` field in `YYYY-MM-DD` format is also required if temporal information is used.
 
 ```json
 {
     "head": {
+        "passage_key": "proposition#001",
         "text": "An independent audit found that the Northbridge payment system processed 99.9% of transactions within two seconds in February 2025.",
         "timestamp": "2025-03-01"
     },
     "relation": "supports",
     "tail": {
+        "passage_key": "proposition#002",
         "text": "An independent audit found that the Northbridge payment system processed only 82.0% of transactions within two seconds in February 2025.",
         "timestamp": "2025-03-01"
     },
@@ -52,11 +54,13 @@ The head and tail propositions are preserved. The refined relation and explanati
 ```json
 {
     "head": {
+        "passage_key": "proposition#001",
         "text": "An independent audit found that the Northbridge payment system processed 99.9% of transactions within two seconds in February 2025.",
         "timestamp": "2025-03-01"
     },
     "relation": "contradicts",
     "tail": {
+        "passage_key": "proposition#002",
         "text": "An independent audit found that the Northbridge payment system processed only 82.0% of transactions within two seconds in February 2025.",
         "timestamp": "2025-03-01"
     },

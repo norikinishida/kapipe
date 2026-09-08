@@ -25,7 +25,7 @@ def main(args):
     with open(path_input_file, "r") as f:
         for line in f:
             line = line.strip().split("\t")
-            doc_key = line[0]
+            doc_key = f"cdr/{args.split}/{line[0]}"
             text = line[1]
             sentences = [s.split() for s in text.split("|")]
             chunks = get_chunks(line[2:])
@@ -152,10 +152,13 @@ def get_entities(chunks, mentions):
         entity_type = chunk["arg1_entity_type"]
         mention_indices = [span2index[(b,e-1)] for b, e in zip(chunk["arg1_mention_begin_token_indices"], chunk["arg1_mention_end_token_indices"])]
         mention_indices = sorted(mention_indices)
+        # Collect mention names in the same order as mention indices
+        mention_names: list[str] = [mentions[m_i]["name"] for m_i in mention_indices]
         if not entity_id in entities:
             entities[entity_id] = {
                 "entity_type": entity_type,
                 "mention_indices": mention_indices,
+                "mention_names": mention_names,
             }
         else:
             assert entities[entity_id]["entity_type"] == entity_type
@@ -166,10 +169,13 @@ def get_entities(chunks, mentions):
         entity_type = chunk["arg2_entity_type"]
         mention_indices = [span2index[(b,e-1)] for b, e in zip(chunk["arg2_mention_begin_token_indices"], chunk["arg2_mention_end_token_indices"])]
         mention_indices = sorted(mention_indices)
+        # Collect mention names in the same order as mention indices
+        mention_names: list[str] = [mentions[m_i]["name"] for m_i in mention_indices]
         if not entity_id in entities:
             entities[entity_id] = {
                 "entity_type": entity_type,
                 "mention_indices": mention_indices,
+                "mention_names": mention_names,
             }
         else:
             assert entities[entity_id]["entity_type"] == entity_type
@@ -193,8 +199,11 @@ def transform_entities(dct):
     for entity_id in dct.keys():
         entity_type = dct[entity_id]["entity_type"]
         mention_indices = dct[entity_id]["mention_indices"]
+        # Read the aggregated mention names
+        mention_names: list[str] = dct[entity_id]["mention_names"]
         entity = {
             "mention_indices": mention_indices,
+            "mention_names": mention_names,
             "entity_type": entity_type,
             "entity_id": entity_id,
         }
@@ -253,5 +262,6 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--input_file", type=str, required=True)
     parser.add_argument("--output_file", type=str, required=True)
+    parser.add_argument("--split", type=str, required=True)
     args = parser.parse_args()
     main(args=args)

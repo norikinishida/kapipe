@@ -69,8 +69,6 @@ class ProStructRAGPipeline:
         top_k: int,
         prefilter_k: int,
         search_batch_size: int,
-        node_id_key: str,
-        source_id_key: str,
         proposition_relation_extraction_indexing_kwargs: dict[str, Any] | None = None,
         passage_retrieval_indexing_kwargs: dict[str, Any] | None = None,
         # Target component for indexing
@@ -137,7 +135,7 @@ class ProStructRAGPipeline:
                     "Proposition Extraction component is not initialized."
                 )
 
-            # Validate that the passages argument is provided for proposition extraction
+            # Validate that the input passages are provided
             if passages is None:
                 raise ValueError(
                     "Argument `passages` is required for proposition extraction."
@@ -152,32 +150,6 @@ class ProStructRAGPipeline:
                         passage=passage,
                     )
                 )
-
-                # Assign graph node identifiers only when they are absent
-                for proposition_i, proposition in enumerate(
-                    propositions_for_passage
-                ):
-                    # Skip if the proposition already has a node ID
-                    # FIXME
-                    if node_id_key in proposition:
-                        continue
-
-                    # Require the source information used by the ID policy
-                    # FIXME
-                    if source_id_key not in passage:
-                        raise ValueError(
-                            f"Cannot generate '{node_id_key}' because the "
-                            f"source passage does not contain '{source_id_key}'."
-                        )
-
-                    # Generate the graph node identifier using the fixed policy
-                    # FIXME
-                    source_id: Any = passage[source_id_key]
-                    proposition[node_id_key] = (
-                        f"{source_id}/proposition{proposition_i:04d}"
-                    )
-
-                # Preserve extraction order across all source passages
                 propositions.extend(propositions_for_passage)
 
             logger.info(
@@ -185,7 +157,7 @@ class ProStructRAGPipeline:
                 f"{len(passages)} passages"
             )
 
-            # Save propositions directly under the index directory
+            # Save propositions under the index directory
             utils.write_jsonl(
                 os.path.join(index_dir, "propositions.jsonl"),
                 propositions,
@@ -200,7 +172,8 @@ class ProStructRAGPipeline:
             target_component is None
             or target_component == "proposition_relation_extraction"
         ):
-            # Validate that the Proposition Relation Extraction component is initialized
+            # Validate that the Proposition Relation Extraction component 
+            # is initialized.
             if self.proposition_relation_extraction is None:
                 raise ValueError(
                     "Proposition relation extraction component is not initialized."
@@ -215,7 +188,8 @@ class ProStructRAGPipeline:
                     )
                 )
 
-            # Build the temporary retrieval index used for relation candidates
+            # Build the temporary retrieval index used for 
+            # candidate proposition retrieval.
             intermediate_index_dir: str = os.path.join(
                 index_dir,
                 "intermediate_passage_retrieval_index",
@@ -256,7 +230,7 @@ class ProStructRAGPipeline:
                 f"{len(propositions)} propositions"
             )
 
-            # Save extracted relations directly under the index directory
+            # Save extracted relations under the index directory
             utils.write_json(
                 os.path.join(index_dir, "triples.json"),
                 triples,
@@ -271,7 +245,8 @@ class ProStructRAGPipeline:
             target_component is None
             or target_component == "proposition_relation_refinement"
         ):
-            # Validate that the Proposition Relation Refinement component is initialized
+            # Validate that the Proposition Relation Refinement component 
+            # is initialized.
             if self.proposition_relation_refinement is None:
                 raise ValueError(
                     "Proposition relation refinement component is not initialized."
@@ -349,7 +324,6 @@ class ProStructRAGPipeline:
                 self.passage_graph_construction.construct_passage_graph(
                     passages=propositions,
                     triples=refined_triples,
-                    node_id_key=node_id_key,
                 )
             )
 
@@ -419,7 +393,6 @@ class ProStructRAGPipeline:
         question: Question,
         top_k: int,
         hop_size: int,
-        node_id_key: str,
         #
         remove_same_timestamp_updates: bool = True,
         append_question_timestamp: bool = True,
@@ -458,7 +431,7 @@ class ProStructRAGPipeline:
 
         # Extract graph node identifiers from the anchor propositions
         anchor_node_ids: list[str] = [
-            prop[node_id_key]
+            prop["passage_key"]
             for prop in anchor_contexts["contexts"]
         ]
 
@@ -483,7 +456,7 @@ class ProStructRAGPipeline:
         #################################
 
         # Remove same-timestamp update edges when requested
-        # FIXME
+        # TODO: Consider whether this filtering should be done at this stage
         filtered_edges: list[dict[str, Any]] = []
         for edge in edges:
             if remove_same_timestamp_updates:
@@ -503,14 +476,19 @@ class ProStructRAGPipeline:
 
         # Wrap the formatted text in the QA context format
         formatted_contexts: ContextsForOneExample = copy.deepcopy(graph_contexts)
-        formatted_contexts["contexts"] = [{"text": text}]
+        formatted_contexts["contexts"] = [
+            {
+                "passage_key": f"{question['question_key']}/context#0000",
+                "text": text,
+            }
+        ]
 
         #################################
         # [Step 8] Answer Generation
         #################################
 
         # Add the query date using the ProStruct-RAG representation
-        # FIXME
+        # TODO: Consider whether this timestamp appending should be done at this stage
         question_with_time: Question = copy.deepcopy(question)
         if append_question_timestamp:
             question_text: str = question_with_time["question"].strip()

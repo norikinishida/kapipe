@@ -34,7 +34,7 @@ This directory already includes example data.
 
 ```bash
 experiments/graph_retrieval/data/examples/graph.graphml
-experiments/graph_retrieval/data/examples/questions.json
+experiments/graph_retrieval/data/examples/questions.contexts.json
 ```
 
 ## Step 3. Configuration Setup

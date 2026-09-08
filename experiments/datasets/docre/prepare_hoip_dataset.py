@@ -15,6 +15,10 @@ def main(args):
 
     documents = utils.read_json(path_input_file)
     documents = process(documents)
+    for document in documents:
+        document["doc_key"] = (
+            f"hoip_v1/{args.split}/{document['doc_key']}"
+        )
     utils.write_json(path_output_file, documents)
 
 
@@ -138,5 +142,6 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--input_file", type=str, required=True)
     parser.add_argument("--output_file", type=str, required=True)
+    parser.add_argument("--split", type=str, required=True)
     args = parser.parse_args()
     main(args=args)

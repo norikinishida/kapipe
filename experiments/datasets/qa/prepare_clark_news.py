@@ -30,8 +30,8 @@ def main(args: argparse.Namespace) -> None:
         relation_object_and_timestamp_to_subjects_and_urls,
     ) = load_fact_indices(facts_file=facts_file)
 
-    # Extract the articles and assign stable IDs to each URL and timestamp pair
-    articles, url_and_timestamp_to_article_id = load_articles(
+    # Extract the articles and assign stable keys to each URL and timestamp pair
+    articles, url_and_timestamp_to_passage_key = load_articles(
         articles_file=articles_file,
         url_and_timestamp_to_triples=url_and_timestamp_to_triples,
     )
@@ -42,22 +42,22 @@ def main(args: argparse.Namespace) -> None:
         relation_object_and_timestamp_to_subjects_and_urls=(
             relation_object_and_timestamp_to_subjects_and_urls
         ),
-        url_and_timestamp_to_article_id=url_and_timestamp_to_article_id,
+        url_and_timestamp_to_passage_key=url_and_timestamp_to_passage_key,
     )
 
     # Resolve annotated evidence articles into the gold-context format
-    article_id_to_article = {
-        article["article_id"]: article
+    passage_key_to_article = {
+        article["passage_key"]: article
         for article in articles
     }
     gold_contexts = build_gold_contexts(
         questions=questions,
-        article_id_to_article=article_id_to_article,
+        passage_key_to_article=passage_key_to_article,
     )
 
-    # Remove intermediate article IDs duplicated in the gold contexts
+    # Remove intermediate passage keys duplicated in the gold contexts
     for question in questions:
-        del question["evidence_article_ids"]
+        del question["evidence_passage_keys"]
 
     # Create all output directories before writing the converted dataset
     for output_file in [
@@ -167,7 +167,7 @@ def load_articles(
         ] = json.load(file)
 
     articles: list[dict[str, Any]] = []
-    url_and_timestamp_to_article_id: dict[tuple[str, str], str] = {}
+    url_and_timestamp_to_passage_key: dict[tuple[str, str], str] = {}
 
     # Preserve the insertion order used by the project080 notebook
     for url, timestamp_to_article in tqdm(
@@ -178,13 +178,14 @@ def load_articles(
             timestamp = normalize_date(original_article["source_timestamp"])
             assert timestamp is not None
 
-            article_id = f"article#{len(articles)}"
+            passage_key = f"clark_news/article#{len(articles):08d}"
             url_and_timestamp = (url, timestamp)
-            assert url_and_timestamp not in url_and_timestamp_to_article_id
-            url_and_timestamp_to_article_id[url_and_timestamp] = article_id
+            assert url_and_timestamp not in url_and_timestamp_to_passage_key
+            url_and_timestamp_to_passage_key[url_and_timestamp] = passage_key
 
             # Preserve the article and the temporal facts supported by it
             article = {
+                "passage_key": passage_key,
                 "text": original_article["source_text"],
                 "timestamp": timestamp,
                 "source": (
@@ -197,11 +198,10 @@ def load_articles(
                     url_and_timestamp,
                     [],
                 ),
-                "article_id": article_id,
             }
             articles.append(article)
 
-    return articles, url_and_timestamp_to_article_id
+    return articles, url_and_timestamp_to_passage_key
 
 
 def load_questions(
@@ -210,7 +210,7 @@ def load_questions(
         tuple[str, str, str],
         list[tuple[str, str]],
     ],
-    url_and_timestamp_to_article_id: dict[tuple[str, str], str],
+    url_and_timestamp_to_passage_key: dict[tuple[str, str], str],
 ) -> list[dict[str, Any]]:
     # Group rows by question text and date because list answers occupy separate rows
     group_key_to_rows: dict[
@@ -253,7 +253,7 @@ def load_questions(
             ]
 
             triple: dict[str, str] | None = None
-            evidence_article_id: str | None = None
+            evidence_passage_key: str | None = None
             if matched_candidates:
                 best_subject = max(
                     (
@@ -269,7 +269,7 @@ def load_questions(
                 }
                 assert len(matched_urls) == 1
                 matched_url = next(iter(matched_urls))
-                article_id = url_and_timestamp_to_article_id[
+                passage_key = url_and_timestamp_to_passage_key[
                     (matched_url, timestamp)
                 ]
 
@@ -279,13 +279,13 @@ def load_questions(
                     "object": answer,
                     "timestamp": timestamp,
                 }
-                evidence_article_id = article_id
+                evidence_passage_key = passage_key
 
             row_record = {
                 "question_key": f"question#{row_index:04d}",
                 "answer": answer,
                 "triple": triple,
-                "evidence_article_id": evidence_article_id,
+                "evidence_passage_key": evidence_passage_key,
             }
             group_key_to_rows.setdefault(
                 (question_text, timestamp),
@@ -296,12 +296,14 @@ def load_questions(
     questions: list[dict[str, Any]] = []
     for (question_text, timestamp), rows in group_key_to_rows.items():
         answer_texts = sorted({row["answer"] for row in rows})
-        question_key = "|".join(row["question_key"] for row in rows)
+        question_key = "clark_news/" + "|".join(
+            row["question_key"] for row in rows
+        )
         time_agnostic_question_key = str(abs(hash(question_text)))
 
         triples = [row["triple"] for row in rows]
-        evidence_article_ids = [
-            row["evidence_article_id"]
+        evidence_passage_keys = [
+            row["evidence_passage_key"]
             for row in rows
         ]
 
@@ -319,7 +321,7 @@ def load_questions(
                 for answer_index, answer_text in enumerate(answer_texts)
             ],
             "triples": triples,
-            "evidence_article_ids": evidence_article_ids,
+            "evidence_passage_keys": evidence_passage_keys,
         }
         questions.append(question)
 
@@ -346,16 +348,16 @@ def load_questions(
 
 def build_gold_contexts(
     questions: list[dict[str, Any]],
-    article_id_to_article: dict[str, dict[str, Any]],
+    passage_key_to_article: dict[str, dict[str, Any]],
 ) -> list[dict[str, Any]]:
     gold_contexts: list[dict[str, Any]] = []
 
     # Resolve each evidence reference and preserve empty contexts
     for question in questions:
         contexts = [
-            article_id_to_article[evidence_article_id]
-            for evidence_article_id in question["evidence_article_ids"]
-            if evidence_article_id is not None
+            passage_key_to_article[evidence_passage_key]
+            for evidence_passage_key in question["evidence_passage_keys"]
+            if evidence_passage_key is not None
         ]
         gold_contexts.append(
             {

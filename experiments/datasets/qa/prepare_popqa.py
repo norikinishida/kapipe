@@ -32,7 +32,7 @@ def process_split(split_dataset, path_output_file, size=None):
     questions = []
     for data in tqdm(split_dataset):
         # Extract example ID
-        question_key = data["id"]
+        question_key = f"popqa/test/{data['id']}"
 
         # Extract question
         question = data["question"] 
@@ -103,5 +103,3 @@ if __name__ == "__main__":
     parser.add_argument("--size", type=int, default=-1)
     args = parser.parse_args()
     main(args)
-
- 

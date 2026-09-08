@@ -11,5 +11,6 @@ for split in train dev test
 do
     python prepare_gda.py \
         --input_file ${EOG}/${split}.data \
-        --output_file ${STORAGE_DATA}/docre/gda/${split}.json
+        --output_file ${STORAGE_DATA}/docre/gda/${split}.json \
+        --split ${split}
 done

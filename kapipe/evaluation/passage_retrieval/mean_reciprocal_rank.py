@@ -2,14 +2,10 @@ from ... import utils
 
 
 def mean_reciprocal_rank(
-    pred_path,
-    gold_path,
-    passage_to_identifier=None
-):
-    scores = {}
-
-    if passage_to_identifier is None:
-        passage_to_identifier = lambda p: p["text"]
+    pred_path: str | list[dict],
+    gold_path: str | list[dict]
+) -> dict[str, float]:
+    scores: dict[str, float] = {}
 
     # Load
     if isinstance(pred_path, str):
@@ -32,40 +28,49 @@ def mean_reciprocal_rank(
     # Evaluate
     scores["mean_reciprocal_rank"] = _mean_reciprocal_rank(
         pred_contexts=pred_contexts,
-        gold_contexts=gold_contexts,
-        passage_to_identifier=passage_to_identifier
+        gold_contexts=gold_contexts
     )
     return scores
 
 
-def _mean_reciprocal_rank(pred_contexts, gold_contexts, passage_to_identifier):
-    scores = {}
+def _mean_reciprocal_rank(
+    pred_contexts: list[dict],
+    gold_contexts: list[dict]
+) -> dict[str, float]:
+    scores: dict[str, float] = {}
 
-    reciprocal_ranks = []
+    reciprocal_ranks: list[float] = []
 
     for pred_contexts_for_doc, gold_contexts_for_doc in zip(pred_contexts, gold_contexts):
-        pred_passage_ids = [passage_to_identifier(p) for p in pred_contexts_for_doc["contexts"]]
+        # Extract predicted passage keys for the current document
+        pred_passage_keys = [p["passage_key"] for p in pred_contexts_for_doc["contexts"]]
 
-        unique_pred_passage_ids = []
-        seen_pred_passage_ids = set()
-        for pred_passage_id in pred_passage_ids:
-            if pred_passage_id in seen_pred_passage_ids:
+        # Remove duplicate predicted passage keys while preserving order
+        unique_pred_passage_keys = []
+        seen_pred_passage_keys = set()
+        for pred_passage_key in pred_passage_keys:
+            if pred_passage_key in seen_pred_passage_keys:
                 continue
-            unique_pred_passage_ids.append(pred_passage_id)
-            seen_pred_passage_ids.add(pred_passage_id)
-        pred_passage_ids = unique_pred_passage_ids
+            unique_pred_passage_keys.append(pred_passage_key)
+            seen_pred_passage_keys.add(pred_passage_key)
+        pred_passage_keys = unique_pred_passage_keys
 
-        gold_passage_ids = [passage_to_identifier(p) for p in gold_contexts_for_doc["contexts"]]
-        gold_passage_ids = set(gold_passage_ids)
+        # Extract gold passage keys for the current document
+        # and convert to a set for fast lookup.
+        gold_passage_keys = [p["passage_key"] for p in gold_contexts_for_doc["contexts"]]
+        gold_passage_keys = set(gold_passage_keys)
 
+        # Compute reciprocal rank for the current document
         rr = 0.0
-        for rank, pid in enumerate(pred_passage_ids, 1):
-            if pid in gold_passage_ids:
+        for rank, pid in enumerate(pred_passage_keys, 1):
+            if pid in gold_passage_keys:
                 rr = 1.0 / rank
                 break
         reciprocal_ranks.append(rr)
 
+    # Compute mean reciprocal rank across all documents
     sum_ = sum(reciprocal_ranks)
     n = len(reciprocal_ranks)
     scores["mean_reciprocal_rank"] = (sum_ / n if n != 0 else 0.0) * 100.0
+
     return scores

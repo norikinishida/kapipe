@@ -33,22 +33,22 @@ Each community record contains the following fields.
 
 | Field | Type | Description |
 |---|---|---|
-| `community_id` | `str` | Unique community identifier |
+| `community_key` | `str` | Unique community identifier |
 | `nodes` | `list[str] \| None` | Entity IDs belonging to the community |
 | `level` | `int` | Depth in the community hierarchy |
-| `parent_community_id` | `str \| None` | Parent community ID |
-| `child_community_ids` | `list[str]` | Child community IDs |
+| `parent_community_key` | `str \| None` | Parent community key |
+| `child_community_keys` | `list[str]` | Child community keys |
 
 The `ROOT` community is a virtual root node. Its `nodes` field is `None`.
 
 ```json
 [
     {
-        "community_id": "ROOT",
+        "community_key": "ROOT",
         "nodes": null,
         "level": -1,
-        "parent_community_id": null,
-        "child_community_ids": [
+        "parent_community_key": null,
+        "child_community_keys": [
             "Community(D016651)",
             "Community(D014262)",
             "Community(D002122)",
@@ -56,14 +56,14 @@ The `ROOT` community is a virtual root node. Its `nodes` field is `None`.
         ]
     },
     {
-        "community_id": "Community(D016651)",
+        "community_key": "Community(D016651)",
         "nodes": [
             "D016651",
             "D014262"
         ],
         "level": 0,
-        "parent_community_id": "ROOT",
-        "child_community_ids": []
+        "parent_community_key": "ROOT",
+        "child_community_keys": []
     },
     ...
 ]

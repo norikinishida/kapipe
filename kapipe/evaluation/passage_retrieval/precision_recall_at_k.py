@@ -2,14 +2,10 @@ from ... import utils
 
 
 def precision_recall_at_k(
-    pred_path,
-    gold_path,
-    passage_to_identifier=None
-):
+    pred_path: str | list[dict],
+    gold_path: str | list[dict]
+) -> dict[str, float]:
     scores = {}
-
-    if passage_to_identifier is None:
-        passage_to_identifier = lambda p: p["text"]
 
     # Load
     if isinstance(pred_path, str):
@@ -32,17 +28,21 @@ def precision_recall_at_k(
     # Evaluate
     scores["precision_recall_at_k"] = _precision_recall_at_k(
         pred_contexts=pred_contexts,
-        gold_contexts=gold_contexts,
-        passage_to_identifier=passage_to_identifier
+        gold_contexts=gold_contexts
     )
     return scores
 
 
-def _precision_recall_at_k(pred_contexts, gold_contexts, passage_to_identifier):
-    scores = {}
+def _precision_recall_at_k(
+    pred_contexts: list[dict],
+    gold_contexts: list[dict]
+) -> dict[str, float]:
+    scores: dict[str, float] = {}
 
-    k_list = [1, 2, 4, 5, 8, 10, 16, 20, 30, 32, 50, 64, 100, 128]
+    # Define the list of k values for which to compute precision and recall
+    k_list: list[int] = [1, 2, 4, 5, 8, 10, 16, 20, 30, 32, 50, 64, 100, 128]
 
+    # Initialize a counter dictionary to keep track of total predicted, gold, and correct counts for each k
     counter = {
         k: {
             "total_count_pred": 0,
@@ -53,26 +53,32 @@ def _precision_recall_at_k(pred_contexts, gold_contexts, passage_to_identifier):
     }
 
     for pred_contexts_for_doc, gold_contexts_for_doc in zip(pred_contexts, gold_contexts):
-        pred_passage_ids = [passage_to_identifier(p) for p in pred_contexts_for_doc["contexts"]]
+        # Extract predicted passage keys for the current document
+        pred_passage_keys = [p["passage_key"] for p in pred_contexts_for_doc["contexts"]]
 
-        unique_pred_passage_ids = []
-        seen_pred_passage_ids = set()
-        for passage_id in pred_passage_ids:
-            if passage_id in seen_pred_passage_ids:
+        # Remove duplicate predicted passage keys while preserving order
+        unique_pred_passage_keys = []
+        seen_pred_passage_keys = set()
+        for passage_key in pred_passage_keys:
+            if passage_key in seen_pred_passage_keys:
                 continue
-            unique_pred_passage_ids.append(passage_id)
-            seen_pred_passage_ids.add(passage_id)
-        pred_passage_ids = unique_pred_passage_ids
+            unique_pred_passage_keys.append(passage_key)
+            seen_pred_passage_keys.add(passage_key)
+        pred_passage_keys = unique_pred_passage_keys
 
-        gold_passage_ids = [passage_to_identifier(p) for p in gold_contexts_for_doc["contexts"]]
-        gold_passage_ids = set(gold_passage_ids)
+        # Extract gold passage keys for the current document 
+        # and convert to a set for fast lookup.
+        gold_passage_keys = [p["passage_key"] for p in gold_contexts_for_doc["contexts"]]
+        gold_passage_keys = set(gold_passage_keys)
 
+        # Compute precision and recall at each k for the current document
         for k in k_list:
-            topk_pred_passage_ids = set(pred_passage_ids[:k])
-            counter[k]["total_count_pred"] += len(topk_pred_passage_ids)
-            counter[k]["total_count_gold"] += len(gold_passage_ids)
-            counter[k]["total_count_correct"] += len(topk_pred_passage_ids & gold_passage_ids)
+            topk_pred_passage_keys = set(pred_passage_keys[:k])
+            counter[k]["total_count_pred"] += len(topk_pred_passage_keys)
+            counter[k]["total_count_gold"] += len(gold_passage_keys)
+            counter[k]["total_count_correct"] += len(topk_pred_passage_keys & gold_passage_keys)
 
+    # Compute precision and recall at each k by aggregating over all documents
     for k in k_list:
         total_count_pred = float(counter[k]["total_count_pred"])
         total_count_gold = float(counter[k]["total_count_gold"])
@@ -95,4 +101,3 @@ def _precision_recall_at_k(pred_contexts, gold_contexts, passage_to_identifier):
         scores[f"recall@{k}"] = recall_at_k * 100.0
 
     return scores
-

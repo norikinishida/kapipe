@@ -51,7 +51,9 @@ def main(args):
                     mentions = get_mentions(ss_tokens=ss_tokens, ss_ner_tags=ss_ner_tags)
                     document = get_document(ss_tokens=ss_tokens, mentions=mentions)
                     # documents[f"ID{doc_i}"] = document
-                    documents.append({"doc_key" : f"ID{doc_i}"} | document)
+                    documents.append({
+                        "doc_key": f"conll2003/{args.split}/ID{doc_i}"
+                    } | document)
                     doc_i += 1
                     n_docs += 1
                     n_sentences += len(document["sentences"])
@@ -91,7 +93,9 @@ def main(args):
             mentions = get_mentions(ss_tokens=ss_tokens, ss_ner_tags=ss_ner_tags)
             document = get_document(ss_tokens=ss_tokens, mentions=mentions)
             # documents[f"ID{doc_i}"] = document
-            documents.append({"doc_key" : f"ID{doc_i}"} | document)
+            documents.append({
+                "doc_key": f"conll2003/{args.split}/ID{doc_i}"
+            } | document)
             doc_i += 1
             n_docs += 1
             n_sentences += len(document["sentences"])
@@ -268,5 +272,6 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--input_file", type=str, required=True)
     parser.add_argument("--output_file", type=str, required=True)
+    parser.add_argument("--split", type=str, required=True)
     args = parser.parse_args()
     main(args=args)

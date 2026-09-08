@@ -1,6 +1,6 @@
 [
     {
-        "question_key": "intersection#1",
+        "question_key": "cdr_qa/intersection#1",
         "question": "What chemical compounds commonly induce both Anemia, Aplastic and Insufficiency, Kidney?",
         "answers": [
             {
@@ -35,7 +35,7 @@
         }
     },
     {
-        "question_key": "intersection#2",
+        "question_key": "cdr_qa/intersection#2",
         "question": "What chemical compounds commonly induce both Hepatic Veno Occlusive Disease and Acute Renal Injury?",
         "answers": [
             {
@@ -75,7 +75,7 @@
         }
     },
     {
-        "question_key": "intersection#3",
+        "question_key": "cdr_qa/intersection#3",
         "question": "What diseases are commonly induced by both N-Acetyl-p-aminophenol and Fluoruracil?",
         "answers": [
             {
@@ -185,7 +185,7 @@
         }
     },
     {
-        "question_key": "intersection#4",
+        "question_key": "cdr_qa/intersection#4",
         "question": "What diseases are commonly induced by both Oral Contraceptives and Unfractionated Heparin?",
         "answers": [
             {
@@ -240,7 +240,7 @@
         }
     },
     {
-        "question_key": "intersection#5",
+        "question_key": "cdr_qa/intersection#5",
         "question": "What diseases are commonly induced by both Isoniazid and Deoxyephedrine?",
         "answers": [
             {
@@ -446,7 +446,7 @@
         }
     },
     {
-        "question_key": "intersection#6",
+        "question_key": "cdr_qa/intersection#6",
         "question": "What diseases are commonly induced by both anastrozole and Tamoxifen?",
         "answers": [
             {
@@ -506,7 +506,7 @@
         }
     },
     {
-        "question_key": "intersection#7",
+        "question_key": "cdr_qa/intersection#7",
         "question": "What diseases are commonly induced by both alpha-Methyl-L-Dopa and Calcium Channel Blockers?",
         "answers": [
             {
@@ -536,7 +536,7 @@
         }
     },
     {
-        "question_key": "intersection#8",
+        "question_key": "cdr_qa/intersection#8",
         "question": "What diseases are commonly induced by both Cyclophosphamide and Dexamethasone?",
         "answers": [
             {
@@ -723,7 +723,7 @@
         }
     },
     {
-        "question_key": "intersection#9",
+        "question_key": "cdr_qa/intersection#9",
         "question": "What diseases are commonly induced by both Flumazenil and Carbacholine?",
         "answers": [
             {
@@ -753,7 +753,7 @@
         }
     },
     {
-        "question_key": "intersection#10",
+        "question_key": "cdr_qa/intersection#10",
         "question": "What diseases are commonly induced by both Tetraethylthiuram Disulfide and Amiodarone?",
         "answers": [
             {
@@ -883,7 +883,7 @@
         }
     },
     {
-        "question_key": "intersection#11",
+        "question_key": "cdr_qa/intersection#11",
         "question": "What diseases are commonly induced by both Vincristine and Carbamazepine?",
         "answers": [
             {
@@ -978,7 +978,7 @@
         }
     },
     {
-        "question_key": "intersection#12",
+        "question_key": "cdr_qa/intersection#12",
         "question": "What diseases are commonly induced by both FIVB and Pentylenetetrazole?",
         "answers": [
             {
@@ -1049,7 +1049,7 @@
         }
     },
     {
-        "question_key": "intersection#13",
+        "question_key": "cdr_qa/intersection#13",
         "question": "What diseases are commonly induced by both Phentanyl and Morphia?",
         "answers": [
             {
@@ -1151,7 +1151,7 @@
         }
     },
     {
-        "question_key": "intersection#14",
+        "question_key": "cdr_qa/intersection#14",
         "question": "What diseases are commonly induced by both cis-Platinum and urovision?",
         "answers": [
             {
@@ -1211,7 +1211,7 @@
         }
     },
     {
-        "question_key": "intersection#15",
+        "question_key": "cdr_qa/intersection#15",
         "question": "What chemical compounds commonly induce both Thrombocytopenia and Nausea?",
         "answers": [
             {
@@ -1354,7 +1354,7 @@
         }
     },
     {
-        "question_key": "intersection#16",
+        "question_key": "cdr_qa/intersection#16",
         "question": "What chemical compounds commonly induce both Neutropenia and AV Block?",
         "answers": [
             {
@@ -1399,7 +1399,7 @@
         }
     },
     {
-        "question_key": "intersection#17",
+        "question_key": "cdr_qa/intersection#17",
         "question": "What chemical compounds commonly induce both Thrombopenias and Ventricular Fibrillation?",
         "answers": [
             {
@@ -1494,7 +1494,7 @@
         }
     },
     {
-        "question_key": "intersection#18",
+        "question_key": "cdr_qa/intersection#18",
         "question": "What diseases are commonly induced by both Methyldopa and Paclitaxel?",
         "answers": [
             {
@@ -1524,7 +1524,7 @@
         }
     },
     {
-        "question_key": "intersection#19",
+        "question_key": "cdr_qa/intersection#19",
         "question": "What chemical compounds commonly induce both Seizures and Kidney Diseases?",
         "answers": [
             {
@@ -1596,7 +1596,7 @@
         }
     },
     {
-        "question_key": "intersection#20",
+        "question_key": "cdr_qa/intersection#20",
         "question": "What diseases are commonly induced by both 1,3 Dimethylxanthine and capecitabine?",
         "answers": [
             {
@@ -1626,7 +1626,7 @@
         }
     },
     {
-        "question_key": "intersection#21",
+        "question_key": "cdr_qa/intersection#21",
         "question": "What chemical compounds commonly induce both Psychogenic Parasitosis and Myasthenia Gravis?",
         "answers": [
             {
@@ -1686,7 +1686,7 @@
         }
     },
     {
-        "question_key": "intersection#22",
+        "question_key": "cdr_qa/intersection#22",
         "question": "What diseases are commonly induced by both Tacrolimus and Doxorubicin?",
         "answers": [
             {
@@ -1796,7 +1796,7 @@
         }
     },
     {
-        "question_key": "intersection#23",
+        "question_key": "cdr_qa/intersection#23",
         "question": "What diseases are commonly induced by both Iproveratril and Paclitaxel?",
         "answers": [
             {
@@ -1931,7 +1931,7 @@
         }
     },
     {
-        "question_key": "intersection#24",
+        "question_key": "cdr_qa/intersection#24",
         "question": "What diseases are commonly induced by both Unfractionated Heparin and Cyclophosphane?",
         "answers": [
             {
@@ -1987,7 +1987,7 @@
         }
     },
     {
-        "question_key": "intersection#25",
+        "question_key": "cdr_qa/intersection#25",
         "question": "What chemical compounds commonly induce both Myocardial Disease and Seizures?",
         "answers": [
             {
@@ -2012,7 +2012,7 @@
         }
     },
     {
-        "question_key": "intersection#26",
+        "question_key": "cdr_qa/intersection#26",
         "question": "What diseases are commonly induced by both Bepridil and Morphine?",
         "answers": [
             {
@@ -2057,7 +2057,7 @@
         }
     },
     {
-        "question_key": "intersection#27",
+        "question_key": "cdr_qa/intersection#27",
         "question": "What diseases are commonly induced by both Amiodarone and Methotrexate?",
         "answers": [
             {
@@ -2122,7 +2122,7 @@
         }
     },
     {
-        "question_key": "intersection#28",
+        "question_key": "cdr_qa/intersection#28",
         "question": "What chemical compounds commonly induce both Lupus Erythematosus Disseminatus and Glomerulonephritides?",
         "answers": [
             {
@@ -2197,7 +2197,7 @@
         }
     },
     {
-        "question_key": "intersection#29",
+        "question_key": "cdr_qa/intersection#29",
         "question": "What diseases are commonly induced by both Thalidomide and 7-(2-(3,5-dichloro-4-oxo-1- pyridyl)acetamido)-3-(5-methyl-1,3,4-thiadiazol- 2-ylthiomethyl)-3-cephem-4-carboxylic acid?",
         "answers": [
             {
@@ -2242,7 +2242,7 @@
         }
     },
     {
-        "question_key": "intersection#30",
+        "question_key": "cdr_qa/intersection#30",
         "question": "What diseases are commonly induced by both Reserpine and Morphine?",
         "answers": [
             {
@@ -2287,7 +2287,7 @@
         }
     },
     {
-        "question_key": "intersection#31",
+        "question_key": "cdr_qa/intersection#31",
         "question": "What chemical compounds commonly induce both Fibrosis and Nausea?",
         "answers": [
             {
@@ -2333,7 +2333,7 @@
         }
     },
     {
-        "question_key": "intersection#32",
+        "question_key": "cdr_qa/intersection#32",
         "question": "What chemical compounds commonly induce both Dizzyness and Disorder, Depressive?",
         "answers": [
             {
@@ -2378,7 +2378,7 @@
         }
     },
     {
-        "question_key": "intersection#33",
+        "question_key": "cdr_qa/intersection#33",
         "question": "What chemical compounds commonly induce both Necroses and Cardiotoxicity?",
         "answers": [
             {
@@ -2438,7 +2438,7 @@
         }
     },
     {
-        "question_key": "intersection#34",
+        "question_key": "cdr_qa/intersection#34",
         "question": "What chemical compounds commonly induce both Tonic-Clonic Seizure Disorder and Brain Disease?",
         "answers": [
             {
@@ -2498,7 +2498,7 @@
         }
     },
     {
-        "question_key": "intersection#35",
+        "question_key": "cdr_qa/intersection#35",
         "question": "What diseases are commonly induced by both Cefonicid and cefazedone?",
         "answers": [
             {
@@ -2554,7 +2554,7 @@
         }
     },
     {
-        "question_key": "intersection#36",
+        "question_key": "cdr_qa/intersection#36",
         "question": "What diseases are commonly induced by both Propofol and Dexmedetomidine?",
         "answers": [
             {
@@ -2614,7 +2614,7 @@
         }
     },
     {
-        "question_key": "intersection#37",
+        "question_key": "cdr_qa/intersection#37",
         "question": "What diseases are commonly induced by both Rubidomycin and Doxorubicin?",
         "answers": [
             {
@@ -2751,7 +2751,7 @@
         }
     },
     {
-        "question_key": "intersection#38",
+        "question_key": "cdr_qa/intersection#38",
         "question": "What chemical compounds commonly induce both Nerve Degeneration and Neutropenia?",
         "answers": [
             {
@@ -2837,7 +2837,7 @@
         }
     },
     {
-        "question_key": "intersection#39",
+        "question_key": "cdr_qa/intersection#39",
         "question": "What diseases are commonly induced by both 1-Butyl-N-(2,6-dimethylphenyl)-2-piperidinecarboxamide and Diltiazem?",
         "answers": [
             {
@@ -2928,7 +2928,7 @@
         }
     },
     {
-        "question_key": "intersection#40",
+        "question_key": "cdr_qa/intersection#40",
         "question": "What diseases are commonly induced by both Ethambutol and Paclitaxel?",
         "answers": [
             {
@@ -2963,7 +2963,7 @@
         }
     },
     {
-        "question_key": "intersection#41",
+        "question_key": "cdr_qa/intersection#41",
         "question": "What chemical compounds commonly induce both Constipation and Agranulocytoses?",
         "answers": [
             {
@@ -2998,7 +2998,7 @@
         }
     },
     {
-        "question_key": "intersection#42",
+        "question_key": "cdr_qa/intersection#42",
         "question": "What diseases are commonly induced by both D-Penicillamine and Indomethacin?",
         "answers": [
             {
@@ -3053,7 +3053,7 @@
         }
     },
     {
-        "question_key": "intersection#43",
+        "question_key": "cdr_qa/intersection#43",
         "question": "What diseases are commonly induced by both 3' Azido 2',3' Dideoxythymidine and SDZ RAD?",
         "answers": [
             {
@@ -3104,7 +3104,7 @@
         }
     },
     {
-        "question_key": "intersection#44",
+        "question_key": "cdr_qa/intersection#44",
         "question": "What chemical compounds commonly induce both Hematologic Disease and Fasciitides, Necrotizing?",
         "answers": [
             {
@@ -3139,7 +3139,7 @@
         }
     },
     {
-        "question_key": "intersection#45",
+        "question_key": "cdr_qa/intersection#45",
         "question": "What diseases are commonly induced by both asulacrine and Lomustine?",
         "answers": [
             {
@@ -3174,7 +3174,7 @@
         }
     },
     {
-        "question_key": "intersection#46",
+        "question_key": "cdr_qa/intersection#46",
         "question": "What chemical compounds commonly induce both Seizure and Cerebral Parenchymal Hemorrhage?",
         "answers": [
             {
@@ -3221,7 +3221,7 @@
         }
     },
     {
-        "question_key": "intersection#47",
+        "question_key": "cdr_qa/intersection#47",
         "question": "What diseases are commonly induced by both N-5-dimethyl-9-((2-methoxy-4-methylsulfonylamino)phenylamino)-4-acridinecarboxamide and 2-(2-Chlorophenyl)-2-(methylamino)cyclohexanone?",
         "answers": [
             {
@@ -3251,7 +3251,7 @@
         }
     },
     {
-        "question_key": "intersection#48",
+        "question_key": "cdr_qa/intersection#48",
         "question": "What diseases are commonly induced by both Cyclosporine and Lidocaine?",
         "answers": [
             {
@@ -3311,7 +3311,7 @@
         }
     },
     {
-        "question_key": "intersection#49",
+        "question_key": "cdr_qa/intersection#49",
         "question": "What diseases are commonly induced by both Paclitaxel and Cytosine Arabinoside?",
         "answers": [
             {
@@ -3472,7 +3472,7 @@
         }
     },
     {
-        "question_key": "intersection#50",
+        "question_key": "cdr_qa/intersection#50",
         "question": "What chemical compounds commonly induce both Blood Pressure, High and Pain?",
         "answers": [
             {
@@ -3517,7 +3517,7 @@
         }
     },
     {
-        "question_key": "intersection#51",
+        "question_key": "cdr_qa/intersection#51",
         "question": "What chemical compounds commonly induce both Seizure and Kidney Injuries, Acute?",
         "answers": [
             {
@@ -3564,7 +3564,7 @@
         }
     },
     {
-        "question_key": "intersection#52",
+        "question_key": "cdr_qa/intersection#52",
         "question": "What chemical compounds commonly induce both SAHs (Subarachnoid Hemorrhage) and Myocardial Infarctions?",
         "answers": [
             {
@@ -3594,7 +3594,7 @@
         }
     },
     {
-        "question_key": "intersection#53",
+        "question_key": "cdr_qa/intersection#53",
         "question": "What diseases are commonly induced by both Methylfluorprednisolone and Mefenaminic Acid?",
         "answers": [
             {
@@ -3639,7 +3639,7 @@
         }
     },
     {
-        "question_key": "intersection#54",
+        "question_key": "cdr_qa/intersection#54",
         "question": "What chemical compounds commonly induce both Basal Ganglia Disorder and Injury, Brain?",
         "answers": [
             {
@@ -3664,7 +3664,7 @@
         }
     },
     {
-        "question_key": "intersection#55",
+        "question_key": "cdr_qa/intersection#55",
         "question": "What chemical compounds commonly induce both Renal Injuries, Acute and Nausea?",
         "answers": [
             {
@@ -3750,7 +3750,7 @@
         }
     },
     {
-        "question_key": "intersection#56",
+        "question_key": "cdr_qa/intersection#56",
         "question": "What diseases are commonly induced by both Tacrolimus and Isofosfamide?",
         "answers": [
             {
@@ -3811,7 +3811,7 @@
         }
     },
     {
-        "question_key": "intersection#57",
+        "question_key": "cdr_qa/intersection#57",
         "question": "What diseases are commonly induced by both Dexmedetomidine and Bioniche Brand of Carbachol?",
         "answers": [
             {
@@ -3871,7 +3871,7 @@
         }
     },
     {
-        "question_key": "intersection#58",
+        "question_key": "cdr_qa/intersection#58",
         "question": "What diseases are commonly induced by both alpha Methyl L Dopa and Fluorouracil?",
         "answers": [
             {
@@ -3921,7 +3921,7 @@
         }
     },
     {
-        "question_key": "intersection#59",
+        "question_key": "cdr_qa/intersection#59",
         "question": "What diseases are commonly induced by both Isoproterenol and Nifedipine?",
         "answers": [
             {
@@ -3966,7 +3966,7 @@
         }
     },
     {
-        "question_key": "intersection#60",
+        "question_key": "cdr_qa/intersection#60",
         "question": "What diseases are commonly induced by both Tacrolimus and Gentamicins?",
         "answers": [
             {
@@ -4041,7 +4041,7 @@
         }
     },
     {
-        "question_key": "intersection#61",
+        "question_key": "cdr_qa/intersection#61",
         "question": "What diseases are commonly induced by both Caffeine and Iso Endoxan?",
         "answers": [
             {
@@ -4092,7 +4092,7 @@
         }
     },
     {
-        "question_key": "intersection#62",
+        "question_key": "cdr_qa/intersection#62",
         "question": "What chemical compounds commonly induce both Gastrointestinal Hemorrhages and Infarctions, Myocardial?",
         "answers": [
             {
@@ -4203,7 +4203,7 @@
         }
     },
     {
-        "question_key": "intersection#63",
+        "question_key": "cdr_qa/intersection#63",
         "question": "What chemical compounds commonly induce both Confusional States and Kidney Disease?",
         "answers": [
             {
@@ -4273,7 +4273,7 @@
         }
     },
     {
-        "question_key": "intersection#64",
+        "question_key": "cdr_qa/intersection#64",
         "question": "What chemical compounds commonly induce both Thrombosis, Cranial Sinus and Carotid Thrombosis?",
         "answers": [
             {
@@ -4353,7 +4353,7 @@
         }
     },
     {
-        "question_key": "intersection#65",
+        "question_key": "cdr_qa/intersection#65",
         "question": "What diseases are commonly induced by both Grain Alcohol and Carbocholine?",
         "answers": [
             {
@@ -4403,7 +4403,7 @@
         }
     },
     {
-        "question_key": "intersection#66",
+        "question_key": "cdr_qa/intersection#66",
         "question": "What diseases are commonly induced by both Amethopterin and Amphetamine?",
         "answers": [
             {
@@ -4498,7 +4498,7 @@
         }
     },
     {
-        "question_key": "intersection#67",
+        "question_key": "cdr_qa/intersection#67",
         "question": "What diseases are commonly induced by both 6-Aminohexanoic Acid and Aspirin?",
         "answers": [
             {
@@ -4543,7 +4543,7 @@
         }
     },
     {
-        "question_key": "intersection#68",
+        "question_key": "cdr_qa/intersection#68",
         "question": "What diseases are commonly induced by both Cocaine and Methotrexate?",
         "answers": [
             {
@@ -4608,7 +4608,7 @@
         }
     },
     {
-        "question_key": "intersection#69",
+        "question_key": "cdr_qa/intersection#69",
         "question": "What chemical compounds commonly induce both Long QT Syndrome and Vascular Hypotension?",
         "answers": [
             {
@@ -4633,7 +4633,7 @@
         }
     },
     {
-        "question_key": "intersection#70",
+        "question_key": "cdr_qa/intersection#70",
         "question": "What diseases are commonly induced by both 1,3 Dimethylxanthine and cis-Diamminedichloroplatinum(II)?",
         "answers": [
             {
@@ -4684,7 +4684,7 @@
         }
     },
     {
-        "question_key": "intersection#71",
+        "question_key": "cdr_qa/intersection#71",
         "question": "What diseases are commonly induced by both Synvinolin and Amiodarone?",
         "answers": [
             {
@@ -4760,7 +4760,7 @@
         }
     },
     {
-        "question_key": "intersection#72",
+        "question_key": "cdr_qa/intersection#72",
         "question": "What chemical compounds commonly induce both Vision Disorders and Intracranial CNS Disorders?",
         "answers": [
             {
@@ -4810,7 +4810,7 @@
         }
     },
     {
-        "question_key": "intersection#73",
+        "question_key": "cdr_qa/intersection#73",
         "question": "What diseases are commonly induced by both Flumazenil and Isophosphamide?",
         "answers": [
             {
@@ -4840,7 +4840,7 @@
         }
     },
     {
-        "question_key": "intersection#74",
+        "question_key": "cdr_qa/intersection#74",
         "question": "What diseases are commonly induced by both fluvastatin and 3' Azido 3' deoxythymidine?",
         "answers": [
             {
@@ -4956,7 +4956,7 @@
         }
     },
     {
-        "question_key": "intersection#75",
+        "question_key": "cdr_qa/intersection#75",
         "question": "What diseases are commonly induced by both Ciprofloxacin and Rifampicin?",
         "answers": [
             {
@@ -5031,7 +5031,7 @@
         }
     },
     {
-        "question_key": "intersection#76",
+        "question_key": "cdr_qa/intersection#76",
         "question": "What diseases are commonly induced by both CBDCA and Ciprofloxacin?",
         "answers": [
             {
@@ -5106,7 +5106,7 @@
         }
     },
     {
-        "question_key": "intersection#77",
+        "question_key": "cdr_qa/intersection#77",
         "question": "What diseases are commonly induced by both Acid, Folinic and Doxorubicin?",
         "answers": [
             {
@@ -5260,7 +5260,7 @@
         }
     },
     {
-        "question_key": "intersection#78",
+        "question_key": "cdr_qa/intersection#78",
         "question": "What chemical compounds commonly induce both Fibroses and Granulocytopenia?",
         "answers": [
             {
@@ -5295,7 +5295,7 @@
         }
     },
     {
-        "question_key": "intersection#79",
+        "question_key": "cdr_qa/intersection#79",
         "question": "What chemical compounds commonly induce both Reduction, Weight and Leukocytopenia?",
         "answers": [
             {
@@ -5375,7 +5375,7 @@
         }
     },
     {
-        "question_key": "intersection#80",
+        "question_key": "cdr_qa/intersection#80",
         "question": "What diseases are commonly induced by both Metipred and Desmethylimipramine?",
         "answers": [
             {
@@ -5516,7 +5516,7 @@
         }
     },
     {
-        "question_key": "intersection#81",
+        "question_key": "cdr_qa/intersection#81",
         "question": "What chemical compounds commonly induce both Memory Disorder and Chest Pain?",
         "answers": [
             {
@@ -5566,7 +5566,7 @@
         }
     },
     {
-        "question_key": "intersection#82",
+        "question_key": "cdr_qa/intersection#82",
         "question": "What diseases are commonly induced by both Kanamycin and Vancomycin?",
         "answers": [
             {
@@ -5641,7 +5641,7 @@
         }
     },
     {
-        "question_key": "intersection#83",
+        "question_key": "cdr_qa/intersection#83",
         "question": "What diseases are commonly induced by both Antithyroid Drugs and Carbimazole?",
         "answers": [
             {
@@ -5793,7 +5793,7 @@
         }
     },
     {
-        "question_key": "intersection#84",
+        "question_key": "cdr_qa/intersection#84",
         "question": "What diseases are commonly induced by both Iproveratril and beta-Blockers, Adrenergic?",
         "answers": [
             {
@@ -5864,7 +5864,7 @@
         }
     },
     {
-        "question_key": "intersection#85",
+        "question_key": "cdr_qa/intersection#85",
         "question": "What chemical compounds commonly induce both Excessive Somnolence Disorder and Resistance, Insulin?",
         "answers": [
             {
@@ -5924,7 +5924,7 @@
         }
     },
     {
-        "question_key": "intersection#86",
+        "question_key": "cdr_qa/intersection#86",
         "question": "What diseases are commonly induced by both 5'-nor-anhydrovinblastine and Fluconazole?",
         "answers": [
             {
@@ -5979,7 +5979,7 @@
         }
     },
     {
-        "question_key": "intersection#87",
+        "question_key": "cdr_qa/intersection#87",
         "question": "What diseases are commonly induced by both Etoposide and Methylfluorprednisolone?",
         "answers": [
             {
@@ -6094,7 +6094,7 @@
         }
     },
     {
-        "question_key": "intersection#88",
+        "question_key": "cdr_qa/intersection#88",
         "question": "What diseases are commonly induced by both Kanamycin and Aminoglycosides?",
         "answers": [
             {
@@ -6169,7 +6169,7 @@
         }
     },
     {
-        "question_key": "intersection#89",
+        "question_key": "cdr_qa/intersection#89",
         "question": "What chemical compounds commonly induce both Purpura, Thrombotic Thrombocytopenic and Gasser's Syndrome?",
         "answers": [
             {
@@ -6255,7 +6255,7 @@
         }
     },
     {
-        "question_key": "intersection#90",
+        "question_key": "cdr_qa/intersection#90",
         "question": "What chemical compounds commonly induce both Acute Renal Injury and White Matter Disease?",
         "answers": [
             {
@@ -6285,7 +6285,7 @@
         }
     },
     {
-        "question_key": "intersection#91",
+        "question_key": "cdr_qa/intersection#91",
         "question": "What chemical compounds commonly induce both Learning Disorders and Sleep Disorders?",
         "answers": [
             {
@@ -6330,7 +6330,7 @@
         }
     },
     {
-        "question_key": "intersection#92",
+        "question_key": "cdr_qa/intersection#92",
         "question": "What diseases are commonly induced by both 3'-Azido-3'-deoxythymidine and 5-Fluorouracil?",
         "answers": [
             {
@@ -6396,7 +6396,7 @@
         }
     },
     {
-        "question_key": "intersection#93",
+        "question_key": "cdr_qa/intersection#93",
         "question": "What diseases are commonly induced by both cis Platinum and Vinca Alkaloids?",
         "answers": [
             {
@@ -6512,7 +6512,7 @@
         }
     },
     {
-        "question_key": "intersection#94",
+        "question_key": "cdr_qa/intersection#94",
         "question": "What diseases are commonly induced by both Amiodarone and reumoxicam?",
         "answers": [
             {
@@ -6642,7 +6642,7 @@
         }
     },
     {
-        "question_key": "intersection#95",
+        "question_key": "cdr_qa/intersection#95",
         "question": "What diseases are commonly induced by both Busulphan and Sodium 2-Mercaptoethanesulphonate?",
         "answers": [
             {
@@ -6682,7 +6682,7 @@
         }
     },
     {
-        "question_key": "intersection#96",
+        "question_key": "cdr_qa/intersection#96",
         "question": "What chemical compounds commonly induce both Disease, Nervous System and Diseases, Kidney?",
         "answers": [
             {
@@ -6762,7 +6762,7 @@
         }
     },
     {
-        "question_key": "intersection#97",
+        "question_key": "cdr_qa/intersection#97",
         "question": "What diseases are commonly induced by both Iproveratril and 4' Epidoxorubicin?",
         "answers": [
             {
@@ -6837,7 +6837,7 @@
         }
     },
     {
-        "question_key": "intersection#98",
+        "question_key": "cdr_qa/intersection#98",
         "question": "What chemical compounds commonly induce both Lower Nephron Nephroses and Kidney Diseases?",
         "answers": [
             {
@@ -6963,7 +6963,7 @@
         }
     },
     {
-        "question_key": "intersection#99",
+        "question_key": "cdr_qa/intersection#99",
         "question": "What diseases are commonly induced by both 5,5-Diphenylhydantoin and Succinyldicholine?",
         "answers": [
             {
@@ -7038,7 +7038,7 @@
         }
     },
     {
-        "question_key": "intersection#100",
+        "question_key": "cdr_qa/intersection#100",
         "question": "What chemical compounds commonly induce both Rigidity, Muscular and Hypersalivation?",
         "answers": [
             {
@@ -7073,7 +7073,7 @@
         }
     },
     {
-        "question_key": "intersection#101",
+        "question_key": "cdr_qa/intersection#101",
         "question": "What diseases are commonly induced by both Metoprolol and N-Cyano-N'-methyl-N''-(2-(((5-methyl-1H-imidazol-4-yl)methyl)thio)ethyl)guanidine?",
         "answers": [
             {
@@ -7133,7 +7133,7 @@
         }
     },
     {
-        "question_key": "intersection#102",
+        "question_key": "cdr_qa/intersection#102",
         "question": "What chemical compounds commonly induce both Ectopic Beat, Ventricular and Seizure?",
         "answers": [
             {
@@ -7174,7 +7174,7 @@
         }
     },
     {
-        "question_key": "intersection#103",
+        "question_key": "cdr_qa/intersection#103",
         "question": "What diseases are commonly induced by both 1-Butyl-N-(2,6-dimethylphenyl)-2-piperidinecarboxamide and Pilocarpine?",
         "answers": [
             {
@@ -7245,7 +7245,7 @@
         }
     },
     {
-        "question_key": "intersection#104",
+        "question_key": "cdr_qa/intersection#104",
         "question": "What diseases are commonly induced by both Clonidine and Timolol?",
         "answers": [
             {
@@ -7305,7 +7305,7 @@
         }
     },
     {
-        "question_key": "intersection#105",
+        "question_key": "cdr_qa/intersection#105",
         "question": "What diseases are commonly induced by both Cefonicid and Azidothymidine?",
         "answers": [
             {
@@ -7350,7 +7350,7 @@
         }
     },
     {
-        "question_key": "intersection#106",
+        "question_key": "cdr_qa/intersection#106",
         "question": "What chemical compounds commonly induce both Anochlesias and Nausea?",
         "answers": [
             {
@@ -7380,7 +7380,7 @@
         }
     },
     {
-        "question_key": "intersection#107",
+        "question_key": "cdr_qa/intersection#107",
         "question": "What chemical compounds commonly induce both Kidney Injury, Acute and Dysfunction, Left Ventricular?",
         "answers": [
             {
@@ -7450,7 +7450,7 @@
         }
     },
     {
-        "question_key": "intersection#108",
+        "question_key": "cdr_qa/intersection#108",
         "question": "What chemical compounds commonly induce both Leukopenias and Sensation Disorder?",
         "answers": [
             {
@@ -7480,7 +7480,7 @@
         }
     },
     {
-        "question_key": "intersection#109",
+        "question_key": "cdr_qa/intersection#109",
         "question": "What chemical compounds commonly induce both Resistance, Insulin and Catalepsy?",
         "answers": [
             {
@@ -7510,7 +7510,7 @@
         }
     },
     {
-        "question_key": "intersection#110",
+        "question_key": "cdr_qa/intersection#110",
         "question": "What diseases are commonly induced by both Isonicotinic Acid Hydrazide and Morphia?",
         "answers": [
             {
@@ -7622,7 +7622,7 @@
         }
     },
     {
-        "question_key": "intersection#111",
+        "question_key": "cdr_qa/intersection#111",
         "question": "What diseases are commonly induced by both Dexamethasone and Folinic Acid SF?",
         "answers": [
             {
@@ -7667,7 +7667,7 @@
         }
     },
     {
-        "question_key": "intersection#112",
+        "question_key": "cdr_qa/intersection#112",
         "question": "What chemical compounds commonly induce both Syndromes, Neurotoxicity and Toxic Psychoses?",
         "answers": [
             {
@@ -7742,7 +7742,7 @@
         }
     },
     {
-        "question_key": "intersection#113",
+        "question_key": "cdr_qa/intersection#113",
         "question": "What diseases are commonly induced by both Alcohol, Ethyl and Labetolol?",
         "answers": [
             {
@@ -7857,7 +7857,7 @@
         }
     },
     {
-        "question_key": "intersection#114",
+        "question_key": "cdr_qa/intersection#114",
         "question": "What chemical compounds commonly induce both Pulmonary Embolism and Hematological Diseases?",
         "answers": [
             {
@@ -7912,7 +7912,7 @@
         }
     },
     {
-        "question_key": "intersection#115",
+        "question_key": "cdr_qa/intersection#115",
         "question": "What diseases are commonly induced by both Tiapride Hydrochloride and Methoxamedrin?",
         "answers": [
             {
@@ -8032,7 +8032,7 @@
         }
     },
     {
-        "question_key": "intersection#116",
+        "question_key": "cdr_qa/intersection#116",
         "question": "What chemical compounds commonly induce both Conduction Block, Atrioventricular and Neutropenias?",
         "answers": [
             {
@@ -8077,7 +8077,7 @@
         }
     },
     {
-        "question_key": "intersection#117",
+        "question_key": "cdr_qa/intersection#117",
         "question": "What diseases are commonly induced by both Rifampicin and Mercaptovaline?",
         "answers": [
             {
@@ -8112,7 +8112,7 @@
         }
     },
     {
-        "question_key": "intersection#118",
+        "question_key": "cdr_qa/intersection#118",
         "question": "What chemical compounds commonly induce both Nausea and Tremor?",
         "answers": [
             {
@@ -8183,7 +8183,7 @@
         }
     },
     {
-        "question_key": "intersection#119",
+        "question_key": "cdr_qa/intersection#119",
         "question": "What chemical compounds commonly induce both Anorexias and Nausea?",
         "answers": [
             {
@@ -8280,7 +8280,7 @@
         }
     },
     {
-        "question_key": "intersection#120",
+        "question_key": "cdr_qa/intersection#120",
         "question": "What chemical compounds commonly induce both Fibrillation, Ventricular and Familial Atrial Fibrillation?",
         "answers": [
             {
@@ -8375,7 +8375,7 @@
         }
     },
     {
-        "question_key": "intersection#121",
+        "question_key": "cdr_qa/intersection#121",
         "question": "What chemical compounds commonly induce both Cystitis and Heart Failure?",
         "answers": [
             {
@@ -8420,7 +8420,7 @@
         }
     },
     {
-        "question_key": "intersection#122",
+        "question_key": "cdr_qa/intersection#122",
         "question": "What diseases are commonly induced by both Amphotericin and 1,3,7-Trimethylxanthine?",
         "answers": [
             {
@@ -8465,7 +8465,7 @@
         }
     },
     {
-        "question_key": "intersection#123",
+        "question_key": "cdr_qa/intersection#123",
         "question": "What diseases are commonly induced by both Methamphetamine and Apomorphine?",
         "answers": [
             {
@@ -8540,7 +8540,7 @@
         }
     },
     {
-        "question_key": "intersection#124",
+        "question_key": "cdr_qa/intersection#124",
         "question": "What chemical compounds commonly induce both Arrhythmia and Fibrillations, Auricular?",
         "answers": [
             {
@@ -8580,7 +8580,7 @@
         }
     },
     {
-        "question_key": "intersection#125",
+        "question_key": "cdr_qa/intersection#125",
         "question": "What chemical compounds commonly induce both Diseases, Kidney and Rash, Skin?",
         "answers": [
             {
@@ -8645,7 +8645,7 @@
         }
     },
     {
-        "question_key": "intersection#126",
+        "question_key": "cdr_qa/intersection#126",
         "question": "What diseases are commonly induced by both Paclitaxel and Dexamethasone?",
         "answers": [
             {
@@ -8858,7 +8858,7 @@
         }
     },
     {
-        "question_key": "intersection#127",
+        "question_key": "cdr_qa/intersection#127",
         "question": "What diseases are commonly induced by both Atracurium and Succinyldicholine?",
         "answers": [
             {
@@ -8903,7 +8903,7 @@
         }
     },
     {
-        "question_key": "intersection#128",
+        "question_key": "cdr_qa/intersection#128",
         "question": "What diseases are commonly induced by both Hydrazide, Isonicotinic Acid and 2-2EtN-2MePhAcN?",
         "answers": [
             {

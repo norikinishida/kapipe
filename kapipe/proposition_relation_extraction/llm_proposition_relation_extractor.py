@@ -84,6 +84,10 @@ class LLMPropositionRelationExtractor(BasePropositionRelationExtractor):
     ) -> list[Passage]:
         """Retrieve candidate tail propositions for a head proposition."""
 
+        # Validate input parameters
+        if top_k <= 0:
+            raise ValueError("top_k must be greater than 0.")
+
         # Reuse batch retrieval to keep candidate filtering consistent
         batch_tail_propositions = self.batch_retrieve_tail_propositions(
             head_propositions=[head_proposition],
@@ -103,10 +107,9 @@ class LLMPropositionRelationExtractor(BasePropositionRelationExtractor):
     ) -> list[list[Passage]]:
         """Retrieve candidate tail propositions for head propositions."""
 
-        # Require a positive number of final candidates
+        # Validate input parameters
         if top_k <= 0:
             raise ValueError("top_k must be greater than 0.")
-        # Require a positive search batch size
         if batch_size <= 0:
             raise ValueError("batch_size must be greater than 0.")
 
@@ -127,16 +130,19 @@ class LLMPropositionRelationExtractor(BasePropositionRelationExtractor):
             batch_retrieved_propositions,
         ):
             tail_propositions: list[Passage] = []
-            for retrieved_proposition in retrieved_propositions:
-                # Remove retrieval-only metadata from the proposition
-                proposition_without_retrieval_metadata = {
-                    key: value
-                    for key, value in retrieved_proposition.items()
-                    if key not in {"score", "rank"}
-                }
 
+            if self.use_timestamp:
+               head_timestamp = datetime.strptime(
+                   head_proposition["timestamp"],
+                   "%Y-%m-%d",
+               )
+
+            for retrieved_proposition in retrieved_propositions:
                 # Remove the head proposition from its own candidates
-                if proposition_without_retrieval_metadata == head_proposition:
+                if (
+                    retrieved_proposition["passage_key"]
+                    == head_proposition["passage_key"]
+                ):
                     continue
 
                 # Preserve the retrieval-only metadata in the tail proposition
@@ -144,10 +150,6 @@ class LLMPropositionRelationExtractor(BasePropositionRelationExtractor):
 
                 # Filter out future propositions when timestamps are used
                 if self.use_timestamp:
-                    head_timestamp = datetime.strptime(
-                        head_proposition["timestamp"],
-                        "%Y-%m-%d",
-                    )
                     tail_timestamp = datetime.strptime(
                         tail_proposition["timestamp"],
                         "%Y-%m-%d",
@@ -199,7 +201,7 @@ class LLMPropositionRelationExtractor(BasePropositionRelationExtractor):
             # Generate the response
             generated_text = self.model.generate(prompt)
 
-            # Parse the generated response
+            # Parse the generated response into proposition relation records
             triples = self.parse(
                 head_proposition=head_proposition,
                 tail_propositions=tail_propositions,
@@ -339,4 +341,3 @@ class LLMPropositionRelationExtractor(BasePropositionRelationExtractor):
             })
 
         return triples
-

@@ -10,6 +10,7 @@ A *passage* is represented as a dictionary with the following fields.
 
 | Field | Type | Description |
 |---|---|---|
+| `passage_key` | `str` | Unique passage identifier |
 | `title` | `str` | Title, if available |
 | `text` | `str` | Body text |
 
@@ -17,6 +18,7 @@ Additional metadata fields are preserved in the output.
 
 ```json
 {
+    "passage_key": "passage#001",
     "title": "Effect of calcium chloride and 4-aminopyridine therapy on desipramine toxicity in rats.",
     "text": "BACKGROUND: Hypotension is a major contributor to mortality in tricyclic antidepressant overdose. Recent data suggest that tricyclic antidepressants inhibit calcium influx in some tissues. ...",
     "source": "...",
@@ -28,32 +30,42 @@ Additional metadata fields are preserved in the output.
 
 The output is a list of propositions.
 
-Each proposition contains one extracted factual statement and preserves the input metadata other than `title` and `text`.
+Each proposition contains one extracted factual statement and preserves the input metadata other than `passage_key`, `title`, `text`, and `source_passage_key`.
 
 | Field | Type | Description |
 |---|---|---|
+| `passage_key` | `str` | Proposition identifier derived from the source passage key |
 | `text` | `str` | Extracted factual statement |
+| `source_passage_key` | `str` | Passage key of the source passage |
 
 ```json
 [
     {
+        "passage_key": "passage#001/proposition#0000",
         "text": "Effect of calcium chloride and 4-aminopyridine therapy on desipramine toxicity in rats.",
+        "source_passage_key": "passage#001",
         "source": "...",
         "timestamp": "...",
     },
     {
+        "passage_key": "passage#001/proposition#0001",
         "text": "Hypotension is a major contributor to mortality in tricyclic antidepressant overdose.",
+        "source_passage_key": "passage#001",
         "source": "...",
         "timestamp": "..."
     },
     {
+        "passage_key": "passage#001/proposition#0002",
         "text": "Recent data suggest that tricyclic antidepressants inhibit calcium influx in some tissues.",
+        "source_passage_key": "passage#001",
         "source": "...",
         "timestamp": "..."
     },
     ...
 ]
 ```
+
+If the input passage contains a `title` field, its stripped value is always inserted as the first proposition.
 
 ## Supported Methods
 
@@ -87,24 +99,19 @@ model = HuggingFaceLLM(
 extractor = LLMPropositionExtractor(
     model=model,
     prompt_template_name_or_path="proposition_extraction_01",
-    include_title_as_proposition=True,
 )
 
 # Extract propositions from a passage
 propositions = extractor.extract(passage=passage)
 ```
 
-## Title Inclusion
-
-If `include_title_as_proposition` is `True`, a non-empty passage title is inserted as the first proposition.
-
-If the title is missing or empty, it is not added.
-
 ## Metadata Preservation
 
-Proposition Extraction preserves metadata fields other than `title` and `text`.
+Proposition Extraction preserves metadata fields other than `passage_key`, `title`, `text`, and `source_passage_key`.
 
 Each extracted proposition receives the same metadata as the input passage.
+
+Each proposition receives a `passage_key` of the form `<source_passage_key>/proposition#<zero-padded proposition index>`. The input `passage_key` is stored as `source_passage_key`.
 
 ## Custom Prompt Templates
 

@@ -18,9 +18,9 @@ def main(args):
         for k, row in enumerate(reader):
             if not row[0] == "id":
                 passage = {
+                    "passage_key": f"wikipedia/{row[0]}",
                     "title": row[2],
                     "text": row[1],
-                    "passage_id": row[0],
                 }
                 json_str = json.dumps(passage)
                 out_file.write(json_str + "\n")
@@ -32,7 +32,6 @@ if __name__ == "__main__":
     parser.add_argument("--output_file", type=str, required=True)
     args = parser.parse_args()
     main(args)
-
 
 
 

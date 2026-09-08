@@ -102,7 +102,6 @@ def main(args):
     graph = constructor.construct_passage_graph(
         passages=passages,
         triples=triples,
-        node_id_key=config["node_id_key"],
     )
 
     # Show statistics

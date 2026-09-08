@@ -21,7 +21,8 @@ for split in train dev test
 do
     python prepare_hoip_dataset.py \
         --input_file ${HOIP}/hoip-dataset/releases/v1/${split}.json \
-        --output_file ${STORAGE_DATA}/docre/hoip_v1/${split}.json
+        --output_file ${STORAGE_DATA}/docre/hoip_v1/${split}.json \
+        --split ${split}
 done
 
 
@@ -34,4 +35,3 @@ done
 #         --output_file ${STORAGE_DATA}/docre/hoip_v1/${split}.filtered.json \
 #         --target_relations "has result"
 # done
-

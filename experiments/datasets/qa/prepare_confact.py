@@ -24,42 +24,42 @@ def main(args: argparse.Namespace) -> None:
     original_modc = load_confact_file(input_file=input_modc_file)
     original_humc = load_confact_file(input_file=input_humc_file)
 
-    # Assign one shared sequential ID to each URL and text pair
-    article_key_to_evidence_id: dict[tuple[str, str], str] = {}
+    # Assign one shared sequential key to each URL and text pair
+    article_key_to_passage_key: dict[tuple[str, str], str] = {}
 
     # Convert both overlapping CONFACT evaluation splits independently
     modc_questions, modc_gold_contexts = convert_split(
         original_data=original_modc,
         split="modc",
-        article_key_to_evidence_id=article_key_to_evidence_id,
+        article_key_to_passage_key=article_key_to_passage_key,
     )
     humc_questions, humc_gold_contexts = convert_split(
         original_data=original_humc,
         split="humc",
-        article_key_to_evidence_id=article_key_to_evidence_id,
+        article_key_to_passage_key=article_key_to_passage_key,
     )
 
-    # Ensure shared evidence IDs denote exactly the same released passages
+    # Ensure shared passage keys denote exactly the same released passages
     validate_shared_passages(
         modc_gold_contexts=modc_gold_contexts,
         humc_gold_contexts=humc_gold_contexts,
     )
 
-    # Keep exactly one ModC corpus article for each assigned evidence ID
-    evidence_id_to_article: dict[str, dict[str, str]] = {}
+    # Keep exactly one ModC corpus article for each assigned passage key
+    passage_key_to_article: dict[str, dict[str, str]] = {}
     for contexts_for_question in modc_gold_contexts:
         for context in contexts_for_question["contexts"]:
-            evidence_id = context["evidence_id"]
-            if evidence_id in evidence_id_to_article:
-                if context != evidence_id_to_article[evidence_id]:
+            passage_key = context["passage_key"]
+            if passage_key in passage_key_to_article:
+                if context != passage_key_to_article[passage_key]:
                     raise ValueError(
-                        f"Conflicting CONFACT article: {evidence_id}"
+                        f"Conflicting CONFACT article: {passage_key}"
                     )
             else:
-                evidence_id_to_article[evidence_id] = context
+                passage_key_to_article[passage_key] = context
 
-    articles = list(evidence_id_to_article.values())
-    if len(articles) != len(article_key_to_evidence_id):
+    articles = list(passage_key_to_article.values())
+    if len(articles) != len(article_key_to_passage_key):
         raise ValueError("Incomplete CONFACT article mapping")
 
     # Create the common CONFACT output directories
@@ -123,7 +123,7 @@ def load_confact_file(input_file: str) -> list[dict[str, Any]]:
 def convert_split(
     original_data: list[dict[str, Any]],
     split: str,
-    article_key_to_evidence_id: dict[tuple[str, str], str],
+    article_key_to_passage_key: dict[tuple[str, str], str],
 ) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
     assert split in {"modc", "humc"}
 
@@ -136,7 +136,7 @@ def convert_split(
     for data in tqdm(original_data, desc=f"Processing CONFACT {split}"):
         validate_question_record(data=data, split=split)
 
-        question_key = f"confact-{split}-{data['id']}"
+        question_key = f"confact/{split}/{data['id']}"
         if question_key in seen_question_keys:
             raise ValueError(f"Duplicate CONFACT question key: {question_key}")
         seen_question_keys.add(question_key)
@@ -176,7 +176,7 @@ def convert_split(
             question_key=question_key,
             split=split,
             seen_evidence_ids=seen_evidence_ids,
-            article_key_to_evidence_id=article_key_to_evidence_id,
+            article_key_to_passage_key=article_key_to_passage_key,
         )
         contexts_for_question = {
             "question_key": question_key,
@@ -229,10 +229,10 @@ def convert_evidence(
     question_key: str,
     split: str,
     seen_evidence_ids: set[str],
-    article_key_to_evidence_id: dict[tuple[str, str], str],
+    article_key_to_passage_key: dict[tuple[str, str], str],
 ) -> list[dict[str, str]]:
     contexts: list[dict[str, str]] = []
-    seen_context_evidence_ids: set[str] = set()
+    seen_context_passage_keys: set[str] = set()
 
     # Convert every non-empty released webpage to the common Passage format
     for evidence in evidence_list:
@@ -259,23 +259,23 @@ def convert_evidence(
         if not evidence["content"].strip():
             continue
 
-        # Assign one stable sequential ID to each URL and text pair
+        # Assign one stable sequential key to each URL and text pair
         article_key = (evidence["original_link"], evidence["content"])
-        if article_key not in article_key_to_evidence_id:
-            article_key_to_evidence_id[article_key] = (
-                f"evidence#{len(article_key_to_evidence_id)}"
+        if article_key not in article_key_to_passage_key:
+            article_key_to_passage_key[article_key] = (
+                f"confact/passage#{len(article_key_to_passage_key):08d}"
             )
-        evidence_id = article_key_to_evidence_id[article_key]
+        passage_key = article_key_to_passage_key[article_key]
 
         # Keep each canonical article at most once within one gold context
-        if evidence_id in seen_context_evidence_ids:
+        if passage_key in seen_context_passage_keys:
             continue
-        seen_context_evidence_ids.add(evidence_id)
+        seen_context_passage_keys.add(passage_key)
 
         contexts.append(
             {
+                "passage_key": passage_key,
                 "text": evidence["content"],
-                "evidence_id": evidence_id,
                 "original_link": evidence["original_link"],
             }
         )
@@ -329,8 +329,8 @@ def validate_shared_passages(
     humc_gold_contexts: list[dict[str, Any]],
 ) -> None:
     # Index ModC passages because HumC is an overlapping subset of ModC
-    modc_evidence_id_to_passage = {
-        passage["evidence_id"]: passage
+    modc_passage_key_to_passage = {
+        passage["passage_key"]: passage
         for contexts_for_question in modc_gold_contexts
         for passage in contexts_for_question["contexts"]
     }
@@ -338,15 +338,15 @@ def validate_shared_passages(
     # Require every emitted HumC passage to match its shared ModC identity
     for contexts_for_question in humc_gold_contexts:
         for passage in contexts_for_question["contexts"]:
-            evidence_id = passage["evidence_id"]
-            if evidence_id not in modc_evidence_id_to_passage:
+            passage_key = passage["passage_key"]
+            if passage_key not in modc_passage_key_to_passage:
                 raise ValueError(
-                    f"HumC evidence is absent from ModC: {evidence_id}"
+                    f"HumC evidence is absent from ModC: {passage_key}"
                 )
-            if passage != modc_evidence_id_to_passage[evidence_id]:
+            if passage != modc_passage_key_to_passage[passage_key]:
                 raise ValueError(
-                    f"Shared evidence ID has different passages: "
-                    f"{evidence_id}"
+                    f"Shared passage key has different passages: "
+                    f"{passage_key}"
                 )
 
 

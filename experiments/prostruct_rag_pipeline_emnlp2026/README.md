@@ -39,7 +39,7 @@ experiments/prostruct_rag_pipeline_emnlp2026/data/examples/articles.jsonl
 experiments/prostruct_rag_pipeline_emnlp2026/data/examples/questions.json
 ```
 
-`articles.jsonl` contains source articles, and each article requires `text` and `article_id`.
+`articles.jsonl` contains source passages, and each passage requires `passage_key`, `title` (optional), and `text`.
 `questions.json` contains questions, and each question requires `question_key` and `question`; QA evaluation additionally uses `answers`.
 When temporal processing is enabled in the configuration, the `timestamp` fields in articles and questions are used.
 
@@ -50,7 +50,6 @@ We provide the Asteria dataset used in the above paper in the following paths.
 ```bash
 experiments/prostruct_rag_pipeline_emnlp2026/data/asteria/propositions.jsonl
 experiments/prostruct_rag_pipeline_emnlp2026/data/asteria/questions.json
-experiments/prostruct_rag_pipeline_emnlp2026/data/asteria/questions.contexts.json
 ```
 
 ## Step 3. Configuration Setup

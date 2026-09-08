@@ -12,6 +12,7 @@ Each proposition is represented as a dictionary with the following fields.
 
 | Field | Type | Description |
 |---|---|---|
+| `passage_key` | `str` | Unique proposition identifier |
 | `text` | `str` | Proposition text |
 | `timestamp` | `str` | Date in `YYYY-MM-DD` format, if temporal relations are used |
 
@@ -20,10 +21,12 @@ Additional metadata fields are preserved during candidate retrieval and relation
 ```json
 [
     {
+        "passage_key": "proposition#001",
         "text": "An independent audit found that the Northbridge payment system processed 99.9% of transactions within two seconds in February 2025.",
         "timestamp": "2025-03-01"
     },
     {
+        "passage_key": "proposition#002",
         "text": "A preliminary report found that the Northbridge payment system processed 97.0% of transactions within two seconds in January 2025.",
         "timestamp": "2025-02-01"
     },
@@ -48,11 +51,13 @@ Each relation record contains the head proposition, relation label, tail proposi
 [
     {
         "head": {
+            "passage_key": "proposition#001",
             "text": "An independent audit found that the Northbridge payment system processed 99.9% of transactions within two seconds in February 2025.",
             "timestamp": "2025-03-01"
         },
         "relation": "updates",
         "tail": {
+            "passage_key": "proposition#002",
             "text": "A preliminary report found that the Northbridge payment system processed 97.0% of transactions within two seconds in January 2025.",
             "timestamp": "2025-02-01"
         },

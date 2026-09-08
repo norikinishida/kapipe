@@ -26,7 +26,6 @@ class PassageGraphConstructor(BasePassageGraphConstructor):
         self,
         passages: list[Passage],
         triples: list[dict[str, Any]],
-        node_id_key: str,
     ) -> nx.DiGraph:
         """Construct a directed passage graph from passages and relation triples."""
 
@@ -36,11 +35,11 @@ class PassageGraphConstructor(BasePassageGraphConstructor):
         # Add all passage nodes before processing relation triples
         for passage in passages:
             # Read and sanitize the required passage identifier
-            passage_id = sanitize_graphml_string(passage[node_id_key])
+            node_id = sanitize_graphml_string(passage["passage_key"])
 
             # Keep only attributes that GraphML can represent
             graph.add_node(
-                passage_id,
+                node_id,
                 **sanitize_graphml_attributes(passage),
             )
 
@@ -53,8 +52,8 @@ class PassageGraphConstructor(BasePassageGraphConstructor):
             explanation = triple.get("explanation")
 
             # Read and sanitize the required passage identifiers
-            head_id = sanitize_graphml_string(head_passage[node_id_key])
-            tail_id = sanitize_graphml_string(tail_passage[node_id_key])
+            head_id = sanitize_graphml_string(head_passage["passage_key"])
+            tail_id = sanitize_graphml_string(tail_passage["passage_key"])
 
             # Add a head passage that was not present in the input passage list
             if head_id not in graph:

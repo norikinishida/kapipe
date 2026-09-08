@@ -10,12 +10,14 @@ STORAGE_DATA=/home/nishida/storage/projects/kapipe/experiments/datasets
 #   - STORAGE_DATA/docre/linked_docred/{train,dev,test}.json
 python prepare_linked_docred.py \
     --input_file ${LINKED_DOCRED}/train_annotated.json \
-    --output_file ${STORAGE_DATA}/docre/linked_docred/train.json
+    --output_file ${STORAGE_DATA}/docre/linked_docred/train.json \
+    --split train
 for split in dev test
 do
     python prepare_linked_docred.py \
         --input_file ${LINKED_DOCRED}/${split}.json \
-        --output_file ${STORAGE_DATA}/docre/linked_docred/${split}.json
+        --output_file ${STORAGE_DATA}/docre/linked_docred/${split}.json \
+        --split ${split}
 done
 
 # Results:
@@ -26,4 +28,3 @@ mkdir -p ${STORAGE_DATA}/docre/linked_docred/meta
 cp ${DOCRED}/DocRED_baseline_metadata/rel2id.json ${STORAGE_DATA}/docre/linked_docred/meta/
 cp ${LINKED_DOCRED}/rel_info.json ${STORAGE_DATA}/docre/linked_docred/meta/
 cp ${DOCRED}/DocRED_baseline_metadata/ner2id.json ${STORAGE_DATA}/docre/linked_docred/meta/
-

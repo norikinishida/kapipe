@@ -19,20 +19,20 @@ Each community record contains the following fields.
 
 | Field | Type | Description |
 |---|---|---|
-| `community_id` | `str` | Unique community identifier |
+| `community_key` | `str` | Unique community identifier |
 | `nodes` | `list[str] \| None` | Entity IDs belonging to the community |
 | `level` | `int` | Depth in the community hierarchy |
-| `parent_community_id` | `str \| None` | Parent community ID |
-| `child_community_ids` | `list[str]` | Child community IDs |
+| `parent_community_key` | `str \| None` | Parent community key |
+| `child_community_keys` | `list[str]` | Child community keys |
 
 ```json
 [
     {
-        "community_id": "ROOT",
+        "community_key": "ROOT",
         "nodes": null,
         "level": -1,
-        "parent_community_id": null,
-        "child_community_ids": [
+        "parent_community_key": null,
+        "child_community_keys": [
             "Community(D016651)",
             "Community(D014262)",
             "Community(D002122)",
@@ -40,14 +40,14 @@ Each community record contains the following fields.
         ]
     },
     {
-        "community_id": "Community(D016651)",
+        "community_key": "Community(D016651)",
         "nodes": [
             "D016651",
             "D014262"
         ],
         "level": 0,
-        "parent_community_id": "ROOT",
-        "child_community_ids": []
+        "parent_community_key": "ROOT",
+        "child_community_keys": []
     },
     ...
 ]
@@ -61,28 +61,31 @@ Each passage contains generated title and text (with the corresponding community
 
 | Field | Type | Description |
 |---|---|---|
+| `passage_key` | `str` | Report passage key derived from the community key |
 | `title` | `str` | Report title |
 | `text` | `str` | Report text |
 
 ```json
 [
     {
+        "passage_key": "Community(D002122)/report",
         "title": "Calcium Chloride and Cardiac Arrhythmias",
         "text": "This report examines the relationship between Calcium Chloride, a chemical used in medical treatments, and Cardiac Arrhythmias, a significant health condition. The report highlights ...",
-        "community_id": "Community(D002122)",
+        "community_key": "Community(D002122)",
         "nodes": ["D002122", "D001145"],
         "level": 0,
-        "parent_community_id": "ROOT",
-        "child_community_ids": []
+        "parent_community_key": "ROOT",
+        "child_community_keys": []
     },
     {
+        "passage_key": "Community(D001145)/report",
         "title": "Cardiac Arrhythmias and Inducing Chemicals: Calcium Chloride and Desipramine",
         "text": "This report examines the community surrounding cardiac arrhythmias, focusing on the relationships between the diseases and the chemicals that induce them. The primary entities ...",
-        "community_id": "Community(D001145)",
+        "community_key": "Community(D001145)",
         "nodes": ["D001145", "D002122", "D003891"],
         "level": 0,
-        "parent_community_id": "ROOT",
-        "child_community_ids": []
+        "parent_community_key": "ROOT",
+        "child_community_keys": []
     },
     ...
 ]

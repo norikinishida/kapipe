@@ -44,7 +44,7 @@ class TemplateBasedReportGenerator(BaseReportGenerator):
 
         for community in communities:
             # Skip ROOT
-            if community["community_id"] == "ROOT":
+            if community["community_key"] == "ROOT":
                 continue
 
             count += 1
@@ -52,11 +52,18 @@ class TemplateBasedReportGenerator(BaseReportGenerator):
             # Get nodes that belong to this community directly
             direct_nodes = community["nodes"]
 
-            logger.info(f"[{count}/{n_total}] Generating a report for community ({community['community_id']}) with {len(direct_nodes)} direct nodes ...")
+            logger.info(
+                f"[{count}/{n_total}] Generating a report "
+                f"for community ({community['community_key']}) "
+                f"with {len(direct_nodes)} direct nodes ..."
+            )
 
             # Limit number of direct nodes
             if len(direct_nodes) >= 100:
-                logger.info(f"[{count}/{n_total}] Reducing nodes to top 100 primary nodes among {len(direct_nodes)} nodes")
+                logger.info(
+                    f"[{count}/{n_total}] Reducing nodes to top 100 primary nodes "
+                    f"among {len(direct_nodes)} nodes"
+                )
                 direct_nodes = [
                     n for n, d in sorted(
                         graph.subgraph(direct_nodes).degree(),
@@ -81,13 +88,19 @@ class TemplateBasedReportGenerator(BaseReportGenerator):
             ]
             # key_node_names = [graph.nodes[n]["name"] for n in key_nodes]
             key_node_names = [
-                graph.nodes[n][node_attr_keys[0]].replace("|", " ").replace("\n", " ").strip()
+                graph.nodes[n][node_attr_keys[0]].replace(
+                    "|", " "
+                ).replace(
+                    "\n", " "
+                ).strip()
                 for n in key_nodes
             ]
 
             # Fill the title
             # content_title = f"The primary entities in this community are: {', '.join(key_node_names)}"
-            content_title = f"The primary nodes in this community are: {', '.join(key_node_names)}"
+            content_title = (
+                f"The primary nodes in this community are: {', '.join(key_node_names)}"
+            )
 
             # Fill the content text
             content_text = ""
@@ -143,8 +156,9 @@ class TemplateBasedReportGenerator(BaseReportGenerator):
 
             # Finalize the report
             report = {
+                "passage_key": f"{community['community_key']}/report",
                 "title": content_title,
-                "text": content_text.strip()
+                "text": content_text.strip(),
             } | community
 
             # Record the resulting report

@@ -33,6 +33,7 @@ Each context passage contains the following fields.
 
 | Field | Type | Description |
 |---|---|---|
+| `passage_key` | `str` | Unique passage identifier |
 | `title` | `str` | Passage title, if available |
 | `text` | `str` | Passage text |
 
@@ -41,12 +42,14 @@ Each context passage contains the following fields.
     "question_key": "question#001",
     "contexts": [
         {
+            "passage_key": "passage#002",
             "title": "CCNU (lomustine) toxicity in dogs: a retrospective study (2002-07).",
             "text": "OBJECTIVE: To describe the incidence of haematological, renal, hepatic and gastrointestinal toxicities in tumour-bearing dogs ...",
             "score": 0.7051769495010376,
             "rank": 1
         },
         {
+            "passage_key": "passage#003",
             "title": "Reduced cardiotoxicity and preserved antitumor efficacy of liposome-encapsulated doxorubicin and cyclophosphamide compared with ...",
             "text": "PURPOSE: To determine whether Myocet (liposome-encapsulated doxorubicin; The Liposome Company, Elan Corporation, Princeton, ...",
             "score": 0.5899654626846313,

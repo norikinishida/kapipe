@@ -35,9 +35,10 @@ def main(args):
 
     questions = []
     contexts = []
+    snippet_key_to_passage_key = {}
     for data in tqdm(dataset["questions"]):
         # Extract example ID
-        question_key = str(data["id"])
+        question_key = f"bioasq/train_dev/{data['id']}"
 
         # Extract gold context passages from `snippets`
         # We ignore `documents`, `concepts` (entity concepts), and `triples`` attributes
@@ -49,7 +50,20 @@ def main(args):
             end_section = snippet_dict["endSection"]
             offset_in_begin_section = snippet_dict["offsetInBeginSection"]
             offset_in_end_section = snippet_dict["offsetInEndSection"]
+            snippet_key = (
+                url,
+                begin_section,
+                end_section,
+                offset_in_begin_section,
+                offset_in_end_section,
+                text,
+            )
+            if snippet_key not in snippet_key_to_passage_key:
+                snippet_key_to_passage_key[snippet_key] = (
+                    f"bioasq/snippet#{len(snippet_key_to_passage_key):08d}"
+                )
             context = {
+                "passage_key": snippet_key_to_passage_key[snippet_key],
                 "text": text,
                 "url": url,
                 "begin_section": begin_section,
@@ -164,5 +178,3 @@ if __name__ == "__main__":
     parser.add_argument("--size", type=int, default=-1)
     args = parser.parse_args()
     main(args)
-
- 

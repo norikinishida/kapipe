@@ -108,7 +108,7 @@ def main(args):
         # Extract the anchor node IDs for the current question
         anchor_passages = anchor_contexts_for_question["contexts"]
         anchor_node_ids: list[str] = [
-            passage[config["node_id_key"]]
+            passage["passage_key"]
             for passage in anchor_passages
         ]
 

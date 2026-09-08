@@ -73,6 +73,9 @@ bash ./prepare_hoip.sh
 ```bash
 cd experiments/datasets/ner
 
+# CoNLL-2003 (mentions-only)
+bash ./prepare_conll2003.sh
+
 # Linked-DocRED (mentions-only)
 bash ./prepare_linked_docred.sh
 

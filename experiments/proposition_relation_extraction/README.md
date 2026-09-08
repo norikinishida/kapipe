@@ -36,14 +36,6 @@ This directory already includes example data.
 experiments/proposition_relation_extraction/data/examples/propositions.jsonl
 ```
 
-Each input proposition should be a JSON object with a `text` field.
-
-```json
-{"text": "Example proposition text.", "timestamp": "2025-01-01"}
-```
-
-The `timestamp` field is optional.
-
 ## Step 3. Configuration Setup
 
 Adjust the settings in the following configuration file (HOCON format).

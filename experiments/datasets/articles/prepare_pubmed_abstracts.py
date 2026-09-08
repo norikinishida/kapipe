@@ -29,6 +29,7 @@ def main(args):
             mesh_headings = data["MedlineCitation"]["MeshHeadingList"]["MeshHeading"]
             if doc_key.strip() and text.strip() and title.strip():
                 passage = {
+                    "passage_key": f"pubmed/{doc_key}",
                     "title": title,
                     "text": text,
                     "pmid": doc_key,
@@ -48,4 +49,3 @@ if __name__ == "__main__":
     parser.add_argument("--output_file", type=str, required=True)
     args = parser.parse_args()
     main(args)
-

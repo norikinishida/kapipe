@@ -42,21 +42,20 @@ class TripleLevelFactorization(BaseCommunityClusterer):
 
             # Add a new community record for this triple
             communities.append({
-                "community_id": f"Community({head},{relation},{tail})",
+                "community_key": f"Community({head},{relation},{tail})",
                 "nodes": [head, tail],
                 "level": 0,
-                "parent_community_id": "ROOT",
-                "child_community_ids": []
+                "parent_community_key": "ROOT",
+                "child_community_keys": []
             })
 
         # Add a virtual root community record
         root_community = {
-            "community_id": "ROOT",
+            "community_key": "ROOT",
             "nodes": None,
             "level": -1,
-            "parent_community_id": None,
-            "child_community_ids": [c["community_id"] for c in communities]
+            "parent_community_key": None,
+            "child_community_keys": [c["community_key"] for c in communities]
         }
 
         return [root_community] + communities
-

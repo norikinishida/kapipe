@@ -118,8 +118,6 @@ prostruct_rag.make_index(
     top_k=20,
     prefilter_k=100,
     search_batch_size=10,
-    node_id_key="proposition_id",
-    source_id_key="article_id",
     proposition_relation_extraction_indexing_kwargs={
         "batch_size": 1024,
     },
@@ -153,8 +151,6 @@ prostruct_rag.make_index(
     top_k=20,
     prefilter_k=100,
     search_batch_size=10,
-    node_id_key="proposition_id",
-    source_id_key="article_id",
     target_component="proposition_relation_extraction",
     input_artifact_paths={
         "propositions": "/path/to/propositions.json",
@@ -168,8 +164,6 @@ prostruct_rag.make_index(
     top_k=20,
     prefilter_k=100,
     search_batch_size=10,
-    node_id_key="proposition_id",
-    source_id_key="article_id",
     target_component="proposition_relation_refinement",
     input_artifact_paths=None,
 )
@@ -206,15 +200,12 @@ result_question = prostruct_rag.infer(
     question=question,
     top_k=10,
     hop_size=1,
-    node_id_key="proposition_id",
     remove_same_timestamp_updates=True,
     append_question_timestamp=True,
 )
 ```
 
-`top_k` controls the number of anchor propositions returned by Passage Retrieval. `hop_size` controls neighborhood expansion during Graph Retrieval.
-
-The `node_id_key` used during inference must match the key used during Passage Graph Construction.
+`top_k` controls the number of anchor propositions returned by Passage Retrieval. `hop_size` controls neighborhood expansion during Graph Retrieval. Each anchor proposition is matched to its graph node using `passage_key`.
 
 ## Indexing Outputs
 
@@ -239,33 +230,13 @@ The output preserves the fields returned by the Question Answering component and
 |---|---|
 | `anchor_contexts` | Propositions returned by Passage Retrieval |
 | `graph_contexts` | Nodes and edges returned by Graph Retrieval |
-| `formatted_contexts` | Graph content converted into textual QA context |
+| `formatted_contexts` | Graph content converted into a textual QA context with passage key `<question_key>/context#0000` |
 
 If `append_question_timestamp` is `True`, the input question must contain a `timestamp`. The timestamp is appended to the question text as `(Date: <timestamp>)` before Question Answering.
 
 If `remove_same_timestamp_updates` is `True`, `updates` edges whose head and tail timestamps are equal are excluded from Context Formatting. They remain present in `graph_contexts`.
 
 The pipeline does not save inference output automatically. The caller is responsible for saving `result_question`.
-
-## Proposition Node Identifiers
-
-During Proposition Extraction, the pipeline adds a node identifier to each proposition that does not already contain `node_id_key`.
-
-The generated identifier has the following form.
-
-```text
-<source_id>/proposition<zero-padded proposition index>
-```
-
-For example, `node_id_key="proposition_id"` and `source_id_key="article_id"` can produce:
-
-```text
-article#001/proposition0000
-```
-
-The proposition index starts from zero for each source passage. Each source passage must contain `source_id_key` when an identifier must be generated.
-
-
 
 ## Example
 

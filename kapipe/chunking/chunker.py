@@ -118,14 +118,36 @@ class Chunker(BaseChunker):
             window_size=window_size
         )
 
-        # Extract metadata except "title" and "text"
-        meta = {k: v for k, v in passage.items() if k not in {"title", "text"}}
+        # Extract metadata except fields reconstructed for each chunk
+        metadata = {
+            key: value
+            for key, value in passage.items()
+            if key not in {"passage_key", "title", "text", "source_passage_key"}
+        }
 
-        # Prepend "title"
+        # Create chunks with the optional title in the canonical field order
         if "title" in passage:
-            return [{"title": passage["title"], "text": chunk, **meta} for chunk in chunks]
+            return [
+                {
+                    "passage_key": f"{passage['passage_key']}/chunk#{chunk_i:04d}",
+                    "title": passage["title"],
+                    "text": chunk,
+                    "source_passage_key": passage["passage_key"],
+                    **metadata,
+                }
+                for chunk_i, chunk in enumerate(chunks)
+            ]
 
-        return [{"text": chunk, **meta} for chunk in chunks]
+        # Create chunks without adding an absent optional title
+        return [
+            {
+                "passage_key": f"{passage['passage_key']}/chunk#{chunk_i:04d}",
+                "text": chunk,
+                "source_passage_key": passage["passage_key"],
+                **metadata,
+            }
+            for chunk_i, chunk in enumerate(chunks)
+        ]
 
     def convert_passage_to_document(
         self,
@@ -202,4 +224,3 @@ class Chunker(BaseChunker):
         """Remove line breaks from a list of sentences."""
 
         return [" ".join(s.split()) for s in sentences]
-

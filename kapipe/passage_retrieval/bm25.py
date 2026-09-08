@@ -256,7 +256,7 @@ class BM25(BasePassageRetriever):
         # all sharing the same entity_id.
         # To avoid redundant matches for the same entity in the top-k results,
         # we filter out lower-ranked passages that have an entity_id already seen.
-        # This ensures that the final top-k results do not contain duplicate entity_ids.
+        # This ensures that the final top-k results do not contain duplicate entity_id.
 
         # Sort passages by descending scores
         sorted_indices = np.argsort(scores)[::-1]

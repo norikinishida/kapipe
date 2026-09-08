@@ -10,5 +10,6 @@ for split in train dev test
 do
     python prepare_cdr.py \
         --input_file ${EOG}/${split}_filter.data \
-        --output_file ${STORAGE_DATA}/ner/cdr/${split}.json
+        --output_file ${STORAGE_DATA}/ner/cdr/${split}.json \
+        --split ${split}
 done

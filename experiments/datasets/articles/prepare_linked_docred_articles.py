@@ -20,12 +20,16 @@ def main(args):
             documents = utils.read_json(path_input_file)
             print(f"Read {len(documents)} documents from {path_input_file}")
             for doc in documents:
-                title = doc["doc_key"]
+                # Recover the original title after the dataset and split prefix
+                title: str = doc["doc_key"].split("/", 2)[2]
                 text = " ".join(doc["sentences"])
+                # Reuse the normalized document key as the passage key
+                source_document: str = doc["doc_key"]
                 passage = {
+                    "passage_key": source_document,
                     "title": title,
                     "text": text,
-                    "source_document": f"linked_docred/{split}/{doc['doc_key']}"
+                    # "source_document": source_document,
                 }
                 json_str = json.dumps(passage)
                 f.write(json_str + "\n")
@@ -40,4 +44,3 @@ if __name__ == "__main__":
     parser.add_argument("--output_file", type=str, required=True)
     args = parser.parse_args()
     main(args)
-

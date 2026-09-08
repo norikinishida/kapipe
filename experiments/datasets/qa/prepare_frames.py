@@ -175,7 +175,7 @@ def load_questions(
                 if reasoning_type.strip()
             ]
 
-            question_key = f"frames-test-{question_index}"
+            question_key = f"frames/test/{question_index}"
             questions.append(
                 {
                     "question_key": question_key,
@@ -253,6 +253,7 @@ def load_evidence_articles(
         for line in tqdm(file, desc="Finding FRAMES evidence articles"):
             article = json.loads(line)
             assert isinstance(article, dict)
+            assert isinstance(article["passage_key"], str)
             assert isinstance(article["title"], str)
             assert isinstance(article["text"], str)
 
@@ -262,6 +263,7 @@ def load_evidence_articles(
 
             assert title not in title_to_article
             title_to_article[title] = {
+                "passage_key": article["passage_key"],
                 "title": title,
                 "text": article["text"],
             }
@@ -300,7 +302,12 @@ def prepare_wikipedia_articles(
         ):
             title = decode_tfds_text(original_article["title"])
             text = decode_tfds_text(original_article["text"])
+            snapshot_date = (
+                f"{wikipedia_config[:4]}-{wikipedia_config[4:6]}-"
+                f"{wikipedia_config[6:8]}"
+            )
             article = {
+                "passage_key": f"wikipedia/{snapshot_date}/{title}",
                 "title": title,
                 "text": text,
             }
@@ -348,6 +355,7 @@ def build_gold_contexts(
             if title in title_to_article:
                 contexts.append(
                     {
+                        "passage_key": title_to_article[title]["passage_key"],
                         "title": title,
                         "text": title_to_article[title]["text"],
                         "found_in_wikipedia": True,
@@ -356,6 +364,7 @@ def build_gold_contexts(
             else:
                 contexts.append(
                     {
+                        "passage_key": f"wikipedia/{title}",
                         "title": title,
                         "text": "",
                         "found_in_wikipedia": False,

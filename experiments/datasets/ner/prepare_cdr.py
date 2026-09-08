@@ -26,7 +26,7 @@ def main(args):
     with open(path_input_file, "r") as f:
         for line in f:
             line = line.strip().split("\t")
-            doc_key = line[0]
+            doc_key = f"cdr/{args.split}/{line[0]}"
             text = line[1]
             sentences = [s.split() for s in text.split("|")]
             chunks = get_chunks(line[2:])
@@ -255,5 +255,6 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--input_file", type=str, required=True)
     parser.add_argument("--output_file", type=str, required=True)
+    parser.add_argument("--split", type=str, required=True)
     args = parser.parse_args()
     main(args=args)

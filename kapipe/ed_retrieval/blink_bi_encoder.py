@@ -223,9 +223,9 @@ class BlinkBiEncoder(BaseEDRetriever):
             # synonyms = epage["synonyms"]
             description = epage["description"]
             entity_passage: EntityPassage = {
+                "entity_id": entity_id,
                 "title": canonical_name,
                 "text": description,
-                "entity_id": entity_id,
             }
             candidate_entity_passages.append(entity_passage)
 
@@ -307,9 +307,9 @@ class BlinkBiEncoder(BaseEDRetriever):
                 # synonyms = epage["synonyms"]
                 description = epage["description"]
                 entity_passage = {
+                    "entity_id": entity_id,
                     "title": canonical_name,
                     "text": description,
-                    "entity_id": entity_id,
                 }
                 entity_passages.append(entity_passage)
 
@@ -329,8 +329,8 @@ class BlinkBiEncoder(BaseEDRetriever):
                 passage_vectors=entity_vectors,
                 passage_metadatas=[
                     {
+                        "entity_id": p["entity_id"],
                         "title": p["title"],
-                        "entity_id": p["entity_id"]
                     }
                     for p in entity_passages
                 ]

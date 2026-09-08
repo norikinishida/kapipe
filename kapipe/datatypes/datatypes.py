@@ -6,15 +6,14 @@ from typing import Any, TypeAlias
 
 Passage : TypeAlias = dict[str, Any]
 # Required fields:
+# - passage_key: str
 # - text: str
 # Optional fields:
 # - title: str
 
-DocKey : TypeAlias = str
-
 Document : TypeAlias = dict[str, Any]
 # Required fields:
-# - doc_key: DocKey
+# - doc_key: str
 # - sentences: list[str]
 # Optional fields:
 # - mentions: list[Mention]
@@ -66,9 +65,9 @@ CandidateEntitiesForDocument : TypeAlias = dict[str, Any]
 
 EntityPassage : TypeAlias = dict[str, Any]
 # Required fields:
+# - entity_id: str
 # - title: str
 # - text: str
-# - entity_id: str
 
 ##########
 # Data types for Document-level Relation Extraction
@@ -86,17 +85,15 @@ Triple : TypeAlias = dict[str, Any]
 
 CommunityRecord : TypeAlias = dict[str, Any]
 # Required fields:
-# - community_id: str
+# - community_key: str
 # - nodes: list[str] | None
 # - level: int
-# - parent_community_id: str | None
-# - child_community_ids: list[str]
+# - parent_community_key: str | None
+# - child_community_keys: list[str]
 
 ##########
 # Data types for QA
 ##########
-
-QuestionKey : TypeAlias = str
 
 ContextsForOneExample : TypeAlias = dict[str, Any]
 # Required fields:
@@ -105,7 +102,7 @@ ContextsForOneExample : TypeAlias = dict[str, Any]
 
 Question : TypeAlias = dict[str, Any]
 # Required fields:
-# - question_key: QuestionKey
+# - question_key: str
 # - question: str
 # Optional fields:
 # - answers: list[Answer]

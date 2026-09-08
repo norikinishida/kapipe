@@ -17,13 +17,10 @@ class LLMPropositionExtractor(BasePropositionExtractor):
         model: BaseLLM,
         # Internal
         prompt_template_name_or_path: str = "proposition_extraction_01",
-        # Optional
-        include_title_as_proposition: bool = False,
     ) -> None:
 
         self.model = model
         self.prompt_template_name_or_path = prompt_template_name_or_path
-        self.include_title_as_proposition = include_title_as_proposition
 
         # Load the prompt template for proposition extraction
         self.prompt_template = utils.read_prompt_template(
@@ -65,26 +62,28 @@ class LLMPropositionExtractor(BasePropositionExtractor):
                 if line.strip() != ""
             ]
 
-        # Treats the title as a proposition
-        if self.include_title_as_proposition:
-            title = passage.get("title")
-            if title is not None and title.strip() != "":
-                statements = [title.strip()] + statements
+        # Treat the title as the first proposition when it is available
+        if "title" in passage:
+            statements = [passage["title"].strip()] + statements
 
-        # Preserve all passage metadata except the original title and body text
+        # Preserve metadata except fields reconstructed for each proposition
         metadata = {
             key: value
             for key, value in passage.items()
-            if key not in {"title", "text"}
+            if key not in {"passage_key", "title", "text", "source_passage_key"}
         }
 
-        # Convert each extracted statement into an independent Passage object
+        # Convert each statement into a proposition in the canonical field order
         propositions: list[Passage] = [
             {
+                "passage_key": (
+                    f"{passage['passage_key']}/proposition#{proposition_i:04d}"
+                ),
                 "text": statement,
+                "source_passage_key": passage["passage_key"],
                 **metadata,
             }
-            for statement in statements
+            for proposition_i, statement in enumerate(statements)
         ]
 
         return propositions

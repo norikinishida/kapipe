@@ -6,23 +6,24 @@ This component takes passages and relation triples, and constructs a `networkx.D
 
 ## Input
 
-The input consists of passages, relation triples, and a node identifier key.
+The input consists of passages and relation triples.
 
 | Argument | Type | Description |
 |---|---|---|
 | `passages` | `list[dict]` | Passages added as graph nodes |
 | `triples` | `list[dict]` | Directed relations between passages |
-| `node_id_key` | `str` | Passage field used as the graph node identifier |
 
-Each passage must contain the field specified by `node_id_key`, and its value must be a string.
+Each passage must contain a string `passage_key`, which is used as the graph node identifier.
 
 ```json
 [
     {
+        "passage_key": "proposition#001",
         "text": "An independent audit found that the Northbridge payment system processed 99.9% of transactions within two seconds in February 2025.",
         "timestamp": "2025-03-01"
     },
     {
+        "passage_key": "proposition#002",
         "text": "A preliminary report found that the Northbridge payment system processed 97.0% of transactions within two seconds in January 2025.",
         "timestamp": "2025-02-01"
     },
@@ -43,11 +44,13 @@ Each relation triple contains the following fields.
 [
     {
         "head": {
+            "passage_key": "proposition#001",
             "text": "An independent audit found that the Northbridge payment system processed 99.9% of transactions within two seconds in February 2025.",
             "timestamp": "2025-03-01"
         },
         "relation": "updates",
         "tail": {
+            "passage_key": "proposition#002",
             "text": "A preliminary report found that the Northbridge payment system processed 97.0% of transactions within two seconds in January 2025.",
             "timestamp": "2025-02-01"
         },
@@ -61,15 +64,17 @@ Each relation triple contains the following fields.
 
 The output is a `networkx.DiGraph`.
 
-Each node represents a passage. Its identifier is the value of the passage field specified by `node_id_key`.
+Each node represents a passage. Its identifier is the value of `passage_key`.
 
-GraphML-compatible scalar fields from the passage are stored as node attributes.
+All GraphML-compatible scalar fields from the passage are stored as node attributes. `passage_key` and `text` are required passage fields. `timestamp` is an example of optional metadata.
 
 | Attribute | Type | Description |
 |---|---|---|
-| `<node_id_key>` | `str` | Passage field used as the node identifier |
-| `text` | `str` | Passage text, if available |
+| `passage_key` | `str` | Passage key used as the node identifier |
+| `text` | `str` | Passage text |
 | `timestamp` | `str` | Passage timestamp, if available |
+
+Fields whose values are `str`, `int`, `float`, or `bool` are preserved. Fields with unsupported values, such as `list`, `dict`, or `None`, are omitted.
 
 Each edge represents a directed relation from a head passage to a tail passage.
 
@@ -98,7 +103,6 @@ constructor = PassageGraphConstructor()
 graph = constructor.construct_passage_graph(
     passages=passages,
     triples=triples,
-    node_id_key="text",
 )
 ```
 

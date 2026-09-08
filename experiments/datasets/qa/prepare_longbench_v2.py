@@ -26,7 +26,7 @@ def main(args: argparse.Namespace) -> None:
     questions: list[dict[str, Any]] = []
     gold_contexts: list[dict[str, Any]] = []
     articles: list[dict[str, str]] = []
-    seen_article_texts: set[str] = set()
+    article_text_to_passage_key: dict[str, str] = {}
 
     # Convert every official instance without changing its question or context
     for data in tqdm(dataset, desc="Processing train"):
@@ -45,16 +45,18 @@ def main(args: argparse.Namespace) -> None:
         assert isinstance(data["context"], str)
 
         # Keep exactly one retrieval article for each distinct context text
-        if data["context"] not in seen_article_texts:
-            seen_article_texts.add(data["context"])
+        if data["context"] not in article_text_to_passage_key:
+            passage_key = f"longbench_v2/context#{len(articles):08d}"
+            article_text_to_passage_key[data["context"]] = passage_key
             articles.append(
                 {
+                    "passage_key": passage_key,
                     "text": data["context"],
                 }
             )
 
         # Retain the official split name in the repository-wide question key
-        question_key = f"longbench-v2-train-{data['_id']}"
+        question_key = f"longbench_v2/train/{data['_id']}"
 
         # Preserve option labels so the answer remains the official letter
         questions.append(
@@ -85,6 +87,7 @@ def main(args: argparse.Namespace) -> None:
                 "question_key": question_key,
                 "contexts": [
                     {
+                        "passage_key": article_text_to_passage_key[data["context"]],
                         "text": data["context"],
                     }
                 ],

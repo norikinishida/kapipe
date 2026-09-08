@@ -255,15 +255,6 @@ def main(args: argparse.Namespace) -> None:
     # Method Execution
     ##################
 
-    node_id_key: str = config["passage_graph_construction"]["node_id_key"]
-
-    # Require Passage Graph Construction and Graph Retrieval to use the same node ID key
-    if config["graph_retrieval"]["node_id_key"] != node_id_key:
-        raise ValueError(
-            "Passage Graph Construction and Graph Retrieval must use "
-            "the same node_id_key."
-        )
-
     if actiontype != "inference":
         # Load passages only when Proposition Extraction is selected
         if actiontype == "proposition_extraction":
@@ -317,8 +308,6 @@ def main(args: argparse.Namespace) -> None:
                     "search_batch_size"
                 ]
             ),
-            node_id_key=node_id_key,
-            source_id_key=config["proposition_extraction"]["source_id_key"],
             proposition_relation_extraction_indexing_kwargs=(
                 proposition_relation_extraction_indexing_kwargs
             ),
@@ -350,7 +339,6 @@ def main(args: argparse.Namespace) -> None:
                 question=question,
                 top_k=config["passage_retrieval"]["top_k"],
                 hop_size=config["graph_retrieval"]["hop_size"],
-                node_id_key=node_id_key,
             )
             result_questions.append(result_question)
 
@@ -491,9 +479,6 @@ def instantiate_proposition_extraction_component(
             model=llm,
             prompt_template_name_or_path=(
                 proposition_extraction_config["prompt_template_name_or_path"]
-            ),
-            include_title_as_proposition=(
-                proposition_extraction_config["include_title_as_proposition"]
             ),
         )
     else:

@@ -1,6 +1,6 @@
 [
     {
-        "question_key": "twohop#1",
+        "question_key": "cdr_qa/twohop#1",
         "question": "What diseases are induced by the chemical compounds that also induce Carotid Artery Thrombosis?",
         "answers": [
             {
@@ -604,7 +604,7 @@
         }
     },
     {
-        "question_key": "twohop#2",
+        "question_key": "cdr_qa/twohop#2",
         "question": "What chemical compounds induce the diseases that are also induced by Amiodarone?",
         "answers": [
             {
@@ -3742,7 +3742,7 @@
         }
     },
     {
-        "question_key": "twohop#3",
+        "question_key": "cdr_qa/twohop#3",
         "question": "What diseases are induced by the chemical compounds that also induce Hand-Foot Syndromes?",
         "answers": [
             {
@@ -5420,7 +5420,7 @@
         }
     },
     {
-        "question_key": "twohop#4",
+        "question_key": "cdr_qa/twohop#4",
         "question": "What diseases are induced by the chemical compounds that also induce Musculoskeletal Abnormality?",
         "answers": [
             {
@@ -5493,7 +5493,7 @@
         }
     },
     {
-        "question_key": "twohop#5",
+        "question_key": "cdr_qa/twohop#5",
         "question": "What chemical compounds induce the diseases that are also induced by Clonazepam?",
         "answers": [
             {
@@ -5657,7 +5657,7 @@
         }
     },
     {
-        "question_key": "twohop#6",
+        "question_key": "cdr_qa/twohop#6",
         "question": "What chemical compounds induce the diseases that are also induced by Timolol Hemihydrate?",
         "answers": [
             {
@@ -7696,7 +7696,7 @@
         }
     },
     {
-        "question_key": "twohop#7",
+        "question_key": "cdr_qa/twohop#7",
         "question": "What chemical compounds induce the diseases that are also induced by Methylphenidate?",
         "answers": [
             {
@@ -7817,7 +7817,7 @@
         }
     },
     {
-        "question_key": "twohop#8",
+        "question_key": "cdr_qa/twohop#8",
         "question": "What diseases are induced by the chemical compounds that also induce Nausea?",
         "answers": [
             {
@@ -12883,7 +12883,7 @@
         }
     },
     {
-        "question_key": "twohop#9",
+        "question_key": "cdr_qa/twohop#9",
         "question": "What chemical compounds induce the diseases that are also induced by Malonyldialdehyde?",
         "answers": [
             {
@@ -12931,7 +12931,7 @@
         }
     },
     {
-        "question_key": "twohop#10",
+        "question_key": "cdr_qa/twohop#10",
         "question": "What chemical compounds induce the diseases that are also induced by Benzatropine?",
         "answers": [
             {
@@ -13466,7 +13466,7 @@
         }
     },
     {
-        "question_key": "twohop#11",
+        "question_key": "cdr_qa/twohop#11",
         "question": "What chemical compounds induce the diseases that are also induced by 13-cis-Retinoic Acid?",
         "answers": [
             {
@@ -14737,7 +14737,7 @@
         }
     },
     {
-        "question_key": "twohop#12",
+        "question_key": "cdr_qa/twohop#12",
         "question": "What diseases are induced by the chemical compounds that also induce Polyneuropathies?",
         "answers": [
             {
@@ -16063,7 +16063,7 @@
         }
     },
     {
-        "question_key": "twohop#13",
+        "question_key": "cdr_qa/twohop#13",
         "question": "What chemical compounds induce the diseases that are also induced by ezetimibe, simvastatin drug combination?",
         "answers": [
             {
@@ -16894,7 +16894,7 @@
         }
     },
     {
-        "question_key": "twohop#14",
+        "question_key": "cdr_qa/twohop#14",
         "question": "What chemical compounds induce the diseases that are also induced by Cyclophosphamide?",
         "answers": [
             {
@@ -18868,7 +18868,7 @@
         }
     },
     {
-        "question_key": "twohop#15",
+        "question_key": "cdr_qa/twohop#15",
         "question": "What diseases are induced by the chemical compounds that also induce Arthritis?",
         "answers": [
             {
@@ -19272,7 +19272,7 @@
         }
     },
     {
-        "question_key": "twohop#16",
+        "question_key": "cdr_qa/twohop#16",
         "question": "What diseases are induced by the chemical compounds that also induce Growth Retardation, Fetal?",
         "answers": [
             {
@@ -20099,7 +20099,7 @@
         }
     },
     {
-        "question_key": "twohop#17",
+        "question_key": "cdr_qa/twohop#17",
         "question": "What chemical compounds induce the diseases that are also induced by N-(n-butyl)deoxynojirimycin?",
         "answers": [
             {
@@ -20675,7 +20675,7 @@
         }
     },
     {
-        "question_key": "twohop#18",
+        "question_key": "cdr_qa/twohop#18",
         "question": "What diseases are induced by the chemical compounds that also induce Attention Deficit and Disruptive Behavior Disorders?",
         "answers": [
             {
@@ -20734,7 +20734,7 @@
         }
     },
     {
-        "question_key": "twohop#19",
+        "question_key": "cdr_qa/twohop#19",
         "question": "What chemical compounds induce the diseases that are also induced by Bupivacaine?",
         "answers": [
             {
@@ -23693,7 +23693,7 @@
         }
     },
     {
-        "question_key": "twohop#20",
+        "question_key": "cdr_qa/twohop#20",
         "question": "What chemical compounds induce the diseases that are also induced by 3-(1,2,5,6-tetrahydropyrid-4-yl)pyrrolo(3,2-b)pyrid-5-one?",
         "answers": [
             {
@@ -23774,7 +23774,7 @@
         }
     },
     {
-        "question_key": "twohop#21",
+        "question_key": "cdr_qa/twohop#21",
         "question": "What diseases are induced by the chemical compounds that also induce Infection?",
         "answers": [
             {
@@ -24287,7 +24287,7 @@
         }
     },
     {
-        "question_key": "twohop#22",
+        "question_key": "cdr_qa/twohop#22",
         "question": "What chemical compounds induce the diseases that are also induced by dextro-Amphetamine?",
         "answers": [
             {
@@ -24545,7 +24545,7 @@
         }
     },
     {
-        "question_key": "twohop#23",
+        "question_key": "cdr_qa/twohop#23",
         "question": "What chemical compounds induce the diseases that are also induced by trans-2-Phenylcyclopropylamine?",
         "answers": [
             {
@@ -25667,7 +25667,7 @@
         }
     },
     {
-        "question_key": "twohop#24",
+        "question_key": "cdr_qa/twohop#24",
         "question": "What diseases are induced by the chemical compounds that also induce Defect, Ventricular Septal?",
         "answers": [
             {
@@ -26775,7 +26775,7 @@
         }
     },
     {
-        "question_key": "twohop#25",
+        "question_key": "cdr_qa/twohop#25",
         "question": "What diseases are induced by the chemical compounds that also induce Disorders, Photosensitivity?",
         "answers": [
             {
@@ -27196,7 +27196,7 @@
         }
     },
     {
-        "question_key": "twohop#26",
+        "question_key": "cdr_qa/twohop#26",
         "question": "What chemical compounds induce the diseases that are also induced by Adrenal Cortex Hormones?",
         "answers": [
             {
@@ -27981,7 +27981,7 @@
         }
     },
     {
-        "question_key": "twohop#27",
+        "question_key": "cdr_qa/twohop#27",
         "question": "What diseases are induced by the chemical compounds that also induce Manic-Depressive Psychoses?",
         "answers": [
             {
@@ -30086,7 +30086,7 @@
         }
     },
     {
-        "question_key": "twohop#28",
+        "question_key": "cdr_qa/twohop#28",
         "question": "What diseases are induced by the chemical compounds that also induce Sleep Disorders?",
         "answers": [
             {
@@ -31685,7 +31685,7 @@
         }
     },
     {
-        "question_key": "twohop#29",
+        "question_key": "cdr_qa/twohop#29",
         "question": "What chemical compounds induce the diseases that are also induced by Netilmicin?",
         "answers": [
             {
@@ -32341,7 +32341,7 @@
         }
     },
     {
-        "question_key": "twohop#30",
+        "question_key": "cdr_qa/twohop#30",
         "question": "What chemical compounds induce the diseases that are also induced by letrozole?",
         "answers": [
             {
@@ -32759,7 +32759,7 @@
         }
     },
     {
-        "question_key": "twohop#31",
+        "question_key": "cdr_qa/twohop#31",
         "question": "What diseases are induced by the chemical compounds that also induce Disorder, Choreatic?",
         "answers": [
             {
@@ -35441,7 +35441,7 @@
         }
     },
     {
-        "question_key": "twohop#32",
+        "question_key": "cdr_qa/twohop#32",
         "question": "What diseases are induced by the chemical compounds that also induce Prolactin-Secreting Pituitary Adenoma?",
         "answers": [
             {
@@ -35861,7 +35861,7 @@
         }
     },
     {
-        "question_key": "twohop#33",
+        "question_key": "cdr_qa/twohop#33",
         "question": "What diseases are induced by the chemical compounds that also induce Fever?",
         "answers": [
             {
@@ -38197,7 +38197,7 @@
         }
     },
     {
-        "question_key": "twohop#34",
+        "question_key": "cdr_qa/twohop#34",
         "question": "What diseases are induced by the chemical compounds that also induce Anemia, Hemolytic?",
         "answers": [
             {
@@ -40336,7 +40336,7 @@
         }
     },
     {
-        "question_key": "twohop#35",
+        "question_key": "cdr_qa/twohop#35",
         "question": "What chemical compounds induce the diseases that are also induced by Busulfan?",
         "answers": [
             {
@@ -41495,7 +41495,7 @@
         }
     },
     {
-        "question_key": "twohop#36",
+        "question_key": "cdr_qa/twohop#36",
         "question": "What diseases are induced by the chemical compounds that also induce Muscle Rigidity?",
         "answers": [
             {
@@ -42749,7 +42749,7 @@
         }
     },
     {
-        "question_key": "twohop#37",
+        "question_key": "cdr_qa/twohop#37",
         "question": "What chemical compounds induce the diseases that are also induced by ammonium acetate?",
         "answers": [
             {
@@ -42842,7 +42842,7 @@
         }
     },
     {
-        "question_key": "twohop#38",
+        "question_key": "cdr_qa/twohop#38",
         "question": "What chemical compounds induce the diseases that are also induced by telaprevir?",
         "answers": [
             {
@@ -42958,7 +42958,7 @@
         }
     },
     {
-        "question_key": "twohop#39",
+        "question_key": "cdr_qa/twohop#39",
         "question": "What diseases are induced by the chemical compounds that also induce Catatonia?",
         "answers": [
             {
@@ -43126,7 +43126,7 @@
         }
     },
     {
-        "question_key": "twohop#40",
+        "question_key": "cdr_qa/twohop#40",
         "question": "What chemical compounds induce the diseases that are also induced by zonisamide?",
         "answers": [
             {
@@ -43396,7 +43396,7 @@
         }
     },
     {
-        "question_key": "twohop#41",
+        "question_key": "cdr_qa/twohop#41",
         "question": "What diseases are induced by the chemical compounds that also induce Sensation Disorders?",
         "answers": [
             {
@@ -44632,7 +44632,7 @@
         }
     },
     {
-        "question_key": "twohop#42",
+        "question_key": "cdr_qa/twohop#42",
         "question": "What chemical compounds induce the diseases that are also induced by Melatonin?",
         "answers": [
             {
@@ -44776,7 +44776,7 @@
         }
     },
     {
-        "question_key": "twohop#43",
+        "question_key": "cdr_qa/twohop#43",
         "question": "What chemical compounds induce the diseases that are also induced by lovastatin-niacin combination?",
         "answers": [
             {
@@ -44894,7 +44894,7 @@
         }
     },
     {
-        "question_key": "twohop#44",
+        "question_key": "cdr_qa/twohop#44",
         "question": "What chemical compounds induce the diseases that are also induced by fluphenazine enanthate?",
         "answers": [
             {
@@ -44955,7 +44955,7 @@
         }
     },
     {
-        "question_key": "twohop#45",
+        "question_key": "cdr_qa/twohop#45",
         "question": "What chemical compounds induce the diseases that are also induced by Carrageenin?",
         "answers": [
             {
@@ -45670,7 +45670,7 @@
         }
     },
     {
-        "question_key": "twohop#46",
+        "question_key": "cdr_qa/twohop#46",
         "question": "What chemical compounds induce the diseases that are also induced by N-tert-butyl-1-methyl-3,3-diphenylpropylamine?",
         "answers": [
             {
@@ -45827,7 +45827,7 @@
         }
     },
     {
-        "question_key": "twohop#47",
+        "question_key": "cdr_qa/twohop#47",
         "question": "What diseases are induced by the chemical compounds that also induce Weight Gains?",
         "answers": [
             {
@@ -46851,7 +46851,7 @@
         }
     },
     {
-        "question_key": "twohop#48",
+        "question_key": "cdr_qa/twohop#48",
         "question": "What diseases are induced by the chemical compounds that also induce Effusions, Pleural?",
         "answers": [
             {
@@ -48268,7 +48268,7 @@
         }
     },
     {
-        "question_key": "twohop#49",
+        "question_key": "cdr_qa/twohop#49",
         "question": "What diseases are induced by the chemical compounds that also induce Lymphatic Diseases?",
         "answers": [
             {
@@ -49271,7 +49271,7 @@
         }
     },
     {
-        "question_key": "twohop#50",
+        "question_key": "cdr_qa/twohop#50",
         "question": "What diseases are induced by the chemical compounds that also induce Granulocytopenia?",
         "answers": [
             {
@@ -51323,7 +51323,7 @@
         }
     },
     {
-        "question_key": "twohop#51",
+        "question_key": "cdr_qa/twohop#51",
         "question": "What chemical compounds induce the diseases that are also induced by Phentanyl?",
         "answers": [
             {
@@ -53165,7 +53165,7 @@
         }
     },
     {
-        "question_key": "twohop#52",
+        "question_key": "cdr_qa/twohop#52",
         "question": "What chemical compounds induce the diseases that are also induced by S 23121?",
         "answers": [
             {
@@ -53292,7 +53292,7 @@
         }
     },
     {
-        "question_key": "twohop#53",
+        "question_key": "cdr_qa/twohop#53",
         "question": "What diseases are induced by the chemical compounds that also induce Accutane embryopathy?",
         "answers": [
             {
@@ -53713,7 +53713,7 @@
         }
     },
     {
-        "question_key": "twohop#54",
+        "question_key": "cdr_qa/twohop#54",
         "question": "What diseases are induced by the chemical compounds that also induce Myocardial Disease?",
         "answers": [
             {
@@ -57450,7 +57450,7 @@
         }
     },
     {
-        "question_key": "twohop#55",
+        "question_key": "cdr_qa/twohop#55",
         "question": "What chemical compounds induce the diseases that are also induced by Carbenicillin?",
         "answers": [
             {
@@ -57493,7 +57493,7 @@
         }
     },
     {
-        "question_key": "twohop#56",
+        "question_key": "cdr_qa/twohop#56",
         "question": "What chemical compounds induce the diseases that are also induced by Alcohol, Grain?",
         "answers": [
             {
@@ -60049,7 +60049,7 @@
         }
     },
     {
-        "question_key": "twohop#57",
+        "question_key": "cdr_qa/twohop#57",
         "question": "What chemical compounds induce the diseases that are also induced by Lymphoblast Interferon?",
         "answers": [
             {
@@ -60379,7 +60379,7 @@
         }
     },
     {
-        "question_key": "twohop#58",
+        "question_key": "cdr_qa/twohop#58",
         "question": "What chemical compounds induce the diseases that are also induced by Suprofen?",
         "answers": [
             {
@@ -61059,7 +61059,7 @@
         }
     },
     {
-        "question_key": "twohop#59",
+        "question_key": "cdr_qa/twohop#59",
         "question": "What diseases are induced by the chemical compounds that also induce Stomatitides?",
         "answers": [
             {
@@ -62888,7 +62888,7 @@
         }
     },
     {
-        "question_key": "twohop#60",
+        "question_key": "cdr_qa/twohop#60",
         "question": "What chemical compounds induce the diseases that are also induced by Piperacillin?",
         "answers": [
             {
@@ -63544,7 +63544,7 @@
         }
     },
     {
-        "question_key": "twohop#61",
+        "question_key": "cdr_qa/twohop#61",
         "question": "What diseases are induced by the chemical compounds that also induce Mitochondrial Disorder?",
         "answers": [
             {
@@ -64584,7 +64584,7 @@
         }
     },
     {
-        "question_key": "twohop#62",
+        "question_key": "cdr_qa/twohop#62",
         "question": "What diseases are induced by the chemical compounds that also induce Bilirubinemias?",
         "answers": [
             {
@@ -65237,7 +65237,7 @@
         }
     },
     {
-        "question_key": "twohop#63",
+        "question_key": "cdr_qa/twohop#63",
         "question": "What diseases are induced by the chemical compounds that also induce Pain?",
         "answers": [
             {
@@ -68416,7 +68416,7 @@
         }
     },
     {
-        "question_key": "twohop#64",
+        "question_key": "cdr_qa/twohop#64",
         "question": "What diseases are induced by the chemical compounds that also induce Dysfunction, Left Ventricular?",
         "answers": [
             {
@@ -71830,7 +71830,7 @@
         }
     },
     {
-        "question_key": "twohop#65",
+        "question_key": "cdr_qa/twohop#65",
         "question": "What chemical compounds induce the diseases that are also induced by N-Methylmorphine?",
         "answers": [
             {
@@ -72103,7 +72103,7 @@
         }
     },
     {
-        "question_key": "twohop#66",
+        "question_key": "cdr_qa/twohop#66",
         "question": "What chemical compounds induce the diseases that are also induced by Prazosin?",
         "answers": [
             {
@@ -73337,7 +73337,7 @@
         }
     },
     {
-        "question_key": "twohop#67",
+        "question_key": "cdr_qa/twohop#67",
         "question": "What chemical compounds induce the diseases that are also induced by 1 Methyl 2 mercaptoimidazole?",
         "answers": [
             {
@@ -73518,7 +73518,7 @@
         }
     },
     {
-        "question_key": "twohop#68",
+        "question_key": "cdr_qa/twohop#68",
         "question": "What chemical compounds induce the diseases that are also induced by Kainic Acid?",
         "answers": [
             {
@@ -74450,7 +74450,7 @@
         }
     },
     {
-        "question_key": "twohop#69",
+        "question_key": "cdr_qa/twohop#69",
         "question": "What diseases are induced by the chemical compounds that also induce Oliguria?",
         "answers": [
             {
@@ -74947,7 +74947,7 @@
         }
     },
     {
-        "question_key": "twohop#70",
+        "question_key": "cdr_qa/twohop#70",
         "question": "What chemical compounds induce the diseases that are also induced by Fluorescein?",
         "answers": [
             {
@@ -75096,7 +75096,7 @@
         }
     },
     {
-        "question_key": "twohop#71",
+        "question_key": "cdr_qa/twohop#71",
         "question": "What chemical compounds induce the diseases that are also induced by Amoxicillin-Potassium Clavulanate Combination?",
         "answers": [
             {
@@ -75968,7 +75968,7 @@
         }
     },
     {
-        "question_key": "twohop#72",
+        "question_key": "cdr_qa/twohop#72",
         "question": "What diseases are induced by the chemical compounds that also induce Thyroid Diseases?",
         "answers": [
             {
@@ -76966,7 +76966,7 @@
         }
     },
     {
-        "question_key": "twohop#73",
+        "question_key": "cdr_qa/twohop#73",
         "question": "What diseases are induced by the chemical compounds that also induce Nephritis?",
         "answers": [
             {
@@ -77559,7 +77559,7 @@
         }
     },
     {
-        "question_key": "twohop#74",
+        "question_key": "cdr_qa/twohop#74",
         "question": "What diseases are induced by the chemical compounds that also induce Pain, Back?",
         "answers": [
             {
@@ -77895,7 +77895,7 @@
         }
     },
     {
-        "question_key": "twohop#75",
+        "question_key": "cdr_qa/twohop#75",
         "question": "What diseases are induced by the chemical compounds that also induce Biliary Tract Disease?",
         "answers": [
             {
@@ -78054,7 +78054,7 @@
         }
     },
     {
-        "question_key": "twohop#76",
+        "question_key": "cdr_qa/twohop#76",
         "question": "What chemical compounds induce the diseases that are also induced by Tris(1-aziridinyl)phosphine Sulfide?",
         "answers": [
             {
@@ -78315,7 +78315,7 @@
         }
     },
     {
-        "question_key": "twohop#77",
+        "question_key": "cdr_qa/twohop#77",
         "question": "What diseases are induced by the chemical compounds that also induce Thrombotic Microangiopathy?",
         "answers": [
             {
@@ -79449,7 +79449,7 @@
         }
     },
     {
-        "question_key": "twohop#78",
+        "question_key": "cdr_qa/twohop#78",
         "question": "What chemical compounds induce the diseases that are also induced by Chondroitin Sulfate?",
         "answers": [
             {
@@ -80660,7 +80660,7 @@
         }
     },
     {
-        "question_key": "twohop#79",
+        "question_key": "cdr_qa/twohop#79",
         "question": "What diseases are induced by the chemical compounds that also induce Diseases, Vascular?",
         "answers": [
             {
@@ -82126,7 +82126,7 @@
         }
     },
     {
-        "question_key": "twohop#80",
+        "question_key": "cdr_qa/twohop#80",
         "question": "What chemical compounds induce the diseases that are also induced by Chlorpropamide?",
         "answers": [
             {
@@ -82223,7 +82223,7 @@
         }
     },
     {
-        "question_key": "twohop#81",
+        "question_key": "cdr_qa/twohop#81",
         "question": "What diseases are induced by the chemical compounds that also induce Confusional State?",
         "answers": [
             {
@@ -84938,7 +84938,7 @@
         }
     },
     {
-        "question_key": "twohop#82",
+        "question_key": "cdr_qa/twohop#82",
         "question": "What diseases are induced by the chemical compounds that also induce Interstitial Cystitis?",
         "answers": [
             {
@@ -85237,7 +85237,7 @@
         }
     },
     {
-        "question_key": "twohop#83",
+        "question_key": "cdr_qa/twohop#83",
         "question": "What chemical compounds induce the diseases that are also induced by topiramate?",
         "answers": [
             {
@@ -85317,7 +85317,7 @@
         }
     },
     {
-        "question_key": "twohop#84",
+        "question_key": "cdr_qa/twohop#84",
         "question": "What diseases are induced by the chemical compounds that also induce Hypoalbuminemia?",
         "answers": [
             {
@@ -86543,7 +86543,7 @@
         }
     },
     {
-        "question_key": "twohop#85",
+        "question_key": "cdr_qa/twohop#85",
         "question": "What chemical compounds induce the diseases that are also induced by 1-propyl-2',6'-pipecoloxylidide?",
         "answers": [
             {
@@ -87873,7 +87873,7 @@
         }
     },
     {
-        "question_key": "twohop#86",
+        "question_key": "cdr_qa/twohop#86",
         "question": "What chemical compounds induce the diseases that are also induced by Indinavir?",
         "answers": [
             {
@@ -88720,7 +88720,7 @@
         }
     },
     {
-        "question_key": "twohop#87",
+        "question_key": "cdr_qa/twohop#87",
         "question": "What diseases are induced by the chemical compounds that also induce Teratogenesis?",
         "answers": [
             {
@@ -88846,7 +88846,7 @@
         }
     },
     {
-        "question_key": "twohop#88",
+        "question_key": "cdr_qa/twohop#88",
         "question": "What diseases are induced by the chemical compounds that also induce Hyperinsulinism?",
         "answers": [
             {
@@ -89753,7 +89753,7 @@
         }
     },
     {
-        "question_key": "twohop#89",
+        "question_key": "cdr_qa/twohop#89",
         "question": "What diseases are induced by the chemical compounds that also induce Eye Pain?",
         "answers": [
             {
@@ -90412,7 +90412,7 @@
         }
     },
     {
-        "question_key": "twohop#90",
+        "question_key": "cdr_qa/twohop#90",
         "question": "What chemical compounds induce the diseases that are also induced by Chinese Drugs, Plant?",
         "answers": [
             {
@@ -91091,7 +91091,7 @@
         }
     },
     {
-        "question_key": "twohop#91",
+        "question_key": "cdr_qa/twohop#91",
         "question": "What chemical compounds induce the diseases that are also induced by Phenacetin?",
         "answers": [
             {
@@ -91279,7 +91279,7 @@
         }
     },
     {
-        "question_key": "twohop#92",
+        "question_key": "cdr_qa/twohop#92",
         "question": "What chemical compounds induce the diseases that are also induced by Dehydromethyltestosterone?",
         "answers": [
             {
@@ -91322,7 +91322,7 @@
         }
     },
     {
-        "question_key": "twohop#93",
+        "question_key": "cdr_qa/twohop#93",
         "question": "What chemical compounds induce the diseases that are also induced by Midazolam?",
         "answers": [
             {
@@ -91688,7 +91688,7 @@
         }
     },
     {
-        "question_key": "twohop#94",
+        "question_key": "cdr_qa/twohop#94",
         "question": "What diseases are induced by the chemical compounds that also induce Xerophthalmia?",
         "answers": [
             {
@@ -92109,7 +92109,7 @@
         }
     },
     {
-        "question_key": "twohop#95",
+        "question_key": "cdr_qa/twohop#95",
         "question": "What chemical compounds induce the diseases that are also induced by Fluphenazine?",
         "answers": [
             {
@@ -92382,7 +92382,7 @@
         }
     },
     {
-        "question_key": "twohop#96",
+        "question_key": "cdr_qa/twohop#96",
         "question": "What diseases are induced by the chemical compounds that also induce Drug Induced Liver Injury?",
         "answers": [
             {
@@ -97408,7 +97408,7 @@
         }
     },
     {
-        "question_key": "twohop#97",
+        "question_key": "cdr_qa/twohop#97",
         "question": "What chemical compounds induce the diseases that are also induced by Azythromycin?",
         "answers": [
             {
@@ -97549,7 +97549,7 @@
         }
     },
     {
-        "question_key": "twohop#98",
+        "question_key": "cdr_qa/twohop#98",
         "question": "What diseases are induced by the chemical compounds that also induce Sphincter of Oddi Dysfunction?",
         "answers": [
             {
@@ -98334,7 +98334,7 @@
         }
     },
     {
-        "question_key": "twohop#99",
+        "question_key": "cdr_qa/twohop#99",
         "question": "What chemical compounds induce the diseases that are also induced by Fluridrazepam?",
         "answers": [
             {
@@ -98907,7 +98907,7 @@
         }
     },
     {
-        "question_key": "twohop#100",
+        "question_key": "cdr_qa/twohop#100",
         "question": "What chemical compounds induce the diseases that are also induced by Inhibitors, Cyclooxygenase?",
         "answers": [
             {
@@ -100339,7 +100339,7 @@
         }
     },
     {
-        "question_key": "twohop#101",
+        "question_key": "cdr_qa/twohop#101",
         "question": "What chemical compounds induce the diseases that are also induced by N-Cyano-N'-methyl-N''-(2-(((5-methyl-1H-imidazol-4-yl)methyl)thio)ethyl)guanidine?",
         "answers": [
             {
@@ -102219,7 +102219,7 @@
         }
     },
     {
-        "question_key": "twohop#102",
+        "question_key": "cdr_qa/twohop#102",
         "question": "What chemical compounds induce the diseases that are also induced by Butyl Methoxyphenol?",
         "answers": [
             {
@@ -102282,7 +102282,7 @@
         }
     },
     {
-        "question_key": "twohop#103",
+        "question_key": "cdr_qa/twohop#103",
         "question": "What diseases are induced by the chemical compounds that also induce Epileptic Seizure?",
         "answers": [
             {
@@ -102692,7 +102692,7 @@
         }
     },
     {
-        "question_key": "twohop#104",
+        "question_key": "cdr_qa/twohop#104",
         "question": "What diseases are induced by the chemical compounds that also induce Subarachnoid Hemorrhage?",
         "answers": [
             {
@@ -104703,7 +104703,7 @@
         }
     },
     {
-        "question_key": "twohop#105",
+        "question_key": "cdr_qa/twohop#105",
         "question": "What chemical compounds induce the diseases that are also induced by Picrotoxin?",
         "answers": [
             {
@@ -105628,7 +105628,7 @@
         }
     },
     {
-        "question_key": "twohop#106",
+        "question_key": "cdr_qa/twohop#106",
         "question": "What chemical compounds induce the diseases that are also induced by Cromakalim?",
         "answers": [
             {
@@ -106930,7 +106930,7 @@
         }
     },
     {
-        "question_key": "twohop#107",
+        "question_key": "cdr_qa/twohop#107",
         "question": "What chemical compounds induce the diseases that are also induced by Factor IV, Coagulation?",
         "answers": [
             {
@@ -107468,7 +107468,7 @@
         }
     },
     {
-        "question_key": "twohop#108",
+        "question_key": "cdr_qa/twohop#108",
         "question": "What chemical compounds induce the diseases that are also induced by Aminophylline?",
         "answers": [
             {
@@ -108546,7 +108546,7 @@
         }
     },
     {
-        "question_key": "twohop#109",
+        "question_key": "cdr_qa/twohop#109",
         "question": "What diseases are induced by the chemical compounds that also induce Carcinomas, Renal Cell?",
         "answers": [
             {
@@ -108823,7 +108823,7 @@
         }
     },
     {
-        "question_key": "twohop#110",
+        "question_key": "cdr_qa/twohop#110",
         "question": "What chemical compounds induce the diseases that are also induced by bortezomib?",
         "answers": [
             {
@@ -109993,7 +109993,7 @@
         }
     },
     {
-        "question_key": "twohop#111",
+        "question_key": "cdr_qa/twohop#111",
         "question": "What chemical compounds induce the diseases that are also induced by Ketoconazole?",
         "answers": [
             {
@@ -112170,7 +112170,7 @@
         }
     },
     {
-        "question_key": "twohop#112",
+        "question_key": "cdr_qa/twohop#112",
         "question": "What diseases are induced by the chemical compounds that also induce High-Frequency Hearing Loss?",
         "answers": [
             {
@@ -112291,7 +112291,7 @@
         }
     },
     {
-        "question_key": "twohop#113",
+        "question_key": "cdr_qa/twohop#113",
         "question": "What chemical compounds induce the diseases that are also induced by Asenapine?",
         "answers": [
             {
@@ -112403,7 +112403,7 @@
         }
     },
     {
-        "question_key": "twohop#114",
+        "question_key": "cdr_qa/twohop#114",
         "question": "What diseases are induced by the chemical compounds that also induce Tachycardias, Sinus?",
         "answers": [
             {
@@ -113112,7 +113112,7 @@
         }
     },
     {
-        "question_key": "twohop#115",
+        "question_key": "cdr_qa/twohop#115",
         "question": "What chemical compounds induce the diseases that are also induced by Oxacillin?",
         "answers": [
             {
@@ -113545,7 +113545,7 @@
         }
     },
     {
-        "question_key": "twohop#116",
+        "question_key": "cdr_qa/twohop#116",
         "question": "What diseases are induced by the chemical compounds that also induce Respiratory Insufficiency?",
         "answers": [
             {
@@ -114719,7 +114719,7 @@
         }
     },
     {
-        "question_key": "twohop#117",
+        "question_key": "cdr_qa/twohop#117",
         "question": "What diseases are induced by the chemical compounds that also induce Butyrylcholinesterase deficiency?",
         "answers": [
             {
@@ -115043,7 +115043,7 @@
         }
     },
     {
-        "question_key": "twohop#118",
+        "question_key": "cdr_qa/twohop#118",
         "question": "What chemical compounds induce the diseases that are also induced by iopromid?",
         "answers": [
             {
@@ -115698,7 +115698,7 @@
         }
     },
     {
-        "question_key": "twohop#119",
+        "question_key": "cdr_qa/twohop#119",
         "question": "What diseases are induced by the chemical compounds that also induce Oligomenorrheas?",
         "answers": [
             {
@@ -115797,7 +115797,7 @@
         }
     },
     {
-        "question_key": "twohop#120",
+        "question_key": "cdr_qa/twohop#120",
         "question": "What diseases are induced by the chemical compounds that also induce Hypoaldosteronism?",
         "answers": [
             {
@@ -116569,7 +116569,7 @@
         }
     },
     {
-        "question_key": "twohop#121",
+        "question_key": "cdr_qa/twohop#121",
         "question": "What chemical compounds induce the diseases that are also induced by Raloxifene?",
         "answers": [
             {
@@ -116770,7 +116770,7 @@
         }
     },
     {
-        "question_key": "twohop#122",
+        "question_key": "cdr_qa/twohop#122",
         "question": "What diseases are induced by the chemical compounds that also induce Chronic Hepatitis B?",
         "answers": [
             {
@@ -116803,7 +116803,7 @@
         }
     },
     {
-        "question_key": "twohop#123",
+        "question_key": "cdr_qa/twohop#123",
         "question": "What chemical compounds induce the diseases that are also induced by Klofenil?",
         "answers": [
             {
@@ -118637,7 +118637,7 @@
         }
     },
     {
-        "question_key": "twohop#124",
+        "question_key": "cdr_qa/twohop#124",
         "question": "What chemical compounds induce the diseases that are also induced by Calcium Channel Blockers?",
         "answers": [
             {
@@ -119660,7 +119660,7 @@
         }
     },
     {
-        "question_key": "twohop#125",
+        "question_key": "cdr_qa/twohop#125",
         "question": "What chemical compounds induce the diseases that are also induced by Dimethylergometrin?",
         "answers": [
             {
@@ -119742,7 +119742,7 @@
         }
     },
     {
-        "question_key": "twohop#126",
+        "question_key": "cdr_qa/twohop#126",
         "question": "What chemical compounds induce the diseases that are also induced by Digoxin?",
         "answers": [
             {
@@ -120185,7 +120185,7 @@
         }
     },
     {
-        "question_key": "twohop#127",
+        "question_key": "cdr_qa/twohop#127",
         "question": "What chemical compounds induce the diseases that are also induced by glycine, N-((1)1-cyclohexyl-2-((2)-((((4-(amino(hydroxyimino)methyl)phenyl)methyl)amino)carbonyl)-1-azetidinyl)2-oxoethyl)-ethyl ester?",
         "answers": [
             {
@@ -120978,7 +120978,7 @@
         }
     },
     {
-        "question_key": "twohop#128",
+        "question_key": "cdr_qa/twohop#128",
         "question": "What diseases are induced by the chemical compounds that also induce Gastroduodenal Ulcer?",
         "answers": [
             {

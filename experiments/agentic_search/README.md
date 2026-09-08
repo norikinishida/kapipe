@@ -49,6 +49,8 @@ experiments/agentic_search/data/examples/questions_with_answers.json
 experiments/agentic_search/data/examples/questions.gold_contexts.json
 ```
 
+Each corpus and gold-context passage requires `passage_key` and `text`.
+
 ## Step 3. Configuration Setup
 
 Adjust the settings in the following configuration file (HOCON format).

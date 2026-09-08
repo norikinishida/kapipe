@@ -251,13 +251,11 @@ def main(args):
         ret_scores = evaluation.passage_retrieval.precision_recall_at_k(
             pred_path=output_questions_path,
             gold_path=gold_contexts_path,
-            passage_to_identifier=lambda p: p["text"]
         )
         ret_scores.update(
             evaluation.passage_retrieval.ndcg_at_k(
                 pred_path=output_questions_path,
                 gold_path=gold_contexts_path,
-                passage_to_identifier=lambda p: p["text"]
             )
         )
         scores = {

@@ -9,13 +9,15 @@ STORAGE_DATA=/home/nishida/storage/projects/kapipe/experiments/datasets
 #   - STORAGE_DATA/docre/docred/{train,dev,test}.json
 python prepare_docred.py \
     --input_file ${DOCRED}/train_annotated.json \
-    --output_file ${STORAGE_DATA}/docre/docred/train.json
+    --output_file ${STORAGE_DATA}/docre/docred/train.json \
+    --split train
 
 for split in dev test
 do
     python prepare_docred.py \
         --input_file ${DOCRED}/${split}.json \
-        --output_file ${STORAGE_DATA}/docre/docred/${split}.json
+        --output_file ${STORAGE_DATA}/docre/docred/${split}.json \
+        --split ${split}
 done
 
 
@@ -34,4 +36,3 @@ mkdir -p ${STORAGE_DATA}/docre/docred/original
 cp ${DOCRED}/train_annotated.json ${STORAGE_DATA}/docre/docred/original/
 cp ${DOCRED}/train_distant.json ${STORAGE_DATA}/docre/docred/original/
 cp ${DOCRED}/dev.json ${STORAGE_DATA}/docre/docred/original/
-

@@ -300,6 +300,7 @@ def convert_wikipedia_file(
 
             # Preserve the official page ID while exposing a readable title
             output_article = {
+                "passage_key": f"wikipedia/2017-06-01/{wikipedia_id}",
                 "title": wikipedia_id.replace("_", " "),
                 "text": article["text"],
                 "wikipedia_id": wikipedia_id,
@@ -368,7 +369,7 @@ def convert_claims(
 
     # Convert every claim while preserving each alternative evidence set
     for data in tqdm(claims, desc=f"Converting FEVER {split}"):
-        question_key = f"fever-{split}-{data['id']}"
+        question_key = f"fever/{split}/{data['id']}"
         claim = data["claim"]
         question_text = (
             "Based on the available evidence, should the following claim be "
@@ -417,6 +418,11 @@ def convert_claims(
                     )
                     contexts.append(
                         {
+                            "passage_key": (
+                                "wikipedia/2017-06-01/"
+                                f"{normalized_wikipedia_id}"
+                                f"/sentence#{sentence_id:04d}"
+                            ),
                             "title": normalized_wikipedia_id.replace("_", " "),
                             "text": evidence_key_to_text[
                                 (normalized_wikipedia_id, sentence_id)

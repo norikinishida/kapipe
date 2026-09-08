@@ -21,7 +21,7 @@ def main(args):
     with open(path_input_file, "r") as f:
         dataset = json.load(f)
         for data in tqdm(dataset):
-            doc_key = data["title"]
+            doc_key = f"linked_docred/{args.split}/{data['title']}"
 
             assert not doc_key in doc_key_list, doc_key
             doc_key_list.append(doc_key)
@@ -231,6 +231,6 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--input_file", type=str, required=True)
     parser.add_argument("--output_file", type=str, required=True)
+    parser.add_argument("--split", type=str, required=True)
     args = parser.parse_args()
     main(args=args)
- 

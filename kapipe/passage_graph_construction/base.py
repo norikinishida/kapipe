@@ -16,6 +16,5 @@ class BasePassageGraphConstructor(ABC):
         self,
         passages: list[Passage],
         triples: list[dict[str, Any]],
-        node_id_key: str,
     ) -> nx.DiGraph:
         """Construct a directed passage graph."""

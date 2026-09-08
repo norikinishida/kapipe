@@ -44,10 +44,10 @@ This directory already includes example data.
 experiments/chunking/data/examples/articles.jsonl
 ```
 
-Each input passage should be a JSON object with a `text` field.
+Each input passage should be a JSON object with `passage_key` and `text` fields.
 
 ```json
-{"title": "Example title", "text": "Example passage text."}
+{"passage_key": "passage#001", "title": "Example title", "text": "Example passage text."}
 ```
 
 The `title` field is optional.

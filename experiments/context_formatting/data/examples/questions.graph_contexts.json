@@ -5,31 +5,36 @@
         "contexts": null,
         "nodes": [
             {
-                "node_id": "A preliminary report found that the Northbridge payment system processed 97.0% of transactions within two seconds in January 2025.",
+                "node_id": "proposition#002",
+                "passage_key": "proposition#002",
                 "text": "A preliminary report found that the Northbridge payment system processed 97.0% of transactions within two seconds in January 2025.",
                 "timestamp": "2025-02-01",
                 "is_anchor": false
             },
             {
-                "node_id": "The operator reported that a recent upgrade improved the response time of the Northbridge payment system.",
+                "node_id": "proposition#004",
+                "passage_key": "proposition#004",
                 "text": "The operator reported that a recent upgrade improved the response time of the Northbridge payment system.",
                 "timestamp": "2025-02-15",
                 "is_anchor": false
             },
             {
-                "node_id": "The Northbridge City Museum will open an exhibition of nineteenth-century landscape paintings.",
+                "node_id": "proposition#005",
+                "passage_key": "proposition#005",
                 "text": "The Northbridge City Museum will open an exhibition of nineteenth-century landscape paintings.",
                 "timestamp": "2025-02-20",
                 "is_anchor": false
             },
             {
-                "node_id": "An independent audit found that the Northbridge payment system processed only 82.0% of transactions within two seconds in February 2025.",
+                "node_id": "proposition#003",
+                "passage_key": "proposition#003",
                 "text": "An independent audit found that the Northbridge payment system processed only 82.0% of transactions within two seconds in February 2025.",
                 "timestamp": "2025-03-01",
                 "is_anchor": false
             },
             {
-                "node_id": "An independent audit found that the Northbridge payment system processed 99.9% of transactions within two seconds in February 2025.",
+                "node_id": "proposition#001",
+                "passage_key": "proposition#001",
                 "text": "An independent audit found that the Northbridge payment system processed 99.9% of transactions within two seconds in February 2025.",
                 "timestamp": "2025-03-01",
                 "is_anchor": true

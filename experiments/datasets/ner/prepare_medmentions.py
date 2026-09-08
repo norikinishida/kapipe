@@ -75,6 +75,12 @@ def main(args):
     train_docs = [d for d in documents if d["doc_key"] in train_pmids]
     dev_docs = [d for d in documents if d["doc_key"] in dev_pmids]
     test_docs = [d for d in documents if d["doc_key"] in test_pmids]
+    for doc in train_docs:
+        doc["doc_key"] = f"medmentions/train/{doc['doc_key']}"
+    for doc in dev_docs:
+        doc["doc_key"] = f"medmentions/dev/{doc['doc_key']}"
+    for doc in test_docs:
+        doc["doc_key"] = f"medmentions/test/{doc['doc_key']}"
 
     # Save the documents
     utils.write_json(os.path.join(output_dir, "train.json"), train_docs)
@@ -348,4 +354,3 @@ if __name__ == "__main__":
     parser.add_argument("--output_dir", type=str, required=True)
     args = parser.parse_args()
     main(args=args)
- 

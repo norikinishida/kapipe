@@ -29,10 +29,13 @@ def main(args):
                 assert len(sentences) > 1
                 title = sentences[0]
                 text = " ".join(sentences[1:])
+                # Reuse the normalized document key as the passage key
+                source_document: str = doc["doc_key"]
                 passage = {
+                    "passage_key": source_document,
                     "title": title,
                     "text": text,
-                    "source_document": f"cdr/{split}/{doc['doc_key']}"
+                    # "source_document": source_document,
                 }
                 json_str = json.dumps(passage)
                 f.write(json_str + "\n")
@@ -47,4 +50,3 @@ if __name__ == "__main__":
     parser.add_argument("--output_file", type=str, required=True)
     args = parser.parse_args()
     main(args)
-

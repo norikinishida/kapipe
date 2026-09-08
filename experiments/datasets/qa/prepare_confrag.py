@@ -20,7 +20,7 @@ def main(args: argparse.Namespace) -> None:
     questions: list[dict[str, Any]] = []
     gold_contexts: list[dict[str, Any]] = []
     seen_question_keys: set[str] = set()
-    article_key_to_passage_id: dict[tuple[str, str], str] = {}
+    article_key_to_passage_key: dict[tuple[str, str], str] = {}
 
     # Convert each JSONL record independently because webpages are very long
     with open(input_file, encoding="utf-8") as file:
@@ -35,7 +35,7 @@ def main(args: argparse.Namespace) -> None:
             question, contexts_for_question = convert_instance(
                 data=data,
                 line_number=line_number,
-                article_key_to_passage_id=article_key_to_passage_id,
+                article_key_to_passage_key=article_key_to_passage_key,
             )
 
             # Reject duplicate identifiers before writing an ambiguous dataset
@@ -48,25 +48,25 @@ def main(args: argparse.Namespace) -> None:
             questions.append(question)
             gold_contexts.append(contexts_for_question)
 
-    # Keep exactly one corpus article for each assigned passage ID
-    passage_id_to_article: dict[str, dict[str, Any]] = {}
+    # Keep exactly one corpus article for each assigned passage key
+    passage_key_to_article: dict[str, dict[str, Any]] = {}
     for contexts_for_question in gold_contexts:
         for context in contexts_for_question["contexts"]:
-            passage_id = context["passage_id"]
-            if passage_id in passage_id_to_article:
-                existing_article = passage_id_to_article[passage_id]
+            passage_key = context["passage_key"]
+            if passage_key in passage_key_to_article:
+                existing_article = passage_key_to_article[passage_key]
                 if (
                     context["website"] != existing_article["website"]
                     or context["text"] != existing_article["text"]
                 ):
                     raise ValueError(
-                        f"Conflicting ConfRAG article: {passage_id}"
+                        f"Conflicting ConfRAG article: {passage_key}"
                     )
             else:
-                passage_id_to_article[passage_id] = context
+                passage_key_to_article[passage_key] = context
 
-    articles = list(passage_id_to_article.values())
-    if len(articles) != len(article_key_to_passage_id):
+    articles = list(passage_key_to_article.values())
+    if len(articles) != len(article_key_to_passage_key):
         raise ValueError("Incomplete ConfRAG article mapping")
 
     # Create the destination directories only after all records are validated
@@ -114,7 +114,7 @@ def main(args: argparse.Namespace) -> None:
 def convert_instance(
     data: dict[str, Any],
     line_number: int,
-    article_key_to_passage_id: dict[tuple[str, str], str],
+    article_key_to_passage_key: dict[tuple[str, str], str],
 ) -> tuple[dict[str, Any], dict[str, Any]]:
     # Detect changes to the official recommended ConfRAG schema immediately
     assert set(data) == {
@@ -132,15 +132,15 @@ def convert_instance(
     assert isinstance(data["contradicts"], bool), line_number
     assert isinstance(data["answers"], list), line_number
 
-    question_key = f"confrag-{data['id']}"
-    contexts, context_index_to_passage_id = validate_and_copy_contexts(
+    question_key = f"confrag/train/{data['id']}"
+    contexts, context_index_to_passage_key = validate_and_copy_contexts(
         websites=data["websites"],
         question_key=question_key,
-        article_key_to_passage_id=article_key_to_passage_id,
+        article_key_to_passage_key=article_key_to_passage_key,
     )
     answers = convert_answers(
         original_answers=data["answers"],
-        context_index_to_passage_id=context_index_to_passage_id,
+        context_index_to_passage_key=context_index_to_passage_key,
         question_key=question_key,
     )
 
@@ -164,12 +164,12 @@ def convert_instance(
 def validate_and_copy_contexts(
     websites: list[dict[str, Any]],
     question_key: str,
-    article_key_to_passage_id: dict[tuple[str, str], str],
+    article_key_to_passage_key: dict[tuple[str, str], str],
 ) -> tuple[list[dict[str, Any]], dict[int, str]]:
     contexts: list[dict[str, Any]] = []
-    context_index_to_passage_id: dict[int, str] = {}
+    context_index_to_passage_key: dict[int, str] = {}
     seen_indices: set[int] = set()
-    seen_passage_ids: set[str] = set()
+    seen_passage_keys: set[str] = set()
 
     # Validate every official webpage field before selecting context metadata
     for website in websites:
@@ -202,36 +202,36 @@ def validate_and_copy_contexts(
             )
         seen_indices.add(context_index)
 
-        # Assign one stable sequential ID to each URL and text pair
+        # Assign one stable sequential key to each URL and text pair
         article_key = (website["website"], website["content"])
-        if article_key not in article_key_to_passage_id:
-            article_key_to_passage_id[article_key] = (
-                f"passage#{len(article_key_to_passage_id)}"
+        if article_key not in article_key_to_passage_key:
+            article_key_to_passage_key[article_key] = (
+                f"confrag/passage#{len(article_key_to_passage_key):08d}"
             )
-        passage_id = article_key_to_passage_id[article_key]
-        context_index_to_passage_id[context_index] = passage_id
+        passage_key = article_key_to_passage_key[article_key]
+        context_index_to_passage_key[context_index] = passage_key
 
         # Keep each canonical article at most once within one gold context
-        if passage_id in seen_passage_ids:
+        if passage_key in seen_passage_keys:
             continue
-        seen_passage_ids.add(passage_id)
+        seen_passage_keys.add(passage_key)
 
         # Exclude construction-time answer annotations to prevent gold leakage
         contexts.append(
             {
+                "passage_key": passage_key,
                 "text": website["content"],
-                "passage_id": passage_id,
                 "website": website["website"],
                 "trust_score": website["trust_score"],
             }
         )
 
-    return contexts, context_index_to_passage_id
+    return contexts, context_index_to_passage_key
 
 
 def convert_answers(
     original_answers: list[dict[str, Any]],
-    context_index_to_passage_id: dict[int, str],
+    context_index_to_passage_key: dict[int, str],
     question_key: str,
 ) -> list[dict[str, Any]]:
     answers: list[dict[str, Any]] = []
@@ -268,7 +268,7 @@ def convert_answers(
             raise ValueError(
                 f"Duplicate index within an answer cluster in {question_key}"
             )
-        if not set(answer_indices).issubset(context_index_to_passage_id):
+        if not set(answer_indices).issubset(context_index_to_passage_key):
             raise ValueError(
                 f"Unknown context index in an answer cluster in {question_key}"
             )
@@ -284,14 +284,14 @@ def convert_answers(
             original_reasons=original_answer["reason"],
             answer_indices=set(answer_indices),
             question_key=question_key,
-            context_index_to_passage_id=context_index_to_passage_id,
+            context_index_to_passage_key=context_index_to_passage_key,
         )
         answers.append(
             {
                 "answer": original_answer["answer"],
                 "answer_type": "confrag",
-                "passage_ids": list(dict.fromkeys(
-                    context_index_to_passage_id[context_index]
+                "passage_keys": list(dict.fromkeys(
+                    context_index_to_passage_key[context_index]
                     for context_index in answer_indices
                 )),
                 "answer_judge_keywords": original_answer[
@@ -308,11 +308,11 @@ def convert_reasons(
     original_reasons: list[dict[str, Any]],
     answer_indices: set[int],
     question_key: str,
-    context_index_to_passage_id: dict[int, str],
+    context_index_to_passage_key: dict[int, str],
 ) -> list[dict[str, Any]]:
     reasons: list[dict[str, Any]] = []
 
-    # Convert every gold reason while retaining its supporting document IDs
+    # Convert every gold reason while retaining its supporting passage keys
     for original_reason in original_reasons:
         assert isinstance(original_reason, dict), question_key
         assert set(original_reason) == {
@@ -346,8 +346,8 @@ def convert_reasons(
         # Convert the official reason annotation into the repository-wide format
         reasons.append({
             "reason": original_reason["explain"],
-            "passage_ids": list(dict.fromkeys(
-                context_index_to_passage_id[context_index]
+            "passage_keys": list(dict.fromkeys(
+                context_index_to_passage_key[context_index]
                 for context_index in reason_indices
             )),
             "reason_judge_keywords": original_reason[

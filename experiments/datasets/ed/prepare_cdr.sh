@@ -11,7 +11,8 @@ for split in train dev test
 do
     python prepare_cdr.py \
         --input_file ${EOG}/${split}_filter.data \
-        --output_file ${STORAGE_DATA}/ed/cdr/${split}.json
+        --output_file ${STORAGE_DATA}/ed/cdr/${split}.json \
+        --split ${split}
 
     python test_entity_appearance_in_entity_dict.py \
         --input_file ${STORAGE_DATA}/ed/cdr/${split}.json \

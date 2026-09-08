@@ -56,7 +56,7 @@ def process_split(
         assert isinstance(data["type"], str)
         assert isinstance(data["level"], str)
 
-        question_key = f"hotpotqa-{output_split}-{data['id']}"
+        question_key = f"hotpotqa/{output_split}/{data['id']}"
 
         question = {
             "question_key": question_key,
@@ -85,11 +85,10 @@ def process_split(
         # Convert all provided paragraphs into the common context format
         all_passages: list[dict[str, str]] = []
         sentences_by_title: dict[str, list[str]] = {}
+        passage_key_by_title: dict[str, str] = {}
 
-        for title, sentences in zip(
-            context_titles,
-            context_sentence_lists,
-            strict=True,
+        for paragraph_index, (title, sentences) in enumerate(
+            zip(context_titles, context_sentence_lists, strict=True)
         ):
             assert isinstance(title, str)
             assert isinstance(sentences, list)
@@ -97,8 +96,11 @@ def process_split(
             assert title not in sentences_by_title
 
             sentences_by_title[title] = sentences
+            passage_key = f"{question_key}/paragraph#{paragraph_index:04d}"
+            passage_key_by_title[title] = passage_key
 
             passage = {
+                "passage_key": passage_key,
                 "title": title,
                 "text": " ".join(s.strip() for s in sentences).strip(),
             }
@@ -138,6 +140,10 @@ def process_split(
                 continue
 
             sentence_level_passage = {
+                "passage_key": (
+                    f"{passage_key_by_title[title]}"
+                    f"/sentence#{sentence_index:04d}"
+                ),
                 "title": title,
                 "text": sentences_by_title[title][sentence_index].strip(),
             }

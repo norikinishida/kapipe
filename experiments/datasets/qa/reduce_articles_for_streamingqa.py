@@ -100,7 +100,7 @@ def main(args: argparse.Namespace) -> None:
     logger.info("Completed Contriever indexing")
 
     # Collect every official gold article before adding retrieval results
-    selected_article_ids: set[str] = set()
+    selected_passage_keys: set[str] = set()
     for question in questions:
         contexts = question_key_to_gold_contexts[question["question_key"]]
         if len(contexts) != 1:
@@ -108,9 +108,9 @@ def main(args: argparse.Namespace) -> None:
                 "Expected one gold context for "
                 f"{question['question_key']}, but found {len(contexts)}"
             )
-        selected_article_ids.add(contexts[0]["article_id"])
-    gold_article_count = len(selected_article_ids)
-    logger.info("Collected %d unique gold article IDs", gold_article_count)
+        selected_passage_keys.add(contexts[0]["passage_key"])
+    gold_article_count = len(selected_passage_keys)
+    logger.info("Collected %d unique gold passage keys", gold_article_count)
 
     # Retrieve the top-10 articles for every filtered test question
     logger.info(
@@ -133,22 +133,22 @@ def main(args: argparse.Namespace) -> None:
                     f"Expected {TOP_K} retrieved articles, "
                     f"but found {len(passages)}"
                 )
-            selected_article_ids.update(
-                passage["article_id"]
+            selected_passage_keys.update(
+                passage["passage_key"]
                 for passage in passages
             )
 
     logger.info(
-        "Collected %d unique gold and retrieved article IDs",
-        len(selected_article_ids),
+        "Collected %d unique gold and retrieved passage keys",
+        len(selected_passage_keys),
     )
 
-    # Read only the selected article records and remove repeated article IDs
+    # Read only the selected article records and remove repeated passage keys
     selected_articles: dict[str, dict[str, Any]] = {}
     logger.info(
-        "Scanning %s to resolve %d selected article IDs",
+        "Scanning %s to resolve %d selected passage keys",
         input_articles_file,
-        len(selected_article_ids),
+        len(selected_passage_keys),
     )
     with open(input_articles_file, "rb") as file:
         with tqdm(
@@ -163,26 +163,26 @@ def main(args: argparse.Namespace) -> None:
                 if not line.strip():
                     continue
                 article = json.loads(line)
-                article_id = article["article_id"]
+                passage_key = article["passage_key"]
                 if (
-                    article_id in selected_article_ids
-                    and article_id not in selected_articles
+                    passage_key in selected_passage_keys
+                    and passage_key not in selected_articles
                 ):
-                    selected_articles[article_id] = article
+                    selected_articles[passage_key] = article
     logger.info(
         "Resolved %d unique selected articles",
         len(selected_articles),
     )
 
     # Fail if an index article cannot be resolved in the source article file
-    missing_article_ids = selected_article_ids - set(selected_articles)
-    if missing_article_ids:
-        examples = sorted(missing_article_ids)[:10]
+    missing_passage_keys = selected_passage_keys - set(selected_articles)
+    if missing_passage_keys:
+        examples = sorted(missing_passage_keys)[:10]
         raise ValueError(f"Missing selected StreamingQA articles: {examples}")
 
-    # Write exactly one record per article in article-ID order
+    # Write exactly one record per article in passage-key order
     logger.info(
-        "Writing %d articles in article-ID order to %s",
+        "Writing %d articles in passage-key order to %s",
         len(selected_articles),
         output_articles_file,
     )
@@ -190,8 +190,8 @@ def main(args: argparse.Namespace) -> None:
     if output_dir:
         utils.mkdir(output_dir)
     with open(output_articles_file, "w", encoding="utf-8") as file:
-        for article_id in sorted(selected_articles):
-            article = selected_articles[article_id]
+        for passage_key in sorted(selected_articles):
+            article = selected_articles[passage_key]
             file.write(json.dumps(article, ensure_ascii=False) + "\n")
 
     logger.info("Gold articles: %d", gold_article_count)

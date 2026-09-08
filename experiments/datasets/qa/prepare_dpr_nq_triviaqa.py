@@ -22,6 +22,9 @@ def main(args: argparse.Namespace) -> None:
     question_key_base = os.path.basename(input_file_path)
     assert question_key_base.endswith(".qa.csv")
     question_key_base = question_key_base.removesuffix(".qa.csv")
+    dataset_name, split = question_key_base.rsplit("-", maxsplit=1)
+    if dataset_name == "trivia":
+        dataset_name = "triviaqa"
 
     questions: list[dict[str, object]] = []
 
@@ -53,7 +56,7 @@ def main(args: argparse.Namespace) -> None:
             ]
 
             question = {
-                "question_key": f"{question_key_base}-{row_i}",
+                "question_key": f"{dataset_name}/{split}/{row_i}",
                 "question": question_text,
                 "answers": answers,
             }

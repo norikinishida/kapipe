@@ -25,7 +25,7 @@ def main(args):
     with open(path_input_file, "r") as f:
         dataset = json.load(f)
         for data in tqdm(dataset):
-            doc_key = data["title"]
+            doc_key = f"redocred/{args.split}/{data['title']}"
 
             assert not doc_key in doc_key_list, doc_key
             doc_key_list.append(doc_key)
@@ -180,10 +180,13 @@ def get_entities(data, local_shift_map, local_to_global_map, mentions):
             spans.append((mention_begin_token_index, mention_end_token_index))
         mention_indices = [span2index[(b,e)] for b, e in spans]
         mention_indices = sorted(mention_indices)
+        # Collect mention names in the same order as mention indices
+        mention_names: list[str] = [mentions[m_i]["name"] for m_i in mention_indices]
         if not entity_id in entities:
             entities[entity_id] = {
                 "entity_type": entity_type,
-                "mention_indices": mention_indices
+                "mention_indices": mention_indices,
+                "mention_names": mention_names,
             }
         else:
             assert entities[entity_id]["entity_type"] == entity_type
@@ -207,8 +210,11 @@ def transform_entities(dct):
     for entity_id in dct:
         entity_type = dct[entity_id]["entity_type"]
         mention_indices = dct[entity_id]["mention_indices"]
+        # Read the aggregated mention names
+        mention_names: list[str] = dct[entity_id]["mention_names"]
         entity = {
             "mention_indices": mention_indices,
+            "mention_names": mention_names,
             "entity_type": entity_type,
             "entity_id": entity_id,
         }
@@ -237,5 +243,6 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--input_file", type=str, required=True)
     parser.add_argument("--output_file", type=str, required=True)
+    parser.add_argument("--split", type=str, required=True)
     args = parser.parse_args()
     main(args=args)

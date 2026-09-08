@@ -76,7 +76,7 @@ def process_split(
             for answer_text in answer_texts
         ]
 
-        question_key = f"musique-{output_split}-{data['id']}"
+        question_key = f"musique/{output_split}/{data['id']}"
 
         # Validate and convert every provided paragraph
         original_paragraphs = data["paragraphs"]
@@ -99,6 +99,9 @@ def process_split(
             paragraph_indices.add(paragraph["idx"])
 
             passage = {
+                "passage_key": (
+                    f"{question_key}/paragraph#{paragraph['idx']:04d}"
+                ),
                 "title": paragraph["title"],
                 "text": paragraph["paragraph_text"].strip(),
             }

@@ -10,9 +10,10 @@ STORAGE_DATA=/home/nishida/storage/projects/kapipe/experiments/datasets
 #   - STORAGE_DATA/docre/redocred/{train,dev,test}.json
 for split in train dev test
 do
-    python prepare_docred.py \
+    python prepare_redocred.py \
         --input_file ${REDOCRED}/${split}_revised.json \
-        --output_file ${STORAGE_DATA}/docre/redocred/${split}.json
+        --output_file ${STORAGE_DATA}/docre/redocred/${split}.json \
+        --split ${split}
 done
 
 # Results:
@@ -32,5 +33,4 @@ cp ${REDOCRED}/train_revised.json ${STORAGE_DATA}/docre/redocred/original/
 cp ${DOCRED}/train_distant.json ${STORAGE_DATA}/docre/redocred/original/
 cp ${REDOCRED}/dev_revised.json ${STORAGE_DATA}/docre/redocred/original/
 cp ${REDOCRED}/test_revised.json ${STORAGE_DATA}/docre/redocred/original/
-
 

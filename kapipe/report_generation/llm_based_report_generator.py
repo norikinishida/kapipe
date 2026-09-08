@@ -40,6 +40,8 @@ class LLMBasedReportGenerator(BaseReportGenerator):
                 "The prompt template must contain {content_prompt}."
             )
 
+        # relation_map is used to map relation names from the model's output 
+        # to the desired format.
         if relation_map is None:
             relation_map = {}
         self.relation_map = relation_map
@@ -58,7 +60,8 @@ class LLMBasedReportGenerator(BaseReportGenerator):
 
         assert len(node_attr_keys) > 0
         assert len(edge_attr_keys) > 0
-   
+
+        # Set the default parsing function if none is provided
         if parse_generated_text_fn is None:
             parse_generated_text_fn = parse_generated_text
 
@@ -71,11 +74,11 @@ class LLMBasedReportGenerator(BaseReportGenerator):
         self.count = 0
 
         # Convert list of communities to dictionary for quick access
-        communities_dict = {c["community_id"]: c for c in communities}
+        communities_dict = {c["community_key"]: c for c in communities}
 
         # Memorize the community order for later use
         community_order: dict[str, int] = {
-            c["community_id"]: i for i, c in enumerate(communities)
+            c["community_key"]: i for i, c in enumerate(communities)
         }
 
         # Generate community reports recursively in the bottom-up manner
@@ -87,7 +90,7 @@ class LLMBasedReportGenerator(BaseReportGenerator):
         )
 
         # Finally, sort the reports based on the community order
-        reports.sort(key=lambda r: community_order[r["community_id"]])
+        reports.sort(key=lambda r: community_order[r["community_key"]])
 
         return reports
 
@@ -102,9 +105,9 @@ class LLMBasedReportGenerator(BaseReportGenerator):
 
         # Generate the sub-communities' reports recursively
         child_reports: list[Passage] = []
-        for child_id in community["child_community_ids"]:
-            if child_id in communities_dict:
-                child_community = communities_dict[child_id]
+        for child_community_key in community["child_community_keys"]:
+            if child_community_key in communities_dict:
+                child_community = communities_dict[child_community_key]
                 child_report = self._recursive(
                     community=child_community,
                     communities_dict=communities_dict,
@@ -113,7 +116,7 @@ class LLMBasedReportGenerator(BaseReportGenerator):
                 child_reports.append(child_report)
 
         # Skip ROOT
-        if community["community_id"] == "ROOT":
+        if community["community_key"] == "ROOT":
             return None
 
         # Collect direct nodes (excluding those covered by child reports)
@@ -145,7 +148,7 @@ class LLMBasedReportGenerator(BaseReportGenerator):
         self.count += 1
 
         # Show progress
-        logger.info(f"[{self.count}/{self.n_total}] Generating a report for community (ID:{community['community_id']}) with {len(direct_nodes)} direct nodes and {len(child_reports)} sub communities (IDs:{[c['community_id'] for c in child_reports]})...")
+        logger.info(f"[{self.count}/{self.n_total}] Generating a report for community (Key:{community['community_key']}) with {len(direct_nodes)} direct nodes and {len(child_reports)} sub communities (Keys:{[c['community_key'] for c in child_reports]})...")
 
         with torch.no_grad():
             # Switch to inference mode for Hugging Face models
@@ -161,12 +164,16 @@ class LLMBasedReportGenerator(BaseReportGenerator):
             # Generate a plain-text report based on the prompt
             generated_text = self.model.generate(prompt)
 
-            # Parse the generated report
+            # Parse the generated report into its title and text
             processed_title, processed_text = self.parse_generated_text_fn(
                 generated_text
             )
 
-            return {"title": processed_title, "text": processed_text} | community
+            return {
+                "passage_key": f"{community['community_key']}/report",
+                "title": processed_title,
+                "text": processed_text,
+            } | community
 
     def generate_prompt(
         self,
@@ -219,7 +226,7 @@ class LLMBasedReportGenerator(BaseReportGenerator):
                     values.append(v)
                 line = " | ".join(values)
                 content_prompt += f"- {line}\n"
- 
+
             content_prompt += "\n"
 
         # Generate prompt part for edges
@@ -283,4 +290,3 @@ def parse_generated_text(generated_text: str) -> tuple[str, str]:
     except Exception as e:
         logger.warning(f"Failed to parse structured JSON: {e}")
         return "No Title", generated_text
-

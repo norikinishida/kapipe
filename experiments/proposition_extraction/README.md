@@ -36,14 +36,6 @@ This directory already includes example data.
 experiments/proposition_extraction/data/examples/articles.jsonl
 ```
 
-Each input passage should be a JSON object with a `text` field.
-
-```json
-{"title": "Example title", "text": "Example passage text."}
-```
-
-The `title` field is optional.
-
 ## Step 3. Configuration Setup
 
 Adjust the settings in the following configuration file (HOCON format).

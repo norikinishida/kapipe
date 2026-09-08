@@ -38,6 +38,9 @@ def main(args):
     # config_path = args.config_path
     # config_name = args.config_name
     n_questions = args.n_questions
+    question_key_prefix = args.dataset_name
+    if args.split is not None:
+        question_key_prefix = f"{question_key_prefix}/{args.split}"
 
     utils.mkdir(os.path.dirname(path_output_questions))
 
@@ -120,11 +123,11 @@ def main(args):
 
     # questionsの生成、統合
     if question_type == "neighborhood":
-        questions = generate_neighborhood_questions(relation_to_template=relation_to_template, graph=graph, entity_dict=entity_dict, n_questions=n_questions, entity_id_to_names=entity_id_to_names)
+        questions = generate_neighborhood_questions(relation_to_template=relation_to_template, graph=graph, entity_dict=entity_dict, n_questions=n_questions, entity_id_to_names=entity_id_to_names, question_key_prefix=question_key_prefix)
     elif question_type == "intersection":
-        questions = generate_intersection_questions(relation_to_template=relation_to_template, graph=graph, entity_dict=entity_dict, n_questions=n_questions, entity_id_to_names=entity_id_to_names)
+        questions = generate_intersection_questions(relation_to_template=relation_to_template, graph=graph, entity_dict=entity_dict, n_questions=n_questions, entity_id_to_names=entity_id_to_names, question_key_prefix=question_key_prefix)
     elif question_type == "twohop":
-        questions = generate_twohop_questions(relation_to_template=relation_to_template, graph=graph, entity_dict=entity_dict, n_questions=n_questions, entity_id_to_names=entity_id_to_names)
+        questions = generate_twohop_questions(relation_to_template=relation_to_template, graph=graph, entity_dict=entity_dict, n_questions=n_questions, entity_id_to_names=entity_id_to_names, question_key_prefix=question_key_prefix)
     else:
         raise Exception(f"Invalid question type provided: {question_type}")
     print(f"Generated {len(questions)} questions")
@@ -194,7 +197,7 @@ def get_2hop_neighbors(graph, entity_id):
     return list(results)
 
 
-def generate_neighborhood_questions(relation_to_template, graph, entity_dict, n_questions, entity_id_to_names):
+def generate_neighborhood_questions(relation_to_template, graph, entity_dict, n_questions, entity_id_to_names, question_key_prefix):
     questions = []
 
     nodes = list(graph.nodes)
@@ -243,7 +246,7 @@ def generate_neighborhood_questions(relation_to_template, graph, entity_dict, n_
 
         # 追加
         questions.append({
-            "question_key": f"neighborhood#{len(questions)+1}",
+            "question_key": f"{question_key_prefix}/neighborhood#{len(questions)+1}",
             "question": question_str,
             "answers": answers,
             "source": {
@@ -297,7 +300,7 @@ def generate_neighborhood_questions(relation_to_template, graph, entity_dict, n_
 #         continue
 
 
-def generate_intersection_questions(relation_to_template, graph, entity_dict, n_questions, entity_id_to_names):
+def generate_intersection_questions(relation_to_template, graph, entity_dict, n_questions, entity_id_to_names, question_key_prefix):
     MIN_COMMON_NEIGHBORS = 2
     # MIN_COMMON_NEIGHBORS = 1
 
@@ -392,7 +395,7 @@ def generate_intersection_questions(relation_to_template, graph, entity_dict, n_
 
             # 追加
             questions.append({
-                "question_key": f"intersection#{len(questions)+1}",
+                "question_key": f"{question_key_prefix}/intersection#{len(questions)+1}",
                 "question": question_str,
                 "answers": answers,
                 "source": {
@@ -413,7 +416,7 @@ def generate_intersection_questions(relation_to_template, graph, entity_dict, n_
     return questions
 
 
-def generate_twohop_questions(relation_to_template, graph, entity_dict, n_questions, entity_id_to_names):
+def generate_twohop_questions(relation_to_template, graph, entity_dict, n_questions, entity_id_to_names, question_key_prefix):
     questions = []
 
     nodes = list(graph.nodes)
@@ -480,7 +483,7 @@ def generate_twohop_questions(relation_to_template, graph, entity_dict, n_questi
 
         # 追加
         questions.append({
-            "question_key": f"twohop#{len(questions)+1}",
+            "question_key": f"{question_key_prefix}/twohop#{len(questions)+1}",
             "question": question_str,
             "answers": answers,
             "source": {
@@ -503,6 +506,8 @@ def generate_twohop_questions(relation_to_template, graph, entity_dict, n_questi
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--question_type", type=str, required=True)
+    parser.add_argument("--dataset_name", type=str, required=True)
+    parser.add_argument("--split", type=str, default=None)
     parser.add_argument("--input_documents", nargs="+")
     # parser.add_argument("--triples", type=str, required=True)
     parser.add_argument("--entity_dict", type=str, required=True)
@@ -512,5 +517,4 @@ if __name__ == "__main__":
     parser.add_argument("--n_questions", type=int, default=256)
     args = parser.parse_args()
     main(args)
-
 

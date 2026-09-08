@@ -94,7 +94,6 @@ def main(args):
         extractor = LLMPropositionExtractor(
             model=model,
             prompt_template_name_or_path=config["prompt_template_name_or_path"],
-            include_title_as_proposition=config["include_title_as_proposition"],
         )
     else:
         raise ValueError(f"Unknown method name: {method_name}")

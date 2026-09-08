@@ -114,7 +114,7 @@ def main(args):
     # Show statistics
     cluster_size_list = []
     level_list = []
-    assert communities[0]["community_id"] == "ROOT"
+    assert communities[0]["community_key"] == "ROOT"
     for community in communities[1:]:
         cluster_size_list.append(len(community["nodes"]))
         level_list.append(community["level"])

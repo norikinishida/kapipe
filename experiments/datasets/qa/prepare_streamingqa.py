@@ -34,7 +34,7 @@ def main(args: argparse.Namespace) -> None:
         "eval": "test",
     }
     output_split_to_questions: dict[str, list[dict[str, Any]]] = {}
-    required_article_ids: set[str] = set()
+    required_passage_keys: set[str] = set()
 
     # Normalize the official QA files and create KAPipe question records
     for source_split, output_split in source_split_to_output_split.items():
@@ -64,10 +64,10 @@ def main(args: argparse.Namespace) -> None:
             output_split=output_split,
         )
         output_split_to_questions[output_split] = questions
-        required_article_ids.update(
-            evidence_article_id
+        required_passage_keys.update(
+            evidence_passage_key
             for question in questions
-            for evidence_article_id in question["evidence_article_ids"]
+            for evidence_passage_key in question["evidence_passage_keys"]
         )
 
         print(
@@ -87,13 +87,13 @@ def main(args: argparse.Namespace) -> None:
         extraction_module=extraction_module,
         output_docs_file=os.path.join(input_dir, "docs.jsonl"),
         output_articles_file=output_articles_file,
-        required_article_ids=required_article_ids,
+        required_passage_keys=required_passage_keys,
     )
 
     # Verify all QA evidence references before writing the final question files
-    missing_article_ids = required_article_ids - set(evidence_articles)
-    if missing_article_ids:
-        examples = sorted(missing_article_ids)[:10]
+    missing_passage_keys = required_passage_keys - set(evidence_articles)
+    if missing_passage_keys:
+        examples = sorted(missing_passage_keys)[:10]
         raise ValueError(f"Missing StreamingQA evidence articles: {examples}")
 
     # Save each complete question split and its gold contexts
@@ -105,9 +105,9 @@ def main(args: argparse.Namespace) -> None:
             evidence_articles=evidence_articles,
         )
 
-        # Remove intermediate article IDs duplicated in the gold contexts
+        # Remove intermediate passage keys duplicated in the gold contexts
         for question in questions:
-            del question["evidence_article_ids"]
+            del question["evidence_passage_keys"]
 
         output_questions_file = os.path.join(
             output_questions_dir,
@@ -206,7 +206,7 @@ def convert_questions(
                 answer_texts.append(answer_text)
 
         question = {
-            "question_key": f"{output_split}#{qa['qa_id']}",
+            "question_key": f"streamingqa/{output_split}/{qa['qa_id']}",
             "question": qa["question"],
             "timestamp": qa["question_date"],
             "answers": [
@@ -215,7 +215,9 @@ def convert_questions(
                 }
                 for answer_text in answer_texts
             ],
-            "evidence_article_ids": [qa["evidence_doc_id"]],
+            "evidence_passage_keys": [
+                f"streamingqa/{qa['evidence_doc_id']}"
+            ],
         }
         questions.append(question)
 
@@ -260,7 +262,7 @@ def write_docs_and_articles(
     extraction_module: ModuleType,
     output_docs_file: str,
     output_articles_file: str,
-    required_article_ids: set[str],
+    required_passage_keys: set[str],
 ) -> dict[str, dict[str, Any]]:
     # Require every document-split English WMT archive used by StreamingQA
     wmt_archive_files = [
@@ -324,10 +326,10 @@ def write_docs_and_articles(
                 "metadata": metadata,
             }
             article = {
-                "article_id": doc.sorting_key,
-                "doc_id": doc.sorting_key,
+                "passage_key": f"streamingqa/{doc.sorting_key}",
                 "title": doc.sorting_key,
                 "text": text,
+                "doc_id": doc.sorting_key,
                 "timestamp": timestamp,
                 "source": "WMT News Crawl",
                 "url": None,
@@ -343,8 +345,8 @@ def write_docs_and_articles(
             article_count += 1
 
             # Retain all evidence articles needed to create gold contexts
-            if doc.sorting_key in required_article_ids:
-                evidence_articles[doc.sorting_key] = article
+            if article["passage_key"] in required_passage_keys:
+                evidence_articles[article["passage_key"]] = article
 
     print(
         f"Processed and saved {article_count} normalized docs into "
@@ -363,11 +365,11 @@ def build_gold_contexts(
 ) -> list[dict[str, Any]]:
     gold_contexts: list[dict[str, Any]] = []
 
-    # Resolve each official evidence ID into its complete WMT article
+    # Resolve each evidence passage key into its complete WMT article
     for question in questions:
         contexts = [
-            evidence_articles[evidence_article_id]
-            for evidence_article_id in question["evidence_article_ids"]
+            evidence_articles[evidence_passage_key]
+            for evidence_passage_key in question["evidence_passage_keys"]
         ]
         gold_contexts.append(
             {
