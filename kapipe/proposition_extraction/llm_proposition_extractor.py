@@ -4,7 +4,7 @@ import torch
 
 from .. import utils
 from ..datatypes import Passage
-from ..llms import BaseLLM
+from ..llms import BaseLLM, OpenAILLM
 from .base import BasePropositionExtractor
 
 
@@ -48,42 +48,138 @@ class LLMPropositionExtractor(BasePropositionExtractor):
                 self.model.llm.eval()
 
             # Generate the prompt
-            prompt = self.prompt_template.format(
-                input_text=passage["text"],
-            )
+            prompt = self.generate_prompt(passage=passage)
 
             # Generate the response
             generated_text = self.model.generate(prompt)
 
             # Parse the generated response into proposition statements
-            statements = [
-                line.strip()
-                for line in generated_text.split("\n")
-                if line.strip() != ""
+            statements = self.parse(generated_text=generated_text)
+
+            # Treat the title as the first proposition when it is available
+            if "title" in passage:
+                statements = [passage["title"].strip()] + statements
+
+            # Preserve metadata except fields reconstructed for each proposition
+            metadata = {
+                key: value
+                for key, value in passage.items()
+                if key not in {"passage_key", "title", "text", "source_passage_key"}
+            }
+
+            # Convert each statement into a proposition in the canonical field order
+            propositions: list[Passage] = [
+                {
+                    "passage_key": (
+                        f"{passage['passage_key']}/proposition#{proposition_i:04d}"
+                    ),
+                    "text": statement,
+                    "source_passage_key": passage["passage_key"],
+                    **metadata,
+                }
+                for proposition_i, statement in enumerate(statements)
             ]
 
-        # Treat the title as the first proposition when it is available
-        if "title" in passage:
-            statements = [passage["title"].strip()] + statements
+        return propositions
 
-        # Preserve metadata except fields reconstructed for each proposition
-        metadata = {
-            key: value
-            for key, value in passage.items()
-            if key not in {"passage_key", "title", "text", "source_passage_key"}
-        }
+    def generate_prompt(
+        self,
+        passage: Passage,
+    ) -> str:
+        """Generate the proposition-extraction prompt."""
 
-        # Convert each statement into a proposition in the canonical field order
-        propositions: list[Passage] = [
-            {
-                "passage_key": (
-                    f"{passage['passage_key']}/proposition#{proposition_i:04d}"
-                ),
-                "text": statement,
-                "source_passage_key": passage["passage_key"],
-                **metadata,
-            }
-            for proposition_i, statement in enumerate(statements)
+        return self.prompt_template.format(input_text=passage["text"])
+
+    def parse(
+        self,
+        generated_text: str,
+    ) -> list[str]:
+        """Parse the generated response into proposition statements."""
+
+        statements = [
+            line.strip()
+            for line in generated_text.split("\n")
+            if line.strip() != ""
         ]
 
+        return statements
+
+    def submit_batch(
+        self,
+        passages: list[Passage],
+    ) -> str:
+        """Submit passage prompts and return the OpenAI Batch ID.
+
+        Pass the same passages in the same order to fetch_and_process_batch().
+        Keep the model settings and prompt template unchanged between calls.
+        """
+
+        # Validate that the model is an OpenAILLM instance for Batch API usage
+        if not isinstance(self.model, OpenAILLM):
+            raise TypeError("Batch API requires OpenAILLM")
+
+        # Generate prompts using the same method as extract()
+        prompts: list[str] = []
+        for passage in passages:
+            prompt: str = self.generate_prompt(passage=passage)
+            prompts.append(prompt)
+
+        # Submit the batch of prompts and get the batch ID
+        batch_id: str = self.model.submit_batch(prompts=prompts)
+        return batch_id
+
+    def fetch_and_process_batch(
+        self,
+        passages: list[Passage],
+        batch_id: str,
+    ) -> list[Passage]:
+        """Fetch responses and extract propositions from the original passages.
+
+        Require the same passages, order, model settings, and prompt template
+        used at submission. Raise an error if the batch is not complete.
+        """
+
+        # Validate that the model is an OpenAILLM instance for Batch API usage
+        if not isinstance(self.model, OpenAILLM):
+            raise TypeError("Batch API requires OpenAILLM")
+
+        # Fetch generated texts in the original request order
+        generated_texts: list[str] = self.model.fetch_batch(batch_id=batch_id)
+
+        # Validate that the number of generated texts matches the number of passages
+        if len(generated_texts) != len(passages):
+            raise ValueError("The response count does not match the passage count")
+
+        # Process each Batch response using the same procedure as extract()
+        propositions: list[Passage] = []
+        for passage, generated_text in zip(passages, generated_texts, strict=True):
+            # Parse the generated response into proposition statements
+            statements = self.parse(generated_text=generated_text)
+
+            # Treat the title as the first proposition when it is available
+            if "title" in passage:
+                statements = [passage["title"].strip()] + statements
+
+            # Preserve metadata except fields reconstructed for each proposition
+            metadata = {
+                key: value
+                for key, value in passage.items()
+                if key not in {"passage_key", "title", "text", "source_passage_key"}
+            }
+
+            # Convert each statement into a proposition in the canonical field order
+            propositions_for_passage: list[Passage] = [
+                {
+                    "passage_key": (
+                        f"{passage['passage_key']}/proposition#{proposition_i:04d}"
+                    ),
+                    "text": statement,
+                    "source_passage_key": passage["passage_key"],
+                    **metadata,
+                }
+                for proposition_i, statement in enumerate(statements)
+            ]
+            propositions.extend(propositions_for_passage)
+
         return propositions
+

@@ -7,7 +7,7 @@ import torch
 
 from .. import utils
 from ..datatypes import Passage
-from ..llms import BaseLLM
+from ..llms import BaseLLM, OpenAILLM
 from .base import BasePropositionRelationRefiner
 
 
@@ -167,3 +167,70 @@ class LLMPropositionRelationRefiner(BasePropositionRelationRefiner):
                 "pre_refinement_relation": triple["relation"],
                 "pre_refinement_explanation": triple["explanation"],
             }
+
+    def submit_batch(
+        self,
+        triples: list[dict[str, Any]],
+    ) -> str:
+        """Submit relation-refinement prompts and return the OpenAI Batch ID.
+
+        Pass the same triples in the same order to fetch_and_process_batch().
+        Keep the model settings, prompt template, and use_timestamp unchanged
+        between calls.
+        """
+
+        # Validate that the model is an OpenAILLM instance for Batch API usage
+        if not isinstance(self.model, OpenAILLM):
+            raise TypeError("Batch API requires OpenAILLM")
+
+        # Generate prompts using the same method as refine()
+        prompts: list[str] = []
+        for triple in triples:
+            prompt: str = self.generate_prompt(triple=triple)
+            prompts.append(prompt)
+
+        # Submit the batch of prompts and get the batch ID
+        batch_id: str = self.model.submit_batch(prompts=prompts)
+        return batch_id
+
+    def fetch_and_process_batch(
+        self,
+        triples: list[dict[str, Any]],
+        batch_id: str,
+    ) -> list[dict[str, Any]]:
+        """Fetch responses and refine the original proposition relations.
+
+        Require the same triples, order, model settings, prompt template, and
+        use_timestamp used at submission. Raise an error if the batch is not
+        complete.
+        """
+
+        # Validate that the model is an OpenAILLM instance for Batch API usage
+        if not isinstance(self.model, OpenAILLM):
+            raise TypeError("Batch API requires OpenAILLM")
+
+        # Fetch generated texts in the original request order
+        generated_texts: list[str] = self.model.fetch_batch(batch_id=batch_id)
+
+        # Validate that the number of generated texts matches the number of 
+        # submitted triples.
+        if len(generated_texts) != len(triples):
+            raise ValueError(
+                "The response count does not match the triple count"
+            )
+
+        # Parse each Batch response using the same procedure as refine()
+        refined_triples: list[dict[str, Any]] = []
+        for triple, generated_text in zip(
+            triples,
+            generated_texts,
+            strict=True,
+        ):
+            # Parse the generated response into a refined triple
+            refined_triple: dict[str, Any] = self.parse(
+                triple=triple,
+                generated_text=generated_text,
+            )
+            refined_triples.append(refined_triple)
+
+        return refined_triples

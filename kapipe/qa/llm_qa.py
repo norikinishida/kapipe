@@ -262,7 +262,7 @@ class LLMQA(BaseQA):
         self,
         questions: list[Question],
         # optional: context augmentation
-        contexts: list[ContextsForOneExample] | None = None
+        contexts: list[ContextsForOneExample] | list[None] | None = None
     ) -> list[Question]:
         """Answer a batch of questions."""
 
@@ -272,7 +272,7 @@ class LLMQA(BaseQA):
         if contexts is None:
             contexts = [None] * len(questions)
 
-        # Check that every question has a corresponding context entry
+        # Validate that the number of contexts matches the number of questions
         if len(contexts) != len(questions):
             raise ValueError(
                 f"Expected {len(questions)} contexts, but got {len(contexts)}"
@@ -287,6 +287,120 @@ class LLMQA(BaseQA):
                 question=question,
                 contexts_for_question=contexts_for_q
             )
+            results.append(result)
+
+        return results
+
+    def submit_batch(
+        self,
+        questions: list[Question],
+        contexts: list[ContextsForOneExample] | list[None] | None = None,
+    ) -> str:
+        """Submit question-answering prompts and return the OpenAI Batch ID.
+
+        Pass the same questions and contexts in the same order to
+        fetch_and_process_batch(). Keep the model settings, prompt template,
+        and n_contexts unchanged between calls.
+        """
+
+        # Validate that the model is an OpenAILLM instance for Batch API usage
+        if not isinstance(self.model, OpenAILLM):
+            raise TypeError("Batch API requires OpenAILLM")
+
+        # Validate that contexts are provided for every question, or use None
+        if contexts is None:
+            contexts = [None] * len(questions)
+
+        # Validate that there is one context entry for every question
+        if len(contexts) != len(questions):
+            raise ValueError(
+                f"Expected {len(questions)} contexts, "
+                f"but got {len(contexts)}"
+            )
+
+        # Generate prompts using the same method as answer()
+        prompts: list[str] = []
+        for question, contexts_for_question in zip(
+            questions,
+            contexts,
+            strict=True,
+        ):
+            prompt: str = self.generate_prompt(
+                question=question,
+                contexts_for_question=contexts_for_question,
+            )
+            prompts.append(prompt)
+
+        # Submit the batch of prompts and get the batch ID
+        batch_id: str = self.model.submit_batch(prompts=prompts)
+        return batch_id
+
+    def fetch_and_process_batch(
+        self,
+        questions: list[Question],
+        batch_id: str,
+        contexts: list[ContextsForOneExample] | list[None] | None = None,
+    ) -> list[Question]:
+        """Fetch responses and answer the original questions.
+
+        Require the same questions, contexts, order, model settings, prompt
+        template, and n_contexts used at submission. Raise an error if the
+        batch is not complete.
+        """
+
+        # Validate that the model is an OpenAILLM instance for Batch API usage
+        if not isinstance(self.model, OpenAILLM):
+            raise TypeError("Batch API requires OpenAILLM")
+
+        # Use an empty context for every question when contexts are omitted
+        if contexts is None:
+            contexts = [None] * len(questions)
+
+        # Validate that there is one context entry for every question
+        if len(contexts) != len(questions):
+            raise ValueError(
+                f"Expected {len(questions)} contexts, "
+                f"but got {len(contexts)}"
+            )
+
+        # Fetch generated texts in the original request order
+        generated_texts: list[str] = self.model.fetch_batch(
+            batch_id=batch_id
+        )
+
+        # Validate that the number of generated texts matches the number of questions
+        if len(generated_texts) != len(questions):
+            raise ValueError(
+                "The response count does not match the question count"
+            )
+
+        # Process each Batch response using the same procedure as answer()
+        results: list[Question] = []
+        for question, contexts_for_question, generated_text in zip(
+            questions,
+            contexts,
+            generated_texts,
+            strict=True,
+        ):
+            # Regenerate the original prompt stored in the result
+            prompt: str = self.generate_prompt(
+                question=question,
+                contexts_for_question=contexts_for_question,
+            )
+
+            # Parse the generated response into structured fields
+            answer, rationale, helpfulness_score = self.parse(
+                question=question,
+                generated_text=generated_text,
+            )
+
+            # Integrate the structured fields into a copied question
+            result = copy.deepcopy(question)
+            result["output_answer"] = answer
+            result["rationale"] = rationale
+            result["helpfulness_score"] = helpfulness_score
+            result["qa_prompt"] = prompt
+            result["qa_generated_text"] = generated_text
             results.append(result)
 
         return results

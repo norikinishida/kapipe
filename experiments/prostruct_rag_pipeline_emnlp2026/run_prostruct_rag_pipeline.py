@@ -339,6 +339,8 @@ def main(args: argparse.Namespace) -> None:
                 question=question,
                 top_k=config["passage_retrieval"]["top_k"],
                 hop_size=config["graph_retrieval"]["hop_size"],
+                remove_same_timestamp_updates=True,
+                append_question_timestamp=True,
             )
             result_questions.append(result_question)
 

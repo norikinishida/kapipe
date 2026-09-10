@@ -144,7 +144,6 @@ class ProStructRAGPipeline:
             # Extract propositions passage by passage
             propositions: list[Passage] = []
             for passage in tqdm(passages, desc="Extracting propositions"):
-                # Extract propositions from the current source passage
                 propositions_for_passage: list[Passage] = (
                     self.proposition_extraction.extract(
                         passage=passage,

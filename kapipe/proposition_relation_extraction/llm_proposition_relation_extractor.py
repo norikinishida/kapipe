@@ -8,7 +8,7 @@ import torch
 
 from .. import utils
 from ..datatypes import Passage
-from ..llms import BaseLLM
+from ..llms import BaseLLM, OpenAILLM
 from ..passage_retrieval.base import BasePassageRetriever
 from .base import BasePropositionRelationExtractor
 
@@ -339,5 +339,120 @@ class LLMPropositionRelationExtractor(BasePropositionRelationExtractor):
                 "tail": tail_proposition,
                 "explanation": explanation,
             })
+
+        return triples
+
+    def submit_batch(
+        self,
+        head_propositions: list[Passage],
+        batch_tail_propositions: list[list[Passage]],
+    ) -> str:
+        """Submit relation-extraction prompts and return the OpenAI Batch ID.
+
+        Pass the same propositions in the same order to
+        fetch_and_process_batch(). Keep the model settings, prompt template,
+        and use_timestamp unchanged between calls.
+        """
+
+        # Validate that the model is an OpenAILLM instance for Batch API usage
+        if not isinstance(self.model, OpenAILLM):
+            raise TypeError("Batch API requires OpenAILLM")
+
+        # Validate that there is one candidate tail list for every head proposition
+        if len(head_propositions) != len(batch_tail_propositions):
+            raise ValueError(
+                "The number of head propositions does not match "
+                "the number of tail proposition lists"
+            )
+
+        # Generate prompts while skipping inputs handled without an LLM call
+        prompts: list[str] = []
+        for head_proposition, tail_propositions in zip(
+            head_propositions,
+            batch_tail_propositions,
+            strict=True,
+        ):
+            # Avoid an unnecessary LLM call when no candidate tail exists
+            if len(tail_propositions) == 0:
+                continue
+
+            # Generate the prompt using the same method as extract()
+            prompt: str = self.generate_prompt(
+                head_proposition=head_proposition,
+                tail_propositions=tail_propositions,
+            )
+            prompts.append(prompt)
+
+        # Validate that there is at least one prompt to submit
+        if len(prompts) == 0:
+            raise ValueError(
+                "No prompts to submit because all tail proposition lists are empty"
+            )
+
+        # Submit the batch of prompts and get the batch ID
+        batch_id: str = self.model.submit_batch(prompts=prompts)
+        return batch_id
+
+    def fetch_and_process_batch(
+        self,
+        head_propositions: list[Passage],
+        batch_tail_propositions: list[list[Passage]],
+        batch_id: str,
+    ) -> list[dict[str, Any]]:
+        """Fetch responses and extract proposition relation records.
+
+        Require the same propositions, order, model settings, prompt template,
+        and use_timestamp used at submission. Raise an error if the batch is
+        not complete.
+        """
+
+        # Validate that the model is an OpenAILLM instance for Batch API usage
+        if not isinstance(self.model, OpenAILLM):
+            raise TypeError("Batch API requires OpenAILLM")
+
+        # Validate that there is one candidate tail list for every head proposition
+        if len(head_propositions) != len(batch_tail_propositions):
+            raise ValueError(
+                "The number of head propositions does not match "
+                "the number of tail proposition lists"
+            )
+
+        # Preserve only inputs submitted to the Batch API
+        batch_inputs: list[tuple[Passage, list[Passage]]] = []
+        for head_proposition, tail_propositions in zip(
+            head_propositions,
+            batch_tail_propositions,
+            strict=True,
+        ):
+            # Avoid an unnecessary LLM call when no candidate tail exists.
+            # Match submit_batch(), which skips empty tail lists.
+            if len(tail_propositions) == 0:
+                continue
+
+            batch_inputs.append((head_proposition, tail_propositions))
+
+        # Fetch generated texts in the original request order
+        generated_texts: list[str] = self.model.fetch_batch(batch_id=batch_id)
+
+        # Validate that the number of generated texts matches the number of 
+        # submitted inputs.
+        if len(generated_texts) != len(batch_inputs):
+            raise ValueError(
+                "The response count does not match the submitted input count"
+            )
+
+        # Parse each Batch response using the same procedure as extract()
+        triples: list[dict[str, Any]] = []
+        for (head_proposition, tail_propositions,), generated_text in zip(
+            batch_inputs,
+            generated_texts,
+            strict=True,
+        ):
+            triples_for_head: list[dict[str, Any]] = self.parse(
+                head_proposition=head_proposition,
+                tail_propositions=tail_propositions,
+                generated_text=generated_text,
+            )
+            triples.extend(triples_for_head)
 
         return triples
