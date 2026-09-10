@@ -105,6 +105,23 @@ extractor = LLMPropositionExtractor(
 propositions = extractor.extract(passage=passage)
 ```
 
+## OpenAI Batch API
+
+`LLMPropositionExtractor` supports the OpenAI Batch API when its model is an `OpenAILLM` instance.
+
+```python
+# Submit all passage prompts as one OpenAI batch
+batch_id = extractor.submit_batch(passages=passages)
+
+# Fetch and process the results after the OpenAI batch is complete
+propositions = extractor.fetch_and_process_batch(
+    passages=passages,
+    batch_id=batch_id,
+)
+```
+
+Pass the same `passages` in the same order to both methods. Keep the model settings and prompt template unchanged between submission and fetching. `fetch_and_process_batch()` raises a `RuntimeError` if the OpenAI batch is not complete.
+
 ## Metadata Preservation
 
 Proposition Extraction preserves metadata fields other than `passage_key`, `title`, `text`, and `source_passage_key`.

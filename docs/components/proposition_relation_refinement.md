@@ -122,6 +122,23 @@ refiner = LLMPropositionRelationRefiner(
 refined_triple = refiner.refine(triple=triple)
 ```
 
+## OpenAI Batch API
+
+`LLMPropositionRelationRefiner` supports the OpenAI Batch API when its model is an `OpenAILLM` instance.
+
+```python
+# Submit all relation-refinement prompts as one OpenAI batch
+batch_id = refiner.submit_batch(triples=triples)
+
+# Fetch and process the results after the OpenAI batch is complete
+refined_triples = refiner.fetch_and_process_batch(
+    triples=triples,
+    batch_id=batch_id,
+)
+```
+
+Pass the same `triples` in the same order to both methods. Keep the model settings, prompt template, and `use_timestamp` unchanged between submission and fetching. `fetch_and_process_batch()` raises a `RuntimeError` if the OpenAI batch is not complete.
+
 ## Handling `NOREL`
 
 The `refine()` method returns a relation record even when the refined relation is `NOREL`.
