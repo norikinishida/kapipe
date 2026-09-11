@@ -179,6 +179,9 @@ bash ./prepare_confact.sh
 # LongBench v2
 bash ./prepare_longbench_v2.sh
 
+# LongMemEval
+bash ./prepare_longmemeval.sh
+
 # FEVER
 bash ./prepare_fever.sh
 
