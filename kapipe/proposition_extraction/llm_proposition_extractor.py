@@ -56,8 +56,9 @@ class LLMPropositionExtractor(BasePropositionExtractor):
             # Parse the generated response into proposition statements
             statements = self.parse(generated_text=generated_text)
 
-            # Treat the title as the first proposition when it is available
-            if "title" in passage:
+            # Treat the title as the first proposition 
+            # when it is available and non-empty.
+            if "title" in passage and passage["title"].strip():
                 statements = [passage["title"].strip()] + statements
 
             # Preserve metadata except fields reconstructed for each proposition
