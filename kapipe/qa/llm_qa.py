@@ -295,8 +295,8 @@ class LLMQA(BaseQA):
         self,
         questions: list[Question],
         contexts: list[ContextsForOneExample] | list[None] | None = None,
-    ) -> str:
-        """Submit question-answering prompts and return the OpenAI Batch ID.
+    ) -> list[str]:
+        """Submit question-answering prompts and return OpenAI Batch IDs.
 
         Pass the same questions and contexts in the same order to
         fetch_and_process_batch(). Keep the model settings, prompt template,
@@ -331,14 +331,14 @@ class LLMQA(BaseQA):
             )
             prompts.append(prompt)
 
-        # Submit the batch of prompts and get the batch ID
-        batch_id: str = self.model.submit_batch(prompts=prompts)
-        return batch_id
+        # Submit the prompts and get the Batch IDs
+        batch_ids: list[str] = self.model.submit_batch(prompts=prompts)
+        return batch_ids
 
     def fetch_and_process_batch(
         self,
         questions: list[Question],
-        batch_id: str,
+        batch_ids: list[str],
         contexts: list[ContextsForOneExample] | list[None] | None = None,
     ) -> list[Question]:
         """Fetch responses and answer the original questions.
@@ -365,7 +365,7 @@ class LLMQA(BaseQA):
 
         # Fetch generated texts in the original request order
         generated_texts: list[str] = self.model.fetch_batch(
-            batch_id=batch_id
+            batch_ids=batch_ids
         )
 
         # Validate that the number of generated texts matches the number of questions

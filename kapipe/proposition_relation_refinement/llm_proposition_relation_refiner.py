@@ -171,8 +171,8 @@ class LLMPropositionRelationRefiner(BasePropositionRelationRefiner):
     def submit_batch(
         self,
         triples: list[dict[str, Any]],
-    ) -> str:
-        """Submit relation-refinement prompts and return the OpenAI Batch ID.
+    ) -> list[str]:
+        """Submit relation-refinement prompts and return OpenAI Batch IDs.
 
         Pass the same triples in the same order to fetch_and_process_batch().
         Keep the model settings, prompt template, and use_timestamp unchanged
@@ -189,14 +189,14 @@ class LLMPropositionRelationRefiner(BasePropositionRelationRefiner):
             prompt: str = self.generate_prompt(triple=triple)
             prompts.append(prompt)
 
-        # Submit the batch of prompts and get the batch ID
-        batch_id: str = self.model.submit_batch(prompts=prompts)
-        return batch_id
+        # Submit the prompts and get the Batch IDs
+        batch_ids: list[str] = self.model.submit_batch(prompts=prompts)
+        return batch_ids
 
     def fetch_and_process_batch(
         self,
         triples: list[dict[str, Any]],
-        batch_id: str,
+        batch_ids: list[str],
     ) -> list[dict[str, Any]]:
         """Fetch responses and refine the original proposition relations.
 
@@ -210,7 +210,7 @@ class LLMPropositionRelationRefiner(BasePropositionRelationRefiner):
             raise TypeError("Batch API requires OpenAILLM")
 
         # Fetch generated texts in the original request order
-        generated_texts: list[str] = self.model.fetch_batch(batch_id=batch_id)
+        generated_texts: list[str] = self.model.fetch_batch(batch_ids=batch_ids)
 
         # Validate that the number of generated texts matches the number of 
         # submitted triples.

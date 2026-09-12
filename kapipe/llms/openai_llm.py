@@ -12,6 +12,11 @@ from tenacity import (
 from .base import BaseLLM
 
 
+# OpenAI Batch API limits
+OPENAI_BATCH_MAX_REQUESTS = 50000
+OPENAI_BATCH_MAX_BYTES = 200000000
+
+
 class OpenAILLM(BaseLLM):
     """A class that wraps an OpenAI causal language model (LLM) client for text generation."""
  
@@ -100,121 +105,164 @@ class OpenAILLM(BaseLLM):
         self,
         prompts: list[str | dict[str, str]],
         temperature: float = 0.0,
-    ) -> str:
-        """Submit prompts through the Batch API and return the Batch ID.
+    ) -> list[str]:
+        """Submit prompts through the Batch API and return the Batch IDs.
 
-        Submit one batch containing 1 to 50,000 requests and at most 200 MB
-        of JSONL input. Keep the returned ID for a later fetch_batch() call.
+        Split prompts into batches containing at most 50,000 requests and
+        200 MB of JSONL input. Keep the returned IDs for a later
+        fetch_batch() call.
         """
 
-        # Validate the number of requests before uploading any data
-        if not 1 <= len(prompts) <= 50000:
-            raise ValueError("A batch must contain between 1 and 50000 prompts")
+        # Require at least one request
+        if len(prompts) == 0:
+            raise ValueError("At least one prompt is required")
 
-        # Construct one request for each prompt in input order
-        request_lines: list[str] = []
-        for prompt_i, prompt in enumerate(prompts):
+        # Construct size-limited groups of JSONL request lines
+        request_line_batches: list[list[bytes]] = [[]]
+        batch_sizes: list[int] = [0]
+        for prompt in prompts:
+            # Number request IDs independently within each OpenAI batch
+            request_i: int = len(request_line_batches[-1])
             request_body: dict[str, object] = self.make_request_body(
                 prompt=prompt,
                 temperature=temperature,
             )
             request: dict[str, object] = {
-                "custom_id": f"request-{prompt_i:08d}",
+                "custom_id": f"request-{request_i:08d}",
                 "method": "POST",
                 "url": "/v1/chat/completions",
                 "body": request_body,
             }
-            request_lines.append(json.dumps(request, ensure_ascii=False) + "\n")
+            request_line: bytes = (
+                json.dumps(request, ensure_ascii=False) + "\n"
+            ).encode("utf-8")
 
-        # Encode the JSONL input
-        content: bytes = "".join(request_lines).encode("utf-8")
+            # Reject a request that cannot fit into an otherwise empty batch
+            if len(request_line) > OPENAI_BATCH_MAX_BYTES:
+                raise ValueError("A single batch request exceeds 200 MB")
 
-        # Validate the upload size before proceeding
-        if len(content) > 200000000:
-            raise ValueError("The batch input exceeds 200 MB")
+            # Start a new batch before exceeding either OpenAI limit
+            if (
+                len(request_line_batches[-1]) == OPENAI_BATCH_MAX_REQUESTS
+                or batch_sizes[-1] + len(request_line)
+                > OPENAI_BATCH_MAX_BYTES
+            ):
+                request_line_batches.append([])
+                batch_sizes.append(0)
 
-        # Upload the request file for Batch API processing
-        input_file = self.client.files.create(
-            file=("requests.jsonl", content, "application/jsonl"),
-            purpose="batch",
-        )
+                # Restart custom IDs because each batch is fetched separately
+                request["custom_id"] = "request-00000000"
+                request_line = (
+                    json.dumps(request, ensure_ascii=False) + "\n"
+                ).encode("utf-8")
 
-        # Submit the uploaded requests without waiting for completion
-        batch = self.client.batches.create(
-            input_file_id=input_file.id,
-            endpoint="/v1/chat/completions",
-            completion_window="24h",
-        )
+            # Preserve the prompt order within and across batches
+            request_line_batches[-1].append(request_line)
+            batch_sizes[-1] += len(request_line)
 
-        return batch.id
+        # Upload and submit every size-limited request file
+        batch_ids: list[str] = []
+        for request_lines in request_line_batches:
+            # Combine the encoded lines without changing their order
+            content: bytes = b"".join(request_lines)
+
+            # Upload the request file for Batch API processing
+            input_file = self.client.files.create(
+                file=("requests.jsonl", content, "application/jsonl"),
+                purpose="batch",
+            )
+
+            # Submit the uploaded requests without waiting for completion
+            batch = self.client.batches.create(
+                input_file_id=input_file.id,
+                endpoint="/v1/chat/completions",
+                completion_window="24h",
+            )
+            batch_ids.append(batch.id)
+
+        return batch_ids
 
     def fetch_batch(
         self,
-        batch_id: str,
+        batch_ids: list[str],
     ) -> list[str]:
-        """Fetch generated texts in the original prompt order.
+        """Fetch generated texts from batches in the original prompt order.
 
-        Fetch a batch created by submit_batch(). Raise an error if the batch
+        Fetch batches created by submit_batch(). Raise an error if any batch
         is unfinished or any request failed. Do not wait or resubmit requests.
         """
 
-        # Retrieve the batch status before downloading its output
-        batch = self.client.batches.retrieve(batch_id)
-
-        # Validate the batch status and ensure it is ready for fetching results
-        if batch.status != "completed":
-            raise RuntimeError(f"Batch {batch_id} has status {batch.status}")
-        if batch.request_counts.failed != 0:
-            raise RuntimeError(
-                f"Batch {batch_id} contains failed requests; "
-                f"error_file_id={batch.error_file_id}"
-            )
-        if batch.output_file_id is None:
-            raise RuntimeError(f"Batch {batch_id} has no output file")
-
-        # Download the generated responses
-        content: bytes = self.client.files.content(batch.output_file_id).read()
-
-        # Associate each generated text with its submitted request ID
-        custom_id_to_generated_text: dict[str, str] = {}
-        for line in content.decode("utf-8").splitlines():
-            # Parse the JSON line into a dictionary and extract the request ID
-            record: dict[str, Any] = json.loads(line)
-            custom_id: str = record["custom_id"]
-
-            # Validate the response for the current request ID
-            if custom_id in custom_id_to_generated_text:
-                raise RuntimeError(f"Duplicate response ID: {custom_id}")
-            if record["error"] is not None:
-                raise RuntimeError(f"Request {custom_id} failed: {record['error']}")
-            if record["response"]["status_code"] != 200:
-                raise RuntimeError(f"Request {custom_id} returned a non-200 status")
-
-            # Extract the generated text from the first completion
-            generated_text: str | None = (
-                record["response"]["body"]["choices"][0]["message"]["content"]
-            )
-            if generated_text is None:
-                raise RuntimeError("OpenAI response did not contain text output.")
-
-            # Store the generated text for the current request ID
-            custom_id_to_generated_text[custom_id] = generated_text
-
-        # Generate the list of expected request IDs based on 
-        # the total number of requests in the batch.
-        expected_ids: list[str] = [
-            f"request-{request_i:08d}"
-            for request_i in range(batch.request_counts.total)
-        ]
-
-        # Validate that every expected request has a corresponding response
-        if set(custom_id_to_generated_text) != set(expected_ids):
-            raise RuntimeError("Response IDs do not match the submitted requests")
-
-        # Restore input order because Batch output order can differ
         generated_texts: list[str] = []
-        for custom_id in expected_ids:
-            generated_texts.append(custom_id_to_generated_text[custom_id])
+        for batch_id in batch_ids:
+            # Retrieve the batch status before downloading its output
+            batch = self.client.batches.retrieve(batch_id)
+
+            # Validate the batch status before fetching its responses
+            if batch.status != "completed":
+                raise RuntimeError(f"Batch {batch_id} has status {batch.status}")
+            if batch.request_counts.failed != 0:
+                raise RuntimeError(
+                    f"Batch {batch_id} contains failed requests; "
+                    f"error_file_id={batch.error_file_id}"
+                )
+            if batch.output_file_id is None:
+                raise RuntimeError(f"Batch {batch_id} has no output file")
+
+            # Download the generated responses
+            content: bytes = self.client.files.content(
+                batch.output_file_id
+            ).read()
+
+            # Associate each generated text with its submitted request ID
+            custom_id_to_generated_text: dict[str, str] = {}
+            for line in content.decode("utf-8").splitlines():
+                # Parse the JSON line and extract the request ID
+                record: dict[str, Any] = json.loads(line)
+                custom_id: str = record["custom_id"]
+
+                # Validate the response for the current request ID
+                if custom_id in custom_id_to_generated_text:
+                    raise RuntimeError(f"Duplicate response ID: {custom_id}")
+                if record["error"] is not None:
+                    raise RuntimeError(
+                        f"Request {custom_id} failed: {record['error']}"
+                    )
+                if record["response"]["status_code"] != 200:
+                    raise RuntimeError(
+                        f"Request {custom_id} returned a non-200 status"
+                    )
+
+                # Extract the generated text from the first completion
+                generated_text: str | None = (
+                    record["response"]["body"]["choices"][0]["message"][
+                        "content"
+                    ]
+                )
+                if generated_text is None:
+                    raise RuntimeError(
+                        "OpenAI response did not contain text output."
+                    )
+
+                # Store the generated text for the current request ID
+                custom_id_to_generated_text[custom_id] = generated_text
+
+            # Generate the expected request IDs for the current batch
+            expected_ids: list[str] = [
+                f"request-{request_i:08d}"
+                for request_i in range(batch.request_counts.total)
+            ]
+
+            # Validate that every expected request has one response
+            if set(custom_id_to_generated_text) != set(expected_ids):
+                raise RuntimeError(
+                    "Response IDs do not match the submitted requests"
+                )
+
+            # Restore input order within the current batch
+            for custom_id in expected_ids:
+                generated_texts.append(
+                    custom_id_to_generated_text[custom_id]
+                )
 
         return generated_texts
 
@@ -235,4 +283,3 @@ def generate_with_backoff(
         raise RuntimeError("OpenAI response did not contain text output.")
 
     return generated_text
-

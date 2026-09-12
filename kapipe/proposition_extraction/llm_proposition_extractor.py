@@ -108,8 +108,8 @@ class LLMPropositionExtractor(BasePropositionExtractor):
     def submit_batch(
         self,
         passages: list[Passage],
-    ) -> str:
-        """Submit passage prompts and return the OpenAI Batch ID.
+    ) -> list[str]:
+        """Submit passage prompts and return the OpenAI Batch IDs.
 
         Pass the same passages in the same order to fetch_and_process_batch().
         Keep the model settings and prompt template unchanged between calls.
@@ -125,14 +125,14 @@ class LLMPropositionExtractor(BasePropositionExtractor):
             prompt: str = self.generate_prompt(passage=passage)
             prompts.append(prompt)
 
-        # Submit the batch of prompts and get the batch ID
-        batch_id: str = self.model.submit_batch(prompts=prompts)
-        return batch_id
+        # Submit the prompts and get the Batch IDs
+        batch_ids: list[str] = self.model.submit_batch(prompts=prompts)
+        return batch_ids
 
     def fetch_and_process_batch(
         self,
         passages: list[Passage],
-        batch_id: str,
+        batch_ids: list[str],
     ) -> list[Passage]:
         """Fetch responses and extract propositions from the original passages.
 
@@ -145,7 +145,7 @@ class LLMPropositionExtractor(BasePropositionExtractor):
             raise TypeError("Batch API requires OpenAILLM")
 
         # Fetch generated texts in the original request order
-        generated_texts: list[str] = self.model.fetch_batch(batch_id=batch_id)
+        generated_texts: list[str] = self.model.fetch_batch(batch_ids=batch_ids)
 
         # Validate that the number of generated texts matches the number of passages
         if len(generated_texts) != len(passages):
@@ -183,4 +183,3 @@ class LLMPropositionExtractor(BasePropositionExtractor):
             propositions.extend(propositions_for_passage)
 
         return propositions
-

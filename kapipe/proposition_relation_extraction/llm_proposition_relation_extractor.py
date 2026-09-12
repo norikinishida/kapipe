@@ -346,8 +346,8 @@ class LLMPropositionRelationExtractor(BasePropositionRelationExtractor):
         self,
         head_propositions: list[Passage],
         batch_tail_propositions: list[list[Passage]],
-    ) -> str:
-        """Submit relation-extraction prompts and return the OpenAI Batch ID.
+    ) -> list[str]:
+        """Submit relation-extraction prompts and return OpenAI Batch IDs.
 
         Pass the same propositions in the same order to
         fetch_and_process_batch(). Keep the model settings, prompt template,
@@ -389,15 +389,15 @@ class LLMPropositionRelationExtractor(BasePropositionRelationExtractor):
                 "No prompts to submit because all tail proposition lists are empty"
             )
 
-        # Submit the batch of prompts and get the batch ID
-        batch_id: str = self.model.submit_batch(prompts=prompts)
-        return batch_id
+        # Submit the prompts and get the Batch IDs
+        batch_ids: list[str] = self.model.submit_batch(prompts=prompts)
+        return batch_ids
 
     def fetch_and_process_batch(
         self,
         head_propositions: list[Passage],
         batch_tail_propositions: list[list[Passage]],
-        batch_id: str,
+        batch_ids: list[str],
     ) -> list[dict[str, Any]]:
         """Fetch responses and extract proposition relation records.
 
@@ -432,7 +432,7 @@ class LLMPropositionRelationExtractor(BasePropositionRelationExtractor):
             batch_inputs.append((head_proposition, tail_propositions))
 
         # Fetch generated texts in the original request order
-        generated_texts: list[str] = self.model.fetch_batch(batch_id=batch_id)
+        generated_texts: list[str] = self.model.fetch_batch(batch_ids=batch_ids)
 
         # Validate that the number of generated texts matches the number of 
         # submitted inputs.
