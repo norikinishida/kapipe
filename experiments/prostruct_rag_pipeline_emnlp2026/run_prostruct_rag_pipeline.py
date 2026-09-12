@@ -71,6 +71,15 @@ def main(args: argparse.Namespace) -> None:
     input_passages_path: str | None = args.input_passages
     input_questions_path: str | None = args.input_questions
 
+    # Collect explicitly specified input artifacts
+    input_artifact_paths: dict[str, str] = {}
+    if args.input_propositions is not None:
+        input_artifact_paths["propositions"] = args.input_propositions
+    if args.input_triples is not None:
+        input_artifact_paths["triples"] = args.input_triples
+    if args.input_refined_triples is not None:
+        input_artifact_paths["refined_triples"] = args.input_refined_triples
+
     # Output Path
     results_dir: str = args.results_dir
     prefix: str | None = args.prefix
@@ -314,6 +323,7 @@ def main(args: argparse.Namespace) -> None:
             passage_retrieval_indexing_kwargs=passage_retrieval_indexing_kwargs,
             # Target component for indexing
             target_component=actiontype,
+            input_artifact_paths=input_artifact_paths,
         )
 
     else:
@@ -765,6 +775,10 @@ if __name__ == "__main__":
     # Input Data
     parser.add_argument("--input_passages", type=str, default=None)
     parser.add_argument("--input_questions", type=str, default=None)
+
+    parser.add_argument("--input_propositions", type=str, default=None)
+    parser.add_argument("--input_triples", type=str, default=None)
+    parser.add_argument("--input_refined_triples", type=str, default=None)
 
     # Output Path
     parser.add_argument("--results_dir", type=str, required=True)
