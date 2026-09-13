@@ -148,21 +148,23 @@ result_question = answerer.answer(
 `LLMQA` supports the OpenAI Batch API when its model is an `OpenAILLM` instance.
 
 ```python
-# Submit all question-answering prompts as one OpenAI batch
-batch_id = answerer.submit_batch(
+# Submit all question-answering prompts to one or more OpenAI batches
+batch_ids = answerer.submit_batch(
     questions=questions,
     contexts=contexts,
 )
 
-# Fetch and process the results after the OpenAI batch is complete
+# Fetch and process the results after all OpenAI batches are complete
 result_questions = answerer.fetch_and_process_batch(
     questions=questions,
     contexts=contexts,
-    batch_id=batch_id,
+    batch_ids=batch_ids,
 )
 ```
 
-Pass the same `questions` and `contexts` in the same order to both methods. The two lists must have the same length. Keep the model settings, prompt template, and `n_contexts` unchanged between submission and fetching. `fetch_and_process_batch()` raises a `RuntimeError` if the OpenAI batch is not complete.
+`submit_batch()` automatically splits requests into batches containing at most 50,000 requests and 200 MB of JSONL input. It returns the batch IDs in submission order, and `fetch_and_process_batch()` merges their responses in the original question order.
+
+Pass the same `questions` and `contexts` in the same order to both methods. The two lists must have the same length. Keep the model settings, prompt template, and `n_contexts` unchanged between submission and fetching. `fetch_and_process_batch()` raises a `RuntimeError` if any OpenAI batch is incomplete or contains failed requests.
 
 ## Context Usage
 

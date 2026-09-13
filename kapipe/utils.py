@@ -36,7 +36,7 @@ def read_lines(path: str, encoding: str = "utf-8") -> list[str]:
     return lines
 
 
-def read_json(path: str, encoding: str | None = None) -> dict[str, Any]:
+def read_json(path: str, encoding: str | None = None) -> dict[str, Any] | list[dict[str, Any]]:
     """Read a JSON file."""
 
     with open(path, encoding=encoding) as f:

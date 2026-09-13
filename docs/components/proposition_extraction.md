@@ -45,7 +45,7 @@ Each proposition contains one extracted factual statement and preserves the inpu
         "text": "Effect of calcium chloride and 4-aminopyridine therapy on desipramine toxicity in rats.",
         "source_passage_key": "passage#001",
         "source": "...",
-        "timestamp": "...",
+        "timestamp": "..."
     },
     {
         "passage_key": "passage#001/proposition#0001",
@@ -65,7 +65,7 @@ Each proposition contains one extracted factual statement and preserves the inpu
 ]
 ```
 
-If the input passage contains a `title` field, its stripped value is always inserted as the first proposition.
+If the input passage contains a non-empty `title` field, its stripped value is inserted as the first proposition.
 
 ## Supported Methods
 
@@ -110,17 +110,19 @@ propositions = extractor.extract(passage=passage)
 `LLMPropositionExtractor` supports the OpenAI Batch API when its model is an `OpenAILLM` instance.
 
 ```python
-# Submit all passage prompts as one OpenAI batch
-batch_id = extractor.submit_batch(passages=passages)
+# Submit all passage prompts to one or more OpenAI batches
+batch_ids: list[str] = extractor.submit_batch(passages=passages)
 
-# Fetch and process the results after the OpenAI batch is complete
+# Fetch and process the results after all OpenAI batches are complete
 propositions = extractor.fetch_and_process_batch(
     passages=passages,
-    batch_id=batch_id,
+    batch_ids=batch_ids,
 )
 ```
 
-Pass the same `passages` in the same order to both methods. Keep the model settings and prompt template unchanged between submission and fetching. `fetch_and_process_batch()` raises a `RuntimeError` if the OpenAI batch is not complete.
+`submit_batch()` automatically splits requests into batches containing at most 50,000 requests and 200 MB of JSONL input. It returns the batch IDs in submission order, and `fetch_and_process_batch()` merges their responses in the original passage order.
+
+Pass the same `passages` in the same order to both methods. Keep the model settings and prompt template unchanged between submission and fetching. `fetch_and_process_batch()` raises a `RuntimeError` if any OpenAI batch is incomplete or contains failed requests.
 
 ## Metadata Preservation
 

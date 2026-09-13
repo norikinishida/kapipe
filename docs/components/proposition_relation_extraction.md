@@ -164,21 +164,23 @@ batch_tail_propositions = extractor.batch_retrieve_tail_propositions(
     batch_size=1024,
 )
 
-# Submit all relation-extraction prompts as one OpenAI batch
-batch_id = extractor.submit_batch(
+# Submit all relation-extraction prompts to one or more OpenAI batches
+batch_ids = extractor.submit_batch(
     head_propositions=propositions,
     batch_tail_propositions=batch_tail_propositions,
 )
 
-# Fetch and process the results after the OpenAI batch is complete
+# Fetch and process the results after all OpenAI batches are complete
 triples = extractor.fetch_and_process_batch(
     head_propositions=propositions,
     batch_tail_propositions=batch_tail_propositions,
-    batch_id=batch_id,
+    batch_ids=batch_ids,
 )
 ```
 
-Pass the same `head_propositions` and `batch_tail_propositions` in the same order to both methods. Keep the model settings, prompt template, and `use_timestamp` unchanged between submission and fetching. `fetch_and_process_batch()` raises a `RuntimeError` if the OpenAI batch is not complete.
+`submit_batch()` automatically splits requests into batches containing at most 50,000 requests and 200 MB of JSONL input. It returns the batch IDs in submission order, and `fetch_and_process_batch()` merges their responses in the original head-proposition order. Head propositions with no candidate tails do not produce Batch API requests.
+
+Pass the same `head_propositions` and `batch_tail_propositions` in the same order to both methods. Keep the model settings, prompt template, and `use_timestamp` unchanged between submission and fetching. `fetch_and_process_batch()` raises a `RuntimeError` if any OpenAI batch is incomplete or contains failed requests.
 
 ## Candidate Retrieval
 

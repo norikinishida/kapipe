@@ -158,7 +158,7 @@ class LLMPropositionExtractor(BasePropositionExtractor):
             statements = self.parse(generated_text=generated_text)
 
             # Treat the title as the first proposition when it is available
-            if "title" in passage:
+            if "title" in passage and passage["title"].strip():
                 statements = [passage["title"].strip()] + statements
 
             # Preserve metadata except fields reconstructed for each proposition

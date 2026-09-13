@@ -35,7 +35,7 @@ Propositions (input)
 ### Inference:
 
 ```text
-Question (input)
+Questions (input)
 → Passage Retrieval search
   → Anchor propositions (output)
 
@@ -47,9 +47,9 @@ Neighborhood nodes and edges (input)
 → Context Formatting
   → Structured textual context (output)
 
-Question and Structured textual context (input)
+Each question and its structured textual context (input)
 → Question Answering
-  → Answer (output)
+  → Answers (output)
 ```
 
 ## Components
@@ -75,7 +75,7 @@ Calling a method without a component required by that operation raises an error.
 |---|---|
 | `make_index()` | Runs all indexing steps or one selected indexing step |
 | `load_index()` | Loads the proposition retrieval index and proposition graph for inference |
-| `infer()` | Retrieves and formats a proposition subgraph for one question and generates an answer |
+| `infer()` | Retrieves and formats a proposition subgraph for each question and generates answers |
 
 ## Usage
 
@@ -153,7 +153,7 @@ prostruct_rag.make_index(
     search_batch_size=10,
     target_component="proposition_relation_extraction",
     input_artifact_paths={
-        "propositions": "/path/to/propositions.json",
+        "propositions": "/path/to/propositions.jsonl",
     },
 )
 
@@ -181,6 +181,42 @@ The supported artifact overrides are:
 | `triples` | Extracted proposition relation records in JSON format |
 | `refined_triples` | Refined proposition relation records in JSON format |
 
+### Use the OpenAI Batch API During Indexing:
+
+The Proposition Extraction, Proposition Relation Extraction, and Proposition Relation Refinement steps support the OpenAI Batch API when their LLM component uses `OpenAILLM`.
+
+Run one target component twice with identical inputs and settings. The first call submits the requests and returns without creating the component output. After every submitted batch is complete, the second call fetches the responses and creates the output.
+
+```python
+# Submit Proposition Extraction requests
+prostruct_rag.make_index(
+    passages=passages,
+    index_dir="./indexes",
+    top_k=20,
+    prefilter_k=100,
+    search_batch_size=10,
+    target_component="proposition_extraction",
+    batch_mode="submit",
+    batch_dir="./batches",
+)
+
+# Fetch the responses using the same passages and settings
+prostruct_rag.make_index(
+    passages=passages,
+    index_dir="./indexes",
+    top_k=20,
+    prefilter_k=100,
+    search_batch_size=10,
+    target_component="proposition_extraction",
+    batch_mode="fetch",
+    batch_dir="./batches",
+)
+```
+
+When `batch_mode` is specified, `target_component` and `batch_dir` are required. Valid modes are `"submit"` and `"fetch"`; running all indexing steps at once is not supported in batch mode.
+
+The pipeline stores the returned batch ID list at `<batch_dir>/<target_component>/batch_ids.json`. Use the same `batch_dir`, inputs, input order, component settings, and retrieval settings for submission and fetching.
+
 ### Load the Index:
 
 ```python
@@ -195,9 +231,9 @@ prostruct_rag.load_index(
 ### Run Inference:
 
 ```python
-# Retrieve a proposition subgraph and answer one question
-result_question = prostruct_rag.infer(
-    question=question,
+# Retrieve proposition subgraphs and answer multiple questions
+result_questions = prostruct_rag.infer(
+    questions=questions,
     top_k=10,
     hop_size=1,
     remove_same_timestamp_updates=True,
@@ -206,6 +242,33 @@ result_question = prostruct_rag.infer(
 ```
 
 `top_k` controls the number of anchor propositions returned by Passage Retrieval. `hop_size` controls neighborhood expansion during Graph Retrieval. Each anchor proposition is matched to its graph node using `passage_key`.
+
+### Use the OpenAI Batch API During Inference:
+
+When the Question Answering component is `LLMQA` backed by `OpenAILLM`, inference can submit and fetch answer-generation requests through the OpenAI Batch API. Passage Retrieval, Graph Retrieval, and Context Formatting still run during both calls.
+
+```python
+# Submit answer-generation requests and receive no results yet
+result_questions = prostruct_rag.infer(
+    questions=questions,
+    top_k=10,
+    hop_size=1,
+    batch_mode="submit",
+    batch_dir="./batches",
+)
+assert result_questions is None
+
+# Fetch answers after all submitted batches are complete
+result_questions = prostruct_rag.infer(
+    questions=questions,
+    top_k=10,
+    hop_size=1,
+    batch_mode="fetch",
+    batch_dir="./batches",
+)
+```
+
+The pipeline stores the batch ID list at `<batch_dir>/qa/batch_ids.json`. Use the same `questions`, question order, pipeline settings, and `batch_dir` for both calls. In `"fetch"` mode, `infer()` returns the same result structure as synchronous inference.
 
 ## Indexing Outputs
 
@@ -236,7 +299,7 @@ If `append_question_timestamp` is `True`, the input question must contain a `tim
 
 If `remove_same_timestamp_updates` is `True`, `updates` edges whose head and tail timestamps are equal are excluded from Context Formatting. They remain present in `graph_contexts`.
 
-The pipeline does not save inference output automatically. The caller is responsible for saving `result_question`.
+The pipeline does not save inference output automatically. The caller is responsible for saving `result_questions`.
 
 ## Example
 

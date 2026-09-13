@@ -74,6 +74,9 @@ class ProStructRAGPipeline:
         # Target component for indexing
         target_component: str | None = None,
         input_artifact_paths: dict[str, str] | None = None,
+        # Batch API
+        batch_mode: str | None = None,
+        batch_dir: str | None = None,
     ) -> None:
         """Build the full index or run one selected indexing component."""
 
@@ -117,6 +120,12 @@ class ProStructRAGPipeline:
                 f"{sorted(unknown_artifact_names)}."
             )
 
+        # Validate that a target component is specified when using batch mode
+        if batch_mode is not None and target_component is None:
+            raise ValueError(
+                "`target_component` is required when `batch_mode` is specified."
+            )
+
         # Create the common destination for every indexing artifact
         utils.mkdir(index_dir)
 
@@ -142,14 +151,58 @@ class ProStructRAGPipeline:
                 )
 
             # Extract propositions passage by passage
-            propositions: list[Passage] = []
-            for passage in tqdm(passages, desc="Extracting propositions"):
-                propositions_for_passage: list[Passage] = (
-                    self.proposition_extraction.extract(
-                        passage=passage,
+            if batch_mode is None:
+                propositions: list[Passage] = []
+                for passage in tqdm(passages, desc="Extracting propositions"):
+                    propositions_for_passage: list[Passage] = (
+                        self.proposition_extraction.extract(
+                            passage=passage,
+                        )
+                    )
+                    propositions.extend(propositions_for_passage)
+            elif batch_mode == "submit":
+                # Batch API submission
+                batch_ids: list[str] = self.proposition_extraction.submit_batch(
+                    passages=passages
+                )
+                utils.mkdir(
+                    os.path.join(
+                        batch_dir,
+                        "proposition_extraction"
                     )
                 )
-                propositions.extend(propositions_for_passage)
+                utils.write_json(
+                    os.path.join(
+                        batch_dir,
+                        "proposition_extraction",
+                        "batch_ids.json"
+                    ),
+                    batch_ids,
+                )
+                logger.info(f"Submitted batches {batch_ids}")
+            elif batch_mode == "fetch":
+                # Batch API fetching
+                batch_ids: list[str] = utils.read_json(
+                    os.path.join(
+                        batch_dir,
+                        "proposition_extraction",
+                        "batch_ids.json",
+                    )
+                )
+                propositions: list[Passage] = (
+                    self.proposition_extraction.fetch_and_process_batch(
+                        passages=passages,
+                        batch_ids=batch_ids,
+                    )
+                )
+            else:
+                raise ValueError(
+                    f"Invalid batch_mode: {batch_mode}. "
+                    "Expected None, 'submit', or 'fetch'."
+                )
+
+            if batch_mode == "submit":
+                return
 
             logger.info(
                 f"Extracted {len(propositions)} propositions from "
@@ -187,8 +240,8 @@ class ProStructRAGPipeline:
                     )
                 )
 
-            # Build the temporary retrieval index used for 
-            # candidate proposition retrieval.
+            # Build the temporary retrieval index used for
+            # candidate proposition retrieval
             intermediate_index_dir: str = os.path.join(
                 index_dir,
                 "intermediate_passage_retrieval_index",
@@ -210,19 +263,67 @@ class ProStructRAGPipeline:
             )
 
             # Extract relations for all retrieved proposition pairs
-            triples: list[dict[str, Any]] = []
-            for head_proposition, tail_propositions in tqdm(
-                zip(propositions, batch_tail_propositions),
-                total=len(propositions),
-                desc="Extracting proposition relations",
-            ):
-                triples_for_head: list[dict[str, Any]] = (
-                    self.proposition_relation_extraction.extract(
-                        head_proposition=head_proposition,
-                        tail_propositions=tail_propositions,
+            if batch_mode is None:
+                triples: list[dict[str, Any]] = []
+                for head_proposition, tail_propositions in tqdm(
+                    zip(propositions, batch_tail_propositions),
+                    total=len(propositions),
+                    desc="Extracting proposition relations",
+                ):
+                    triples_for_head: list[dict[str, Any]] = (
+                        self.proposition_relation_extraction.extract(
+                            head_proposition=head_proposition,
+                            tail_propositions=tail_propositions,
+                        )
+                    )
+                    triples.extend(triples_for_head)
+            elif batch_mode == "submit":
+                # Bach API submit
+                batch_ids: list[str] = (
+                    self.proposition_relation_extraction.submit_batch(
+                        head_propositions=propositions,
+                        batch_tail_propositions=batch_tail_propositions,
                     )
                 )
-                triples.extend(triples_for_head)
+                utils.mkdir(
+                    os.path.join(
+                        batch_dir,
+                        "proposition_relation_extraction",
+                    )
+                )
+                utils.write_json(
+                    os.path.join(
+                        batch_dir,
+                        "proposition_relation_extraction",
+                        "batch_ids.json",
+                    ),
+                    batch_ids,
+                )
+                logger.info(f"Submitted batches {batch_ids}")
+            elif batch_mode == "fetch":
+                # Batch API fetch
+                batch_ids: list[str] = utils.read_json(
+                    os.path.join(
+                        batch_dir,
+                        "proposition_relation_extraction",
+                        "batch_ids.json",
+                    )
+                )
+                triples: list[dict[str, Any]] = (
+                    self.proposition_relation_extraction.fetch_and_process_batch(
+                        head_propositions=propositions,
+                        batch_tail_propositions=batch_tail_propositions,
+                        batch_ids=batch_ids,
+                    )
+                )
+            else:
+                raise ValueError(
+                    f"Invalid batch_mode: {batch_mode}. "
+                    "Expected None, 'submit', or 'fetch'"
+                )
+
+            if batch_mode == "submit":
+                return
 
             logger.info(
                 f"Extracted {len(triples)} triples from "
@@ -261,21 +362,76 @@ class ProStructRAGPipeline:
                 )
 
             # Refine each relation and remove relations classified as NOREL
-            refined_triples: list[dict[str, Any]] = []
-            n_deleted: int = 0
-            for triple in tqdm(
-                triples,
-                desc="Refining proposition relations",
-            ):
-                refined_triple: dict[str, Any] = (
-                    self.proposition_relation_refinement.refine(
-                        triple=triple,
+            if batch_mode is None:
+                refined_triples: list[dict[str, Any]] = []
+                n_deleted: int = 0
+                for triple in tqdm(
+                    triples,
+                    desc="Refining proposition relations",
+                ):
+                    refined_triple: dict[str, Any] = (
+                        self.proposition_relation_refinement.refine(
+                            triple=triple,
+                        )
+                    )
+                    if refined_triple["relation"] == "NOREL":
+                        n_deleted += 1
+                        continue
+                    refined_triples.append(refined_triple)
+            elif batch_mode == "submit":
+                # Batch API submit
+                batch_ids: list[str] = (
+                    self.proposition_relation_refinement.submit_batch(
+                        triples=triples,
                     )
                 )
-                if refined_triple["relation"] == "NOREL":
-                    n_deleted += 1
-                    continue
-                refined_triples.append(refined_triple)
+                utils.mkdir(
+                    os.path.join(
+                        batch_dir,
+                        "proposition_relation_refinement",
+                    )
+                )
+                utils.write_json(
+                    os.path.join(
+                        batch_dir,
+                        "proposition_relation_refinement",
+                        "batch_ids.json",
+                    ),
+                    batch_ids,
+                )
+                logger.info(f"Submitted batches {batch_ids}")
+            elif batch_mode == "fetch":
+                # Batch API fetch
+                batch_ids: list[str] = utils.read_json(
+                    os.path.join(
+                        batch_dir,
+                        "proposition_relation_refinement",
+                        "batch_ids.json",
+                    )
+                )
+                tmp_refined_triples: list[dict[str, Any]] = (
+                    self.proposition_relation_refinement.fetch_and_process_batch(
+                        triples=triples,
+                        batch_ids=batch_ids,
+                    )
+                )
+
+                # Remove relations classified as NOREL
+                refined_triples: list[dict[str, Any]] = []
+                n_deleted: int = 0
+                for refined_triple in tmp_refined_triples:
+                    if refined_triple["relation"] == "NOREL":
+                        n_deleted += 1
+                        continue
+                    refined_triples.append(refined_triple)
+            else:
+                raise ValueError(
+                    f"Invalid batch_mode: {batch_mode}. "
+                    "Expected None, 'submit', or 'fetch'."
+                )
+
+            if batch_mode == "submit":
+                return
 
             logger.info(
                 f"Refinement complete: {len(refined_triples)} triples kept, "
@@ -389,13 +545,18 @@ class ProStructRAGPipeline:
 
     def infer(
         self,
-        question: Question,
+        # Input
+        questions: list[Question],
+        # Component-specific parameters
         top_k: int,
         hop_size: int,
-        #
+        # ProStruct-RAG-specific parameters
         remove_same_timestamp_updates: bool = True,
         append_question_timestamp: bool = True,
-    ) -> Question:
+        # Batch API
+        batch_mode: str | None = None,
+        batch_dir: str | None = None,
+    ) -> list[Question] | None:
         """Run all inference components and answer one question."""
 
         # Validate that every inference component is initialized
@@ -408,106 +569,200 @@ class ProStructRAGPipeline:
         if self.qa is None:
             raise ValueError("QA component is not initialized.")
 
-        #################################
-        # [Step 5b] Passage Retrieval (Search)
-        #################################
+        # Process each question individually
+        question_with_time_list: list[Question] = []
+        anchor_contexts_list: list[ContextsForOneExample] = []
+        graph_contexts_list: list[ContextsForOneExample] = []
+        formatted_contexts_list: list[ContextsForOneExample] = []
+        for question in questions:
 
-        # Retrieve the top-ranked anchor propositions
-        anchor_propositions: list[Passage] = self.passage_retrieval.search(
-            queries=[question["question"]],
-            top_k=top_k,
-        )[0]
+            #################################
+            # [Step 5b] Passage Retrieval (Search)
+            #################################
 
-        # Represent the anchor propositions as contexts for the current question
-        anchor_contexts: ContextsForOneExample = {
-            "question_key": question["question_key"],
-            "contexts": anchor_propositions,
-        }
+            # Retrieve the top-ranked anchor propositions
+            anchor_propositions: list[Passage] = self.passage_retrieval.search(
+                queries=[question["question"]],
+                top_k=top_k,
+            )[0]
 
-        #################################
-        # [Step 6] Graph Retrieval
-        #################################
-
-        # Extract graph node identifiers from the anchor propositions
-        anchor_node_ids: list[str] = [
-            prop["passage_key"]
-            for prop in anchor_contexts["contexts"]
-        ]
-
-        # Retrieve neighboring nodes and edges around the anchors
-        nodes: list[dict[str, Any]]
-        edges: list[dict[str, Any]]
-        nodes, edges = self.graph_retrieval.search(
-            anchor_node_ids=anchor_node_ids,
-            hop_size=hop_size,
-        )
-
-        # Represent the retrieved subgraph as contexts for the current question
-        graph_contexts: ContextsForOneExample = {
-            "question_key": question["question_key"],
-            "contexts": None,
-            "nodes": nodes,
-            "edges": edges,
-        }
-
-        #################################
-        # [Step 7] Context Formatting
-        #################################
-
-        # Remove same-timestamp update edges when requested
-        # TODO: Consider whether this filtering should be done at this stage
-        filtered_edges: list[dict[str, Any]] = []
-        for edge in edges:
-            if remove_same_timestamp_updates:
-                relation: str = edge["relation"].lower()
-                if relation == "updates":
-                    head_timestamp: str = nodes[edge["head"]]["timestamp"]
-                    tail_timestamp: str = nodes[edge["tail"]]["timestamp"]
-                    if head_timestamp == tail_timestamp:
-                        continue
-            filtered_edges.append(edge)
-
-        # Verbalize the filtered subgraph
-        text: str = self.context_formatting.convert(
-            nodes=nodes,
-            edges=filtered_edges,
-        )
-
-        # Wrap the formatted text in the QA context format
-        formatted_contexts: ContextsForOneExample = copy.deepcopy(graph_contexts)
-        formatted_contexts["contexts"] = [
-            {
-                "passage_key": f"{question['question_key']}/context#0000",
-                "text": text,
+            # Represent the anchor propositions as contexts for the current question
+            anchor_contexts: ContextsForOneExample = {
+                "question_key": question["question_key"],
+                "contexts": anchor_propositions,
             }
-        ]
 
-        #################################
-        # [Step 8] Answer Generation
-        #################################
+            anchor_contexts_list.append(anchor_contexts)
 
-        # Add the query date using the ProStruct-RAG representation
-        # TODO: Consider whether this timestamp appending should be done at this stage
-        question_with_time: Question = copy.deepcopy(question)
-        if append_question_timestamp:
-            question_text: str = question_with_time["question"].strip()
-            timestamp: str = question_with_time["timestamp"].strip()
-            question_with_time["question"] = (
-                f"{question_text} (Date: {timestamp})"
+            #################################
+            # [Step 6] Graph Retrieval
+            #################################
+
+            # Extract graph node identifiers from the anchor propositions
+            anchor_node_ids: list[str] = [
+                prop["passage_key"]
+                for prop in anchor_contexts["contexts"]
+            ]
+
+            # Retrieve neighboring nodes and edges around the anchors
+            nodes: list[dict[str, Any]]
+            edges: list[dict[str, Any]]
+            nodes, edges = self.graph_retrieval.search(
+                anchor_node_ids=anchor_node_ids,
+                hop_size=hop_size,
             )
 
-        # Generate the final answer
-        result: Question = self.qa.answer(
-            question=question_with_time,
-            contexts_for_question=formatted_contexts,
-        )
+            # Represent the retrieved subgraph as contexts for the current question
+            graph_contexts: ContextsForOneExample = {
+                "question_key": question["question_key"],
+                "contexts": None,
+                "nodes": nodes,
+                "edges": edges,
+            }
 
-        # Preserve all intermediate results in the question object
-        result["anchor_contexts"] = anchor_contexts
-        result["graph_contexts"] = graph_contexts
-        result["formatted_contexts"] = formatted_contexts
+            graph_contexts_list.append(graph_contexts)
 
-        return result
+            #################################
+            # [Step 7] Context Formatting
+            #################################
+
+            # Remove same-timestamp update edges when requested
+            # TODO: Consider whether this filtering should be done at this stage
+            filtered_edges: list[dict[str, Any]] = []
+            for edge in edges:
+                if remove_same_timestamp_updates:
+                    relation: str = edge["relation"].lower()
+                    if relation == "updates":
+                        head_timestamp: str = nodes[edge["head"]]["timestamp"]
+                        tail_timestamp: str = nodes[edge["tail"]]["timestamp"]
+                        if head_timestamp == tail_timestamp:
+                            continue
+                filtered_edges.append(edge)
+
+            # Verbalize the filtered subgraph
+            text: str = self.context_formatting.convert(
+                nodes=nodes,
+                edges=filtered_edges,
+            )
+
+            # Wrap the formatted text in the QA context format
+            formatted_contexts: ContextsForOneExample = copy.deepcopy(graph_contexts)
+            formatted_contexts["contexts"] = [
+                {
+                    "passage_key": f"{question['question_key']}/context#0000",
+                    "text": text,
+                }
+            ]
+
+            formatted_contexts_list.append(formatted_contexts)
+
+            #################################
+            # [Step 8-1] Answer Generation
+            #################################
+
+            # Add the query date using the ProStruct-RAG representation
+            # TODO: Consider whether this timestamp appending should be done at this stage
+            question_with_time: Question = copy.deepcopy(question)
+            if append_question_timestamp:
+                question_text: str = question_with_time["question"].strip()
+                timestamp: str = question_with_time["timestamp"].strip()
+                question_with_time["question"] = (
+                    f"{question_text} (Date: {timestamp})"
+                )
+
+            question_with_time_list.append(question_with_time)
+
+        #################################
+        # [Step 8-2] Answer Generation
+        #################################
+
+        if batch_mode is None:
+            results: list[Question] = []
+            for (
+                question_with_time,
+                anchor_contexts,
+                graph_contexts,
+                formatted_contexts
+            ) in zip(
+                question_with_time_list,
+                anchor_contexts_list,
+                graph_contexts_list,
+                formatted_contexts_list
+            ):
+                # Generate the final answer
+                result: Question = self.qa.answer(
+                    question=question_with_time,
+                    contexts_for_question=formatted_contexts,
+                )
+
+                # Preserve all intermediate results in the question object
+                result["anchor_contexts"] = anchor_contexts
+                result["graph_contexts"] = graph_contexts
+                result["formatted_contexts"] = formatted_contexts
+
+                results.append(result)
+
+        elif batch_mode == "submit":
+            # Batch API submit
+            batch_ids: list[str] = self.qa.submit_batch(
+                questions=question_with_time_list,
+                contexts=formatted_contexts_list,
+            )
+            utils.mkdir(
+                os.path.join(
+                    batch_dir,
+                    "qa",
+                )
+            )
+            utils.write_json(
+                os.path.join(
+                    batch_dir,
+                    "qa",
+                    "batch_ids.json",
+                ),
+                batch_ids
+            )
+            logger.info(f"Submitted batches {batch_ids}")
+        elif batch_mode == "fetch":
+            # Batch API fetch
+            batch_ids: list[str] = utils.read_json(
+                os.path.join(
+                    batch_dir,
+                    "qa",
+                    "batch_ids.json",
+                )
+            )
+            results: list[Question] = self.qa.fetch_and_process_batch(
+                questions=question_with_time_list,
+                contexts=formatted_contexts_list,
+                batch_ids=batch_ids
+            )
+
+            for (
+                result,
+                anchor_contexts,
+                graph_contexts,
+                formatted_contexts
+            ) in zip(
+                results,
+                anchor_contexts_list,
+                graph_contexts_list,
+                formatted_contexts_list
+            ):
+                # Preserve all intermediate results in the question object
+                result["anchor_contexts"] = anchor_contexts
+                result["graph_contexts"] = graph_contexts
+                result["formatted_contexts"] = formatted_contexts
+        else:
+            raise ValueError(
+                f"Invalid batch_mode: {batch_mode}. "
+                "Expected None, 'submit', or 'fetch'."
+            )
+
+        if batch_mode == "submit":
+            return None
+
+        return results
 
 
 def _show_graph_statistics(graph: nx.DiGraph) -> None:
