@@ -82,14 +82,9 @@ def main(args: argparse.Namespace) -> None:
     # Action
     actiontype: str = args.actiontype
 
-    # Batch API
-    batch_mode: str | None = args.batch_mode
-
     # Output Path
     results_dir: str = args.results_dir
     prefix: str | None = args.prefix
-    if batch_mode is not None and (prefix is None or prefix == "None"):
-        raise ValueError("--prefix must be fixed across submit and fetch")
     if prefix is None or prefix == "None":
         prefix = utils.get_current_time()
         args.prefix = prefix
@@ -123,42 +118,21 @@ def main(args: argparse.Namespace) -> None:
             os.path.basename(input_questions_path)
         )[0]
 
-    # Set the Batch API directory shared with the pipeline
-    batch_dir: str = os.path.join(base_output_path, "batch_api")
-    if actiontype == "inference":
-        batch_dir = os.path.join(
-            batch_dir,
-            actiontype,
-            base_filename,
-        )
-
-    # Validate that a previous submission is not overwritten
-    batch_component_name: str = "qa" if actiontype == "inference" else actiontype
-    batch_component_dir: str = os.path.join(
-        batch_dir,
-        batch_component_name,
-    )
-    if batch_mode == "submit" and os.path.exists(batch_component_dir):
-        raise FileExistsError(
-            f"Batch directory already exists: {batch_component_dir}"
-        )
-
     # Index will be saved to `index_dir`
     index_dir: str = os.path.join(base_output_path, "indexes")
     utils.mkdir(index_dir)
 
-    # Set the log filename suffix for the selected execution mode
     # Set logger
     if actiontype != "inference":
         set_logger(
-            os.path.join(base_output_path, f"{actiontype}.{batch_mode}.log"),
+            os.path.join(base_output_path, f"{actiontype}.log"),
             # overwrite=True
         )
     else:
         set_logger(
             os.path.join(
                 base_output_path,
-                f"{base_filename}.{actiontype}.{batch_mode}.log",
+                f"{base_filename}.{actiontype}.log",
             ),
             # overwrite=True
         )
@@ -188,18 +162,6 @@ def main(args: argparse.Namespace) -> None:
         os.path.join(base_output_path, "config.json"),
         config,
     )
-
-    # Validate that the selected LLM provider supports the Batch API
-    batch_enabled: bool = batch_mode is not None and actiontype in {
-        "proposition_extraction",
-        "proposition_relation_extraction",
-        "proposition_relation_refinement",
-        "inference",
-    }
-    if batch_enabled:
-        component_name: str = "qa" if actiontype == "inference" else actiontype
-        if config[component_name]["llm_provider"] != "openai":
-            raise ValueError("Batch API requires llm_provider=openai")
 
     # Initialize the loaded LLM map
     loaded_llm_map: dict[str, BaseLLM] = {}
@@ -361,9 +323,6 @@ def main(args: argparse.Namespace) -> None:
             # Target component for indexing
             target_component=actiontype,
             input_artifact_paths=input_artifact_paths,
-            # Batch API
-            batch_mode=batch_mode,
-            batch_dir=batch_dir,
         )
 
     else:
@@ -391,14 +350,7 @@ def main(args: argparse.Namespace) -> None:
             hop_size=config["graph_retrieval"]["hop_size"],
             remove_same_timestamp_updates=True,
             append_question_timestamp=True,
-            batch_mode=batch_mode,
-            batch_dir=batch_dir,
         )
-
-        # Batch API submit.
-        # Finish after submitting requests because answers are not available yet.
-        if result_questions is None:
-            return
 
         # Save the results
         output_questions_path: str = os.path.join(
@@ -844,9 +796,6 @@ if __name__ == "__main__":
             "inference",
         ],
     )
-
-    # Batch API
-    parser.add_argument("--batch_mode", type=str, default=None)
 
     # Evaluation
     parser.add_argument("--do_evaluation", action="store_true")

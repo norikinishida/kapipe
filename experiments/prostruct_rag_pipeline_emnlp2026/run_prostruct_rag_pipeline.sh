@@ -4,10 +4,8 @@
 # Storage paths
 ######
 
-# STORAGE_DATA=/home/nishida/projects/kapipe/experiments/prostruct_rag_pipeline_emnlp2026/data
-# STORAGE_RESULTS=/home/nishida/projects/kapipe/experiments/prostruct_rag_pipeline_emnlp2026/results
-STORAGE_DATA=/home/nishida/storage/projects/kapipe/experiments/datasets
-STORAGE_RESULTS=/home/nishida/storage/projects/kapipe/experiments/prostruct_rag_pipeline_emnlp2026/results
+STORAGE_DATA=/home/nishida/projects/kapipe/experiments/prostruct_rag_pipeline_emnlp2026/data
+STORAGE_RESULTS=/home/nishida/projects/kapipe/experiments/prostruct_rag_pipeline_emnlp2026/results
 
 ######
 # Experiment configuration
@@ -19,19 +17,15 @@ CONFIG_PATH=./config/default.conf
 CONFIG_NAME=gpt4o_mini___gpt4o_mini_contriever_top20_temporal___gpt4o_temporal___default___contriever_top10___hop0_temporal___temporal___gpt4o_with_context
 
 # Input Data
-# INPUT_PASSAGES=${STORAGE_DATA}/examples/articles.jsonl
-# INPUT_QUESTIONS=${STORAGE_DATA}/examples/questions.json
-INPUT_PASSAGES=${STORAGE_DATA}/articles/clark_news/articles.jsonl
-INPUT_QUESTIONS=${STORAGE_DATA}/qa/clark_news/questions_filtered.json
+INPUT_PASSAGES=${STORAGE_DATA}/examples/articles.jsonl
+INPUT_QUESTIONS=${STORAGE_DATA}/examples/questions.json
 
 # Output Path
 RESULTS_DIR=${STORAGE_RESULTS}
-# MYPREFIX=example
-MYPREFIX=clark_news
+MYPREFIX=example
 
 # (optional) Evaluation
-# GOLD_QUESTIONS=${STORAGE_DATA}/examples/questions.json
-GOLD_QUESTIONS=${STORAGE_DATA}/qa/clark_news/questions_filtered.json
+GOLD_QUESTIONS=${STORAGE_DATA}/examples/questions.json
 
 ######
 # Command-line arguments
@@ -39,7 +33,6 @@ GOLD_QUESTIONS=${STORAGE_DATA}/qa/clark_news/questions_filtered.json
 
 # Initialize the requested action
 ACTIONTYPE=
-BATCH_MODE=
 
 # Parse command-line arguments
 while [ "$#" -gt 0 ]; do
@@ -50,13 +43,6 @@ while [ "$#" -gt 0 ]; do
         fi
         ACTIONTYPE=$2
         shift 2
-    elif [ "$1" = "--batch_mode" ]; then
-        if [ "$#" -lt 2 ]; then
-            echo "Error: --batch_mode requires a value"
-            exit 1
-        fi
-        BATCH_MODE=$2
-        shift 2
     else
         echo "Error: Unknown argument: $1"
         exit 1
@@ -65,26 +51,8 @@ done
 
 # Validate the action type
 if [ -z "${ACTIONTYPE}" ]; then
-    echo "Usage: bash run_prostruct_rag_pipeline.sh --actiontype {proposition_extraction|proposition_relation_extraction|proposition_relation_refinement|passage_graph_construction|passage_retrieval_indexing|inference|all} [--batch_mode {submit|fetch}]"
+    echo "Usage: bash run_prostruct_rag_pipeline.sh --actiontype {proposition_extraction|proposition_relation_extraction|proposition_relation_refinement|passage_graph_construction|passage_retrieval_indexing|inference|all}"
     exit 1
-fi
-
-# Validate the optional Batch API mode
-if [ -n "${BATCH_MODE}" ] && [ "${BATCH_MODE}" != "submit" ] && [ "${BATCH_MODE}" != "fetch" ]; then
-    echo "Error: --batch_mode must be submit or fetch"
-    exit 1
-fi
-
-# Validate that "all" action type is not used with batch mode
-if [ "${ACTIONTYPE}" = "all" ] && [ -n "${BATCH_MODE}" ]; then
-    echo "Error: Run each stage separately with submit and fetch"
-    exit 1
-fi
-
-# Prepare the optional Batch API arguments
-BATCH_MODE_ARGS=()
-if [ -n "${BATCH_MODE}" ]; then
-    BATCH_MODE_ARGS=(--batch_mode "${BATCH_MODE}")
 fi
 
 ######
@@ -99,8 +67,7 @@ if [ "${ACTIONTYPE}" = "proposition_extraction" ] || [ "${ACTIONTYPE}" = "all" ]
         --input_passages ${INPUT_PASSAGES} \
         --results_dir ${RESULTS_DIR} \
         --prefix ${MYPREFIX} \
-        --actiontype proposition_extraction \
-        "${BATCH_MODE_ARGS[@]}"
+        --actiontype proposition_extraction
 fi
 
 if [ "${ACTIONTYPE}" = "proposition_relation_extraction" ] || [ "${ACTIONTYPE}" = "all" ]; then
@@ -110,8 +77,7 @@ if [ "${ACTIONTYPE}" = "proposition_relation_extraction" ] || [ "${ACTIONTYPE}" 
         --config_name ${CONFIG_NAME} \
         --results_dir ${RESULTS_DIR} \
         --prefix ${MYPREFIX} \
-        --actiontype proposition_relation_extraction \
-        "${BATCH_MODE_ARGS[@]}"
+        --actiontype proposition_relation_extraction
 fi
 
 if [ "${ACTIONTYPE}" = "proposition_relation_refinement" ] || [ "${ACTIONTYPE}" = "all" ]; then
@@ -121,8 +87,7 @@ if [ "${ACTIONTYPE}" = "proposition_relation_refinement" ] || [ "${ACTIONTYPE}" 
         --config_name ${CONFIG_NAME} \
         --results_dir ${RESULTS_DIR} \
         --prefix ${MYPREFIX} \
-        --actiontype proposition_relation_refinement \
-        "${BATCH_MODE_ARGS[@]}"
+        --actiontype proposition_relation_refinement
 fi
 
 if [ "${ACTIONTYPE}" = "passage_graph_construction" ] || [ "${ACTIONTYPE}" = "all" ]; then
@@ -132,8 +97,7 @@ if [ "${ACTIONTYPE}" = "passage_graph_construction" ] || [ "${ACTIONTYPE}" = "al
         --config_name ${CONFIG_NAME} \
         --results_dir ${RESULTS_DIR} \
         --prefix ${MYPREFIX} \
-        --actiontype passage_graph_construction \
-        "${BATCH_MODE_ARGS[@]}"
+        --actiontype passage_graph_construction
 fi
 
 if [ "${ACTIONTYPE}" = "passage_retrieval_indexing" ] || [ "${ACTIONTYPE}" = "all" ]; then
@@ -143,8 +107,7 @@ if [ "${ACTIONTYPE}" = "passage_retrieval_indexing" ] || [ "${ACTIONTYPE}" = "al
         --config_name ${CONFIG_NAME} \
         --results_dir ${RESULTS_DIR} \
         --prefix ${MYPREFIX} \
-        --actiontype passage_retrieval_indexing \
-        "${BATCH_MODE_ARGS[@]}"
+        --actiontype passage_retrieval_indexing
 fi
 
 if [ "${ACTIONTYPE}" = "inference" ] || [ "${ACTIONTYPE}" = "all" ]; then
@@ -157,6 +120,5 @@ if [ "${ACTIONTYPE}" = "inference" ] || [ "${ACTIONTYPE}" = "all" ]; then
         --prefix ${MYPREFIX} \
         --actiontype inference \
         --do_evaluation \
-        --gold ${GOLD_QUESTIONS} \
-        "${BATCH_MODE_ARGS[@]}"
+        --gold ${GOLD_QUESTIONS}
 fi
