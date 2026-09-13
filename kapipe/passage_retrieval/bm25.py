@@ -139,7 +139,7 @@ class BM25(BasePassageRetriever):
     ) -> None:
         """Save the built index."""
 
-        # Require a built index before saving
+        # Validate that the BM25 index has been built before saving
         if (
             self.passages is None
             or self.word_to_id is None
@@ -241,7 +241,7 @@ class BM25(BasePassageRetriever):
     def _search_one(self, query: str, top_k: int) -> list[Passage]:
         """Retrieve the top-k passages for a single query."""
 
-        # Require a built index before retrieval
+        # Validate that the BM25 index has been built before retrieval
         if self.passages is None:
             raise RuntimeError(
                 "Passages are not indexed. Call make_index() first"
@@ -291,7 +291,7 @@ class BM25(BasePassageRetriever):
     ) -> np.ndarray:
         """Compute BM25 scores for all indexed passages."""
 
-        # Require a built index before scoring
+        # Validate that the BM25 index has been built before scoring
         if (
             self.n_passages is None
             or self.word_to_id is None

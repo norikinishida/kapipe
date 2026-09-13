@@ -107,33 +107,34 @@ class ApproximateNearestNeighborSearch:
     ]:
         """Retrieve the top-k passages for each of the query vectors."""
 
-        # Require a built or loaded index before searching
+        # Validate that the ANN index has been built or loaded before searching
         if self.anns_index is None:
             raise RuntimeError(
                 "ANN index is not available. "
                 "Call make_index() or load() first"
             )
 
-        # Require a positive retrieval size
+        # Validate that the retrieval size is positive
         if top_k <= 0:
             raise ValueError(
                 f"top_k must be positive: {top_k}"
             )
 
-        # Require a positive query batch size
+        # Validate that the query batch size is positive
         if batch_size <= 0:
             raise ValueError(
                 f"batch_size must be positive: {batch_size}"
             )
 
-        # Require at least one indexed passage vector
+        # Validate that there is at least one indexed passage vector
         n_passages = self.anns_index.ntotal
         if n_passages == 0:
             raise RuntimeError(
                 "ANN index contains no passage vectors"
             )
 
-        # Prevent FAISS from returning -1 for missing neighbors
+        # Prevent FAISS from returning -1 for missing neighbors.
+        # Warn the user if top_k exceeds the number of indexed passages.
         if top_k > n_passages:
             logger.warning(
                 "Reducing top_k from %d to %d because "
@@ -196,7 +197,7 @@ class ApproximateNearestNeighborSearch:
     def save(self, path: str) -> None:
         """Save the ANN index."""
 
-        # Require a built or loaded index before saving
+        # Validate that the ANN index has been built or loaded before saving
         if self.anns_index is None:
             raise RuntimeError(
                 "ANN index is not available. "

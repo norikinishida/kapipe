@@ -26,7 +26,7 @@ wget -c \
     "${CONFACT_BASE_URL}/${HUMC_FILENAME}" \
     -O "${CONFACT}/${HUMC_FILENAME}"
 
-# Reject incomplete or unexpectedly modified official data files
+# Validate the integrity of the downloaded files using SHA-256 checksums
 echo "${MODC_SHA256}  ${CONFACT}/${MODC_FILENAME}" \
     | sha256sum --check --status
 echo "${HUMC_SHA256}  ${CONFACT}/${HUMC_FILENAME}" \

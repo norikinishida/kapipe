@@ -53,11 +53,11 @@ class GraphRetriever(BaseGraphRetriever):
     ) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
         """Retrieve nodes and directed edges within the requested hop size."""
 
-        # Reject an invalid neighborhood depth
+        # Validate that the hop size is non-negative
         if hop_size < 0:
             raise ValueError("hop_size must be greater than or equal to 0.")
 
-        # Require both graph representations to be initialized
+        # Validate that the graph has been initialized
         if self.graph is None or self.undirected_graph is None:
             raise ValueError(
                 "Graph is not initialized. Call make_index(graph) first."
@@ -164,7 +164,7 @@ class GraphRetriever(BaseGraphRetriever):
     ) -> set[str]:
         """Collect graph nodes reachable from the anchor nodes."""
 
-        # Require the undirected search index to be initialized
+        # Validate that the undirected search index has been initialized
         if self.undirected_graph is None:
             raise ValueError(
                 "Graph is not initialized. Call make_index(graph) first."

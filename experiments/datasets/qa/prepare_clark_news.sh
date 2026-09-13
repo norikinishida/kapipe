@@ -18,7 +18,7 @@ if [ ! -d "${ERASE}/.git" ]; then
     git -C "${ERASE}" switch --detach "${ERASE_COMMIT}"
 fi
 
-# Require the tested dataset revision without modifying an existing clone
+# Validate that the ERASE repository is at the expected commit
 CURRENT_ERASE_COMMIT=$(git -C "${ERASE}" rev-parse HEAD)
 if [ "${CURRENT_ERASE_COMMIT}" != "${ERASE_COMMIT}" ]; then
     echo "Unexpected ERASE revision: ${CURRENT_ERASE_COMMIT}" >&2

@@ -113,7 +113,7 @@ class OpenAILLM(BaseLLM):
         fetch_batch() call.
         """
 
-        # Require at least one request
+        # Validate that at least one prompt is provided
         if len(prompts) == 0:
             raise ValueError("At least one prompt is required")
 
@@ -137,7 +137,7 @@ class OpenAILLM(BaseLLM):
                 json.dumps(request, ensure_ascii=False) + "\n"
             ).encode("utf-8")
 
-            # Reject a request that cannot fit into an otherwise empty batch
+            # Validate that the request line does not exceed the maximum allowed size
             if len(request_line) > OPENAI_BATCH_MAX_BYTES:
                 raise ValueError("A single batch request exceeds 200 MB")
 
@@ -238,6 +238,8 @@ class OpenAILLM(BaseLLM):
                         "content"
                     ]
                 )
+
+                # Validate the generated text
                 if generated_text is None:
                     raise RuntimeError(
                         "OpenAI response did not contain text output."
@@ -279,6 +281,8 @@ def generate_with_backoff(
 
     # Extract the generated text from the first completion
     generated_text = response.choices[0].message.content
+
+    # Validate the generated text
     if generated_text is None:
         raise RuntimeError("OpenAI response did not contain text output.")
 

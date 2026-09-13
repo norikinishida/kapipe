@@ -48,7 +48,7 @@ while [ "$#" -gt 0 ]; do
     fi
 done
 
-# Require the action type
+# Validate that the action type is provided
 if [ -z "${ACTIONTYPE}" ]; then
     echo "Usage: bash run_rag_pipeline.sh --actiontype {indexing|inference|all}"
     exit 1

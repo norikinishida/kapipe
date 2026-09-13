@@ -177,7 +177,7 @@ def validate_original_instance(data: dict[str, Any]) -> None:
     assert isinstance(data["question_date"], str), data["question_id"]
     parse_session_date(session_date=data["question_date"])
 
-    # Require the three parallel session arrays to have identical lengths
+    # Validate that the three parallel session arrays have identical lengths
     assert isinstance(data["haystack_session_ids"], list), data["question_id"]
     assert isinstance(data["haystack_dates"], list), data["question_id"]
     assert isinstance(data["haystack_sessions"], list), data["question_id"]
@@ -217,7 +217,7 @@ def validate_original_instance(data: dict[str, Any]) -> None:
                     bool,
                 ), data["question_id"]
 
-    # Require every released answer-session reference to resolve uniquely
+    # Validate that every answer session ID references exactly one haystack session
     assert isinstance(data["answer_session_ids"], list), data["question_id"]
     assert all(
         isinstance(session_id, str)
@@ -269,9 +269,10 @@ def build_unique_session_ids(
             )
         session_ids.append(session_id)
 
-    # Reject a collision with an official ID that already contains the suffix
+    # Validate that all session IDs are unique
     if len(set(session_ids)) != len(session_ids):
         raise ValueError("Failed to create unique LongMemEval session IDs")
+
     return session_ids
 
 

@@ -23,7 +23,7 @@ if [ ! -d "${STREAMINGQA}/google-deepmind.streamingqa/.git" ]; then
         switch --detach "${STREAMINGQA_COMMIT}"
 fi
 
-# Require the tested extraction revision without modifying an existing clone
+# Validate that the current StreamingQA repository is at the expected commit
 CURRENT_STREAMINGQA_COMMIT=$(
     git -C "${STREAMINGQA}/google-deepmind.streamingqa" rev-parse HEAD
 )

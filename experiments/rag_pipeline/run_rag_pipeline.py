@@ -150,9 +150,11 @@ def main(args):
     ##################
 
     if actiontype != "inference":
-        # Load passages for indexing
+        # Validate that the input passages path is provided for indexing
         if input_passages_path is None:
             raise ValueError("--input_passages is required for indexing")
+
+        # Load passages for indexing
         passages: list[dict[str, Any]] = utils.read_jsonl(input_passages_path)
 
         # Set component-specific arguments
@@ -248,7 +250,7 @@ def main(args):
         ##################
 
         if do_evaluation:
-            # Require gold answers only when evaluation is requested
+            # Validate that the gold questions and contexts paths are provided
             if gold_questions_path is None:
                 raise ValueError(
                     "--gold_answers is required when --do_evaluation is set"

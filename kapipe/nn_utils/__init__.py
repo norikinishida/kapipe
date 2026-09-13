@@ -39,7 +39,7 @@ _NAME_TO_MODULE = {
 def __getattr__(name: str) -> Any:
     """Function to lazily import public objects."""
 
-    # Reject unknown public names immediately
+    # Validate that the requested name is part of the public API
     if name not in __all__:
         raise AttributeError(
             f"module '{__name__}' has no attribute '{name}'"

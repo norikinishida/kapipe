@@ -485,7 +485,7 @@ def read_prompt_template(
             with open(path, "r", encoding="utf-8") as f:
                 return f.read()
 
-    # Require the input to be an explicit file path when it is not a packaged name
+    # Validate that the prompt template file path exists
     assert os.path.isfile(prompt_template_name_or_path)
 
     # Load the prompt template from the explicit file path
@@ -517,7 +517,7 @@ def create_intra_inter_map(document) -> dict[str, str]:
         begin_token_index, end_token_index = mention["span"]
         sentence_index = token_index_to_sent_index[begin_token_index]
 
-        # Require the mention to stay inside the same sentence
+        # Validate that the mention stays inside the same sentence
         assert token_index_to_sent_index[end_token_index] == sentence_index
 
         mention_index_to_sentence_index.append(sentence_index)

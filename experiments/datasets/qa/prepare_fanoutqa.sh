@@ -27,7 +27,7 @@ if [ ! -d "${FANOUTQA}/fanoutqa/.git" ]; then
         switch --detach "${FANOUTQA_COMMIT}"
 fi
 
-# Require the tested dataset revision without modifying an existing clone
+# Validate that the current FanOutQA repository is at the expected commit
 CURRENT_FANOUTQA_COMMIT=$(
     git -C "${FANOUTQA}/fanoutqa" rev-parse HEAD
 )

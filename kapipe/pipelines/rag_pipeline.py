@@ -56,6 +56,7 @@ class RAGPipeline:
     ) -> Question:
         """Retrieve passages for a question and generate an answer."""
 
+        # Validate that top_k is a positive integer
         if top_k <= 0:
             raise ValueError("top_k must be a positive integer.")
 

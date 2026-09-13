@@ -41,7 +41,7 @@ def main(args: argparse.Namespace) -> None:
     output_articles_dir: str = args.output_articles_dir
     output_qa_dir: str = args.output_qa_dir
 
-    # Require every released Loong input before starting conversion
+    # Validate that all required Loong input files and directories exist
     if not os.path.isfile(input_questions_file):
         raise FileNotFoundError(
             f"Missing the Loong question file: {input_questions_file}"
@@ -170,7 +170,7 @@ def load_legal_documents(
             raise TypeError(
                 f"Expected a legal document object: {document_id}"
             )
-        # Require only the fields that the official prompt presents to models
+        # Validate that all required fields are present in the legal document
         required_document_fields = {"content", "result"}
         if not required_document_fields.issubset(document):
             raise ValueError(
@@ -247,7 +247,7 @@ def convert_dataset(
                 }
                 contexts.append(article)
 
-                # Require one immutable Passage for each exact document ID
+                # Validate that each document ID maps to a unique Passage
                 document_id_to_article = document_id_to_article_by_dataset[
                     dataset_name
                 ]
@@ -366,7 +366,8 @@ def combine_question_fields(
     ]
     question_template = "\n\n".join(retained_blocks)
 
-    # Require the template to consume every non-empty source field
+    # Validate that the prompt template contains placeholders for 
+    # the instruction and question.
     if "{instruction}" not in question_template:
         raise ValueError("The prompt template does not contain {instruction}")
     if original_question and "{question}" not in question_template:
@@ -476,7 +477,7 @@ def resolve_financial_documents(
     )
     matched_files = sorted(glob.glob(input_pattern))
 
-    # Require the released search key to match at least one source file
+    # Validate that at least one financial document matches the released search key
     if not matched_files:
         raise FileNotFoundError(
             f"Missing financial documents for {source_document_key}"

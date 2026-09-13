@@ -39,7 +39,7 @@ def main(args: argparse.Namespace) -> None:
         referenced_docid_to_document,
     ) = convert_questions(dataset=dataset)
 
-    # Require at least one valid test instance before writing any output
+    # Validate that at least one question was successfully processed
     if not questions:
         raise ValueError("BrowseComp-Plus test contains no questions")
 
@@ -292,7 +292,7 @@ def validate_document(
     query_id: str,
     annotation_name: str,
 ) -> None:
-    # Reject unusable positive annotations before constructing QA outputs
+    # Validate that the document contains all required fields
     if not document["docid"]:
         raise ValueError(f"Empty {annotation_name} docid for query {query_id}")
     if not document["text"].strip():
@@ -372,7 +372,7 @@ def write_articles(
             file.write(json.dumps(output_article, ensure_ascii=False) + "\n")
             article_count += 1
 
-    # Reject incomplete corpus releases before replacing an existing output
+    # Validate that all referenced documents were found
     missing_docids = set(referenced_docid_to_document) - found_referenced_docids
     if missing_docids:
         examples = sorted(missing_docids)[:10]

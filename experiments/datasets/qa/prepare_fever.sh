@@ -36,7 +36,7 @@ wget -c \
     "${FEVER_URL}/${WIKIPEDIA_FILENAME}" \
     -O "${FEVER}/${WIKIPEDIA_FILENAME}"
 
-# Reject incomplete or unexpectedly modified official data files
+# Validate the integrity of the downloaded files using their MD5 checksums
 echo "${TRAIN_MD5}  ${FEVER}/${TRAIN_FILENAME}" \
     | md5sum --check --status
 echo "${DEV_MD5}  ${FEVER}/${DEV_FILENAME}" \

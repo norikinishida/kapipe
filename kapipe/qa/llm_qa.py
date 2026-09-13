@@ -217,7 +217,7 @@ class LLMQA(BaseQA):
             )
             return generated_text.strip(), "", 0.0
 
-        # Require every field defined by the prompt contract
+        # If any required field is missing, return a fallback response
         required_keys = {"rationale", "answer", "score"}
         if not required_keys.issubset(output.keys()):
             logger.warning(
@@ -231,7 +231,7 @@ class LLMQA(BaseQA):
         answer = output["answer"]
         score = output["score"]
 
-        # Validate the generated field types
+        # If any field has an invalid type, return a fallback response
         if not isinstance(rationale, str):
             logger.warning(
                 f"[{question_key}] Invalid rationale: {rationale}"
@@ -248,7 +248,7 @@ class LLMQA(BaseQA):
             )
             return generated_text.strip(), "", 0.0
 
-        # Reject scores outside the required range
+        # If the score is outside the valid range, return a fallback response
         score = float(score)
         if not 0.0 <= score <= 1.0:
             logger.warning(

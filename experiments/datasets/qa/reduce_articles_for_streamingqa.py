@@ -174,7 +174,7 @@ def main(args: argparse.Namespace) -> None:
         len(selected_articles),
     )
 
-    # Fail if an index article cannot be resolved in the source article file
+    # Validate that all selected passage keys have corresponding articles
     missing_passage_keys = selected_passage_keys - set(selected_articles)
     if missing_passage_keys:
         examples = sorted(missing_passage_keys)[:10]

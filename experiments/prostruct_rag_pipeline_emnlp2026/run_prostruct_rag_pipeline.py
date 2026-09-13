@@ -369,9 +369,11 @@ def main(args: argparse.Namespace) -> None:
     else:
         assert base_filename is not None
 
-        # Load questions
+        # Validate that the input questions path is provided for inference
         if input_questions_path is None:
             raise ValueError("--input_questions is required for inference")
+
+        # Load questions
         questions: list[dict[str, Any]] = utils.read_json(input_questions_path)
 
         logging.info(
@@ -451,7 +453,7 @@ def main(args: argparse.Namespace) -> None:
         ##################
 
         if do_evaluation:
-            # Require gold answers only when evaluation is requested
+            # Validate that the gold questions path is provided
             if gold_questions_path is None:
                 raise ValueError(
                     "--gold is required when --do_evaluation is set"

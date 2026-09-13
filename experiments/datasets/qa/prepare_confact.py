@@ -15,7 +15,7 @@ def main(args: argparse.Namespace) -> None:
     output_articles_file: str = args.output_articles_file
     output_dir: str = args.output_dir
 
-    # Require both official CONFACT splits before starting conversion
+    # Validate that both input files exist
     for input_file in [input_modc_file, input_humc_file]:
         if not os.path.isfile(input_file):
             raise FileNotFoundError(f"Missing a CONFACT input file: {input_file}")
@@ -114,7 +114,7 @@ def load_confact_file(input_file: str) -> list[dict[str, Any]]:
     with gzip.open(input_file, "rb") as file:
         data = RestrictedUnpickler(file).load()
 
-    # Require the released top-level list structure
+    # Validate the top-level structure of the loaded data
     assert isinstance(data, list), input_file
     assert all(isinstance(item, dict) for item in data), input_file
     return data
@@ -290,7 +290,7 @@ def validate_evidence_record(
 ) -> None:
     assert isinstance(evidence, dict), question_key
 
-    # Require the split-specific released evidence schema
+    # Validate the evidence record against the expected schema for the split
     if split == "modc":
         evidence_fields = set(evidence)
         required_evidence_fields = {
@@ -335,7 +335,8 @@ def validate_shared_passages(
         for passage in contexts_for_question["contexts"]
     }
 
-    # Require every emitted HumC passage to match its shared ModC identity
+    # Validate that every HumC passage has a corresponding ModC passage 
+    # with the same content.
     for contexts_for_question in humc_gold_contexts:
         for passage in contexts_for_question["contexts"]:
             passage_key = passage["passage_key"]
@@ -354,7 +355,7 @@ class RestrictedUnpickler(pickle.Unpickler):
     """Literal-only unpickler that rejects all global class lookups."""
 
     def find_class(self, module: str, name: str) -> Any:
-        # Reject executable objects because CONFACT contains plain containers
+        # Validate that no global classes are loaded
         raise pickle.UnpicklingError(
             f"Forbidden global in CONFACT pickle: {module}.{name}"
         )

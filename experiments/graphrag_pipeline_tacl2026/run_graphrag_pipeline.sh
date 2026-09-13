@@ -51,7 +51,7 @@ while [ "$#" -gt 0 ]; do
     fi
 done
 
-# Require the action type
+# Validate that the action type is provided
 if [ -z "${ACTIONTYPE}" ]; then
     echo "Usage: bash run_graphrag_pipeline.sh --actiontype {triple_extraction|entity_graph_construction|community_clustering|report_generation|chunking|passage_retrieval_indexing|inference|all}"
     exit 1

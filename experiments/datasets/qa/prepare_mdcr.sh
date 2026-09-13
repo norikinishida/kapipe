@@ -21,7 +21,7 @@ if [ ! -d "${MDCR}/mdcr/.git" ]; then
         switch --detach "${MDCR_COMMIT}"
 fi
 
-# Require the tested dataset revision without modifying an existing clone
+# Validate that the current MDCR repository is at the expected commit
 CURRENT_MDCR_COMMIT=$(
     git -C "${MDCR}/mdcr" rev-parse HEAD
 )

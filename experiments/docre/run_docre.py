@@ -179,7 +179,7 @@ def main(args):
     ##################
 
     if do_evaluation:
-        # Require gold documents only when evaluation is requested
+        # Validate that the gold documents path is provided
         if gold_documents_path is None:
             raise ValueError("--gold is required when --do_evaluation is set")
 

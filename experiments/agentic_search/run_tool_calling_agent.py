@@ -190,7 +190,7 @@ def main(args):
             if agent_step.tool_name != "passage_retrieval":
                 continue
             
-            # Require the output structure declared by the retrieval Tool
+            # Validate the tool output structure
             if not isinstance(agent_step.tool_output, dict):
                 raise TypeError(
                     "The passage_retrieval tool output must be a dictionary."
@@ -229,7 +229,7 @@ def main(args):
     ##################
 
     if do_evaluation:
-        # Require gold answers only when evaluation is requested
+        # Validate that gold answers and contexts are provided
         if gold_questions_path is None:
             raise ValueError("--gold_answers is required when --do_evaluation is set")
         if gold_contexts_path is None:
@@ -366,7 +366,7 @@ def write_agent_trace(
 ) -> None:
     """Append one completed agent trajectory to a human-readable text file."""
 
-    # Require a completed trajectory
+    # Validate that the trajectory contains a final answer
     if trajectory.final_answer is None:
         raise ValueError("The agent trajectory must contain a final answer.")
 

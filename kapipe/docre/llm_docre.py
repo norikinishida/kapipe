@@ -146,7 +146,8 @@ class LLMDocRE(BaseDocRE):
             logger.info(f"Loaded relation meta-information from {meta_path}")
         self.rel_meta_info = rel_meta_info
 
-        # Require entity dictionary only when canonical entity names are used
+        # Validate that the entity dictionary path is provided 
+        # when using canonical entity names.
         if self.mention_style == "canonical_name" and entity_dict_path is None:
             raise ValueError(
                 "entity_dict_path is required when mention_style is canonical_name"

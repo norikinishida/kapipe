@@ -16,7 +16,7 @@ def main(args: argparse.Namespace) -> None:
     output_articles_file: str = args.output_articles_file
     output_dir: str = args.output_dir
 
-    # Require every official FEVER input before starting conversion
+    # Validate that all required FEVER input files and directories exist
     for input_path in [
         input_train_file,
         input_dev_file,
@@ -208,7 +208,8 @@ def validate_claim(
                 evidence,
             )
 
-    # Require evidence only for verifiable claims, as defined by FEVER
+    # Validate that verifiable claims have non-null evidence and 
+    # that non-verifiable claims do not.
     has_non_null_evidence = any(
         evidence[2] is not None
         for evidence_set in data["evidence"]
@@ -343,13 +344,17 @@ def parse_wikipedia_lines(
         if not fields[0].isdigit():
             continue
 
-        # Require every remaining line to contain a sentence ID and text
+        # Validate that each line contains at least a sentence ID and text
         if len(fields) < 2:
             raise ValueError(
                 f"Malformed FEVER Wikipedia line in {wikipedia_id}: {raw_line}"
             )
+
+        # Extract the sentence ID and text from the first two columns
         sentence_id = int(fields[0])
         sentence_text = fields[1]
+
+        # Validate that the sentence ID is unique within the article
         if sentence_id in sentence_id_to_text:
             raise ValueError(
                 f"Duplicate sentence ID in {wikipedia_id}: {sentence_id}"

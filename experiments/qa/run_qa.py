@@ -166,7 +166,7 @@ def main(args):
     ##################
 
     if do_evaluation:
-        # Require gold answers only when evaluation is requested
+        # Validate that the gold questions path is provided
         if gold_questions_path is None:
             raise ValueError("--gold is required when --do_evaluation is set")
 

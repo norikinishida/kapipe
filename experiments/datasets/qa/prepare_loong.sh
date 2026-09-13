@@ -23,7 +23,7 @@ if [ ! -d "${LOONG_REPOSITORY}/.git" ]; then
         switch --detach "${LOONG_COMMIT}"
 fi
 
-# Require the tested dataset revision without modifying an existing clone
+# Validate that the current Loong repository is at the expected commit
 CURRENT_LOONG_COMMIT=$(
     git -C "${LOONG_REPOSITORY}" rev-parse HEAD
 )

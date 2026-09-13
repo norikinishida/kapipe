@@ -280,7 +280,7 @@ class LLMPropositionRelationExtractor(BasePropositionRelationExtractor):
                 )
                 continue
 
-            # Require every output field defined by the prompt contract
+            # Skip entries that do not contain all required keys
             required_keys = {"object_index", "relation", "explanation"}
             if not required_keys.issubset(entry.keys()):
                 logger.warning(
@@ -289,7 +289,7 @@ class LLMPropositionRelationExtractor(BasePropositionRelationExtractor):
                 )
                 continue
 
-            # Require an integer index into the input tail list
+            # Skip entries with an invalid object_index
             tail_index = entry["object_index"]
             if isinstance(tail_index, bool) or not isinstance(tail_index, int):
                 logger.warning(
@@ -298,6 +298,8 @@ class LLMPropositionRelationExtractor(BasePropositionRelationExtractor):
                     entry,
                 )
                 continue
+
+            # Skip entries with an out-of-range object_index
             tail_index = int(tail_index)
             if not 0 <= tail_index < len(tail_propositions):
                 logger.warning(
@@ -306,9 +308,11 @@ class LLMPropositionRelationExtractor(BasePropositionRelationExtractor):
                     entry,
                 )
                 continue
+
+            # Retrieve the tail proposition corresponding to the validated index
             tail_proposition = tail_propositions[tail_index]
 
-            # Require a textual relation label
+            # Skip entries with a non-string relation label
             relation_label = entry["relation"]
             if not isinstance(relation_label, str):
                 logger.warning(
@@ -318,7 +322,7 @@ class LLMPropositionRelationExtractor(BasePropositionRelationExtractor):
                 continue
             relation_label = relation_label.strip()
 
-            # Require a textual explanation for the extracted relation
+            # Skip entries with a non-string explanation
             explanation = entry["explanation"]
             if not isinstance(explanation, str):
                 logger.warning(
@@ -327,8 +331,11 @@ class LLMPropositionRelationExtractor(BasePropositionRelationExtractor):
                     entry,
                 )
                 continue
+
+            # Normalize the explanation
             explanation = explanation.strip()
 
+            # Skip entries with a "NOREL" relation label
             if relation_label == "NOREL":
                 continue
 

@@ -13,7 +13,7 @@ def main(args: argparse.Namespace) -> None:
     output_articles_file: str = args.output_articles_file
     output_dir: str = args.output_dir
 
-    # Require the recommended official annotation file before conversion
+    # Validate that the input file exists before proceeding
     if not os.path.isfile(input_file):
         raise FileNotFoundError(f"Missing a ConfRAG input file: {input_file}")
 
@@ -38,12 +38,13 @@ def main(args: argparse.Namespace) -> None:
                 article_key_to_passage_key=article_key_to_passage_key,
             )
 
-            # Reject duplicate identifiers before writing an ambiguous dataset
+            # Validate that the question key is unique before adding it to the list
             question_key = question["question_key"]
             if question_key in seen_question_keys:
                 raise ValueError(
                     f"Duplicate ConfRAG question key: {question_key}"
                 )
+
             seen_question_keys.add(question_key)
             questions.append(question)
             gold_contexts.append(contexts_for_question)
@@ -262,7 +263,8 @@ def convert_answers(
         ), question_key
         assert isinstance(original_answer["reason"], list), question_key
 
-        # Require clusters to reference existing, mutually exclusive contexts
+        # Validate that the answer indices reference existing contexts and 
+        # are mutually exclusive.
         answer_indices = original_answer["index"]
         if len(answer_indices) != len(set(answer_indices)):
             raise ValueError(
@@ -335,7 +337,7 @@ def convert_reasons(
             for keyword in original_reason["reason_judge_keyword"]
         ), question_key
 
-        # Require each reason to cite only contexts in its answer cluster
+        # Validate that the reason indices are within the answer cluster
         reason_indices = original_reason["index"]
         if not set(reason_indices).issubset(answer_indices):
             raise ValueError(

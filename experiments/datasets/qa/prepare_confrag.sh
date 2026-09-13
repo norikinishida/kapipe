@@ -20,7 +20,7 @@ wget -c \
     "${CONFRAG_URL}" \
     -O "${CONFRAG}/${CONFRAG_FILENAME}"
 
-# Reject incomplete or unexpectedly modified annotation files
+# Validate the integrity of the downloaded file using its SHA-256 checksum
 echo "${CONFRAG_SHA256}  ${CONFRAG}/${CONFRAG_FILENAME}" \
     | sha256sum --check --status
 
