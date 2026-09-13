@@ -88,6 +88,21 @@ def main(args: argparse.Namespace) -> None:
     additional_triples_path = args.additional_triples
     input_questions_path = args.input_questions
 
+    # Collect explicitly specified input artifacts
+    input_artifact_paths: dict[str, str] = {}
+    if args.input_documents_with_triples is not None:
+        input_artifact_paths["documents_with_triples"] = (
+            args.input_documents_with_triples
+        )
+    if args.input_graph is not None:
+        input_artifact_paths["graph"] = args.input_graph
+    if args.input_communities is not None:
+        input_artifact_paths["communities"] = args.input_communities
+    if args.input_reports is not None:
+        input_artifact_paths["reports"] = args.input_reports
+    if args.input_chunked_reports is not None:
+        input_artifact_paths["chunked_reports"] = args.input_chunked_reports
+
     # Output Path
     results_dir = args.results_dir
     prefix = args.prefix
@@ -306,6 +321,7 @@ def main(args: argparse.Namespace) -> None:
             passage_retrieval_indexing_kwargs=passage_retrieval_indexing_kwargs,
             # Target component for indexing
             target_component=actiontype,
+            input_artifact_paths=input_artifact_paths,
         )
 
     else:
@@ -832,6 +848,12 @@ if __name__ == "__main__":
     parser.add_argument("--entity_dict", type=str, default=None)
     parser.add_argument("--additional_triples", type=str, default=None)
     parser.add_argument("--input_questions", type=str, default=None)
+
+    parser.add_argument("--input_documents_with_triples", type=str, default=None)
+    parser.add_argument("--input_graph", type=str, default=None)
+    parser.add_argument("--input_communities", type=str, default=None)
+    parser.add_argument("--input_reports", type=str, default=None)
+    parser.add_argument("--input_chunked_reports", type=str, default=None)
 
     # Output Path
     parser.add_argument("--results_dir", type=str, required=True)
