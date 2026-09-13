@@ -440,26 +440,6 @@ class LLMNER(BaseNER):
 
         return spans
 
-    def batch_extract(
-        self,
-        documents: list[Document],
-    ) -> list[Document]:
-        """Extract named entity mentions from a batch of documents."""
-
-        result_documents: list[Document] = []
-
-        for document in tqdm(
-            documents,
-            total=len(documents),
-            desc="extraction steps"
-        ):
-            result_document = self.extract(
-                document=document,
-            )
-            result_documents.append(result_document)
-
-        return result_documents
-
 
 #####################
 # Trainer (Evaluator)
@@ -518,9 +498,16 @@ class LLMNERTrainer:
     ) -> dict[str, Any] | None:
 
         # Apply the extractor
-        result_documents = extractor.batch_extract(
-            documents=documents,
-        )
+        result_documents: list[Document] = []
+        for document in tqdm(
+            documents,
+            total=len(documents),
+            desc="extraction steps"
+        ):
+            result_document = extractor.extract(
+                document=document,
+            )
+            result_documents.append(result_document)
 
         # Save the prediction results
         utils.write_json(self.paths[f"{split}_pred_path"], result_documents)

@@ -449,26 +449,6 @@ class BlinkBiEncoder(BaseEDRetriever):
 
             return result_document, candidate_entities_for_doc
 
-    def batch_search(
-        self,
-        documents: list[Document],
-        retrieval_size: int,
-    ) -> tuple[list[Document], list[CandidateEntitiesForDocument]]:
-        """Retrieve candidate entities for each mention in a batch of documents."""
-
-        result_documents: list[Document] = []
-        candidate_entities: list[CandidateEntitiesForDocument] = []
-
-        for document in tqdm(documents, desc="retrieval steps"):
-            result_document, candidate_entities_for_doc = self.search(
-                document=document,
-                retrieval_size=retrieval_size
-            )
-            result_documents.append(result_document)
-            candidate_entities.append(candidate_entities_for_doc)
-
-        return result_documents, candidate_entities
-
 
 #####################
 # Trainer (Evaluator), Model, Preprocessor
@@ -819,11 +799,14 @@ class BlinkBiEncoderTrainer:
         flatten_candidate_entities: list[dict[str, list[CandEntKeyInfo]]] = []
 
         # Predict candidate entities for each mention in each document
-        _, candidate_entities = retriever.batch_search(
-            documents=documents,
-            retrieval_size=RETRIEVAL_SIZE
-        )
- 
+        candidate_entities: list[CandidateEntitiesForDocument] = []
+        for document in tqdm(documents, desc="retrieval steps"):
+            _, candidate_entities_for_doc = retriever.search(
+                document=document,
+                retrieval_size=RETRIEVAL_SIZE
+            )
+            candidate_entities.append(candidate_entities_for_doc)
+
         all_entity_ids = set(list(retriever.entity_dict.keys()))
         n_total_mentions = 0
         n_inbatch_negatives = 0
@@ -944,10 +927,17 @@ class BlinkBiEncoderTrainer:
         get_scores_only: bool = False,
     ) -> dict[str, Any] | None:
         # Apply the retriever
-        result_documents, candidate_entities = retriever.batch_search(
-            documents=documents,
-            retrieval_size=retrieval_size,
-        )
+        result_documents: list[Document] = []
+        candidate_entities: list[CandidateEntitiesForDocument] = []
+        for document in tqdm(documents, desc="retrieval steps"):
+            result_document, candidate_entities_for_doc = retriever.search(
+                document=document,
+                retrieval_size=retrieval_size
+            )
+            result_documents.append(result_document)
+            candidate_entities.append(candidate_entities_for_doc)
+
+        # Save the retrieved results
         utils.write_json(self.paths[f"{split}_pred_path"], result_documents)
         utils.write_json(
             self.paths[f"{split}_pred_retrieval_path"],

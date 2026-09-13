@@ -257,39 +257,6 @@ class LLMQA(BaseQA):
             return generated_text.strip(), "", 0.0
 
         return answer.strip(), rationale.strip(), score
- 
-    def batch_answer(
-        self,
-        questions: list[Question],
-        # optional: context augmentation
-        contexts: list[ContextsForOneExample] | list[None] | None = None
-    ) -> list[Question]:
-        """Answer a batch of questions."""
-
-        results: list[Question] = []
-
-        # Use a list of None for contexts if not provided
-        if contexts is None:
-            contexts = [None] * len(questions)
-
-        # Validate that the number of contexts matches the number of questions
-        if len(contexts) != len(questions):
-            raise ValueError(
-                f"Expected {len(questions)} contexts, but got {len(contexts)}"
-            )
-
-        for question, contexts_for_q in tqdm(
-            zip(questions, contexts),
-            total=len(questions),
-            desc="answering steps"
-        ):
-            result = self.answer(
-                question=question,
-                contexts_for_question=contexts_for_q
-            )
-            results.append(result)
-
-        return results
 
     def submit_batch(
         self,

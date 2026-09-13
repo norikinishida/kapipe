@@ -323,17 +323,6 @@ class ATLOP(BaseDocRE):
 
         return triples
 
-    def batch_extract(self, documents: list[Document]) -> list[Document]:
-        """Extract triples from a batch of documents."""
-
-        result_documents: list[Document] = []
-
-        for document in tqdm(documents, desc="extraction steps"):
-            result_document = self.extract(document=document)
-            result_documents.append(result_document)
-
-        return result_documents
-
 
 #####################
 # Trainer (Evaluator), Model, Preprocessor
@@ -738,7 +727,12 @@ class ATLOPTrainer:
         get_scores_only: bool = False
     ) -> dict[str, Any] | None:
         # Apply the extractor
-        result_documents = extractor.batch_extract(documents=documents)
+        result_documents: list[Document] = []
+        for document in tqdm(documents, desc="extraction steps"):
+            result_document = extractor.extract(document=document)
+            result_documents.append(result_document)
+
+        # Save the prediction results
         utils.write_json(self.paths[f"{split}_pred_path"], result_documents)
 
         if prediction_only:
@@ -772,8 +766,15 @@ class ATLOPTrainer:
         get_scores_only: bool = False
     ) -> dict[str, Any]:
         # Apply the extractor
-        result_documents = extractor.batch_extract(documents=documents)
+        result_documents: list[Document] = []
+        for document in tqdm(documents, desc="extraction steps"):
+            result_document = extractor.extract(document=document)
+            result_documents.append(result_document)
+
+        # Save the prediction results
         utils.write_json(self.paths[f"{split}_pred_path"], result_documents)
+
+        # Convert the prediction results to the official format
         triples = evaluation.docre.to_official(
             input_path=self.paths[f"{split}_pred_path"],
             output_path=self.paths[f"{split}_pred_path"].replace(".json", ".official.json")
