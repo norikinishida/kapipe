@@ -2,16 +2,17 @@
 
 # KAPipe
 
-**KAPipe** is a modular framework for building *Knowledge Acquisition systems* from unstructured data.
+![An overview of knowledge acquisition system](./images/knowledge_acquisition_systems_overview_figure002.png)
 
-Knowledge Acquisition systems can be decomposed into four main stages:
+**KAPipe** is a modular framework for building knowledge acquisition systems from unstructured data.
+
+In KAPipe, a knowledge acquisition system consists of four stages:
 
 1. **Extraction**: extracting knowledge units from unstructured data.
 2. **Organization**: organizing extracted knowledge units into structured representations such as knowledge graph.
-3. **Retrieval**: retrieving relevant knowledge for a given query or task.
-4. **Utilization**: using retrieved structured knowledge for downstream tasks such as question answering.
+3. **Retrieval**: retrieving relevant knowledge for a given request.
+4. **Utilization**: using retrieved knowledge to solve for downstream tasks such as question answering.
 
-![An overview of knowledge acquisition system](./images/knowledge_acquisition_systems_overview_figure002.png)
 
 KAPipe is used in the following papers:
 
@@ -261,10 +262,10 @@ graphrag.load_index(index_dir=index_dir)
 
 # Answer questions using the GraphRAG index
 questions = utils.read_json(os.path.join(data_dir, "questions.json"))
-answers = [
-    graphrag.infer(question=question, top_k=5)
-    for question in questions
-]
+answers = graphrag.infer(
+    questions=questions,
+    top_k=5,
+)
 
 # Save the results
 utils.write_json("./predictions.json", answers)

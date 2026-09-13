@@ -41,7 +41,7 @@ All constructor arguments must be specified.
 |---|---|
 | `make_index()` | Builds a retrieval index over passages |
 | `load_index()` | Loads the retrieval index for inference |
-| `infer()` | Retrieves passages for one question and generates an answer |
+| `infer()` | Retrieves passages for each question and generates answers |
 
 ## Usage
 
@@ -86,9 +86,9 @@ rag.load_index(
 ### Run Inference:
 
 ```python
-# Retrieve passages and answer one question
-result_question = rag.infer(
-    question=question,
+# Retrieve passages and answer multiple questions
+result_questions = rag.infer(
+    questions=questions,
     top_k=5,
 )
 ```
@@ -103,9 +103,9 @@ The contents of the retrieval index depend on the selected Passage Retrieval com
 
 ## Inference Output
 
-The output preserves the fields returned by the Question Answering component and adds `contexts`, containing the passages returned by Passage Retrieval.
+Each output preserves the fields returned by the Question Answering component and adds `contexts`, containing the passages returned by Passage Retrieval.
 
-The pipeline does not save inference output automatically. The caller is responsible for saving `result_question`.
+The pipeline does not save inference output automatically. The caller is responsible for saving `result_questions`.
 
 ## Example
 

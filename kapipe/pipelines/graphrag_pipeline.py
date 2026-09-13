@@ -364,10 +364,10 @@ class GraphRAGPipeline:
 
     def infer(
         self,
-        question: Question,
+        questions: list[Question],
         top_k: int,
-    ) -> Question:
-        """Run all inference components and answer one question."""
+    ) -> list[Question]:
+        """Run all inference components and answer the questions."""
 
         # Validate that every inference component is initialized
         if self.passage_retrieval is None:
@@ -375,33 +375,42 @@ class GraphRAGPipeline:
         if self.qa is None:
             raise ValueError("QA component is not initialized.")
 
-        ######################################
-        # [Step 6b] Passage Retrieval (Search)
-        ######################################
+        # Validate that top_k is a positive integer
+        if top_k <= 0:
+            raise ValueError("top_k must be a positive integer.")
 
-        # Retrieve relevant chunked reports
-        retrieved_chunked_reports: list[Passage] = self.passage_retrieval.search(
-            queries=[question["question"]],
-            top_k=top_k,
-        )[0]
+        results: list[Question] = []
+        for question in tqdm(questions, desc="Answering questions"):
 
-        # Wrap retrieved chunked reports in the QA context format
-        contexts_for_question: ContextsForOneExample = {
-            "question_key": question["question_key"],
-            "contexts": retrieved_chunked_reports,
-        }
+            ######################################
+            # [Step 6b] Passage Retrieval (Search)
+            ######################################
 
-        ###############################
-        # [Step 7] Answer Generation
-        ###############################
+            # Retrieve relevant chunked reports
+            retrieved_chunked_reports: list[Passage] = self.passage_retrieval.search(
+                queries=[question["question"]],
+                top_k=top_k,
+            )[0]
 
-        # Generate the final answer
-        result: Question = self.qa.answer(
-            question=question,
-            contexts_for_question=contexts_for_question,
-        )
+            # Wrap retrieved chunked reports in the QA context format
+            contexts_for_question: ContextsForOneExample = {
+                "question_key": question["question_key"],
+                "contexts": retrieved_chunked_reports,
+            }
 
-        # Preserve retrieved contexts
-        result["contexts"] = retrieved_chunked_reports
+            ###############################
+            # [Step 7] Answer Generation
+            ###############################
 
-        return result
+            # Generate the final answer
+            result: Question = self.qa.answer(
+                question=question,
+                contexts_for_question=contexts_for_question,
+            )
+
+            # Preserve retrieved contexts
+            result["contexts"] = retrieved_chunked_reports
+
+            results.append(result)
+
+        return results

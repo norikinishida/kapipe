@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from tqdm import tqdm
+
 from ..chunking.base import BaseChunker
 from ..datatypes import Document
 from ..docre.base import BaseDocRE
@@ -48,28 +50,34 @@ class TripleExtractionPipeline:
 
     def extract_triples(
         self,
-        document: Document,
+        documents: list[Document],
         retrieval_size: int,
-    ) -> Document:
-        """Extract triples from a document."""
+    ) -> list[Document]:
+        """Extract triples from documents."""
 
-        # Extract entity mentions
-        document = self.ner.extract(document=document)
+        results: list[Document] = []
 
-        # Retrieve candidate entities for each mention
-        document, candidate_entities_for_doc = self.ed_retrieval.search(
-            document=document,
-            retrieval_size=retrieval_size
-        )
+        for document in tqdm(documents, desc="Extracting triples from documents"):
 
-        # Rerank candidate entities
-        document = self.ed_reranking.rerank(
-            document=document,
-            candidate_entities_for_doc=candidate_entities_for_doc
-        )
+            # Extract entity mentions
+            document = self.ner.extract(document=document)
 
-        # Extract document-level relations
-        document = self.docre.extract(document=document)
+            # Retrieve candidate entities for each mention
+            document, candidate_entities_for_doc = self.ed_retrieval.search(
+                document=document,
+                retrieval_size=retrieval_size
+            )
 
-        return document
+            # Rerank candidate entities
+            document = self.ed_reranking.rerank(
+                document=document,
+                candidate_entities_for_doc=candidate_entities_for_doc
+            )
+
+            # Extract document-level relations
+            document = self.docre.extract(document=document)
+
+            results.append(document)
+
+        return results
 

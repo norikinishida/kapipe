@@ -1,26 +1,26 @@
 # Triple Extraction Pipeline (`kapipe.pipelines.TripleExtractionPipeline`)
 
-**Triple Extraction Pipeline** connects components that extract relational triples from a document.
+**Triple Extraction Pipeline** connects components that extract relational triples from documents.
 
 The pipeline does not define the behavior of the individual components. See the corresponding component documentation for their inputs, outputs, methods, and configuration.
 
 ## Component Flow
 
 ```text
-Document
-  → Named Entity Recognition
-  → Entity Disambiguation (Retrieval)
-  → Entity Disambiguation (Reranking)
-  → Document-level Relation Extraction
-  → Document with triples
+Document (input)
+→ Named Entity Recognition
+→ Entity Disambiguation (Retrieval)
+→ Entity Disambiguation (Reranking)
+→ Document-level Relation Extraction
+  → Document with triples (output)
 ```
 
 Raw text can optionally be converted into a document before triple extraction.
 
 ```text
-Raw text
-  → Chunking
-  → Document
+Raw text (input)
+→ Chunking
+  → Document (output)
 ```
 
 ## Components
@@ -35,12 +35,12 @@ Raw text
 
 The components must be instantiated before they are passed to the pipeline.
 
-## Methods
+## Pipeline Methods
 
 | Method | Description |
 |---|---|
 | `convert_text_to_document()` | Converts raw text into a document using the Chunking component |
-| `extract_triples()` | Applies NER, ED Retrieval, ED Reranking, and DocRE to one document |
+| `extract_triples()` | Applies NER, ED Retrieval, ED Reranking, and DocRE to each document |
 
 ### `convert_text_to_document()`
 
@@ -57,8 +57,8 @@ This method requires the optional `chunker` component.
 ### `extract_triples()`
 
 ```python
-result_document = pipeline.extract_triples(
-    document=document,
+result_documents = pipeline.extract_triples(
+    documents=[document],
     retrieval_size=10,
 )
 ```
@@ -95,8 +95,8 @@ document = pipeline.convert_text_to_document(
 )
 
 # Apply the connected triple extraction components
-result_document = pipeline.extract_triples(
-    document=document,
+result_documents = pipeline.extract_triples(
+    documents=[document],
     retrieval_size=10,
 )
 ```
@@ -122,8 +122,8 @@ pipeline = TripleExtractionPipeline(
 )
 
 # Apply the pipeline to an existing document
-result_document = pipeline.extract_triples(
-    document=document,
+result_documents = pipeline.extract_triples(
+    documents=[document],
     retrieval_size=10,
 )
 ```

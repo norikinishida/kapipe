@@ -5,7 +5,6 @@ from typing import Any
 import sys
 
 import torch
-from tqdm import tqdm
 import transformers
 
 from kapipe import evaluation
@@ -175,9 +174,11 @@ def main(args):
         )
 
     else:
-        # Load questions
+        # Validate that the input questions path is provided
         if input_questions_path is None:
             raise ValueError("--input_questions is required for inference")
+
+        # Load questions
         questions: list[dict[str, Any]] = utils.read_json(input_questions_path)
 
         logging.info(
@@ -188,14 +189,11 @@ def main(args):
         # Load the index
         rag.load_index(index_dir=index_dir)
 
-        # Run all inference components for everey question
-        result_questions = []
-        for question in tqdm(questions):
-            result_question = rag.infer(
-                question=question,
-                top_k=config["passage_retrieval"]["top_k"],
-            )
-            result_questions.append(result_question)
+        # Run all inference components for every question
+        result_questions: list[dict[str, Any]] = rag.infer(
+            questions=questions,
+            top_k=config["passage_retrieval"]["top_k"],
+        )
 
         # Save the results
         output_questions_path = os.path.join(

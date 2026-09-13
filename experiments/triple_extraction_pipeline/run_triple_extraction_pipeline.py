@@ -5,7 +5,6 @@ from typing import Any
 import sys
 
 import torch
-from tqdm import tqdm
 import transformers
 
 from kapipe import evaluation
@@ -155,13 +154,10 @@ def main(args):
     logging.info(f"Applying the Triple Extraction pipeline to {len(documents)} documents in {input_documents_path} ...")
 
     # Apply the Triple Extraction pipeline to the documents
-    result_documents = []
-    for document in tqdm(documents):
-        result_document = extractor.extract_triples(
-            document=document,
-            retrieval_size=config["ed_retrieval"]["retrieval_size"]
-        )
-        result_documents.append(result_document)
+    result_documents: list[dict[str, Any]] = extractor.extract_triples(
+        documents=documents,
+        retrieval_size=config["ed_retrieval"]["retrieval_size"]
+    )
 
     # Save the results
     output_documents_path = os.path.join(

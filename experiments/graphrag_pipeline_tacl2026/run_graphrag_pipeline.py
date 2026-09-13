@@ -5,7 +5,6 @@ import sys
 from typing import Any
 
 import torch
-from tqdm import tqdm
 import transformers
 
 from kapipe import evaluation
@@ -310,7 +309,7 @@ def main(args: argparse.Namespace) -> None:
         )
 
     else:
-        # Validate that the input questions path is provided for inference
+        # Validate that the input questions path is provided
         if input_questions_path is None:
             raise ValueError("--input_questions is required for inference")
 
@@ -326,13 +325,10 @@ def main(args: argparse.Namespace) -> None:
         graphrag.load_index(index_dir=index_dir)
 
         # Run all inference components for every question
-        result_questions: list[dict[str, Any]] = []
-        for question in tqdm(questions):
-            result_question: dict[str, Any] = graphrag.infer(
-                question=question,
-                top_k=config["passage_retrieval"]["top_k"],
-            )
-            result_questions.append(result_question)
+        result_questions: list[dict[str, Any]] = graphrag.infer(
+            questions=questions,
+            top_k=config["passage_retrieval"]["top_k"],
+        )
 
         # Save the results
         output_questions_path = os.path.join(

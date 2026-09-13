@@ -574,7 +574,7 @@ class ProStructRAGPipeline:
         anchor_contexts_list: list[ContextsForOneExample] = []
         graph_contexts_list: list[ContextsForOneExample] = []
         formatted_contexts_list: list[ContextsForOneExample] = []
-        for question in questions:
+        for question in tqdm(questions, desc="Answering questions"):
 
             #################################
             # [Step 5b] Passage Retrieval (Search)

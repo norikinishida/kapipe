@@ -73,7 +73,7 @@ Calling a method without a component required by that operation raises an error.
 |---|---|
 | `make_index()` | Runs all indexing steps or one selected indexing step |
 | `load_index()` | Loads the retrieval index for inference |
-| `infer()` | Retrieves chunks for one question and generates an answer |
+| `infer()` | Retrieves chunks for each question and generates answers |
 
 ## Usage
 
@@ -200,9 +200,9 @@ graphrag.load_index(
 ### Run Inference:
 
 ```python
-# Retrieve report chunks and answer one question
-result_question = graphrag.infer(
-    question=question,
+# Retrieve report chunks and answer multiple questions
+result_questions = graphrag.infer(
+    questions=questions,
     top_k=5,
 )
 ```
@@ -226,9 +226,9 @@ The contents of `passage_retrieval_index/` depend on the selected Passage Retrie
 
 ## Inference Output
 
-The output preserves the fields returned by the Question Answering component and adds `contexts`, containing the report chunks returned by Passage Retrieval.
+Each output preserves the fields returned by the Question Answering component and adds `contexts`, containing the report chunks returned by Passage Retrieval.
 
-The pipeline does not save inference output automatically. The caller is responsible for saving `result_question`.
+The pipeline does not save inference output automatically. The caller is responsible for saving `result_questions`.
 
 ## Example
 

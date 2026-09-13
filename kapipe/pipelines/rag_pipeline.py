@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from typing import Any
 
+from tqdm import tqdm
+
 from ..datatypes import ContextsForOneExample, Passage, Question
 from ..passage_retrieval.base import BasePassageRetriever
 from ..qa.base import BaseQA
@@ -51,35 +53,46 @@ class RAGPipeline:
 
     def infer(
         self,
-        question: Question,
+        questions: list[Question],
         top_k: int,
-    ) -> Question:
-        """Retrieve passages for a question and generate an answer."""
+    ) -> list[Question]:
+        """Retrieve passages for each question and generate answers."""
+
+        # Validate that every inference component is initialized
+        if self.passage_retrieval is None:
+            raise ValueError("Passage retrieval component is not initialized.")
+        if self.qa is None:
+            raise ValueError("QA component is not initialized.")
 
         # Validate that top_k is a positive integer
         if top_k <= 0:
             raise ValueError("top_k must be a positive integer.")
 
-        # Retrieve passages using the natural language question
-        retrieved_passages = self.passage_retrieval.search(
-            queries=[question["question"]],
-            top_k=top_k,
-        )[0]
+        results: list[Question] = []
+        for question in tqdm(questions, desc="Answering questions"):
 
-        # Wrap retrieved passages in the QA context format
-        contexts_for_question: ContextsForOneExample = {
-            "question_key": question["question_key"],
-            "contexts": retrieved_passages,
-        }
+            # Retrieve passages using the natural language question
+            retrieved_passages = self.passage_retrieval.search(
+                queries=[question["question"]],
+                top_k=top_k,
+            )[0]
 
-        # Generate an answer using the retrieved passages
-        result = self.qa.answer(
-            question=question,
-            contexts_for_question=contexts_for_question,
-        )
+            # Wrap retrieved passages in the QA context format
+            contexts_for_question: ContextsForOneExample = {
+                "question_key": question["question_key"],
+                "contexts": retrieved_passages,
+            }
 
-        # Preserve retrieved contexts in the pipeline output
-        result["contexts"] = retrieved_passages
+            # Generate an answer using the retrieved passages
+            result = self.qa.answer(
+                question=question,
+                contexts_for_question=contexts_for_question,
+            )
 
-        return result
+            # Preserve retrieved contexts in the pipeline output
+            result["contexts"] = retrieved_passages
+
+            results.append(result)
+
+        return results
 
