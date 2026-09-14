@@ -17,8 +17,8 @@ CONFIG_PATH=./config/default.conf
 CONFIG_NAME=default
 
 # Input Data
-INPUT_PASSAGES=${STORAGE_DATA}/examples/passages.jsonl
-INPUT_TRIPLES=${STORAGE_DATA}/examples/triples.json
+INPUT_PASSAGES=${STORAGE_DATA}/examples/corpus/passages.jsonl
+INPUT_TRIPLES=${STORAGE_DATA}/examples/misc/triples.json
 
 # Output Path
 RESULTS_DIR=${STORAGE_RESULTS}

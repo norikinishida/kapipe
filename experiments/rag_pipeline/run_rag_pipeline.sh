@@ -17,10 +17,10 @@ CONFIG_PATH=./config/default.conf
 CONFIG_NAME=qwen3_embedding_06b___gpt5_4_nano
 
 # Input Data
-INPUT_PASSAGES=${STORAGE_DATA}/examples/passages.jsonl
-INPUT_QUESTIONS=${STORAGE_DATA}/examples/questions.json
-GOLD_QUESTIONS=${STORAGE_DATA}/examples/questions_with_answers.json
-GOLD_CONTEXTS=${STORAGE_DATA}/examples/questions.gold_contexts.json
+INPUT_PASSAGES=${STORAGE_DATA}/examples/corpus/passages.jsonl
+INPUT_QUESTIONS=${STORAGE_DATA}/examples/qa/questions.json
+GOLD_QUESTIONS=${STORAGE_DATA}/examples/qa/questions_with_answers.json
+GOLD_CONTEXTS=${STORAGE_DATA}/examples/qa/questions.gold_contexts.json
 
 # Output Path
 RESULTS_DIR=${STORAGE_RESULTS}

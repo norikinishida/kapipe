@@ -17,7 +17,7 @@ CONFIG_PATH=./config/llm_proposition_relation_refiner.conf
 CONFIG_NAME=gpt5_4_temporal
 
 # Input Data
-INPUT_TRIPLES=${STORAGE_DATA}/examples/triples.json
+INPUT_TRIPLES=${STORAGE_DATA}/examples/misc/triples.json
 
 # Output Path
 RESULTS_DIR=${STORAGE_RESULTS}

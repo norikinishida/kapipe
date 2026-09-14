@@ -7,9 +7,6 @@
 STORAGE_DATA=/home/nishida/projects/kapipe/experiments/ner/data
 STORAGE_RESULTS=/home/nishida/projects/kapipe/experiments/ner/results
 
-# STORAGE_DATA=/home/nishida/storage/projects/kapipe/experiments/datasets/ner
-# STORAGE_RESULTS=/home/nishida/storage/projects/kapipe/experiments/ner/results
-
 ######
 # Experiment configuration
 ######
@@ -33,14 +30,14 @@ else
 fi
 
 # Input Data
-INPUT_DOCUMENTS=${STORAGE_DATA}/examples/documents.json
+INPUT_DOCUMENTS=${STORAGE_DATA}/examples/ner/documents.json
 
 # Output Path
 RESULTS_DIR=${STORAGE_RESULTS}
 MYPREFIX=example
 
 # (optional) Evaluation
-GOLD_DOCUMENTS=${STORAGE_DATA}/examples/documents_with_typed_mentions.json
+GOLD_DOCUMENTS=${STORAGE_DATA}/examples/ner/documents_with_typed_mentions.json
 
 ######
 # Experiment execution

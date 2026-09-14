@@ -33,9 +33,9 @@ python -m pip install -r requirements.txt
 This directory already includes example data.
 
 ```bash
-experiments/entity_graph_construction/data/examples/documents_with_triples.json
-experiments/entity_graph_construction/data/examples/additional_triples.json
-experiments/entity_graph_construction/data/examples/entity_dict.json
+experiments/entity_graph_construction/data/examples/docre/documents_with_triples.json
+experiments/entity_graph_construction/data/examples/misc/additional_triples.json
+experiments/entity_graph_construction/data/examples/kb/entity_dict.json
 ```
 
 ## Step 3. Configuration Setup

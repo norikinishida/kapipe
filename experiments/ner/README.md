@@ -33,13 +33,13 @@ python -m pip install -r requirements.txt
 This directory already includes example data.
 
 ```bash
-experiments/ner/data/examples/documents.json
-experiments/ner/data/examples/documents_with_typed_mentions.json
+experiments/ner/data/examples/ner/documents.json
+experiments/ner/data/examples/ner/documents_with_typed_mentions.json
 ```
 
 ### Benchmark datasets
 
-You can also prepare benchmark datasets (e.g., CDR, Linked-DocRED) with the scripts in `experiments/datasets/ner`.
+You can also prepare benchmark datasets (e.g., CDR, Linked-DocRED) with the scripts in `experiments/datasets/`.
 
 ## Step 3. Configuration Setup
 

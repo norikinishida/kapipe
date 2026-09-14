@@ -30,10 +30,10 @@ fi
 # (In practice, use separate files for training, validation, and test data.
 # This example checks whether the model can achieve near 100% accuracy (i.e., overfit) on the training data.)
 DATASET_NAME=cdr
-TRAIN_DOCUMENTS=${STORAGE_DATA}/docre/${DATASET_NAME}/train.json
-DEV_DOCUMENTS=${STORAGE_DATA}/docre/${DATASET_NAME}/dev.json
-TEST_DOCUMENTS=${STORAGE_DATA}/docre/${DATASET_NAME}/test.json
-ENTITY_DICT=${STORAGE_DATA}/kb/mesh/mesh2015.entity_dict.json
+TRAIN_DOCUMENTS=${STORAGE_DATA}/${DATASET_NAME}/docre/train.json
+DEV_DOCUMENTS=${STORAGE_DATA}/${DATASET_NAME}/docre/dev.json
+TEST_DOCUMENTS=${STORAGE_DATA}/${DATASET_NAME}/docre/test.json
+ENTITY_DICT=${STORAGE_DATA}/mesh/kb/mesh2015.entity_dict.json
 
 # Output Path
 RESULTS_DIR=${STORAGE_RESULTS}

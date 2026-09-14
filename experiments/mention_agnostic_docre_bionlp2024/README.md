@@ -34,11 +34,11 @@ python -m pip install -r requirements.txt
 
 ### CDR dataset
 
-The CDR dataset and the MeSH entity dictionary can be prepared using the scripts in `experiments/datasets/docre/prepare_cdr.sh` and `experiments/datasets/kb/prepare_mesh.sh`.
+The CDR dataset and the MeSH entity dictionary can be prepared using the scripts in `experiments/datasets/cdr/prepare_cdr_docre.sh` and `experiments/datasets/mesh/prepare_mesh_kb.sh`.
 
 ### HOIP dataset
 
-The HOIP dataset and the HOIP entity dictionary can be prepared using the scripts in `experiments/datasets/docre/prepare_hoip_dataset.sh` and `experiments/datasets/kb/prepare_hoip.sh`.
+The HOIP dataset and the HOIP entity dictionary can be prepared using the scripts in `experiments/datasets/hoip/prepare_hoip_docre.sh` and `experiments/datasets/hoip/prepare_hoip_kb.sh`.
 
 ## Step 3. Configuration Setup
 

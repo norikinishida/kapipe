@@ -33,8 +33,8 @@ python -m pip install -r requirements.txt
 This directory already includes example data.
 
 ```bash
-experiments/graph_retrieval/data/examples/graph.graphml
-experiments/graph_retrieval/data/examples/questions.contexts.json
+experiments/graph_retrieval/data/examples/misc/graph.graphml
+experiments/graph_retrieval/data/examples/qa/questions.contexts.json
 ```
 
 ## Step 3. Configuration Setup

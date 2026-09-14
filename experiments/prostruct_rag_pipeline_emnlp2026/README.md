@@ -35,8 +35,8 @@ python -m pip install -r requirements.txt
 This directory already contains example data.
 
 ```bash
-experiments/prostruct_rag_pipeline_emnlp2026/data/examples/articles.jsonl
-experiments/prostruct_rag_pipeline_emnlp2026/data/examples/questions.json
+experiments/prostruct_rag_pipeline_emnlp2026/data/examples/corpus/articles.jsonl
+experiments/prostruct_rag_pipeline_emnlp2026/data/examples/qa/questions.json
 ```
 
 `articles.jsonl` contains source passages, and each passage requires `passage_key`, `title` (optional), and `text`.
@@ -48,8 +48,8 @@ When temporal processing is enabled in the configuration, the `timestamp` fields
 We provide the Asteria dataset used in the above paper in the following paths.
 
 ```bash
-experiments/prostruct_rag_pipeline_emnlp2026/data/asteria/propositions.jsonl
-experiments/prostruct_rag_pipeline_emnlp2026/data/asteria/questions.json
+experiments/prostruct_rag_pipeline_emnlp2026/data/asteria/corpus/propositions.jsonl
+experiments/prostruct_rag_pipeline_emnlp2026/data/asteria/qa/questions.json
 ```
 
 ## Step 3. Configuration Setup

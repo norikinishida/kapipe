@@ -33,14 +33,14 @@ python -m pip install -r requirements.txt
 This directory already includes example data.
 
 ```bash
-experiments/ed_reranking/data/examples/documents_with_disambiguated_entities.json
-experiments/ed_reranking/data/examples/candidate_entities.json
-experiments/ed_reranking/data/examples/entity_dict.json
+experiments/ed_reranking/data/examples/ed/documents_with_disambiguated_entities.json
+experiments/ed_reranking/data/examples/misc/candidate_entities.json
+experiments/ed_reranking/data/examples/kb/entity_dict.json
 ```
 
 ### Benchmark datasets
 
-You can also prepare benchmark datasets (e.g., CDR, Linked-DocRED) with the scripts in `experiments/datasets/ed`.
+You can also prepare benchmark datasets (e.g., CDR, Linked-DocRED) with the scripts in `experiments/datasets/`.
 
 ## Step 3. Configuration Setup
 

@@ -31,15 +31,15 @@ else
 fi
 
 # Input Data
-INPUT_PASSAGES=${STORAGE_DATA}/examples/passages.jsonl
-INPUT_QUESTIONS=${STORAGE_DATA}/examples/questions.json
+INPUT_PASSAGES=${STORAGE_DATA}/examples/corpus/passages.jsonl
+INPUT_QUESTIONS=${STORAGE_DATA}/examples/qa/questions.json
 
 # Output Path
 RESULTS_DIR=${STORAGE_RESULTS}
 MYPREFIX=example
 
 # (optional) Evaluation
-GOLD_CONTEXTS=${STORAGE_DATA}/examples/questions.gold_contexts.json
+GOLD_CONTEXTS=${STORAGE_DATA}/examples/qa/questions.gold_contexts.json
 
 ######
 # Experiment execution

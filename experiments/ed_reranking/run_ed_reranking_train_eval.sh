@@ -7,9 +7,6 @@
 STORAGE_DATA=/home/nishida/projects/kapipe/experiments/ed_reranking/data
 STORAGE_RESULTS=/home/nishida/projects/kapipe/experiments/ed_reranking/results
 
-# STORAGE_DATA=/home/nishida/storage/projects/kapipe/experiments/datasets/ed
-# STORAGE_RESULTS=/home/nishida/storage/projects/kapipe/experiments/ed_reranking/results
-
 ######
 # Experiment configuration
 ######
@@ -32,15 +29,14 @@ fi
 # Input Data
 # (In practice, use separate files for training, validation, and test data.
 # This example checks whether the model can achieve near 100% accuracy (i.e., overfit) on the training data.)
-TRAIN_DOCUMENTS=${STORAGE_DATA}/examples/documents_with_disambiguated_entities.json
-DEV_DOCUMENTS=${STORAGE_DATA}/examples/documents_with_disambiguated_entities.json
-TEST_DOCUMENTS=${STORAGE_DATA}/examples/documents_with_disambiguated_entities.json
+TRAIN_DOCUMENTS=${STORAGE_DATA}/examples/ed/documents_with_disambiguated_entities.json
+DEV_DOCUMENTS=${STORAGE_DATA}/examples/ed/documents_with_disambiguated_entities.json
+TEST_DOCUMENTS=${STORAGE_DATA}/examples/ed/documents_with_disambiguated_entities.json
 # For the sake of example, we use candidate entities and entity dictionary under `data/examples/`, but in actual experiments, please use the results (candidate entities and entity dictionary) produced by ED-Retrieval.
-CANDIDATE_ENTITIES_ROOT=${STORAGE_DATA}/examples
-TRAIN_CANDIDATE_ENTITIES=${CANDIDATE_ENTITIES_ROOT}/candidate_entities.json
-DEV_CANDIDATE_ENTITIES=${CANDIDATE_ENTITIES_ROOT}/candidate_entities.json
-TEST_CANDIDATE_ENTITIES=${CANDIDATE_ENTITIES_ROOT}/candidate_entities.json
-ENTITY_DICT=${CANDIDATE_ENTITIES_ROOT}/entity_dict.json
+TRAIN_CANDIDATE_ENTITIES=${STORAGE_DATA}/examples/misc/candidate_entities.json
+DEV_CANDIDATE_ENTITIES=${STORAGE_DATA}/examples/misc/candidate_entities.json
+TEST_CANDIDATE_ENTITIES=${STORAGE_DATA}/examples/misc/candidate_entities.json
+ENTITY_DICT=${STORAGE_DATA}/examples/kb/entity_dict.json
 # Set the number of demonstrations for LLM-based ED-Reranking. For BLINK-based ED-Reranking, this parameter is not used.
 N_DEMONSTRATIONS=1
 

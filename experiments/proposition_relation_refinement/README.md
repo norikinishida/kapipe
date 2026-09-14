@@ -33,7 +33,7 @@ python -m pip install -r requirements.txt
 This directory already includes example data.
 
 ```bash
-experiments/proposition_relation_refinement/data/examples/triples.json
+experiments/proposition_relation_refinement/data/examples/misc/triples.json
 ```
 
 ## Step 3. Configuration Setup

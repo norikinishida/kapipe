@@ -33,10 +33,10 @@ python -m pip install -r requirements.txt
 This directory already includes example data.
 
 ```bash
-experiments/rag_pipeline/data/examples/passages.jsonl
-experiments/rag_pipeline/data/examples/questions.json
-experiments/rag_pipeline/data/examples/questions_with_answers.json
-experiments/rag_pipeline/data/examples/questions.gold_contexts.json
+experiments/rag_pipeline/data/examples/corpus/passages.jsonl
+experiments/rag_pipeline/data/examples/qa/questions.json
+experiments/rag_pipeline/data/examples/qa/questions_with_answers.json
+experiments/rag_pipeline/data/examples/qa/questions.gold_contexts.json
 ```
 
 ## Step 3. Configuration Setup

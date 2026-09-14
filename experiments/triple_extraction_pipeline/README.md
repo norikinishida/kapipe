@@ -33,8 +33,8 @@ python -m pip install -r requirements.txt
 This directory already includes example data.
 
 ```bash
-experiments/triple_extraction_pipeline/data/examples/documents.json
-experiments/triple_extraction_pipeline/data/examples/documents_with_triples.json
+experiments/triple_extraction_pipeline/data/examples/docre/documents.json
+experiments/triple_extraction_pipeline/data/examples/docre/documents_with_triples.json
 ```
 
 ## Step 3. Configuration Setup

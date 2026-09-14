@@ -27,8 +27,8 @@ else
 fi
 
 # Input Data
-INPUT_GRAPH=${STORAGE_DATA}/examples/graph.graphml
-INPUT_COMMUNITIES=${STORAGE_DATA}/examples/communities.json
+INPUT_GRAPH=${STORAGE_DATA}/examples/misc/graph.graphml
+INPUT_COMMUNITIES=${STORAGE_DATA}/examples/misc/communities.json
 
 # Output Path
 RESULTS_DIR=${STORAGE_RESULTS}

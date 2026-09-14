@@ -17,8 +17,8 @@ CONFIG_PATH=./config/default.conf
 CONFIG_NAME=hop1_temporal
 
 # Input Data
-INPUT_GRAPH=${STORAGE_DATA}/examples/graph.graphml
-INPUT_ANCHOR_CONTEXTS=${STORAGE_DATA}/examples/questions.contexts.json
+INPUT_GRAPH=${STORAGE_DATA}/examples/misc/graph.graphml
+INPUT_ANCHOR_CONTEXTS=${STORAGE_DATA}/examples/qa/questions.contexts.json
 
 # Output Path
 RESULTS_DIR=${STORAGE_RESULTS}

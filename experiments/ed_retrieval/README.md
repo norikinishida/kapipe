@@ -33,14 +33,14 @@ python -m pip install -r requirements.txt
 This directory already includes example data.
 
 ```bash
-experiments/ed_retrieval/data/examples/documents_with_typed_mentions.json
-experiments/ed_retrieval/data/examples/documents_with_disambiguated_entities.json
-experiments/ed_retrieval/data/examples/entity_dict.json
+experiments/ed_retrieval/data/examples/ed/documents_with_typed_mentions.json
+experiments/ed_retrieval/data/examples/ed/documents_with_disambiguated_entities.json
+experiments/ed_retrieval/data/examples/kb/entity_dict.json
 ```
 
 ### Benchmark datasets
 
-You can also prepare benchmark datasets (e.g., CDR, Linked-DocRED) with the scripts in `experiments/datasets/ed`.
+You can also prepare benchmark datasets (e.g., CDR, Linked-DocRED) with the scripts in `experiments/datasets/`.
 
 ## Step 3. Configuration Setup
 

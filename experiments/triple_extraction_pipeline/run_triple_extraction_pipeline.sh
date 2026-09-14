@@ -19,14 +19,14 @@ CONFIG_NAME=llm_cdr
 # CONFIG_NAME=llm_user_defined
 
 # Input Data
-INPUT_DOCUMENTS=${STORAGE_DATA}/examples/documents.json
+INPUT_DOCUMENTS=${STORAGE_DATA}/examples/docre/documents.json
 
 # Output Path
 RESULTS_DIR=${STORAGE_RESULTS}
 MYPREFIX=example
 
 # (optional) Evaluation
-GOLD_DOCUMENTS=${STORAGE_DATA}/examples/documents_with_triples.json
+GOLD_DOCUMENTS=${STORAGE_DATA}/examples/docre/documents_with_triples.json
 
 ######
 # Experiment execution

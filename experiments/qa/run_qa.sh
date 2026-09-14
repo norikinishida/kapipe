@@ -7,9 +7,6 @@
 STORAGE_DATA=/home/nishida/projects/kapipe/experiments/qa/data
 STORAGE_RESULTS=/home/nishida/projects/kapipe/experiments/qa/results
 
-# STORAGE_DATA=/home/nishida/storage/projects/kapipe/experiments/datasets/qa
-# STORAGE_RESULTS=/home/nishida/storage/projects/kapipe/experiments/qa/results
-
 ######
 # Experiment configuration
 ######
@@ -21,15 +18,15 @@ CONFIG_NAME=gpt4o_with_context
 # CONFIG_NAME=gpt4o_without_context
 
 # Input Data
-INPUT_QUESTIONS=${STORAGE_DATA}/examples/questions.json
-INPUT_CONTEXTS=${STORAGE_DATA}/examples/questions.contexts.json
+INPUT_QUESTIONS=${STORAGE_DATA}/examples/qa/questions.json
+INPUT_CONTEXTS=${STORAGE_DATA}/examples/qa/questions.contexts.json
 
 # Output Path
 RESULTS_DIR=${STORAGE_RESULTS}
 MYPREFIX=example
 
 # (optional) Evaluation
-GOLD_ANSWERS=${STORAGE_DATA}/examples/questions_with_answers.json
+GOLD_ANSWERS=${STORAGE_DATA}/examples/qa/questions_with_answers.json
 
 ######
 # Experiment execution

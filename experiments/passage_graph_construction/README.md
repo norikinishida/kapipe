@@ -33,8 +33,8 @@ python -m pip install -r requirements.txt
 This directory already includes example data.
 
 ```bash
-experiments/passage_graph_construction/data/examples/passages.jsonl
-experiments/passage_graph_construction/data/examples/triples.json
+experiments/passage_graph_construction/data/examples/corpus/passages.jsonl
+experiments/passage_graph_construction/data/examples/misc/triples.json
 ```
 
 ## Step 3. Configuration Setup

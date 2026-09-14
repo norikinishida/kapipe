@@ -33,7 +33,7 @@ python -m pip install -r requirements.txt
 This directory already includes example data.
 
 ```bash
-experiments/community_clustering/data/examples/graph.graphml
+experiments/community_clustering/data/examples/misc/graph.graphml
 ```
 
 The input graph must be a GraphML file readable by `networkx.read_graphml`.

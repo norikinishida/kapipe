@@ -17,7 +17,7 @@ CONFIG_PATH=./config/llm_proposition_extractor.conf
 CONFIG_NAME=gpt5_4_nano
 
 # Input Data
-INPUT_PASSAGES=${STORAGE_DATA}/examples/articles.jsonl
+INPUT_PASSAGES=${STORAGE_DATA}/examples/corpus/articles.jsonl
 
 # Output Path
 RESULTS_DIR=${STORAGE_RESULTS}

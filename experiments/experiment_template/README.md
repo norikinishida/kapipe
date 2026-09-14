@@ -33,7 +33,7 @@ python -m pip install -r requirements.txt
 This directory already includes example data.
 
 ```bash
-experiments/EXPERIMENT_NAME/data/examples/SOMETHING
+experiments/EXPERIMENT_NAME/data/examples/DATATYPE/SOMETHING
 ```
 
 ### Benchmark datasets

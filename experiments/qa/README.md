@@ -33,14 +33,14 @@ python -m pip install -r requirements.txt
 This directory already includes example data.
 
 ```bash
-experiments/qa/data/examples/questions.json
-experiments/qa/data/examples/questions.contexts.json
-experiments/qa/data/examples/questions_with_answers.json
+experiments/qa/data/examples/qa/questions.json
+experiments/qa/data/examples/qa/questions.contexts.json
+experiments/qa/data/examples/qa/questions_with_answers.json
 ```
 
 ### Benchmark datasets
 
-You can also prepare benchmark datasets with the scripts in `experiments/datasets/qa`. 
+You can also prepare benchmark datasets with the scripts in `experiments/datasets/`. 
 
 ## Step 3. Configuration Setup
 

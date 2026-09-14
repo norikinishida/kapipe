@@ -31,7 +31,7 @@ else
 fi
 
 # Input Data
-INPUT_GRAPH=${STORAGE_DATA}/examples/graph.graphml
+INPUT_GRAPH=${STORAGE_DATA}/examples/misc/graph.graphml
 
 # Output Path
 RESULTS_DIR=${STORAGE_RESULTS}

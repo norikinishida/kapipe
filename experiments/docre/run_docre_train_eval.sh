@@ -7,9 +7,6 @@
 STORAGE_DATA=/home/nishida/projects/kapipe/experiments/docre/data
 STORAGE_RESULTS=/home/nishida/projects/kapipe/experiments/docre/results
 
-# STORAGE_DATA=/home/nishida/storage/projects/kapipe/experiments/datasets/docre
-# STORAGE_RESULTS=/home/nishida/storage/projects/kapipe/experiments/docre/results
-
 ######
 # Experiment configuration
 ######
@@ -33,11 +30,11 @@ fi
 # (In practice, use separate files for training, validation, and test data.
 # This example checks whether the model can achieve near 100% accuracy (i.e., overfit) on the training data.)
 DATASET_NAME=cdr
-TRAIN_DOCUMENTS=${STORAGE_DATA}/examples/documents_with_triples.json
-DEV_DOCUMENTS=${STORAGE_DATA}/examples/documents_with_triples.json
-TEST_DOCUMENTS=${STORAGE_DATA}/examples/documents_with_triples.json
+TRAIN_DOCUMENTS=${STORAGE_DATA}/examples/docre/documents_with_triples.json
+DEV_DOCUMENTS=${STORAGE_DATA}/examples/docre/documents_with_triples.json
+TEST_DOCUMENTS=${STORAGE_DATA}/examples/docre/documents_with_triples.json
 #
-ENTITY_DICT=${STORAGE_DATA}/examples/entity_dict.json
+ENTITY_DICT=${STORAGE_DATA}/examples/kb/entity_dict.json
 #
 N_DEMONSTRATIONS=3
 

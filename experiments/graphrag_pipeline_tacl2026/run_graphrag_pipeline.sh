@@ -18,16 +18,16 @@ CONFIG_PATH=./config/default.conf
 CONFIG_NAME=llm___egc___hl___llm___w100___contriever___gpt4o___cdr
 
 # Input Data
-INPUT_DOCUMENTS=${STORAGE_DATA}/examples/documents.json
-ENTITY_DICT=${STORAGE_DATA}/examples/entity_dict.json
-INPUT_QUESTIONS=${STORAGE_DATA}/examples/questions.json
+INPUT_DOCUMENTS=${STORAGE_DATA}/examples/docre/documents.json
+ENTITY_DICT=${STORAGE_DATA}/examples/kb/entity_dict.json
+INPUT_QUESTIONS=${STORAGE_DATA}/examples/qa/questions.json
 
 # Output Path
 RESULTS_DIR=${STORAGE_RESULTS}
 MYPREFIX=example
 
 # (optional) Evaluation
-GOLD_QUESTIONS=${STORAGE_DATA}/examples/questions_with_answers.json
+GOLD_QUESTIONS=${STORAGE_DATA}/examples/qa/questions_with_answers.json
 
 ######
 # Command-line arguments

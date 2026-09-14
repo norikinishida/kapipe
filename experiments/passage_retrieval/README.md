@@ -33,9 +33,9 @@ python -m pip install -r requirements.txt
 This directory already includes example data.
     
 ```bash
-experiments/passage_retrieval/data/examples/passages.jsonl
-experiments/passage_retrieval/data/examples/questions.json
-experiments/passage_retrieval/data/examples/questions.gold_contexts.json
+experiments/passage_retrieval/data/examples/corpus/passages.jsonl
+experiments/passage_retrieval/data/examples/qa/questions.json
+experiments/passage_retrieval/data/examples/qa/questions.gold_contexts.json
 ```
 
 ## Step 3. Configuration Setup

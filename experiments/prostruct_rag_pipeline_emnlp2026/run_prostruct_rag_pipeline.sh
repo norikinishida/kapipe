@@ -17,15 +17,15 @@ CONFIG_PATH=./config/default.conf
 CONFIG_NAME=gpt4o_mini___gpt4o_mini_contriever_top20_temporal___gpt4o_temporal___default___contriever_top10___hop0_temporal___temporal___gpt4o_with_context
 
 # Input Data
-INPUT_PASSAGES=${STORAGE_DATA}/examples/articles.jsonl
-INPUT_QUESTIONS=${STORAGE_DATA}/examples/questions.json
+INPUT_PASSAGES=${STORAGE_DATA}/examples/corpus/articles.jsonl
+INPUT_QUESTIONS=${STORAGE_DATA}/examples/qa/questions.json
 
 # Output Path
 RESULTS_DIR=${STORAGE_RESULTS}
 MYPREFIX=example
 
 # (optional) Evaluation
-GOLD_QUESTIONS=${STORAGE_DATA}/examples/questions.json
+GOLD_QUESTIONS=${STORAGE_DATA}/examples/qa/questions.json
 
 ######
 # Command-line arguments

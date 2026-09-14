@@ -7,9 +7,6 @@
 STORAGE_DATA=/home/nishida/projects/kapipe/experiments/ner/data
 STORAGE_RESULTS=/home/nishida/projects/kapipe/experiments/ner/results
 
-# STORAGE_DATA=/home/nishida/storage/projects/kapipe/experiments/datasets/ner
-# STORAGE_RESULTS=/home/nishida/storage/projects/kapipe/experiments/ner/results
-
 ######
 # Experiment configuration
 ######
@@ -33,9 +30,9 @@ fi
 # (In practice, use separate files for training, validation, and test data.
 # This example checks whether the model can achieve near 100% accuracy (i.e., overfit) on the training data.)
 DATASET_NAME=cdr
-TRAIN_DOCUMENTS=${STORAGE_DATA}/examples/documents_with_typed_mentions.json
-DEV_DOCUMENTS=${STORAGE_DATA}/examples/documents_with_typed_mentions.json
-TEST_DOCUMENTS=${STORAGE_DATA}/examples/documents_with_typed_mentions.json
+TRAIN_DOCUMENTS=${STORAGE_DATA}/examples/ner/documents_with_typed_mentions.json
+DEV_DOCUMENTS=${STORAGE_DATA}/examples/ner/documents_with_typed_mentions.json
+TEST_DOCUMENTS=${STORAGE_DATA}/examples/ner/documents_with_typed_mentions.json
 N_DEMONSTRATIONS=3
 
 # Output Path

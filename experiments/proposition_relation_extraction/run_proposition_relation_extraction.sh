@@ -17,7 +17,7 @@ CONFIG_PATH=./config/llm_proposition_relation_extractor.conf
 CONFIG_NAME=gpt5_4_nano_contriever_temporal
 
 # Input Data
-INPUT_PROPOSITIONS=${STORAGE_DATA}/examples/propositions.jsonl
+INPUT_PROPOSITIONS=${STORAGE_DATA}/examples/misc/propositions.jsonl
 
 # Output Path
 RESULTS_DIR=${STORAGE_RESULTS}

@@ -33,7 +33,7 @@ python -m pip install -r requirements.txt
 This directory already includes example data.
 
 ```bash
-experiments/proposition_relation_extraction/data/examples/propositions.jsonl
+experiments/proposition_relation_extraction/data/examples/misc/propositions.jsonl
 ```
 
 ## Step 3. Configuration Setup
