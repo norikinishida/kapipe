@@ -41,7 +41,7 @@ If you use SciSpaCy, install the model required by your configuration.
 This directory already includes example data.
 
 ```bash
-experiments/chunking/data/examples/articles.jsonl
+experiments/chunking/data/examples/corpus/articles.jsonl
 ```
 
 Each input passage should be a JSON object with `passage_key` and `text` fields.

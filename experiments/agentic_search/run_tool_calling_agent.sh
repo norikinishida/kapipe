@@ -17,9 +17,9 @@ CONFIG_PATH=./config/default.conf
 CONFIG_NAME=qwen3_embedding_06b___gpt5_4_nano
 
 # Input Data
-INPUT_QUESTIONS=${STORAGE_DATA}/examples/questions.json
-GOLD_QUESTIONS=${STORAGE_DATA}/examples/questions_with_answers.json
-GOLD_CONTEXTS=${STORAGE_DATA}/examples/questions.gold_contexts.json
+INPUT_QUESTIONS=${STORAGE_DATA}/examples/qa/questions.json
+GOLD_QUESTIONS=${STORAGE_DATA}/examples/qa/questions_with_answers.json
+GOLD_CONTEXTS=${STORAGE_DATA}/examples/qa/questions.gold_contexts.json
 
 # Please run the `run_passage_retrieval_indexing.sh` script to generate the index before running this script.
 INDEX_DIR=${STORAGE_RESULTS}/passage_retrieval/qwen3_embedding/qwen3_embedding_06b/example/indexes

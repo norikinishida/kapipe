@@ -43,10 +43,10 @@ python -m pip install -r requirements.txt
 This directory already includes example data.
 
 ```bash
-experiments/agentic_search/data/examples/passages.jsonl
-experiments/agentic_search/data/examples/questions.json
-experiments/agentic_search/data/examples/questions_with_answers.json
-experiments/agentic_search/data/examples/questions.gold_contexts.json
+experiments/agentic_search/data/examples/corpus/passages.jsonl
+experiments/agentic_search/data/examples/qa/questions.json
+experiments/agentic_search/data/examples/qa/questions_with_answers.json
+experiments/agentic_search/data/examples/qa/questions.gold_contexts.json
 ```
 
 Each corpus and gold-context passage requires `passage_key` and `text`.
