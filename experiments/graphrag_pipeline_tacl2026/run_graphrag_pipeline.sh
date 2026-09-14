@@ -22,6 +22,16 @@ INPUT_DOCUMENTS=${STORAGE_DATA}/examples/docre/documents.json
 ENTITY_DICT=${STORAGE_DATA}/examples/kb/entity_dict.json
 INPUT_QUESTIONS=${STORAGE_DATA}/examples/qa/questions.json
 
+# Input Artifacts
+INPUT_DOCUMENTS_WITH_TRIPLES=
+INPUT_GRAPH=
+INPUT_COMMUNITIES=
+INPUT_REPORTS=
+INPUT_CHUNKED_REPORTS=
+
+# Input Index
+INPUT_INDEX_DIR=
+
 # Output Path
 RESULTS_DIR=${STORAGE_RESULTS}
 MYPREFIX=example
@@ -61,6 +71,30 @@ fi
 # Experiment execution
 ######
 
+# Prepare the optional input artifact arguments
+INPUT_ARTIFACT_ARGS=()
+if [ -n "${INPUT_DOCUMENTS_WITH_TRIPLES}" ]; then
+    INPUT_ARTIFACT_ARGS+=(--input_documents_with_triples "${INPUT_DOCUMENTS_WITH_TRIPLES}")
+fi
+if [ -n "${INPUT_GRAPH}" ]; then
+    INPUT_ARTIFACT_ARGS+=(--input_graph "${INPUT_GRAPH}")
+fi
+if [ -n "${INPUT_COMMUNITIES}" ]; then
+    INPUT_ARTIFACT_ARGS+=(--input_communities "${INPUT_COMMUNITIES}")
+fi
+if [ -n "${INPUT_REPORTS}" ]; then
+    INPUT_ARTIFACT_ARGS+=(--input_reports "${INPUT_REPORTS}")
+fi
+if [ -n "${INPUT_CHUNKED_REPORTS}" ]; then
+    INPUT_ARTIFACT_ARGS+=(--input_chunked_reports "${INPUT_CHUNKED_REPORTS}")
+fi
+
+# Prepare the optional input index argument
+INPUT_INDEX_ARGS=()
+if [ -n "${INPUT_INDEX_DIR}" ]; then
+    INPUT_INDEX_ARGS+=(--input_index_dir "${INPUT_INDEX_DIR}")
+fi
+
 if [ "${ACTIONTYPE}" = "triple_extraction" ] || [ "${ACTIONTYPE}" = "all" ]; then
     python run_graphrag_pipeline.py \
         --method ${METHOD} \
@@ -80,7 +114,8 @@ if [ "${ACTIONTYPE}" = "entity_graph_construction" ] || [ "${ACTIONTYPE}" = "all
         --entity_dict ${ENTITY_DICT} \
         --results_dir ${RESULTS_DIR} \
         --prefix ${MYPREFIX} \
-        --actiontype entity_graph_construction
+        --actiontype entity_graph_construction \
+        "${INPUT_ARTIFACT_ARGS[@]}"
 fi
 
 if [ "${ACTIONTYPE}" = "community_clustering" ] || [ "${ACTIONTYPE}" = "all" ]; then
@@ -90,7 +125,8 @@ if [ "${ACTIONTYPE}" = "community_clustering" ] || [ "${ACTIONTYPE}" = "all" ]; 
         --config_name ${CONFIG_NAME} \
         --results_dir ${RESULTS_DIR} \
         --prefix ${MYPREFIX} \
-        --actiontype community_clustering
+        --actiontype community_clustering \
+        "${INPUT_ARTIFACT_ARGS[@]}"
 fi
 
 if [ "${ACTIONTYPE}" = "report_generation" ] || [ "${ACTIONTYPE}" = "all" ]; then
@@ -100,7 +136,8 @@ if [ "${ACTIONTYPE}" = "report_generation" ] || [ "${ACTIONTYPE}" = "all" ]; the
         --config_name ${CONFIG_NAME} \
         --results_dir ${RESULTS_DIR} \
         --prefix ${MYPREFIX} \
-        --actiontype report_generation
+        --actiontype report_generation \
+        "${INPUT_ARTIFACT_ARGS[@]}"
 fi
 
 if [ "${ACTIONTYPE}" = "chunking" ] || [ "${ACTIONTYPE}" = "all" ]; then
@@ -110,7 +147,8 @@ if [ "${ACTIONTYPE}" = "chunking" ] || [ "${ACTIONTYPE}" = "all" ]; then
         --config_name ${CONFIG_NAME} \
         --results_dir ${RESULTS_DIR} \
         --prefix ${MYPREFIX} \
-        --actiontype chunking
+        --actiontype chunking \
+        "${INPUT_ARTIFACT_ARGS[@]}"
 fi
 
 if [ "${ACTIONTYPE}" = "passage_retrieval_indexing" ] || [ "${ACTIONTYPE}" = "all" ]; then
@@ -120,7 +158,8 @@ if [ "${ACTIONTYPE}" = "passage_retrieval_indexing" ] || [ "${ACTIONTYPE}" = "al
         --config_name ${CONFIG_NAME} \
         --results_dir ${RESULTS_DIR} \
         --prefix ${MYPREFIX} \
-        --actiontype passage_retrieval_indexing
+        --actiontype passage_retrieval_indexing \
+        "${INPUT_ARTIFACT_ARGS[@]}"
 fi
 
 if [ "${ACTIONTYPE}" = "inference" ] || [ "${ACTIONTYPE}" = "all" ]; then
@@ -133,5 +172,6 @@ if [ "${ACTIONTYPE}" = "inference" ] || [ "${ACTIONTYPE}" = "all" ]; then
         --prefix ${MYPREFIX} \
         --actiontype inference \
         --do_evaluation \
-        --gold ${GOLD_QUESTIONS}
+        --gold ${GOLD_QUESTIONS} \
+        "${INPUT_INDEX_ARGS[@]}"
 fi

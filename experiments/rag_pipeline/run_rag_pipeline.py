@@ -299,9 +299,6 @@ def main(args):
                 f"{base_filename}.eval.json",
             )
             utils.write_json(output_evaluation_path, scores)
-
-            # Log the evaluation results
-            logging.info(utils.pretty_format_dict(scores))
             logging.info(
                 f"Saved the evaluation results to {output_evaluation_path}"
             )

@@ -20,6 +20,14 @@ CONFIG_NAME=gpt4o_mini___gpt4o_mini_contriever_top20_temporal___gpt4o_temporal__
 INPUT_PASSAGES=${STORAGE_DATA}/examples/corpus/articles.jsonl
 INPUT_QUESTIONS=${STORAGE_DATA}/examples/qa/questions.json
 
+# Input Artifacts
+INPUT_PROPOSITIONS=
+INPUT_TRIPLES=
+INPUT_REFINED_TRIPLES=
+
+# Input Index
+INPUT_INDEX_DIR=
+
 # Output Path
 RESULTS_DIR=${STORAGE_RESULTS}
 MYPREFIX=example
@@ -59,6 +67,24 @@ fi
 # Experiment execution
 ######
 
+# Prepare the optional input artifact arguments
+INPUT_ARTIFACT_ARGS=()
+if [ -n "${INPUT_PROPOSITIONS}" ]; then
+    INPUT_ARTIFACT_ARGS+=(--input_propositions "${INPUT_PROPOSITIONS}")
+fi
+if [ -n "${INPUT_TRIPLES}" ]; then
+    INPUT_ARTIFACT_ARGS+=(--input_triples "${INPUT_TRIPLES}")
+fi
+if [ -n "${INPUT_REFINED_TRIPLES}" ]; then
+    INPUT_ARTIFACT_ARGS+=(--input_refined_triples "${INPUT_REFINED_TRIPLES}")
+fi
+
+# Prepare the optional input index argument
+INPUT_INDEX_ARGS=()
+if [ -n "${INPUT_INDEX_DIR}" ]; then
+    INPUT_INDEX_ARGS+=(--input_index_dir "${INPUT_INDEX_DIR}")
+fi
+
 if [ "${ACTIONTYPE}" = "proposition_extraction" ] || [ "${ACTIONTYPE}" = "all" ]; then
     python run_prostruct_rag_pipeline.py \
         --method ${METHOD} \
@@ -77,7 +103,8 @@ if [ "${ACTIONTYPE}" = "proposition_relation_extraction" ] || [ "${ACTIONTYPE}" 
         --config_name ${CONFIG_NAME} \
         --results_dir ${RESULTS_DIR} \
         --prefix ${MYPREFIX} \
-        --actiontype proposition_relation_extraction
+        --actiontype proposition_relation_extraction \
+        "${INPUT_ARTIFACT_ARGS[@]}"
 fi
 
 if [ "${ACTIONTYPE}" = "proposition_relation_refinement" ] || [ "${ACTIONTYPE}" = "all" ]; then
@@ -87,7 +114,8 @@ if [ "${ACTIONTYPE}" = "proposition_relation_refinement" ] || [ "${ACTIONTYPE}" 
         --config_name ${CONFIG_NAME} \
         --results_dir ${RESULTS_DIR} \
         --prefix ${MYPREFIX} \
-        --actiontype proposition_relation_refinement
+        --actiontype proposition_relation_refinement \
+        "${INPUT_ARTIFACT_ARGS[@]}"
 fi
 
 if [ "${ACTIONTYPE}" = "passage_graph_construction" ] || [ "${ACTIONTYPE}" = "all" ]; then
@@ -97,7 +125,8 @@ if [ "${ACTIONTYPE}" = "passage_graph_construction" ] || [ "${ACTIONTYPE}" = "al
         --config_name ${CONFIG_NAME} \
         --results_dir ${RESULTS_DIR} \
         --prefix ${MYPREFIX} \
-        --actiontype passage_graph_construction
+        --actiontype passage_graph_construction \
+        "${INPUT_ARTIFACT_ARGS[@]}"
 fi
 
 if [ "${ACTIONTYPE}" = "passage_retrieval_indexing" ] || [ "${ACTIONTYPE}" = "all" ]; then
@@ -107,7 +136,8 @@ if [ "${ACTIONTYPE}" = "passage_retrieval_indexing" ] || [ "${ACTIONTYPE}" = "al
         --config_name ${CONFIG_NAME} \
         --results_dir ${RESULTS_DIR} \
         --prefix ${MYPREFIX} \
-        --actiontype passage_retrieval_indexing
+        --actiontype passage_retrieval_indexing \
+        "${INPUT_ARTIFACT_ARGS[@]}"
 fi
 
 if [ "${ACTIONTYPE}" = "inference" ] || [ "${ACTIONTYPE}" = "all" ]; then
@@ -120,5 +150,6 @@ if [ "${ACTIONTYPE}" = "inference" ] || [ "${ACTIONTYPE}" = "all" ]; then
         --prefix ${MYPREFIX} \
         --actiontype inference \
         --do_evaluation \
-        --gold ${GOLD_QUESTIONS}
+        --gold ${GOLD_QUESTIONS} \
+        "${INPUT_INDEX_ARGS[@]}"
 fi

@@ -70,7 +70,7 @@ def main(args: argparse.Namespace) -> None:
     input_passages_path: str | None = args.input_passages
     input_questions_path: str | None = args.input_questions
 
-    # Collect explicitly specified input artifacts
+    # Input Artifacts
     input_artifact_paths: dict[str, str] = {}
     if args.input_propositions is not None:
         input_artifact_paths["propositions"] = args.input_propositions
@@ -79,8 +79,8 @@ def main(args: argparse.Namespace) -> None:
     if args.input_refined_triples is not None:
         input_artifact_paths["refined_triples"] = args.input_refined_triples
 
-    # Action
-    actiontype: str = args.actiontype
+    # Input Index
+    input_index_dir: str | None = args.input_index_dir
 
     # Output Path
     results_dir: str = args.results_dir
@@ -88,6 +88,11 @@ def main(args: argparse.Namespace) -> None:
     if prefix is None or prefix == "None":
         prefix = utils.get_current_time()
         args.prefix = prefix
+
+    # Action
+    actiontype: str = args.actiontype
+    if actiontype != "inference" and input_index_dir is not None:
+        raise ValueError("--input_index_dir is only available for inference")
 
     # Evaluation
     do_evaluation: bool = args.do_evaluation
@@ -119,8 +124,12 @@ def main(args: argparse.Namespace) -> None:
         )[0]
 
     # Index will be saved to `index_dir`
-    index_dir: str = os.path.join(base_output_path, "indexes")
-    utils.mkdir(index_dir)
+    if actiontype == "inference" and input_index_dir is not None:
+        index_dir: str = input_index_dir
+    else:
+        index_dir = os.path.join(base_output_path, "indexes")
+    if actiontype != "inference":
+        utils.mkdir(index_dir)
 
     # Set logger
     if actiontype != "inference":
@@ -441,9 +450,6 @@ def main(args: argparse.Namespace) -> None:
                 f"{base_filename}.eval.json",
             )
             utils.write_json(output_evaluation_path, scores)
-
-            # Log the evaluation results
-            logging.info(utils.pretty_format_dict(scores))
             logging.info(
                 f"Saved evaluation results to {output_evaluation_path}"
             )
@@ -774,9 +780,13 @@ if __name__ == "__main__":
     parser.add_argument("--input_passages", type=str, default=None)
     parser.add_argument("--input_questions", type=str, default=None)
 
+    # Input Artifacts
     parser.add_argument("--input_propositions", type=str, default=None)
     parser.add_argument("--input_triples", type=str, default=None)
     parser.add_argument("--input_refined_triples", type=str, default=None)
+
+    # Input Index
+    parser.add_argument("--input_index_dir", type=str, default=None)
 
     # Output Path
     parser.add_argument("--results_dir", type=str, required=True)

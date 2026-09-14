@@ -88,7 +88,7 @@ def main(args: argparse.Namespace) -> None:
     additional_triples_path = args.additional_triples
     input_questions_path = args.input_questions
 
-    # Collect explicitly specified input artifacts
+    # Input Artifacts
     input_artifact_paths: dict[str, str] = {}
     if args.input_documents_with_triples is not None:
         input_artifact_paths["documents_with_triples"] = (
@@ -103,6 +103,9 @@ def main(args: argparse.Namespace) -> None:
     if args.input_chunked_reports is not None:
         input_artifact_paths["chunked_reports"] = args.input_chunked_reports
 
+    # Input Index
+    input_index_dir: str | None = args.input_index_dir
+
     # Output Path
     results_dir = args.results_dir
     prefix = args.prefix
@@ -112,6 +115,8 @@ def main(args: argparse.Namespace) -> None:
 
     # Action
     actiontype = args.actiontype
+    if actiontype != "inference" and input_index_dir is not None:
+        raise ValueError("--input_index_dir is only available for inference")
 
     # Evaluation
     do_evaluation = args.do_evaluation
@@ -143,8 +148,12 @@ def main(args: argparse.Namespace) -> None:
         )[0]
 
     # Index will be saved to `index_dir`
-    index_dir = os.path.join(base_output_path, "indexes")
-    utils.mkdir(index_dir)
+    if actiontype == "inference" and input_index_dir is not None:
+        index_dir: str = input_index_dir
+    else:
+        index_dir = os.path.join(base_output_path, "indexes")
+    if actiontype != "inference":
+        utils.mkdir(index_dir)
 
     # Set logger
     if actiontype != "inference":
@@ -433,9 +442,6 @@ def main(args: argparse.Namespace) -> None:
                 f"{base_filename}.eval.json",
             )
             utils.write_json(output_evaluation_path, scores)
-
-            # Log the evaluation results
-            logging.info(utils.pretty_format_dict(scores))
             logging.info(f"Saved the evaluation results to {output_evaluation_path}")
 
     ##################
@@ -849,11 +855,15 @@ if __name__ == "__main__":
     parser.add_argument("--additional_triples", type=str, default=None)
     parser.add_argument("--input_questions", type=str, default=None)
 
+    # Input Artifacts
     parser.add_argument("--input_documents_with_triples", type=str, default=None)
     parser.add_argument("--input_graph", type=str, default=None)
     parser.add_argument("--input_communities", type=str, default=None)
     parser.add_argument("--input_reports", type=str, default=None)
     parser.add_argument("--input_chunked_reports", type=str, default=None)
+
+    # Input Index
+    parser.add_argument("--input_index_dir", type=str, default=None)
 
     # Output Path
     parser.add_argument("--results_dir", type=str, required=True)
