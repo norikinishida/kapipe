@@ -165,29 +165,16 @@ class ProStructRAGPipeline:
                 batch_ids: list[str] = self.proposition_extraction.submit_batch(
                     passages=passages
                 )
-                utils.mkdir(
-                    os.path.join(
-                        batch_dir,
-                        "proposition_extraction"
-                    )
-                )
+                utils.mkdir(batch_dir)
                 utils.write_json(
-                    os.path.join(
-                        batch_dir,
-                        "proposition_extraction",
-                        "batch_ids.json"
-                    ),
+                    os.path.join(batch_dir, "batch_ids.json"),
                     batch_ids,
                 )
                 logger.info(f"Submitted batches {batch_ids}")
             elif batch_mode == "fetch":
                 # Batch API fetching
                 batch_ids: list[str] = utils.read_json(
-                    os.path.join(
-                        batch_dir,
-                        "proposition_extraction",
-                        "batch_ids.json",
-                    )
+                    os.path.join(batch_dir, "batch_ids.json")
                 )
                 propositions: list[Passage] = (
                     self.proposition_extraction.fetch_and_process_batch(
@@ -285,29 +272,16 @@ class ProStructRAGPipeline:
                         batch_tail_propositions=batch_tail_propositions,
                     )
                 )
-                utils.mkdir(
-                    os.path.join(
-                        batch_dir,
-                        "proposition_relation_extraction",
-                    )
-                )
+                utils.mkdir(batch_dir)
                 utils.write_json(
-                    os.path.join(
-                        batch_dir,
-                        "proposition_relation_extraction",
-                        "batch_ids.json",
-                    ),
+                    os.path.join(batch_dir, "batch_ids.json"),
                     batch_ids,
                 )
                 logger.info(f"Submitted batches {batch_ids}")
             elif batch_mode == "fetch":
                 # Batch API fetch
                 batch_ids: list[str] = utils.read_json(
-                    os.path.join(
-                        batch_dir,
-                        "proposition_relation_extraction",
-                        "batch_ids.json",
-                    )
+                    os.path.join(batch_dir, "batch_ids.json")
                 )
                 triples: list[dict[str, Any]] = (
                     self.proposition_relation_extraction.fetch_and_process_batch(
@@ -385,29 +359,16 @@ class ProStructRAGPipeline:
                         triples=triples,
                     )
                 )
-                utils.mkdir(
-                    os.path.join(
-                        batch_dir,
-                        "proposition_relation_refinement",
-                    )
-                )
+                utils.mkdir(batch_dir)
                 utils.write_json(
-                    os.path.join(
-                        batch_dir,
-                        "proposition_relation_refinement",
-                        "batch_ids.json",
-                    ),
+                    os.path.join(batch_dir, "batch_ids.json"),
                     batch_ids,
                 )
                 logger.info(f"Submitted batches {batch_ids}")
             elif batch_mode == "fetch":
                 # Batch API fetch
                 batch_ids: list[str] = utils.read_json(
-                    os.path.join(
-                        batch_dir,
-                        "proposition_relation_refinement",
-                        "batch_ids.json",
-                    )
+                    os.path.join(batch_dir, "batch_ids.json")
                 )
                 tmp_refined_triples: list[dict[str, Any]] = (
                     self.proposition_relation_refinement.fetch_and_process_batch(
@@ -708,29 +669,16 @@ class ProStructRAGPipeline:
                 questions=question_with_time_list,
                 contexts=formatted_contexts_list,
             )
-            utils.mkdir(
-                os.path.join(
-                    batch_dir,
-                    "qa",
-                )
-            )
+            utils.mkdir(batch_dir)
             utils.write_json(
-                os.path.join(
-                    batch_dir,
-                    "qa",
-                    "batch_ids.json",
-                ),
+                os.path.join(batch_dir, "batch_ids.json"),
                 batch_ids
             )
             logger.info(f"Submitted batches {batch_ids}")
         elif batch_mode == "fetch":
             # Batch API fetch
             batch_ids: list[str] = utils.read_json(
-                os.path.join(
-                    batch_dir,
-                    "qa",
-                    "batch_ids.json",
-                )
+                os.path.join(batch_dir, "batch_ids.json")
             )
             results: list[Question] = self.qa.fetch_and_process_batch(
                 questions=question_with_time_list,

@@ -91,12 +91,31 @@ def main(args: argparse.Namespace) -> None:
 
     # Action
     actiontype: str = args.actiontype
-    if actiontype != "inference" and input_index_dir is not None:
-        raise ValueError("--input_index_dir is only available for inference")
 
     # Evaluation
     do_evaluation: bool = args.do_evaluation
     gold_questions_path: str | None = args.gold
+
+    # Batch API
+    batch_mode: str | None = args.batch_mode
+
+    # Validate that the input index directory is only used for inference
+    if actiontype != "inference" and input_index_dir is not None:
+        raise ValueError("--input_index_dir is only available for inference")
+
+    # (Batch API) Validate that Batch API mode is used only with supported actions
+    if batch_mode is not None:
+        batch_actiontypes: set[str] = {
+            "proposition_extraction",
+            "proposition_relation_extraction",
+            "proposition_relation_refinement",
+            "inference",
+        }
+        if actiontype not in batch_actiontypes:
+            raise ValueError(
+                "--batch_mode is only available for "
+                f"{sorted(batch_actiontypes)}"
+            )
 
     ##################
     # Logging Setup
@@ -131,20 +150,60 @@ def main(args: argparse.Namespace) -> None:
     if actiontype != "inference":
         utils.mkdir(index_dir)
 
-    # Set logger
-    if actiontype != "inference":
-        set_logger(
-            os.path.join(base_output_path, f"{actiontype}.log"),
-            # overwrite=True
-        )
-    else:
-        set_logger(
-            os.path.join(
+    # (Batch API) Set the Batch API directory shared with the pipeline
+    batch_dir: str | None = None
+    if batch_mode is not None:
+        if actiontype != "inference":
+            batch_dir = os.path.join(
                 base_output_path,
-                f"{base_filename}.{actiontype}.log",
-            ),
-            # overwrite=True
-        )
+                "batch_api",
+                actiontype,
+            )
+        else:
+            batch_dir = os.path.join(
+                base_output_path,
+                "batch_api",
+                actiontype,
+                base_filename,
+            )
+
+    # (Batch API) Validate that a previous submission is not overwritten
+    if batch_mode is not None:
+        if batch_mode == "submit" and os.path.exists(batch_dir):
+            raise FileExistsError(
+                f"Batch directory already exists: {batch_dir}"
+            )
+
+    # Set logger
+    if batch_mode is None:
+        if actiontype != "inference":
+            set_logger(
+                os.path.join(base_output_path, f"{actiontype}.log"),
+                # overwrite=True
+            )
+        else:
+            set_logger(
+                os.path.join(
+                    base_output_path,
+                    f"{base_filename}.{actiontype}.log",
+                ),
+                # overwrite=True
+            )
+    else:
+        # (Batch API)
+        if actiontype != "inference":
+            set_logger(
+                os.path.join(base_output_path, f"{actiontype}.{batch_mode}.log"),
+                # overwrite=True
+            )
+        else:
+            set_logger(
+                os.path.join(
+                    base_output_path,
+                    f"{base_filename}.{actiontype}.{batch_mode}.log",
+                ),
+                # overwrite=True
+            )
 
     # Show arguments
     logging.info(utils.pretty_format_dict(vars(args)))
@@ -171,6 +230,19 @@ def main(args: argparse.Namespace) -> None:
         os.path.join(base_output_path, "config.json"),
         config,
     )
+
+    # (Batch API) Validate that the selected LLM provider supports the Batch API
+    if batch_mode is not None:
+        batch_enabled: bool = actiontype in {
+            "proposition_extraction",
+            "proposition_relation_extraction",
+            "proposition_relation_refinement",
+            "inference",
+        }
+        if batch_enabled:
+            component_name: str = "qa" if actiontype == "inference" else actiontype
+            if config[component_name]["llm_provider"] != "openai":
+                raise ValueError("Batch API requires llm_provider=openai")
 
     # Initialize the loaded LLM map
     loaded_llm_map: dict[str, BaseLLM] = {}
@@ -332,6 +404,9 @@ def main(args: argparse.Namespace) -> None:
             # Target component for indexing
             target_component=actiontype,
             input_artifact_paths=input_artifact_paths,
+            # Batch API
+            batch_mode=batch_mode,
+            batch_dir=batch_dir,
         )
 
     else:
@@ -354,12 +429,23 @@ def main(args: argparse.Namespace) -> None:
 
         # Run all inference components for every question
         result_questions: list[dict[str, Any]] | None = prostruct_rag.infer(
+            # Input
             questions=questions,
+            # Component-specific parameters
             top_k=config["passage_retrieval"]["top_k"],
             hop_size=config["graph_retrieval"]["hop_size"],
+            # ProStruct-RAG-specific parameters
             remove_same_timestamp_updates=True,
             append_question_timestamp=True,
+            # Batch API
+            batch_mode=batch_mode,
+            batch_dir=batch_dir,
         )
+
+        # (Batch API) Finish after submitting requests because answers are 
+        # not available yet.
+        if result_questions is None:
+            return
 
         # Save the results
         output_questions_path: str = os.path.join(
@@ -367,7 +453,7 @@ def main(args: argparse.Namespace) -> None:
             f"{base_filename}.pred.json",
         )
         utils.write_json(output_questions_path, result_questions)
-        logging.info(f"Saved QA results to {output_questions_path}")
+        logging.info(f"Saved inference results to {output_questions_path}")
 
         # Save the prompts, raw responses, parsed answers, and optional gold answers
         output_prompt_and_responses_path: str = os.path.join(
@@ -810,6 +896,14 @@ if __name__ == "__main__":
     # Evaluation
     parser.add_argument("--do_evaluation", action="store_true")
     parser.add_argument("--gold", type=str, default=None)
+
+    # Batch API
+    parser.add_argument(
+        "--batch_mode",
+        type=str,
+        default=None,
+        choices=["submit", "fetch"],
+    )
 
     args: argparse.Namespace = parser.parse_args()
 
