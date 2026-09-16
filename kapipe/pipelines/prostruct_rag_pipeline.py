@@ -80,6 +80,14 @@ class ProStructRAGPipeline:
     ) -> None:
         """Build the full index or run one selected indexing component."""
 
+        # Use empty mappings when optional mappings are omitted
+        if proposition_relation_extraction_indexing_kwargs is None:
+            proposition_relation_extraction_indexing_kwargs = {}
+        if passage_retrieval_indexing_kwargs is None:
+            passage_retrieval_indexing_kwargs = {}
+        if input_artifact_paths is None:
+            input_artifact_paths = {}
+
         # Validate the target component
         valid_target_components: list[str] = [
             "proposition_extraction",
@@ -88,22 +96,19 @@ class ProStructRAGPipeline:
             "passage_graph_construction",
             "passage_retrieval_indexing",
         ]
-        if (
-            target_component is not None
-            and target_component not in valid_target_components
-        ):
-            raise ValueError(
-                f"Unknown indexing target_component: {target_component}. "
-                f"Expected one of: {valid_target_components}."
-            )
+        if target_component is not None:
+            if target_component not in valid_target_components:
+                raise ValueError(
+                    f"Unknown indexing target_component: {target_component}. "
+                    f"Expected one of: {valid_target_components}."
+                )
 
-        # Use empty mappings when optional mappings are omitted
-        if proposition_relation_extraction_indexing_kwargs is None:
-            proposition_relation_extraction_indexing_kwargs = {}
-        if passage_retrieval_indexing_kwargs is None:
-            passage_retrieval_indexing_kwargs = {}
-        if input_artifact_paths is None:
-            input_artifact_paths = {}
+        # Validate that input artifacts are used only for standalone execution
+        if input_artifact_paths:
+            if target_component is None:
+                raise ValueError(
+                    "`input_artifact_paths` requires `target_component`."
+                )
 
         # Validate input artifact names
         valid_artifact_names: set[str] = {
@@ -121,10 +126,11 @@ class ProStructRAGPipeline:
             )
 
         # Validate that a target component is specified when using batch mode
-        if batch_mode is not None and target_component is None:
-            raise ValueError(
-                "`target_component` is required when `batch_mode` is specified."
-            )
+        if batch_mode is not None:
+            if target_component is None:
+                raise ValueError(
+                    "`target_component` is required when `batch_mode` is specified."
+                )
 
         # Create the common destination for every indexing artifact
         utils.mkdir(index_dir)

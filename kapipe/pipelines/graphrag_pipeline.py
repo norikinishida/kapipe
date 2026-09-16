@@ -82,6 +82,12 @@ class GraphRAGPipeline:
     ) -> None:
         """Build the full index or run one selected indexing component."""
 
+        # Use empty mappings when optional mappings are omitted
+        if passage_retrieval_indexing_kwargs is None:
+            passage_retrieval_indexing_kwargs = {}
+        if input_artifact_paths is None:
+            input_artifact_paths = {}
+
         # Validate the target component
         valid_target_components: list[str] = [
             "triple_extraction",
@@ -91,20 +97,19 @@ class GraphRAGPipeline:
             "chunking",
             "passage_retrieval_indexing",
         ]
-        if (
-            target_component is not None
-            and target_component not in valid_target_components
-        ):
-            raise ValueError(
-                f"Unknown indexing target_component: {target_component}. "
-                f"Expected one of: {valid_target_components}."
-            )
+        if target_component is not None:
+            if target_component not in valid_target_components:
+                raise ValueError(
+                    f"Unknown indexing target_component: {target_component}. "
+                    f"Expected one of: {valid_target_components}."
+                )
 
-        # Use empty mappings when optional mappings are omitted
-        if passage_retrieval_indexing_kwargs is None:
-            passage_retrieval_indexing_kwargs = {}
-        if input_artifact_paths is None:
-            input_artifact_paths = {}
+        # Validate that input artifacts are used only for standalone execution
+        if input_artifact_paths:
+            if target_component is None:
+                raise ValueError(
+                    "`input_artifact_paths` requires `target_component`."
+                )
 
         # Validate input artifact names
         valid_artifact_names: set[str] = {
