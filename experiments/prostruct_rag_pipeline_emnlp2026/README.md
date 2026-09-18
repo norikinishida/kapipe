@@ -85,12 +85,17 @@ bash ./run_prostruct_rag_pipeline.sh --actiontype all
 
 If you use the OpenAI API, set your API key in advance.
 
-You can use the OpenAI Batch API for the following actions: `proposition_extraction`, `proposition_relation_extraction`, `proposition_relation_refinement`, `inference`
+You can use the OpenAI Batch API for the following actions: `proposition_extraction`, `proposition_relation_extraction`, `proposition_relation_refinement`, `inference`.
 
 ```bash
-# Submit the batch job for proposition extraction
 bash ./run_prostruct_rag_pipeline.sh --actiontype proposition_extraction --batch_mode submit
-
-# Fetch the results of the batch job
 bash ./run_prostruct_rag_pipeline.sh --actiontype proposition_extraction --batch_mode fetch
+bash ./run_prostruct_rag_pipeline.sh --actiontype proposition_relation_extraction --batch_mode submit
+bash ./run_prostruct_rag_pipeline.sh --actiontype proposition_relation_extraction --batch_mode fetch
+bash ./run_prostruct_rag_pipeline.sh --actiontype proposition_relation_refinement --batch_mode submit
+bash ./run_prostruct_rag_pipeline.sh --actiontype proposition_relation_refinement --batch_mode fetch
+bash ./run_prostruct_rag_pipeline.sh --actiontype passage_graph_construction
+bash ./run_prostruct_rag_pipeline.sh --actiontype passage_retrieval_indexing
+bash ./run_prostruct_rag_pipeline.sh --actiontype inference --batch_mode submit
+bash ./run_prostruct_rag_pipeline.sh --actiontype inference --batch_mode fetch
 ```
