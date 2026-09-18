@@ -2,6 +2,7 @@ import argparse
 import logging
 import os
 import sys
+from typing import Any
 
 import networkx as nx
 
@@ -73,6 +74,25 @@ def main(args):
     logging.info(utils.pretty_format_dict(vars(args)))
 
     ##################
+    # Data
+    ##################
+
+    # Load and combine documents in the specified file order
+    documents: list[dict[str, Any]] = []
+    for documents_path in input_documents_path_list:
+        documents.extend(utils.read_json(documents_path))
+
+    # Load the optional entity dictionary
+    entity_dict: list[dict[str, Any]] | None = None
+    if input_entity_dict_path is not None:
+        entity_dict = utils.read_json(input_entity_dict_path)
+
+    # Load the optional additional triples
+    additional_triples: list[dict[str, Any]] | None = None
+    if input_additional_triples_path is not None:
+        additional_triples = utils.read_json(input_additional_triples_path)
+
+    ##################
     # Method Instantiation
     ##################
 
@@ -99,9 +119,9 @@ def main(args):
     # The entity dictionary is used to label canonical names, synonyms, entity types,
     # and definitions to each node as their attributes.
     graph = constructor.construct_entity_graph(
-        documents_path_list=input_documents_path_list,
-        entity_dict_path=input_entity_dict_path,
-        additional_triples_path=input_additional_triples_path,
+        documents=documents,
+        entity_dict=entity_dict,
+        additional_triples=additional_triples,
     )
 
     # Save the `networkx.MultiDiGraph` in GraphML format

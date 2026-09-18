@@ -13,6 +13,7 @@ from ..datatypes import (
     CommunityRecord,
     ContextsForOneExample,
     Document,
+    EntityPage,
     Passage,
     Question,
 )
@@ -204,12 +205,30 @@ class GraphRAGPipeline:
                 os.path.join(index_dir, "documents_with_triples.json"),
             )
 
+            # Load extracted documents only for standalone graph construction
+            if target_component is not None:
+                documents_with_triples_path: str = input_artifact_paths.get(
+                    "documents_with_triples",
+                    os.path.join(index_dir, "documents_with_triples.json"),
+                )
+                documents_with_triples = utils.read_json(documents_with_triples_path)
+
+            # Load optional entity dictionary
+            entity_dict: list[EntityPage] | None = None
+            if entity_dict_path is not None:
+                entity_dict = utils.read_json(entity_dict_path)
+
+            # Load optional additional triples
+            additional_triples: list[dict[str, Any]] | None = None
+            if additional_triples_path is not None:
+                additional_triples = utils.read_json(additional_triples_path)
+
             # Construct the entity graph from the extracted triples
             graph: nx.MultiDiGraph = (
                 self.entity_graph_construction.construct_entity_graph(
-                    documents_path_list=[documents_with_triples_path],
-                    entity_dict_path=entity_dict_path,
-                    additional_triples_path=additional_triples_path,
+                    documents=documents,
+                    entity_dict=entity_dict,
+                    additional_triples=additional_triples,
                 )
             )
 

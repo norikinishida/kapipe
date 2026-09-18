@@ -1,8 +1,11 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
+from typing import Any
 
 import networkx as nx
+
+from ..datatypes import Document, EntityPage
 
 
 class BaseEntityGraphConstructor(ABC):
@@ -11,8 +14,8 @@ class BaseEntityGraphConstructor(ABC):
     @abstractmethod
     def construct_entity_graph(
         self,
-        documents_path_list: list[str] | None,
-        entity_dict_path: str | None,
-        additional_triples_path: str | None,
+        documents: list[Document] | None,
+        entity_dict: list[EntityPage] | None,
+        additional_triples: list[dict[str, Any]] | None,
     ) -> nx.MultiDiGraph:
         """Construct an entity graph."""

@@ -6,15 +6,13 @@ This component takes documents with entities and relations, and constructs a `ne
 
 ## Input
 
-The input consists of document files, an optional entity dictionary, and optional additional triples.
-
-Documents are provided as a list of JSON file paths.
+The input consists of documents, an optional entity dictionary, and optional additional triples. Pass these as Python objects; load files before calling the component.
 
 | Argument | Type | Description |
 |---|---|---|
-| `documents_path_list` | `list[str] \| None` | Paths to documents with relational triples |
-| `entity_dict_path` | `str \| None` | Path to an entity dictionary |
-| `additional_triples_path` | `str \| None` | Path to additional triples |
+| `documents` | `list[Document] \| None` | Documents with relational triples |
+| `entity_dict` | `list[EntityPage] \| None` | Entity pages |
+| `additional_triples` | `list[dict[str, Any]] \| None` | Additional triples |
 
 Each document contains the following fields.
 
@@ -186,7 +184,12 @@ Each edge represents a relation.
 ### Entity Graph Construction:
 
 ```python
+from kapipe import utils
 from kapipe.entity_graph_construction import EntityGraphConstructor
+
+# Load the documents and entity dictionary
+documents = utils.read_json("/path/to/documents_with_triples.json")
+entity_dict = utils.read_json("/path/to/entity_dict.json")
 
 # Instantiate the Entity Graph Construction component
 constructor = EntityGraphConstructor(
@@ -196,18 +199,22 @@ constructor = EntityGraphConstructor(
 
 # Construct an entity graph from extracted triples
 graph = constructor.construct_entity_graph(
-    documents_path_list=[
-        "/path/to/documents_with_triples.json"
-    ],
-    entity_dict_path="/path/to/entity_dict.json",
-    additional_triples_path=None,
+    documents=documents,
+    entity_dict=entity_dict,
+    additional_triples=None,
 )
 ```
 
 ### Entity Graph Construction with Additional Triples:
 
 ```python
+from kapipe import utils
 from kapipe.entity_graph_construction import EntityGraphConstructor
+
+# Load the documents, entity dictionary, and additional triples
+documents = utils.read_json("/path/to/documents_with_triples.json")
+entity_dict = utils.read_json("/path/to/entity_dict.json")
+additional_triples = utils.read_json("/path/to/additional_triples.json")
 
 # Instantiate the Entity Graph Construction component
 constructor = EntityGraphConstructor(
@@ -217,17 +224,15 @@ constructor = EntityGraphConstructor(
 
 # Construct an entity graph from extracted triples and additional triples
 graph = constructor.construct_entity_graph(
-    documents_path_list=[
-        "/path/to/documents_with_triples.json"
-    ],
-    entity_dict_path="/path/to/entity_dict.json",
-    additional_triples_path="/path/to/additional_triples.json",
+    documents=documents,
+    entity_dict=entity_dict,
+    additional_triples=additional_triples,
 )
 ```
 
 ## Custom Entity Dictionaries
 
-You can provide your own entity dictionary through `entity_dict_path`.
+You can provide your own entity dictionary through `entity_dict`.
 
 The entity dictionary is used to attach canonical names, entity types, and descriptions to graph nodes.
 
@@ -240,7 +245,7 @@ If an entity is missing from the entity dictionary, `missing_entity_policy` cont
 
 ## Integration with External Knowledge Graphs
 
-You can provide external triples through `additional_triples_path`.
+You can provide external triples through `additional_triples`.
 
 This is useful when combining extracted triples with an existing knowledge graph or curated relation set.
 
