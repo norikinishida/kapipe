@@ -54,7 +54,7 @@ def main(args):
     )
     utils.mkdir(base_output_path)
 
-    # Set the base filename
+    # Extract the base filename
     base_filename = os.path.splitext(
         os.path.basename(input_triples_path)
     )[0]
@@ -157,14 +157,6 @@ def main(args):
             f"{n_deleted} triples removed"
         )
 
-        # Save the Proposition Relation Refinement results
-        output_triples_path = os.path.join(
-            base_output_path,
-            f"{base_filename}.refined_triples.json",
-        )
-        utils.write_json(output_triples_path, refined_triples)
-        logging.info(f"Saved refined triples to {output_triples_path}")
-
     elif batch_mode == "submit":
         # Submit prompts
         batch_ids: list[str] = refiner.submit_batch(triples=triples)
@@ -206,6 +198,13 @@ def main(args):
             f"{n_deleted} triples removed"
         )
 
+    else:
+        raise ValueError(
+            f"Invalid batch_mode: {batch_mode}. "
+            "Expected None, 'submit', or 'fetch'."
+        )
+
+    if batch_mode != "submit":
         # Save the Proposition Relation Refinement results
         output_triples_path = os.path.join(
             base_output_path,
@@ -213,12 +212,6 @@ def main(args):
         )
         utils.write_json(output_triples_path, refined_triples)
         logging.info(f"Saved refined triples to {output_triples_path}")
-
-    else:
-        raise ValueError(
-            f"Invalid batch_mode: {batch_mode}. "
-            "Expected None, 'submit', or 'fetch'."
-        )
 
     ##################
     # Closing

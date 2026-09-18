@@ -42,6 +42,9 @@ def main(args):
     do_evaluation = args.do_evaluation
     gold_documents_path = args.gold
 
+    # Batch API
+    batch_mode: str | None = args.batch_mode
+
     ##################
     # Logging Setup
     ##################
@@ -60,10 +63,22 @@ def main(args):
     base_filename = os.path.splitext(os.path.basename(input_documents_path))[0]
 
     # Set logger
-    set_logger(
-        os.path.join(base_output_path, f"{base_filename}.ner.log"),
-        # overwrite=True
-    )
+    if batch_mode is None:
+        set_logger(
+            os.path.join(
+                base_output_path,
+                f"{base_filename}.ner.log",
+            ),
+            # overwrite=True
+        )
+    else:
+        set_logger(
+            os.path.join(
+                base_output_path,
+                f"{base_filename}.ner.{batch_mode}.log",
+            ),
+            # overwrite=True
+        )
 
     # Show arguments
     logging.info(utils.pretty_format_dict(vars(args)))
@@ -136,64 +151,100 @@ def main(args):
     # Method Execution
     ##################
 
-    logging.info(f"Applying the NER component to {len(documents)} documents in {input_documents_path} ...")
+    logging.info(
+        f"Applying the NER component to {len(documents)} documents "
+        f"in {input_documents_path} ..."
+    )
 
     # Apply the NER component to the documents
-    result_documents = []
-    for document in tqdm(documents):
-        result_document = extractor.extract(document=document)
-        result_documents.append(result_document)
+    if batch_mode is None:
+        result_documents = []
+        for document in tqdm(documents):
+            result_document = extractor.extract(document=document)
+            result_documents.append(result_document)
 
-    # Save the results
-    output_documents_path = os.path.join(
-        base_output_path,
-        f"{base_filename}.pred.json"
-    )
-    utils.write_json(output_documents_path, result_documents)
-    logging.info(f"Saved the prediction results to {output_documents_path}")
+    elif batch_mode == "submit":
+        # Submit prompts
+        batch_ids: list[str] = extractor.submit_batch(documents=documents)
+        utils.write_json(
+            os.path.join(
+                base_output_path,
+                f"{base_filename}.batch_ids.json",
+            ),
+            batch_ids,
+        )
+        logging.info(f"Submitted batches: {batch_ids}")
 
-    # Save the prompt-response pairs visually in plain text
-    if "ner_prompt" in result_documents[0] and "ner_generated_text" in result_documents[0]:
-        output_text_path = os.path.join(
+    elif batch_mode == "fetch":
+        # Fetch and process the responses
+        batch_ids: list[str] = utils.read_json(
+            os.path.join(
+                base_output_path,
+                f"{base_filename}.batch_ids.json",
+            )
+        )
+        result_documents = extractor.fetch_and_process_batch(
+            documents=documents,
+            batch_ids=batch_ids,
+        )
+
+    else:
+        raise ValueError(
+            f"Invalid batch_mode: {batch_mode}. "
+            "Expected None, 'submit', or 'fetch'."
+        )
+
+    if batch_mode != "submit":
+        # Save the results
+        output_documents_path = os.path.join(
             base_output_path,
-            f"{base_filename}.prompt_and_response.txt"
+            f"{base_filename}.pred.json"
         )
-        with open(output_text_path, "w") as f:
-            for doc in result_documents:
-                doc_key = doc["doc_key"]
-                prompt = doc["ner_prompt"]
-                generated_text = doc["ner_generated_text"]
-                f.write("-------------------------------------\n\n")
-                f.write(f"DOC_KEY: {doc_key}\n\n")
-                f.write("PROMPT:\n")
-                f.write(prompt + "\n\n")
-                f.write("GENERATED TEXT:\n")
-                f.write(generated_text + "\n\n")
-                f.flush()
+        utils.write_json(output_documents_path, result_documents)
+        logging.info(f"Saved the prediction results to {output_documents_path}")
 
-    ##################
-    # Evaluation
-    ##################
+        # Save the prompt-response pairs visually in plain text
+        if "ner_prompt" in result_documents[0] and "ner_generated_text" in result_documents[0]:
+            output_text_path = os.path.join(
+                base_output_path,
+                f"{base_filename}.prompt_and_response.txt"
+            )
+            with open(output_text_path, "w") as f:
+                for doc in result_documents:
+                    doc_key = doc["doc_key"]
+                    prompt = doc["ner_prompt"]
+                    generated_text = doc["ner_generated_text"]
+                    f.write("-------------------------------------\n\n")
+                    f.write(f"DOC_KEY: {doc_key}\n\n")
+                    f.write("PROMPT:\n")
+                    f.write(prompt + "\n\n")
+                    f.write("GENERATED TEXT:\n")
+                    f.write(generated_text + "\n\n")
+                    f.flush()
 
-    if do_evaluation:
-        # Validate that the gold documents path is provided
-        if gold_documents_path is None:
-            raise ValueError("--gold is required when --do_evaluation is set")
+        ##################
+        # Evaluation
+        ##################
 
-        # Evaluate the prediction results
-        scores = evaluation.ner.fscore(
-            pred_path=output_documents_path,
-            gold_path=gold_documents_path,
-        )
-        logging.info(utils.pretty_format_dict(scores))
+        if do_evaluation:
+            # Validate that the gold documents path is provided
+            if gold_documents_path is None:
+                raise ValueError("--gold is required when --do_evaluation is set")
 
-        # Save the evaluation result
-        output_evaluation_path = os.path.join(
-            base_output_path,
-            f"{base_filename}.eval.json"
-        )
-        utils.write_json(output_evaluation_path, scores)
-        logging.info(f"Saved the evaluation results to {output_evaluation_path}")
+            # Evaluate the prediction results
+            scores = evaluation.ner.fscore(
+                pred_path=output_documents_path,
+                gold_path=gold_documents_path,
+            )
+            logging.info(utils.pretty_format_dict(scores))
+
+            # Save the evaluation result
+            output_evaluation_path = os.path.join(
+                base_output_path,
+                f"{base_filename}.eval.json"
+            )
+            utils.write_json(output_evaluation_path, scores)
+            logging.info(f"Saved the evaluation results to {output_evaluation_path}")
 
     ##################
     # Closing
@@ -245,6 +296,14 @@ if __name__ == "__main__":
     # Evaluation
     parser.add_argument("--do_evaluation", action="store_true")
     parser.add_argument("--gold", type=str, default=None)
+
+    # Batch API
+    parser.add_argument(
+        "--batch_mode",
+        type=str,
+        default=None,
+        choices=["submit", "fetch"],
+    )
 
     args = parser.parse_args()
 

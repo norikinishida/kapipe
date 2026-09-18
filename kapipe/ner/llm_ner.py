@@ -440,6 +440,77 @@ class LLMNER(BaseNER):
 
         return spans
 
+    def submit_batch(
+        self,
+        documents: list[Document],
+    ) -> list[str]:
+        """Submit NER prompts and return the OpenAI Batch IDs.
+
+        Pass the same documents in the same order to fetch_and_process_batch().
+        Keep the model settings and prompt template unchanged between calls.
+        """
+
+        # Validate that the model is an OpenAILLM instance for Batch API usage
+        if not isinstance(self.model, OpenAILLM):
+            raise TypeError("Batch API requires OpenAILLM")
+
+        # Generate prompts using the same method as extract()
+        prompts: list[str] = []
+        for document in documents:
+            prompt: str = self.generate_prompt(document=document)
+            prompts.append(prompt)
+
+        # Submit the prompts and get the Batch IDs
+        batch_ids: list[str] = self.model.submit_batch(prompts=prompts)
+        return batch_ids
+
+    def fetch_and_process_batch(
+        self,
+        documents: list[Document],
+        batch_ids: list[str],
+    ) -> list[Document]:
+        """Fetch responses and extract mentions from the original documents.
+
+        Require the same documents, order, model settings, and prompt template
+        used at submission. Raise an error if the batch is not complete.
+        """
+
+        # Validate that the model is an OpenAILLM instance for Batch API usage
+        if not isinstance(self.model, OpenAILLM):
+            raise TypeError("Batch API requires OpenAILLM")
+
+        # Fetch generated texts in the original request order
+        generated_texts: list[str] = self.model.fetch_batch(batch_ids=batch_ids)
+
+        # Validate that the number of generated texts matches the number of documents
+        if len(generated_texts) != len(documents):
+            raise ValueError("The response count does not match the document count")
+
+        # Process each Batch response using the same procedure as extract()
+        result_documents: list[Document] = []
+        for document, generated_text in zip(
+            documents,
+            generated_texts,
+            strict=True,
+        ):
+            # Regenerate the original prompt stored in the result
+            prompt: str = self.generate_prompt(document=document)
+
+            # Parse the generated text into mentions
+            mentions = self.parse(
+                document=document,
+                generated_text=generated_text
+            )
+
+            # Integrate the mentions into the document
+            result_document = copy.deepcopy(document)
+            result_document["mentions"] = mentions
+            result_document["ner_prompt"] = prompt
+            result_document["ner_generated_text"] = generated_text
+            result_documents.append(result_document)
+
+        return result_documents
+
 
 #####################
 # Trainer (Evaluator)
@@ -544,4 +615,3 @@ class LLMNERTrainer:
         utils.write_json(self.paths[f"{split}_eval_path"], scores)
         logger.info(utils.pretty_format_dict(scores))
         return scores
-

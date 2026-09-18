@@ -44,6 +44,9 @@ def main(args):
     do_evaluation = args.do_evaluation
     gold_documents_path = args.gold
 
+    # Batch API
+    batch_mode: str | None = args.batch_mode
+
     ##################
     # Logging Setup
     ##################
@@ -62,10 +65,22 @@ def main(args):
     base_filename = os.path.splitext(os.path.basename(input_documents_path))[0]
 
     # Set logger
-    set_logger(
-        os.path.join(base_output_path, f"{base_filename}.ed_reranking.log"),
-        # overwrite=True
-    )
+    if batch_mode is None:
+        set_logger(
+            os.path.join(
+                base_output_path,
+                f"{base_filename}.ed_reranking.log",
+            ),
+            # overwrite=True
+        )
+    else:
+        set_logger(
+            os.path.join(
+                base_output_path,
+                f"{base_filename}.ed_reranking.{batch_mode}.log",
+            ),
+            # overwrite=True
+        )
 
     # Show arguments
     logging.info(utils.pretty_format_dict(vars(args)))
@@ -133,125 +148,165 @@ def main(args):
     # Method Execution
     ##################
     
-    logging.info(f"Applying the ED-Reranking component to {len(documents)} documents (+ candidate entities) in {input_documents_path} ({input_candidate_entities_path}) ...")
+    logging.info(
+        f"Applying the ED-Reranking component to {len(documents)} documents (+ candidate entities) "
+       f"in {input_documents_path} ({input_candidate_entities_path}) ..."
+    )
 
     # Apply the ED-Reranking component to the documents (with candidate entities)
-    result_documents = []
-    for document, candidate_entities_for_doc in tqdm(
-        zip(documents, candidate_entities),
-        total=len(documents)
-    ):
-        result_document = reranker.rerank(
-            document=document,
-            candidate_entities_for_doc=candidate_entities_for_doc
-        )
-        result_documents.append(result_document)
-
-    # Save the results
-    output_documents_path = os.path.join(
-        base_output_path,
-        f"{base_filename}.pred.json"
-    )
-    utils.write_json(output_documents_path, result_documents)
-    logging.info(f"Saved the prediction results to {output_documents_path}")
-
-    # Save the prompt-response pairs visually in plain text
-    if (
-        len(result_documents) > 0
-        and "ed_prompt" in result_documents[0]
-        and "ed_generated_text" in result_documents[0]
-    ):
-        output_text_path = os.path.join(
-            base_output_path,
-            f"{base_filename}.prompt_and_response.txt"
-        )
-        with open(output_text_path, "w") as f:
-            for doc in result_documents:
-                doc_key = doc["doc_key"]
-                prompt = doc["ed_prompt"]
-                generated_text = doc["ed_generated_text"]
-                f.write("-------------------------------------\n\n")
-                f.write(f"DOC_KEY: {doc_key}\n\n")
-                f.write("PROMPT:\n")
-                f.write(prompt + "\n\n")
-                f.write("GENERATED TEXT:\n")
-                f.write(generated_text + "\n\n")
-                f.flush()
-
-    ##################
-    # Evaluation
-    ##################
-
-    if do_evaluation:
-        # Validate that the gold documents path is provided
-        if gold_documents_path is None:
-            raise ValueError("--gold is required when --do_evaluation is set")
-
-        # Load the gold documents to assign meta information for evaluation
-        gold_documents = utils.read_json(gold_documents_path)
-
-        # Read the entity dictionary from the instantiated reranker
-        kb_entity_ids = None
-        if hasattr(reranker, "entity_dict"):
-            # Use the entity dictionary bundled in the reranker component
-            kb_entity_ids = set(reranker.entity_dict.keys())
-
-        # Enable InKB evaluation only when the reranker exposes its entity dictionary
-        inkb = kb_entity_ids is not None
-
-        for gold_doc, candidate_entities_for_doc in zip(
-            gold_documents,
-            candidate_entities
+    if batch_mode is None:
+        result_documents = []
+        for document, candidate_entities_for_doc in tqdm(
+            zip(documents, candidate_entities),
+            total=len(documents)
         ):
-            # Check document alignment
-            assert gold_doc["doc_key"] == candidate_entities_for_doc["doc_key"]
+            result_document = reranker.rerank(
+                document=document,
+                candidate_entities_for_doc=candidate_entities_for_doc
+            )
+            result_documents.append(result_document)
 
-            for gold_mention, candidates_for_mention in zip(
-                gold_doc["mentions"],
-                candidate_entities_for_doc["candidate_entities"],
+    elif batch_mode == "submit":
+        # Submit prompts
+        batch_ids: list[str] = reranker.submit_batch(
+            documents=documents,
+            candidate_entities=candidate_entities,
+        )
+        utils.write_json(
+            os.path.join(
+                base_output_path,
+                f"{base_filename}.batch_ids.json",
+            ),
+            batch_ids,
+        )
+        logging.info(f"Submitted batches: {batch_ids}")
+
+    elif batch_mode == "fetch":
+        # Fetch and process the responses
+        batch_ids: list[str] = utils.read_json(
+            os.path.join(
+                base_output_path,
+                f"{base_filename}.batch_ids.json",
+            )
+        )
+        result_documents = reranker.fetch_and_process_batch(
+            documents=documents,
+            candidate_entities=candidate_entities,
+            batch_ids=batch_ids,
+        )
+
+    else:
+        raise ValueError(
+            f"Invalid batch_mode: {batch_mode}. "
+            "Expected None, 'submit', or 'fetch'."
+        )
+
+    if batch_mode != "submit":
+        # Save the results
+        output_documents_path = os.path.join(
+            base_output_path,
+            f"{base_filename}.pred.json"
+        )
+        utils.write_json(output_documents_path, result_documents)
+        logging.info(f"Saved the prediction results to {output_documents_path}")
+
+        # Save the prompt-response pairs visually in plain text
+        if (
+            len(result_documents) > 0
+            and "ed_prompt" in result_documents[0]
+            and "ed_generated_text" in result_documents[0]
+        ):
+            output_text_path = os.path.join(
+                base_output_path,
+                f"{base_filename}.prompt_and_response.txt"
+            )
+            with open(output_text_path, "w") as f:
+                for doc in result_documents:
+                    doc_key = doc["doc_key"]
+                    prompt = doc["ed_prompt"]
+                    generated_text = doc["ed_generated_text"]
+                    f.write("-------------------------------------\n\n")
+                    f.write(f"DOC_KEY: {doc_key}\n\n")
+                    f.write("PROMPT:\n")
+                    f.write(prompt + "\n\n")
+                    f.write("GENERATED TEXT:\n")
+                    f.write(generated_text + "\n\n")
+                    f.flush()
+
+        ##################
+        # Evaluation
+        ##################
+
+        if do_evaluation:
+            # Validate that the gold documents path is provided
+            if gold_documents_path is None:
+                raise ValueError("--gold is required when --do_evaluation is set")
+
+            # Load the gold documents to assign meta information for evaluation
+            gold_documents = utils.read_json(gold_documents_path)
+
+            # Read the entity dictionary from the instantiated reranker
+            kb_entity_ids = None
+            if hasattr(reranker, "entity_dict"):
+                # Use the entity dictionary bundled in the reranker component
+                kb_entity_ids = set(reranker.entity_dict.keys())
+
+            # Enable InKB evaluation only when the reranker exposes its entity dictionary
+            inkb = kb_entity_ids is not None
+
+            for gold_doc, candidate_entities_for_doc in zip(
+                gold_documents,
+                candidate_entities
             ):
+                # Check document alignment
+                assert gold_doc["doc_key"] == candidate_entities_for_doc["doc_key"]
 
-                # Mark whether the gold entity exists in the entity dictionary
-                if kb_entity_ids is not None:
-                    gold_mention["in_kb"] = (
-                        gold_mention["entity_id"] in kb_entity_ids
+                for gold_mention, candidates_for_mention in zip(
+                    gold_doc["mentions"],
+                    candidate_entities_for_doc["candidate_entities"],
+                ):
+
+                    # Mark whether the gold entity exists in the entity dictionary
+                    if kb_entity_ids is not None:
+                        gold_mention["in_kb"] = (
+                            gold_mention["entity_id"] in kb_entity_ids
+                        )
+
+                    # Collect candidate entity IDs for this mention
+                    candidate_entity_ids = [
+                        candidate["entity_id"]
+                        for candidate in candidates_for_mention
+                    ]
+
+                    # Mark whether the gold entity is included in candidates
+                    gold_mention["in_cand"] = (
+                        gold_mention["entity_id"] in candidate_entity_ids
                     )
 
-                # Collect candidate entity IDs for this mention
-                candidate_entity_ids = [
-                    candidate["entity_id"]
-                    for candidate in candidates_for_mention
-                ]
-
-                # Mark whether the gold entity is included in candidates
-                gold_mention["in_cand"] = (
-                    gold_mention["entity_id"] in candidate_entity_ids
-                )
-
-        # Evaluate the prediction results
-        scores = evaluation.ed.accuracy(
-            pred_path=output_documents_path,
-            gold_path=gold_documents,
-            inkb=inkb,
-            skip_normalization=False,
-        )
-        scores.update(
-            evaluation.ed.fscore(
+            # Evaluate the prediction results
+            scores = evaluation.ed.accuracy(
                 pred_path=output_documents_path,
                 gold_path=gold_documents,
                 inkb=inkb,
                 skip_normalization=False,
             )
-        )
-        logging.info(utils.pretty_format_dict(scores))
+            scores.update(
+                evaluation.ed.fscore(
+                    pred_path=output_documents_path,
+                    gold_path=gold_documents,
+                    inkb=inkb,
+                    skip_normalization=False,
+                )
+            )
+            logging.info(utils.pretty_format_dict(scores))
 
-        # Save the evaluation result
-        output_evaluation_path = os.path.join(
-            base_output_path,
-            f"{base_filename}.eval.json"
-        )
-        utils.write_json(output_evaluation_path, scores)
-        logging.info(f"Saved the evaluation results to {output_evaluation_path}")
+            # Save the evaluation result
+            output_evaluation_path = os.path.join(
+                base_output_path,
+                f"{base_filename}.eval.json"
+            )
+            utils.write_json(output_evaluation_path, scores)
+            logging.info(f"Saved the evaluation results to {output_evaluation_path}")
 
     ##################
     # Closing
@@ -304,6 +359,14 @@ if __name__ == "__main__":
     # Evaluation
     parser.add_argument("--do_evaluation", action="store_true")
     parser.add_argument("--gold", type=str, default=None)
+
+    # Batch API
+    parser.add_argument(
+        "--batch_mode",
+        type=str,
+        default=None,
+        choices=["submit", "fetch"],
+    )
 
     args = parser.parse_args()
 

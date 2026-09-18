@@ -55,7 +55,7 @@ def main(args):
     )
     utils.mkdir(base_output_path)
 
-    # Set the base filename
+    # Extract the base filename
     base_filename = os.path.splitext(os.path.basename(input_passages_path))[0]
 
     # Set logger

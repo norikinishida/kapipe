@@ -65,3 +65,11 @@ bash ./run_ed_reranking.sh
 ```
 
 If you use the OpenAI API, set your API key in advance.
+
+To use the OpenAI Batch API, submit the requests and fetch the results after the batches complete.
+Batch IDs are saved as `*.batch_ids.json` in the experiment output directory.
+
+```bash
+bash ./run_ed_reranking.sh --batch_mode submit
+bash ./run_ed_reranking.sh --batch_mode fetch
+```

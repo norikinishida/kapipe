@@ -213,18 +213,9 @@ def main(args):
                 tail_propositions=tail_propositions,
             )
             triples.extend(triples_for_head)
-
         logging.info(
             f"Extracted {len(triples)} triples from {len(propositions)} propositions"
         )
-
-        # Save the Proposition Relation Extraction results
-        output_triples_path = os.path.join(
-            base_output_path,
-            f"{base_filename}.triples.json",
-        )
-        utils.write_json(output_triples_path, triples)
-        logging.info(f"Saved triples to {output_triples_path}")
 
     elif batch_mode == "submit":
         # Submit prompts
@@ -254,24 +245,24 @@ def main(args):
             batch_tail_propositions=batch_tail_propositions,
             batch_ids=batch_ids,
         )
-
         logging.info(
             f"Extracted {len(triples)} triples from {len(propositions)} propositions"
         )
-
-        # Save the Proposition Relation Extraction results
-        output_triples_path: str = os.path.join(
-            base_output_path,
-            f"{base_filename}.triples.json",
-        )
-        utils.write_json(output_triples_path, triples)
-        logging.info(f"Saved triples to {output_triples_path}")
 
     else:
         raise ValueError(
             f"Invalid batch_mode: {batch_mode}. "
             "Expected None, 'submit', or 'fetch'."
         )
+
+    if batch_mode != "submit":
+        # Save the Proposition Relation Extraction results
+        output_triples_path = os.path.join(
+            base_output_path,
+            f"{base_filename}.triples.json",
+        )
+        utils.write_json(output_triples_path, triples)
+        logging.info(f"Saved triples to {output_triples_path}")
 
     ##################
     # Closing

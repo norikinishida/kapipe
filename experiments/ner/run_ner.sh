@@ -51,4 +51,5 @@ python run_ner.py \
     --results_dir ${RESULTS_DIR} \
     --prefix ${MYPREFIX} \
     --do_evaluation \
-    --gold ${GOLD_DOCUMENTS}
+    --gold ${GOLD_DOCUMENTS} \
+    "$@"

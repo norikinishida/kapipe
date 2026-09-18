@@ -166,16 +166,9 @@ class ProStructRAGPipeline:
                         )
                     )
                     propositions.extend(propositions_for_passage)
-
                 logger.info(
                     f"Extracted {len(propositions)} propositions "
                     f"from {len(passages)} passages"
-                )
-
-                # Save the Proposition Extraction results
-                utils.write_jsonl(
-                    os.path.join(index_dir, "propositions.jsonl"),
-                    propositions,
                 )
 
             elif batch_mode == "submit":
@@ -201,22 +194,22 @@ class ProStructRAGPipeline:
                         batch_ids=batch_ids,
                     )
                 )
-
                 logger.info(
                     f"Extracted {len(propositions)} propositions "
                     f"from {len(passages)} passages"
-                )
-
-                # Save the Proposition Extraction results
-                utils.write_jsonl(
-                    os.path.join(index_dir, "propositions.jsonl"),
-                    propositions,
                 )
 
             else:
                 raise ValueError(
                     f"Invalid batch_mode: {batch_mode}. "
                     "Expected None, 'submit', or 'fetch'."
+                )
+
+            if batch_mode != "submit":
+                # Save the Proposition Extraction results
+                utils.write_jsonl(
+                    os.path.join(index_dir, "propositions.jsonl"),
+                    propositions,
                 )
 
         #################################
@@ -280,15 +273,10 @@ class ProStructRAGPipeline:
                         )
                     )
                     triples.extend(triples_for_head)
-
                 logger.info(
                     f"Extracted {len(triples)} triples from "
                     f"{len(propositions)} propositions"
                 )
-
-                # Save the Proposition Relation Extraction results 
-                output_triples_path = os.path.join(index_dir, "triples.json")
-                utils.write_json(output_triples_path, triples)
 
             elif batch_mode == "submit":
                 # Submit prompts
@@ -317,21 +305,21 @@ class ProStructRAGPipeline:
                         batch_ids=batch_ids,
                     )
                 )
-
                 logger.info(
                     f"Extracted {len(triples)} triples from "
                     f"{len(propositions)} propositions"
                 )
-
-                # Save the Proposition Relation Extraction results 
-                output_triples_path = os.path.join(index_dir, "triples.json")
-                utils.write_json(output_triples_path, triples)
 
             else:
                 raise ValueError(
                     f"Invalid batch_mode: {batch_mode}. "
                     "Expected None, 'submit', or 'fetch'"
                 )
+
+            if batch_mode != "submit":
+                # Save the Proposition Relation Extraction results 
+                output_triples_path = os.path.join(index_dir, "triples.json")
+                utils.write_json(output_triples_path, triples)
 
         #################################
         # [Step 3] Proposition Relation Refinement
@@ -371,6 +359,7 @@ class ProStructRAGPipeline:
                             triple=triple,
                         )
                     )
+
                     # Remove triples classified as NOREL
                     if refined_triple["relation"] == "NOREL":
                         n_deleted += 1
@@ -380,12 +369,6 @@ class ProStructRAGPipeline:
                 logger.info(
                     f"Refinement complete: {len(refined_triples)} triples kept, "
                     f"{n_deleted} triples removed"
-                )
-
-                # Save the Proposition Relation Refinement results
-                utils.write_json(
-                    os.path.join(index_dir, "refined_triples.json"),
-                    refined_triples,
                 )
 
             elif batch_mode == "submit":
@@ -428,16 +411,17 @@ class ProStructRAGPipeline:
                     f"{n_deleted} triples removed"
                 )
 
-                # Save the Proposition Relation Refinement results
-                utils.write_json(
-                    os.path.join(index_dir, "refined_triples.json"),
-                    refined_triples,
-                )
-
             else:
                 raise ValueError(
                     f"Invalid batch_mode: {batch_mode}. "
                     "Expected None, 'submit', or 'fetch'."
+                )
+
+            if batch_mode != "submit":
+                # Save the Proposition Relation Refinement results
+                utils.write_json(
+                    os.path.join(index_dir, "refined_triples.json"),
+                    refined_triples,
                 )
 
         #################################

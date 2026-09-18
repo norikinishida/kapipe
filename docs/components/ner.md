@@ -159,6 +159,25 @@ extractor = LLMNER(
 result_document = extractor.extract(document=document)
 ```
 
+## OpenAI Batch API
+
+`LLMNER` supports the OpenAI Batch API when its model is an `OpenAILLM` instance.
+
+```python
+# Submit all document prompts to one or more OpenAI batches
+batch_ids: list[str] = extractor.submit_batch(documents=documents)
+
+# Fetch and process the results after all OpenAI batches are complete
+result_documents = extractor.fetch_and_process_batch(
+    documents=documents,
+    batch_ids=batch_ids,
+)
+```
+
+`submit_batch()` automatically splits requests into batches containing at most 50,000 requests and 200 MB of JSONL input. It returns the batch IDs in submission order, and `fetch_and_process_batch()` merges their responses in the original document order.
+
+Pass the same `documents` in the same order to both methods. Keep the model settings and prompt template unchanged between submission and fetching. `fetch_and_process_batch()` raises a `RuntimeError` if any OpenAI batch is incomplete or contains failed requests.
+
 ## Training with a Custom Entity Type Schema
 
 If you want to use your own entity type schema with `BiaffineNER`, train the BiaffineNER model for that schema first.
