@@ -41,4 +41,5 @@ python run_qa.py \
     --results_dir ${RESULTS_DIR} \
     --prefix ${MYPREFIX} \
     --do_evaluation \
-    --gold ${GOLD_ANSWERS}
+    --gold ${GOLD_ANSWERS} \
+    "$@"

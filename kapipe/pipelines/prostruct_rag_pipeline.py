@@ -156,7 +156,7 @@ class ProStructRAGPipeline:
                     "Argument `passages` is required for proposition extraction."
                 )
 
-            # Extract propositions passage by passage
+            # Apply the Proposition Extraction component to the passages
             if batch_mode is None:
                 propositions: list[Passage] = []
                 for passage in tqdm(passages, desc="Extracting propositions"):
@@ -166,8 +166,20 @@ class ProStructRAGPipeline:
                         )
                     )
                     propositions.extend(propositions_for_passage)
+
+                logger.info(
+                    f"Extracted {len(propositions)} propositions "
+                    f"from {len(passages)} passages"
+                )
+
+                # Save the Proposition Extraction results
+                utils.write_jsonl(
+                    os.path.join(index_dir, "propositions.jsonl"),
+                    propositions,
+                )
+
             elif batch_mode == "submit":
-                # Batch API submission
+                # Submit prompts 
                 batch_ids: list[str] = self.proposition_extraction.submit_batch(
                     passages=passages
                 )
@@ -177,8 +189,9 @@ class ProStructRAGPipeline:
                     batch_ids,
                 )
                 logger.info(f"Submitted batches {batch_ids}")
+
             elif batch_mode == "fetch":
-                # Batch API fetching
+                # Fetch and process the responses
                 batch_ids: list[str] = utils.read_json(
                     os.path.join(batch_dir, "batch_ids.json")
                 )
@@ -188,25 +201,23 @@ class ProStructRAGPipeline:
                         batch_ids=batch_ids,
                     )
                 )
+
+                logger.info(
+                    f"Extracted {len(propositions)} propositions "
+                    f"from {len(passages)} passages"
+                )
+
+                # Save the Proposition Extraction results
+                utils.write_jsonl(
+                    os.path.join(index_dir, "propositions.jsonl"),
+                    propositions,
+                )
+
             else:
                 raise ValueError(
                     f"Invalid batch_mode: {batch_mode}. "
                     "Expected None, 'submit', or 'fetch'."
                 )
-
-            if batch_mode == "submit":
-                return
-
-            logger.info(
-                f"Extracted {len(propositions)} propositions from "
-                f"{len(passages)} passages"
-            )
-
-            # Save propositions under the index directory
-            utils.write_jsonl(
-                os.path.join(index_dir, "propositions.jsonl"),
-                propositions,
-            )
 
         #################################
         # [Step 2] Proposition Relation Extraction
@@ -233,8 +244,7 @@ class ProStructRAGPipeline:
                     )
                 )
 
-            # Build the temporary retrieval index used for
-            # candidate proposition retrieval
+            # Build index for propositions
             intermediate_index_dir: str = os.path.join(
                 index_dir,
                 "intermediate_passage_retrieval_index",
@@ -245,7 +255,7 @@ class ProStructRAGPipeline:
                 **proposition_relation_extraction_indexing_kwargs,
             )
 
-            # Retrieve candidate tail propositions for every head proposition
+            # Retrieve tail propositions for each proposition
             batch_tail_propositions: list[list[Passage]] = (
                 self.proposition_relation_extraction.batch_retrieve_tail_propositions(
                     head_propositions=propositions,
@@ -255,7 +265,7 @@ class ProStructRAGPipeline:
                 )
             )
 
-            # Extract relations for all retrieved proposition pairs
+            # Extract proposition relations for each proposition 
             if batch_mode is None:
                 triples: list[dict[str, Any]] = []
                 for head_proposition, tail_propositions in tqdm(
@@ -270,8 +280,18 @@ class ProStructRAGPipeline:
                         )
                     )
                     triples.extend(triples_for_head)
+
+                logger.info(
+                    f"Extracted {len(triples)} triples from "
+                    f"{len(propositions)} propositions"
+                )
+
+                # Save the Proposition Relation Extraction results 
+                output_triples_path = os.path.join(index_dir, "triples.json")
+                utils.write_json(output_triples_path, triples)
+
             elif batch_mode == "submit":
-                # Bach API submit
+                # Submit prompts
                 batch_ids: list[str] = (
                     self.proposition_relation_extraction.submit_batch(
                         head_propositions=propositions,
@@ -284,8 +304,9 @@ class ProStructRAGPipeline:
                     batch_ids,
                 )
                 logger.info(f"Submitted batches {batch_ids}")
+
             elif batch_mode == "fetch":
-                # Batch API fetch
+                # Fetch and process the responses
                 batch_ids: list[str] = utils.read_json(
                     os.path.join(batch_dir, "batch_ids.json")
                 )
@@ -296,25 +317,21 @@ class ProStructRAGPipeline:
                         batch_ids=batch_ids,
                     )
                 )
+
+                logger.info(
+                    f"Extracted {len(triples)} triples from "
+                    f"{len(propositions)} propositions"
+                )
+
+                # Save the Proposition Relation Extraction results 
+                output_triples_path = os.path.join(index_dir, "triples.json")
+                utils.write_json(output_triples_path, triples)
+
             else:
                 raise ValueError(
                     f"Invalid batch_mode: {batch_mode}. "
                     "Expected None, 'submit', or 'fetch'"
                 )
-
-            if batch_mode == "submit":
-                return
-
-            logger.info(
-                f"Extracted {len(triples)} triples from "
-                f"{len(propositions)} propositions"
-            )
-
-            # Save extracted relations under the index directory
-            utils.write_json(
-                os.path.join(index_dir, "triples.json"),
-                triples,
-            )
 
         #################################
         # [Step 3] Proposition Relation Refinement
@@ -341,7 +358,7 @@ class ProStructRAGPipeline:
                     )
                 )
 
-            # Refine each relation and remove relations classified as NOREL
+            # Apply the Proposition Relation Refinement component to the triples
             if batch_mode is None:
                 refined_triples: list[dict[str, Any]] = []
                 n_deleted: int = 0
@@ -354,12 +371,25 @@ class ProStructRAGPipeline:
                             triple=triple,
                         )
                     )
+                    # Remove triples classified as NOREL
                     if refined_triple["relation"] == "NOREL":
                         n_deleted += 1
                         continue
                     refined_triples.append(refined_triple)
+
+                logger.info(
+                    f"Refinement complete: {len(refined_triples)} triples kept, "
+                    f"{n_deleted} triples removed"
+                )
+
+                # Save the Proposition Relation Refinement results
+                utils.write_json(
+                    os.path.join(index_dir, "refined_triples.json"),
+                    refined_triples,
+                )
+
             elif batch_mode == "submit":
-                # Batch API submit
+                # Submit prompts
                 batch_ids: list[str] = (
                     self.proposition_relation_refinement.submit_batch(
                         triples=triples,
@@ -371,8 +401,9 @@ class ProStructRAGPipeline:
                     batch_ids,
                 )
                 logger.info(f"Submitted batches {batch_ids}")
+
             elif batch_mode == "fetch":
-                # Batch API fetch
+                # Fetch and process the responses
                 batch_ids: list[str] = utils.read_json(
                     os.path.join(batch_dir, "batch_ids.json")
                 )
@@ -383,7 +414,7 @@ class ProStructRAGPipeline:
                     )
                 )
 
-                # Remove relations classified as NOREL
+                # Remove triples classified as NOREL
                 refined_triples: list[dict[str, Any]] = []
                 n_deleted: int = 0
                 for refined_triple in tmp_refined_triples:
@@ -391,25 +422,23 @@ class ProStructRAGPipeline:
                         n_deleted += 1
                         continue
                     refined_triples.append(refined_triple)
+
+                logger.info(
+                    f"Refinement complete: {len(refined_triples)} triples kept, "
+                    f"{n_deleted} triples removed"
+                )
+
+                # Save the Proposition Relation Refinement results
+                utils.write_json(
+                    os.path.join(index_dir, "refined_triples.json"),
+                    refined_triples,
+                )
+
             else:
                 raise ValueError(
                     f"Invalid batch_mode: {batch_mode}. "
                     "Expected None, 'submit', or 'fetch'."
                 )
-
-            if batch_mode == "submit":
-                return
-
-            logger.info(
-                f"Refinement complete: {len(refined_triples)} triples kept, "
-                f"{n_deleted} triples removed"
-            )
-
-            # Save refined relations directly under the index directory
-            utils.write_json(
-                os.path.join(index_dir, "refined_triples.json"),
-                refined_triples,
-            )
 
         #################################
         # [Step 4] Passage Graph Construction
@@ -441,7 +470,7 @@ class ProStructRAGPipeline:
                     )
                 )
 
-            # Construct the directed proposition graph
+            # Apply the Passage Graph Construction component to the triples
             graph: nx.DiGraph = (
                 self.passage_graph_construction.construct_passage_graph(
                     passages=propositions,
@@ -449,10 +478,10 @@ class ProStructRAGPipeline:
                 )
             )
 
-            # Log graph statistics before serialization
+            # Show statistics
             _show_graph_statistics(graph)
 
-            # Save the graph directly under the index directory
+            # Save the Passage Graph Construction results
             nx.write_graphml(
                 graph,
                 os.path.join(index_dir, "graph.graphml"),
@@ -482,7 +511,7 @@ class ProStructRAGPipeline:
                     )
                 )
 
-            # Build and save the component-specific retrieval index
+            # Build index
             passage_retrieval_index_dir: str = os.path.join(
                 index_dir,
                 "passage_retrieval_index",
@@ -547,13 +576,13 @@ class ProStructRAGPipeline:
             # [Step 5b] Passage Retrieval (Search)
             #################################
 
-            # Retrieve the top-ranked anchor propositions
+            # Search top-k anchor propositions for the question
             anchor_propositions: list[Passage] = self.passage_retrieval.search(
                 queries=[question["question"]],
                 top_k=top_k,
             )[0]
 
-            # Represent the anchor propositions as contexts for the current question
+            # Create a ContextsForOneExample object for the question
             anchor_contexts: ContextsForOneExample = {
                 "question_key": question["question_key"],
                 "contexts": anchor_propositions,
@@ -565,21 +594,19 @@ class ProStructRAGPipeline:
             # [Step 6] Graph Retrieval
             #################################
 
-            # Extract graph node identifiers from the anchor propositions
+            # Extract the anchor node IDs for the current question
             anchor_node_ids: list[str] = [
                 prop["passage_key"]
                 for prop in anchor_contexts["contexts"]
             ]
 
-            # Retrieve neighboring nodes and edges around the anchors
-            nodes: list[dict[str, Any]]
-            edges: list[dict[str, Any]]
+            # Retrieve neighboring nodes and edges based on the anchor propositions
             nodes, edges = self.graph_retrieval.search(
                 anchor_node_ids=anchor_node_ids,
                 hop_size=hop_size,
             )
 
-            # Represent the retrieved subgraph as contexts for the current question
+            # Represent the retrieved subgraph as contexts for the question
             graph_contexts: ContextsForOneExample = {
                 "question_key": question["question_key"],
                 "contexts": None,
@@ -606,13 +633,13 @@ class ProStructRAGPipeline:
                             continue
                 filtered_edges.append(edge)
 
-            # Verbalize the filtered subgraph
+            # Convert the graph into LLM-readable context
             text: str = self.context_formatting.convert(
                 nodes=nodes,
                 edges=filtered_edges,
             )
 
-            # Wrap the formatted text in the QA context format
+            # Store the formatted context in the ContextsForOneExample format
             formatted_contexts: ContextsForOneExample = copy.deepcopy(graph_contexts)
             formatted_contexts["contexts"] = [
                 {
@@ -670,7 +697,7 @@ class ProStructRAGPipeline:
                 results.append(result)
 
         elif batch_mode == "submit":
-            # Batch API submit
+            # Submit prompts
             batch_ids: list[str] = self.qa.submit_batch(
                 questions=question_with_time_list,
                 contexts=formatted_contexts_list,
@@ -681,8 +708,9 @@ class ProStructRAGPipeline:
                 batch_ids
             )
             logger.info(f"Submitted batches {batch_ids}")
+
         elif batch_mode == "fetch":
-            # Batch API fetch
+            # Fetch and process the responses
             batch_ids: list[str] = utils.read_json(
                 os.path.join(batch_dir, "batch_ids.json")
             )

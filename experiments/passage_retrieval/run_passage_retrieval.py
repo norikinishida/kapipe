@@ -67,17 +67,17 @@ def main(args):
     search_results_dir = os.path.join(base_output_path, "search_results")
     utils.mkdir(search_results_dir)
 
+    # Extract the base filename
     base_filename = os.path.splitext(os.path.basename(input_file_path))[0]
 
+    # Set logger
     if actiontype == "indexing":
-        # Set logger
         set_logger(
             os.path.join(index_dir, "indexing.log"),
             # overwrite=True
         )
 
     elif actiontype == "search":
-        # Set logger
         set_logger(
             os.path.join(search_results_dir, f"{base_filename}.search.log"),
             # overwrite=True

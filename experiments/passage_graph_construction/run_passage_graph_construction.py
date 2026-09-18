@@ -49,9 +49,15 @@ def main(args):
     )
     utils.mkdir(base_output_path)
 
+    # Extract the base filename
+    base_filename = os.path.splitext(os.path.basename(input_triples_path))[0]
+
     # Set logger
     set_logger(
-        os.path.join(base_output_path, "passage_graph_construction.log"),
+        os.path.join(
+            base_output_path,
+            f"{base_filename}.passage_graph_construction.log",
+        ),
         # overwrite=True
     )
 
@@ -96,7 +102,10 @@ def main(args):
     # Method Execution
     ##################
 
-    logging.info(f"Applying the Passage Graph Construction component to {len(triples)} triples in {input_triples_path} ...")
+    logging.info(
+        f"Applying the Passage Graph Construction component "
+        f"to {len(triples)} triples in {input_triples_path} ..."
+    )
 
     # Apply the Passage Graph Construction component to the triples
     graph = constructor.construct_passage_graph(
@@ -108,7 +117,10 @@ def main(args):
     show_graph_statistics(graph)
 
     # Save the Passage Graph Construction results
-    output_graph_path = os.path.join(base_output_path, "graph.graphml")
+    output_graph_path = os.path.join(
+        base_output_path,
+        f"{base_filename}.graph.graphml"
+    )
     nx.write_graphml(graph, output_graph_path)
     logging.info(f"Saved graph to {output_graph_path}")
 

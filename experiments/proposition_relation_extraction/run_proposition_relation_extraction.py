@@ -3,6 +3,7 @@ import json
 import logging
 import os
 import sys
+from typing import Any
 
 from tqdm import tqdm
 
@@ -36,6 +37,9 @@ def main(args):
         prefix = utils.get_current_time()
         args.prefix = prefix
 
+    # Batch API
+    batch_mode: str | None = args.batch_mode
+
     assert method_name in ["llm_proposition_relation_extractor"], f"Unknown method: {method_name}"
 
     ##################
@@ -52,12 +56,29 @@ def main(args):
     )
     utils.mkdir(base_output_path)
 
+    # Extract the base filename
+    base_filename = os.path.splitext(
+        os.path.basename(input_propositions_path)
+    )[0]
+ 
     # Set logger
-    set_logger(
-        os.path.join(base_output_path, "proposition_relation_extraction.log"),
-        # overwrite=True
-    )
-
+    if batch_mode is None:
+        set_logger(
+            os.path.join(
+                base_output_path,
+                f"{base_filename}.proposition_relation_extraction.log",
+            ),
+            # overwrite=True
+        )
+    else:
+        set_logger(
+            os.path.join(
+                base_output_path,
+                f"{base_filename}.proposition_relation_extraction.{batch_mode}.log",
+            ),
+            # overwrite=True
+        )
+ 
     # Show arguments
     logging.info(utils.pretty_format_dict(vars(args)))
 
@@ -148,7 +169,10 @@ def main(args):
     # Method Execution
     ##################
 
-    logging.info(f"Applying the Proposition Relation Extraction component to {len(propositions)} propositions in {input_propositions_path} ...")
+    logging.info(
+        f"Applying the Proposition Relation Extraction component "
+        f"to {len(propositions)} propositions in {input_propositions_path} ..."
+    )
 
     # Apply the Proposition Relation Extraction component to the propositions
 
@@ -178,23 +202,76 @@ def main(args):
     )
 
     # [Step 2] Extract proposition relations for each proposition
-    triples = []
-    for head_proposition, tail_propositions in tqdm(
-        zip(propositions, batch_tail_propositions),
-        total=len(propositions)
-    ):
-        triples_for_head = extractor.extract(
-            head_proposition=head_proposition,
-            tail_propositions=tail_propositions,
+    if batch_mode is None:
+        triples = []
+        for head_proposition, tail_propositions in tqdm(
+            zip(propositions, batch_tail_propositions),
+            total=len(propositions)
+        ):
+            triples_for_head = extractor.extract(
+                head_proposition=head_proposition,
+                tail_propositions=tail_propositions,
+            )
+            triples.extend(triples_for_head)
+
+        logging.info(
+            f"Extracted {len(triples)} triples from {len(propositions)} propositions"
         )
-        triples.extend(triples_for_head)
 
-    logging.info(f"Extracted {len(triples)} triples from {len(propositions)} propositions")
+        # Save the Proposition Relation Extraction results
+        output_triples_path = os.path.join(
+            base_output_path,
+            f"{base_filename}.triples.json",
+        )
+        utils.write_json(output_triples_path, triples)
+        logging.info(f"Saved triples to {output_triples_path}")
 
-    # Save the Proposition Relation Extraction results
-    output_triples_path = os.path.join(base_output_path, "triples.json")
-    utils.write_json(output_triples_path, triples)
-    logging.info(f"Saved triples to {output_triples_path}")
+    elif batch_mode == "submit":
+        # Submit prompts
+        batch_ids: list[str] = extractor.submit_batch(
+            head_propositions=propositions,
+            batch_tail_propositions=batch_tail_propositions,
+        )
+        utils.write_json(
+            os.path.join(
+                base_output_path,
+                f"{base_filename}.batch_ids.json",
+            ),
+            batch_ids,
+        )
+        logging.info(f"Submitted batches: {batch_ids}")
+
+    elif batch_mode == "fetch":
+        # Fetch and process the responses
+        batch_ids: list[str] = utils.read_json(
+            os.path.join(
+                base_output_path,
+                f"{base_filename}.batch_ids.json",
+            )
+        )
+        triples: list[dict[str, Any]] = extractor.fetch_and_process_batch(
+            head_propositions=propositions,
+            batch_tail_propositions=batch_tail_propositions,
+            batch_ids=batch_ids,
+        )
+
+        logging.info(
+            f"Extracted {len(triples)} triples from {len(propositions)} propositions"
+        )
+
+        # Save the Proposition Relation Extraction results
+        output_triples_path: str = os.path.join(
+            base_output_path,
+            f"{base_filename}.triples.json",
+        )
+        utils.write_json(output_triples_path, triples)
+        logging.info(f"Saved triples to {output_triples_path}")
+
+    else:
+        raise ValueError(
+            f"Invalid batch_mode: {batch_mode}. "
+            "Expected None, 'submit', or 'fetch'."
+        )
 
     ##################
     # Closing
@@ -236,6 +313,14 @@ if __name__ == "__main__":
     # Output Path
     parser.add_argument("--results_dir", type=str, required=True)
     parser.add_argument("--prefix", type=str, default=None)
+
+    # Batch API
+    parser.add_argument(
+        "--batch_mode",
+        type=str,
+        default=None,
+        choices=["submit", "fetch"],
+    )
 
     args = parser.parse_args()
     main(args)

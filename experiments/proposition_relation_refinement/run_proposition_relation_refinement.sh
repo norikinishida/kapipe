@@ -33,4 +33,5 @@ python run_proposition_relation_refinement.py \
     --config_name ${CONFIG_NAME} \
     --input_triples ${INPUT_TRIPLES} \
     --results_dir ${RESULTS_DIR} \
-    --prefix ${MYPREFIX}
+    --prefix ${MYPREFIX} \
+    "$@"

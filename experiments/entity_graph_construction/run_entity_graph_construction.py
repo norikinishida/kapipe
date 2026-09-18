@@ -49,9 +49,23 @@ def main(args):
     )
     utils.mkdir(base_output_path)
 
+    # Extract the base filename
+    source_paths: list[str] = list(input_documents_path_list)
+    if input_additional_triples_path is not None:
+        source_paths.append(input_additional_triples_path)
+    base_filename: str = "___".join(
+        os.path.splitext(os.path.basename(path))[0]
+        for path in source_paths
+    )
+    if not base_filename:
+        base_filename = "no_source"
+
     # Set logger
     set_logger(
-        os.path.join(base_output_path, "entity_graph_construction.log"),
+        os.path.join(
+            base_output_path,
+            f"{base_filename}.entity_graph_construction.log",
+        ),
         # overwrite=True
     )
 
@@ -91,7 +105,10 @@ def main(args):
     )
 
     # Save the `networkx.MultiDiGraph` in GraphML format
-    output_graph_path = os.path.join(base_output_path, "graph.graphml")
+    output_graph_path = os.path.join(
+        base_output_path,
+        f"{base_filename}.graph.graphml",
+    )
     nx.write_graphml(graph, output_graph_path)
     logging.info(f"Saved graph to {output_graph_path}")
 

@@ -33,4 +33,5 @@ python run_proposition_relation_extraction.py \
     --config_name ${CONFIG_NAME} \
     --input_propositions ${INPUT_PROPOSITIONS} \
     --results_dir ${RESULTS_DIR} \
-    --prefix ${MYPREFIX}
+    --prefix ${MYPREFIX} \
+    "$@"

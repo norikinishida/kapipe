@@ -49,9 +49,15 @@ def main(args):
     )
     utils.mkdir(base_output_path)
 
+    # Extract the base filename
+    base_filename = os.path.splitext(os.path.basename(input_anchor_contexts_path))[0]
+
     # Set logger
     set_logger(
-        os.path.join(base_output_path, "graph_retrieval.log"),
+        os.path.join(
+            base_output_path,
+            f"{base_filename}.graph_retrieval.log",
+        ),
         # overwrite=True
     )
 
@@ -106,10 +112,9 @@ def main(args):
         total=len(anchor_contexts)
     ):
         # Extract the anchor node IDs for the current question
-        anchor_passages = anchor_contexts_for_question["contexts"]
         anchor_node_ids: list[str] = [
             passage["passage_key"]
-            for passage in anchor_passages
+            for passage in anchor_contexts_for_question["contexts"]
         ]
 
         # Retrieve neighborhood nodes and edges based on the anchor passages
@@ -124,10 +129,9 @@ def main(args):
         anchor_contexts[context_i]["edges"] = edges
 
     # Save the Graph Retrieval results
-    base_filename = os.path.splitext(os.path.basename(input_anchor_contexts_path))[0]
     output_contexts_path = os.path.join(
         base_output_path,
-        base_filename + ".graph_contexts.json"
+        f"{base_filename}.graph_contexts.json"
     )
     utils.write_json(output_contexts_path, anchor_contexts)
     logging.info(f"Saved Graph Retrieval results to {output_contexts_path}")

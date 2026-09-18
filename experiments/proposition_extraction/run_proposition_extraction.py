@@ -3,6 +3,7 @@ import json
 import logging
 import os
 import sys
+from typing import Any
 
 from tqdm import tqdm
 
@@ -35,6 +36,9 @@ def main(args):
         prefix = utils.get_current_time()
         args.prefix = prefix
 
+    # Batch API
+    batch_mode: str | None = args.batch_mode
+
     assert method_name in ["llm_proposition_extractor"], f"Unknown method: {method_name}"
 
     ##################
@@ -51,11 +55,26 @@ def main(args):
     )
     utils.mkdir(base_output_path)
 
+    # Set the base filename
+    base_filename = os.path.splitext(os.path.basename(input_passages_path))[0]
+
     # Set logger
-    set_logger(
-        os.path.join(base_output_path, "proposition_extraction.log"),
-        # overwrite=True
-    )
+    if batch_mode is None:
+        set_logger(
+            os.path.join(
+                base_output_path,
+                f"{base_filename}.proposition_extraction.log",
+            ),
+            # overwrite=True
+        )
+    else:
+        set_logger(
+            os.path.join(
+                base_output_path,
+                f"{base_filename}.proposition_extraction.{batch_mode}.log",
+            ),
+            # overwrite=True
+        )
 
     # Show arguments
     logging.info(utils.pretty_format_dict(vars(args)))
@@ -105,39 +124,93 @@ def main(args):
     # Count the input passages
     with open(input_passages_path) as fin:
         n_lines = sum(1 for _ in fin)
-    logging.info(f"Applying the Proposition Extraction component to {n_lines} passages in {input_passages_path} ...")
+    logging.info(
+        f"Applying the Proposition Extraction component "
+        f"to {n_lines} passages in {input_passages_path} ..."
+    )
 
     # Create the output file path
-    base_filename = os.path.splitext(os.path.basename(input_passages_path))[0]
     output_file_name = f"{base_filename}.propositions.jsonl"
     output_file_path = os.path.join(base_output_path, output_file_name)
 
     # Apply the Proposition Extraction component to the passages
-    n_input_passages = 0
-    n_output_propositions = 0
-    with open(output_file_path, "w") as fout:
-        with open(input_passages_path) as fin:
-            for line in tqdm(fin, total=n_lines):
-                # Load the passage
-                passage = json.loads(line.strip())
+    if batch_mode is None:
+        n_input_passages = 0
+        n_output_propositions = 0
+        with open(output_file_path, "w") as fout:
+            with open(input_passages_path) as fin:
+                for line in tqdm(fin, total=n_lines):
+                    # Load the passage
+                    passage = json.loads(line.strip())
 
-                # Extract propositions from the passage
-                propositions = extractor.extract(passage=passage)
+                    # Extract propositions from the passage
+                    propositions = extractor.extract(passage=passage)
 
-                # Save the propositions
-                for proposition in propositions:
-                    json_str = json.dumps(proposition)
-                    fout.write(json_str + "\n")
+                    # Save the Proposition Extraction results
+                    for proposition in propositions:
+                        json_str = json.dumps(proposition)
+                        fout.write(json_str + "\n")
 
-                # Count the processed passages and extracted propositions
-                n_input_passages += 1
-                n_output_propositions += len(propositions)
+                    # Count the processed passages and extracted propositions
+                    n_input_passages += 1
+                    n_output_propositions += len(propositions)
 
-    logging.info(
-        f"Extracted {n_output_propositions} propositions "
-        f"from {n_input_passages} passages"
-    )
-    logging.info(f"Saved the propositions to {output_file_path}")
+        logging.info(
+            f"Extracted {n_output_propositions} propositions "
+            f"from {n_input_passages} passages"
+        )
+        logging.info(f"Saved the propositions to {output_file_path}")
+
+    elif batch_mode == "submit":
+        # Load passages
+        passages: list[dict[str, Any]] = utils.read_jsonl(input_passages_path)
+
+        # Submit prompts
+        batch_ids: list[str] = extractor.submit_batch(passages=passages)
+        utils.write_json(
+            os.path.join(
+                base_output_path,
+                f"{base_filename}.batch_ids.json",
+            ),
+            batch_ids,
+        )
+        logging.info(f"Submitted batches: {batch_ids}")
+
+    elif batch_mode == "fetch":
+        # Load passages
+        passages: list[dict[str, Any]] = utils.read_jsonl(input_passages_path)
+
+        # Fetch and process the responses
+        batch_ids: list[str] = utils.read_json(
+            os.path.join(
+                base_output_path,
+                f"{base_filename}.batch_ids.json",
+            )
+        )
+        propositions: list[dict[str, Any]] = extractor.fetch_and_process_batch(
+            passages=passages,
+            batch_ids=batch_ids,
+        )
+
+        n_input_passages = len(passages)
+        n_output_propositions = len(propositions)
+        logging.info(
+            f"Extracted {n_output_propositions} propositions "
+            f"from {n_input_passages} passages"
+        )
+
+        # Save the Proposition Extraction results
+        with open(output_file_path, "w") as fout:
+            for proposition in propositions:
+                json_str = json.dumps(proposition)
+                fout.write(json_str + "\n")
+        logging.info(f"Saved the propositions to {output_file_path}")
+
+    else:
+        raise ValueError(
+            f"Invalid batch_mode: {batch_mode}. "
+            "Expected None, 'submit', or 'fetch'."
+        )
 
     ##################
     # Closing
@@ -179,6 +252,14 @@ if __name__ == "__main__":
     # Output Path
     parser.add_argument("--results_dir", type=str, required=True)
     parser.add_argument("--prefix", type=str, default=None)
+
+    # Batch API
+    parser.add_argument(
+        "--batch_mode",
+        type=str,
+        default=None,
+        choices=["submit", "fetch"],
+    )
 
     args = parser.parse_args()
     main(args) 

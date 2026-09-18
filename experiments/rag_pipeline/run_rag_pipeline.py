@@ -75,7 +75,7 @@ def main(args):
     )
     utils.mkdir(base_output_path)
 
-    # Set the base filename for query processing
+    # Extract the base filename
     base_filename: str | None = None
     if actiontype == "inference":
         if input_questions_path is None:
@@ -100,7 +100,7 @@ def main(args):
         set_logger(
             os.path.join(
                 base_output_path,
-                base_filename + ".inference.log"
+                f"{base_filename}.inference.log"
             ),
             # overwrite=True
         )

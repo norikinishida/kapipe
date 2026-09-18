@@ -2,6 +2,7 @@ import argparse
 import logging
 import os
 import sys
+from typing import Any
 
 from tqdm import tqdm
 
@@ -34,6 +35,9 @@ def main(args):
         prefix = utils.get_current_time()
         args.prefix = prefix
 
+    # Batch API
+    batch_mode: str | None = args.batch_mode
+
     assert method_name in ["llm_proposition_relation_refiner"], f"Unknown method: {method_name}"
 
     ##################
@@ -50,12 +54,29 @@ def main(args):
     )
     utils.mkdir(base_output_path)
 
-    # Set logger
-    set_logger(
-        os.path.join(base_output_path, "proposition_relation_refinement.log"),
-        # overwrite=True
-    )
+    # Set the base filename
+    base_filename = os.path.splitext(
+        os.path.basename(input_triples_path)
+    )[0]
 
+    # Set logger
+    if batch_mode is None:
+        set_logger(
+            os.path.join(
+                base_output_path,
+                f"{base_filename}.proposition_relation_refinement.log",
+            ),
+            # overwrite=True
+        )
+    else:
+        set_logger(
+            os.path.join(
+                base_output_path,
+                f"{base_filename}.proposition_relation_refinement.{batch_mode}.log",
+            ),
+            # overwrite=True
+        )
+ 
     # Show arguments
     logging.info(utils.pretty_format_dict(vars(args)))
 
@@ -112,27 +133,92 @@ def main(args):
     # Method Execution
     ##################
 
-    logging.info(f"Applying the Proposition Relation Refinement component to {len(triples)} triples in {input_triples_path} ...")
+    logging.info(
+        f"Applying the Proposition Relation Refinement component "
+        f"to {len(triples)} triples in {input_triples_path} ..."
+    )
 
     # Apply the Proposition Relation Refinement component to the triples
-    refined_triples = []
-    n_deleted = 0
-    for triple in tqdm(triples):
-        refined_triple = refiner.refine(triple=triple)
+    if batch_mode is None:
+        refined_triples = []
+        n_deleted = 0
+        for triple in tqdm(triples):
+            refined_triple = refiner.refine(triple=triple)
+
+            # Remove triples classified as NOREL
+            if refined_triple["relation"] == "NOREL":
+                n_deleted += 1
+                continue
+
+            refined_triples.append(refined_triple)
+
+        logging.info(
+            f"Refinement complete: {len(refined_triples)} triples kept, "
+            f"{n_deleted} triples removed"
+        )
+
+        # Save the Proposition Relation Refinement results
+        output_triples_path = os.path.join(
+            base_output_path,
+            f"{base_filename}.refined_triples.json",
+        )
+        utils.write_json(output_triples_path, refined_triples)
+        logging.info(f"Saved refined triples to {output_triples_path}")
+
+    elif batch_mode == "submit":
+        # Submit prompts
+        batch_ids: list[str] = refiner.submit_batch(triples=triples)
+        utils.write_json(
+            os.path.join(
+                base_output_path,
+                f"{base_filename}.batch_ids.json",
+            ),
+            batch_ids,
+        )
+        logging.info(f"Submitted batches: {batch_ids}")
+
+    elif batch_mode == "fetch":
+        # Fetch and process the responses
+        batch_ids: list[str] = utils.read_json(
+            os.path.join(
+                base_output_path,
+                f"{base_filename}.batch_ids.json",
+            )
+        )
+        tmp_refined_triples: list[dict[str, Any]] = (
+            refiner.fetch_and_process_batch(
+                triples=triples,
+                batch_ids=batch_ids,
+            )
+        )
 
         # Remove triples classified as NOREL
-        if refined_triple["relation"] == "NOREL":
-            n_deleted += 1
-            continue
+        refined_triples: list[dict[str, Any]] = []
+        n_deleted: int = 0
+        for refined_triple in tmp_refined_triples:
+            if refined_triple["relation"] == "NOREL":
+                n_deleted += 1
+                continue
+            refined_triples.append(refined_triple)
 
-        refined_triples.append(refined_triple)
+        logging.info(
+            f"Refinement complete: {len(refined_triples)} triples kept, "
+            f"{n_deleted} triples removed"
+        )
 
-    logging.info(f"Refinement complete: {len(refined_triples)} triples kept, {n_deleted} triples removed")
+        # Save the Proposition Relation Refinement results
+        output_triples_path = os.path.join(
+            base_output_path,
+            f"{base_filename}.refined_triples.json",
+        )
+        utils.write_json(output_triples_path, refined_triples)
+        logging.info(f"Saved refined triples to {output_triples_path}")
 
-    # Save the Proposition Relation Refinement results
-    output_triples_path = os.path.join(base_output_path, "refined_triples.json")
-    utils.write_json(output_triples_path, refined_triples)
-    logging.info(f"Saved refined triples to {output_triples_path}")
+    else:
+        raise ValueError(
+            f"Invalid batch_mode: {batch_mode}. "
+            "Expected None, 'submit', or 'fetch'."
+        )
 
     ##################
     # Closing
@@ -174,6 +260,14 @@ if __name__ == "__main__":
     # Output Path
     parser.add_argument("--results_dir", type=str, required=True)
     parser.add_argument("--prefix", type=str, default=None)
+
+    # Batch API
+    parser.add_argument(
+        "--batch_mode",
+        type=str,
+        default=None,
+        choices=["submit", "fetch"],
+    )
 
     args = parser.parse_args()
     main(args)

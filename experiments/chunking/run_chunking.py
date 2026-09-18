@@ -50,9 +50,12 @@ def main(args):
     )
     utils.mkdir(base_output_path)
 
+    # Extract the base filename
+    base_filename = os.path.splitext(os.path.basename(input_passages_path))[0]
+
     # Set logger
     set_logger(
-        os.path.join(base_output_path, "chunking.log"),
+        os.path.join(base_output_path, f"{base_filename}.chunking.log"),
         # overwrite=True
     )
 
@@ -79,11 +82,13 @@ def main(args):
     # Count the input passages
     with open(input_passages_path) as fin:
         n_lines = sum(1 for _ in fin)
-    logging.info(f"Applying the Chunking component to {n_lines} passages in {input_passages_path} ...")
+    logging.info(
+        f"Applying the Chunking component to {n_lines} passages "
+        f"in {input_passages_path} ..."
+    )
 
     # Create the output file path
-    input_file_name = os.path.splitext(os.path.basename(input_passages_path))[0]
-    output_file_name = f"{input_file_name}.chunked_w{config['window_size']}.jsonl"
+    output_file_name = f"{base_filename}.chunked_w{config['window_size']}.jsonl"
     output_file_path = os.path.join(base_output_path, output_file_name)
 
     # Apply the Chunking component to the passages
@@ -110,7 +115,9 @@ def main(args):
                 n_input_passages += 1
                 n_output_passages += len(chunked_passages)
 
-    logging.info(f"Split {n_input_passages} passages into {n_output_passages} chunked passages")
+    logging.info(
+        f"Split {n_input_passages} passages "
+        f"into {n_output_passages} chunked passages")
     logging.info(f"Saved the chunked passages to {output_file_path}")
 
     ##################

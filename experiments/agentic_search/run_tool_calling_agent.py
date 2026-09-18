@@ -71,6 +71,7 @@ def main(args):
     )
     utils.mkdir(base_output_path)
 
+    # Extract the base filename
     base_filename = os.path.splitext(
         os.path.basename(input_questions_path)
     )[0]
@@ -158,7 +159,10 @@ def main(args):
     # Method Execution
     ##################
 
-    logging.info(f"Applying the tool-calling agent to {len(questions)} questions in {input_questions_path} ...")
+    logging.info(
+        f"Applying the tool-calling agent to {len(questions)} questions "
+        f"in {input_questions_path} ..."
+    )
 
     # Apply the tool-calling agent to the questions
     result_questions = []

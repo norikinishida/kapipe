@@ -136,7 +136,7 @@ def main(args: argparse.Namespace) -> None:
     )
     utils.mkdir(base_output_path)
 
-    # Set the base filename for query processing
+    # Extract the base filename
     base_filename: str | None = None
     if actiontype == "inference":
         if input_questions_path is None:

@@ -33,4 +33,5 @@ python run_proposition_extraction.py \
     --config_name ${CONFIG_NAME} \
     --input_passages ${INPUT_PASSAGES} \
     --results_dir ${RESULTS_DIR} \
-    --prefix ${MYPREFIX}
+    --prefix ${MYPREFIX} \
+    "$@"

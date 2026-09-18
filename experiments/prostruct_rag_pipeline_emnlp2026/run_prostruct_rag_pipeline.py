@@ -103,7 +103,7 @@ def main(args: argparse.Namespace) -> None:
     if actiontype != "inference" and input_index_dir is not None:
         raise ValueError("--input_index_dir is only available for inference")
 
-    # (Batch API) Validate that Batch API mode is used only with supported actions
+    # Validate that Batch API mode is used only with supported actions
     if batch_mode is not None:
         batch_actiontypes: set[str] = {
             "proposition_extraction",
@@ -131,7 +131,7 @@ def main(args: argparse.Namespace) -> None:
     )
     utils.mkdir(base_output_path)
 
-    # Set the base filename
+    # Extract the base filename
     base_filename: str | None = None
     if actiontype == "inference":
         if input_questions_path is None:
@@ -150,7 +150,7 @@ def main(args: argparse.Namespace) -> None:
     if actiontype != "inference":
         utils.mkdir(index_dir)
 
-    # (Batch API) Set the Batch API directory shared with the pipeline
+    # Set the Batch API directory shared with the pipeline
     batch_dir: str | None = None
     if batch_mode is not None:
         if actiontype != "inference":
@@ -165,13 +165,6 @@ def main(args: argparse.Namespace) -> None:
                 "batch_api",
                 actiontype,
                 base_filename,
-            )
-
-    # (Batch API) Validate that a previous submission is not overwritten
-    if batch_mode is not None:
-        if batch_mode == "submit" and os.path.exists(batch_dir):
-            raise FileExistsError(
-                f"Batch directory already exists: {batch_dir}"
             )
 
     # Set logger
@@ -190,7 +183,6 @@ def main(args: argparse.Namespace) -> None:
                 # overwrite=True
             )
     else:
-        # (Batch API)
         if actiontype != "inference":
             set_logger(
                 os.path.join(base_output_path, f"{actiontype}.{batch_mode}.log"),
@@ -230,19 +222,6 @@ def main(args: argparse.Namespace) -> None:
         os.path.join(base_output_path, "config.json"),
         config,
     )
-
-    # (Batch API) Validate that the selected LLM provider supports the Batch API
-    if batch_mode is not None:
-        batch_enabled: bool = actiontype in {
-            "proposition_extraction",
-            "proposition_relation_extraction",
-            "proposition_relation_refinement",
-            "inference",
-        }
-        if batch_enabled:
-            component_name: str = "qa" if actiontype == "inference" else actiontype
-            if config[component_name]["llm_provider"] != "openai":
-                raise ValueError("Batch API requires llm_provider=openai")
 
     # Initialize the loaded LLM map
     loaded_llm_map: dict[str, BaseLLM] = {}
@@ -442,103 +421,100 @@ def main(args: argparse.Namespace) -> None:
             batch_dir=batch_dir,
         )
 
-        # (Batch API) Finish after submitting requests because answers are 
-        # not available yet.
-        if result_questions is None:
-            return
+        if batch_mode != "submit":
 
-        # Save the results
-        output_questions_path: str = os.path.join(
-            base_output_path,
-            f"{base_filename}.pred.json",
-        )
-        utils.write_json(output_questions_path, result_questions)
-        logging.info(f"Saved inference results to {output_questions_path}")
-
-        # Save the prompts, raw responses, parsed answers, and optional gold answers
-        output_prompt_and_responses_path: str = os.path.join(
-            base_output_path,
-            f"{base_filename}.prompt_and_responses.txt",
-        )
-        with open(
-            output_prompt_and_responses_path,
-            "w",
-            encoding="utf-8",
-        ) as fout:
-            # Write one human-readable block for each question
-            for result_question in result_questions:
-                fout.write("=" * 80 + "\n\n")
-
-                fout.write("QUESTION KEY:\n")
-                fout.write(result_question["question_key"] + "\n\n")
-
-                fout.write("PROMPT:\n")
-                fout.write(result_question["qa_prompt"].rstrip() + "\n\n")
-
-                fout.write("GENERATED TEXT:\n")
-                fout.write(
-                    result_question["qa_generated_text"].rstrip() + "\n\n"
-                )
-
-                fout.write("PARSED ANSWER:\n")
-                fout.write(result_question["output_answer"].rstrip() + "\n\n")
-
-                # Write gold answers only when they are included in the input question
-                if "answers" in result_question:
-                    fout.write("GOLD ANSWERS:\n")
-                    for answer in result_question["answers"]:
-                        fout.write(f"- {answer['answer']}\n")
-                    fout.write("\n")
-
-        logging.info(
-            "Saved the prompts and responses to "
-            f"{output_prompt_and_responses_path}"
-        )
-
-        ##################
-        # Evaluation
-        ##################
-
-        if do_evaluation:
-            # Validate that the gold questions path is provided
-            if gold_questions_path is None:
-                raise ValueError(
-                    "--gold is required when --do_evaluation is set"
-                )
-
-            # Evaluate the prediction results
-            qa_scores: dict[str, Any] = evaluation.qa.accuracy(
-                pred_path=output_questions_path,
-                gold_path=gold_questions_path,
-                exact_match=False,
+            # Save the results
+            output_questions_path: str = os.path.join(
+                base_output_path,
+                f"{base_filename}.pred.json",
             )
-            qa_scores.update(
-                evaluation.qa.token_level_f1(
+            utils.write_json(output_questions_path, result_questions)
+            logging.info(f"Saved inference results to {output_questions_path}")
+
+            # Save the prompts, raw responses, parsed answers, and optional gold answers
+            output_prompt_and_responses_path: str = os.path.join(
+                base_output_path,
+                f"{base_filename}.prompt_and_responses.txt",
+            )
+            with open(
+                output_prompt_and_responses_path,
+                "w",
+                encoding="utf-8",
+            ) as fout:
+                # Write one human-readable block for each question
+                for result_question in result_questions:
+                    fout.write("=" * 80 + "\n\n")
+
+                    fout.write("QUESTION KEY:\n")
+                    fout.write(result_question["question_key"] + "\n\n")
+
+                    fout.write("PROMPT:\n")
+                    fout.write(result_question["qa_prompt"].rstrip() + "\n\n")
+
+                    fout.write("GENERATED TEXT:\n")
+                    fout.write(
+                        result_question["qa_generated_text"].rstrip() + "\n\n"
+                    )
+
+                    fout.write("PARSED ANSWER:\n")
+                    fout.write(result_question["output_answer"].rstrip() + "\n\n")
+
+                    # Write gold answers only when they are included in the input question
+                    if "answers" in result_question:
+                        fout.write("GOLD ANSWERS:\n")
+                        for answer in result_question["answers"]:
+                            fout.write(f"- {answer['answer']}\n")
+                        fout.write("\n")
+
+            logging.info(
+                "Saved the prompts and responses to "
+                f"{output_prompt_and_responses_path}"
+            )
+
+            ##################
+            # Evaluation
+            ##################
+
+            if do_evaluation:
+                # Validate that the gold questions path is provided
+                if gold_questions_path is None:
+                    raise ValueError(
+                        "--gold is required when --do_evaluation is set"
+                    )
+
+                # Evaluate the prediction results
+                qa_scores: dict[str, Any] = evaluation.qa.accuracy(
                     pred_path=output_questions_path,
                     gold_path=gold_questions_path,
+                    exact_match=False,
                 )
-            )
-            # qa_scores.update(
-            #     evaluation.qa.recall(
-            #         pred_path=output_questions_path,
-            #         gold_path=gold_questions_path,
-            #         exact_match=False,
-            #     )
-            # )
-            scores: dict[str, Any] = {
-                "qa": qa_scores,
-            }
-            logging.info(utils.pretty_format_dict(scores))
+                qa_scores.update(
+                    evaluation.qa.token_level_f1(
+                        pred_path=output_questions_path,
+                        gold_path=gold_questions_path,
+                    )
+                )
+                # qa_scores.update(
+                #     evaluation.qa.recall(
+                #         pred_path=output_questions_path,
+                #         gold_path=gold_questions_path,
+                #         exact_match=False,
+                #     )
+                # )
+                scores: dict[str, Any] = {
+                    "qa": qa_scores,
+                }
+                logging.info(utils.pretty_format_dict(scores))
 
-            # Save the evaluation results
-            output_evaluation_path: str = os.path.join(
-                base_output_path,
-                f"{base_filename}.eval.json",
-            )
-            utils.write_json(output_evaluation_path, scores)
-            logging.info(
-                f"Saved evaluation results to {output_evaluation_path}"
-            )
+                # Save the evaluation results
+                output_evaluation_path: str = os.path.join(
+                    base_output_path,
+                    f"{base_filename}.eval.json",
+                )
+                utils.write_json(output_evaluation_path, scores)
+                logging.info(
+                    f"Saved evaluation results to {output_evaluation_path}"
+                )
 
     ##################
     # Closing

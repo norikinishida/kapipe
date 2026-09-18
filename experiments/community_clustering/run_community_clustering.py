@@ -52,9 +52,15 @@ def main(args):
     )
     utils.mkdir(base_output_path)
 
+    # Extract the base filename
+    base_filename = os.path.splitext(os.path.basename(input_graph_path))[0]
+
     # Set logger
     set_logger(
-        os.path.join(base_output_path, "community_clustering.log"),
+        os.path.join(
+            base_output_path,
+            f"{base_filename}.community_clustering.log",
+        ),
         # overwrite=True
     )
 
@@ -107,7 +113,10 @@ def main(args):
     communities = clusterer.cluster_communities(graph=graph)
 
     # Save the results
-    output_communities_path = os.path.join(base_output_path, "communities.json")
+    output_communities_path = os.path.join(
+        base_output_path,
+        f"{base_filename}.communities.json"
+    )
     utils.write_json(output_communities_path, communities)
     logging.info(f"Saved communities to {output_communities_path}")
 
