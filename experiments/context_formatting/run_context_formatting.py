@@ -47,9 +47,15 @@ def main(args):
     )
     utils.mkdir(base_output_path)
 
+    # Extract the base filename
+    base_filename = os.path.splitext(os.path.basename(input_graph_contexts_path))[0]
+
     # Set logger
     set_logger(
-        os.path.join(base_output_path, "context_formatting.log"),
+        os.path.join(
+            base_output_path,
+            f"{base_filename}.context_formatting.log",
+        ),
         # overwrite=True
     )
 
@@ -90,7 +96,10 @@ def main(args):
     # Method Execution
     ##################
 
-    logging.info(f"Applying the Context Formatting component to graph contexts in {input_graph_contexts_path} ...")
+    logging.info(
+        f"Applying the Context Formatting component to graph contexts "
+        f"in {input_graph_contexts_path} ..."
+    )
 
     # Apply the Context Formatting component to the graph contexts
     for context_i, graph_contexts_for_question in tqdm(
@@ -106,17 +115,17 @@ def main(args):
         # Store the formatted context in the ContextsForOneExample format
         graph_contexts[context_i]["contexts"] = [
             {
+                "passage_key": (
+                    f"{graph_contexts_for_question['question_key']}/context#0000"
+                ),
                 "text": text,
             }
         ]
 
     # Save the Context Formatting results
-    base_filename = os.path.splitext(
-        os.path.basename(input_graph_contexts_path)
-    )[0]
     output_contexts_path = os.path.join(
         base_output_path,
-        base_filename + ".formatted_contexts.json"
+        f"{base_filename}.formatted_contexts.json"
     )
     utils.write_json(output_contexts_path, graph_contexts)
     logging.info(f"Saved Context Formatting results to {output_contexts_path}")
