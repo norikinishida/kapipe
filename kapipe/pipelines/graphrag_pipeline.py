@@ -199,12 +199,6 @@ class GraphRAGPipeline:
                     "Entity graph construction component is not initialized."
                 )
 
-            # Select the path to the documents with extracted triples
-            documents_with_triples_path: str = input_artifact_paths.get(
-                "documents_with_triples",
-                os.path.join(index_dir, "documents_with_triples.json"),
-            )
-
             # Load extracted documents only for standalone graph construction
             if target_component is not None:
                 documents_with_triples_path: str = input_artifact_paths.get(
@@ -226,7 +220,7 @@ class GraphRAGPipeline:
             # Construct the entity graph from the extracted triples
             graph: nx.MultiDiGraph = (
                 self.entity_graph_construction.construct_entity_graph(
-                    documents=documents,
+                    documents=documents_with_triples,
                     entity_dict=entity_dict,
                     additional_triples=additional_triples,
                 )
