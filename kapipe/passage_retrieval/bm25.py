@@ -316,9 +316,9 @@ class BM25(BasePassageRetriever):
         )
         query_token_ids = query_token_ids[query_token_ids >= 0]
 
-        # Use random scores when the query contains no known words
+        # Use zero scores when the query contains no known words
         if len(query_token_ids) == 0:
-            return np.random.random((self.n_passages,))
+            return np.zeros((self.n_passages,))
 
         # Extract IDFs for query words
         # (query_len,)
