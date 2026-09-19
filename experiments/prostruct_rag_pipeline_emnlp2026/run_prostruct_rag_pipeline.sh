@@ -20,20 +20,15 @@ CONFIG_NAME=gpt4o_mini___gpt4o_mini_contriever_top20_temporal___gpt4o_temporal__
 INPUT_PASSAGES=${STORAGE_DATA}/examples/corpus/articles.jsonl
 INPUT_QUESTIONS=${STORAGE_DATA}/examples/qa/questions.json
 
-# Input Artifacts
-INPUT_PROPOSITIONS=
-INPUT_TRIPLES=
-INPUT_REFINED_TRIPLES=
-
-# Input Index
-INPUT_INDEX_DIR=
-
 # Output Path
 RESULTS_DIR=${STORAGE_RESULTS}
 MYPREFIX=example
 
 # (optional) Evaluation
 GOLD_QUESTIONS=${STORAGE_DATA}/examples/qa/questions.json
+
+# (optional) External Index
+EXTERNAL_INDEX_DIR=
 
 ######
 # Command-line arguments
@@ -65,44 +60,14 @@ while [ "$#" -gt 0 ]; do
     fi
 done
 
-# Validate the action type
-if [ -z "${ACTIONTYPE}" ]; then
-    echo "Usage: bash run_prostruct_rag_pipeline.sh --actiontype {proposition_extraction|proposition_relation_extraction|proposition_relation_refinement|passage_graph_construction|passage_retrieval_indexing|inference|all} [--batch_mode {submit|fetch}]"
-    exit 1
-fi
-
-# Validate the optional Batch API mode
-if [ -n "${BATCH_MODE}" ] && [ "${BATCH_MODE}" != "submit" ] && [ "${BATCH_MODE}" != "fetch" ]; then
-    echo "Error: --batch_mode must be submit or fetch"
-    exit 1
-fi
-
-# Validate that "all" action type is not used with batch mode
-if [ "${ACTIONTYPE}" = "all" ] && [ -n "${BATCH_MODE}" ]; then
-    echo "Error: Run each stage separately with submit and fetch"
-    exit 1
-fi
-
 ######
 # Experiment execution
 ######
 
-# Prepare the optional input artifact arguments
-INPUT_ARTIFACT_ARGS=()
-if [ -n "${INPUT_PROPOSITIONS}" ]; then
-    INPUT_ARTIFACT_ARGS+=(--input_propositions "${INPUT_PROPOSITIONS}")
-fi
-if [ -n "${INPUT_TRIPLES}" ]; then
-    INPUT_ARTIFACT_ARGS+=(--input_triples "${INPUT_TRIPLES}")
-fi
-if [ -n "${INPUT_REFINED_TRIPLES}" ]; then
-    INPUT_ARTIFACT_ARGS+=(--input_refined_triples "${INPUT_REFINED_TRIPLES}")
-fi
-
-# Prepare the optional input index argument
-INPUT_INDEX_ARGS=()
-if [ -n "${INPUT_INDEX_DIR}" ]; then
-    INPUT_INDEX_ARGS+=(--input_index_dir "${INPUT_INDEX_DIR}")
+# Prepare the optional external index argument
+EXTERNAL_INDEX_ARGS=()
+if [ -n "${EXTERNAL_INDEX_DIR}" ]; then
+    EXTERNAL_INDEX_ARGS+=(--external_index_dir "${EXTERNAL_INDEX_DIR}")
 fi
 
 # Prepare the optional Batch API arguments
@@ -128,10 +93,10 @@ if [ "${ACTIONTYPE}" = "proposition_relation_extraction" ] || [ "${ACTIONTYPE}" 
         --method ${METHOD} \
         --config_path ${CONFIG_PATH} \
         --config_name ${CONFIG_NAME} \
+        --input_passages ${INPUT_PASSAGES} \
         --results_dir ${RESULTS_DIR} \
         --prefix ${MYPREFIX} \
         --actiontype proposition_relation_extraction \
-        "${INPUT_ARTIFACT_ARGS[@]}" \
         "${BATCH_MODE_ARGS[@]}"
 fi
 
@@ -140,10 +105,10 @@ if [ "${ACTIONTYPE}" = "proposition_relation_refinement" ] || [ "${ACTIONTYPE}" 
         --method ${METHOD} \
         --config_path ${CONFIG_PATH} \
         --config_name ${CONFIG_NAME} \
+        --input_passages ${INPUT_PASSAGES} \
         --results_dir ${RESULTS_DIR} \
         --prefix ${MYPREFIX} \
         --actiontype proposition_relation_refinement \
-        "${INPUT_ARTIFACT_ARGS[@]}" \
         "${BATCH_MODE_ARGS[@]}"
 fi
 
@@ -152,10 +117,10 @@ if [ "${ACTIONTYPE}" = "passage_graph_construction" ] || [ "${ACTIONTYPE}" = "al
         --method ${METHOD} \
         --config_path ${CONFIG_PATH} \
         --config_name ${CONFIG_NAME} \
+        --input_passages ${INPUT_PASSAGES} \
         --results_dir ${RESULTS_DIR} \
         --prefix ${MYPREFIX} \
-        --actiontype passage_graph_construction \
-        "${INPUT_ARTIFACT_ARGS[@]}"
+        --actiontype passage_graph_construction
 fi
 
 if [ "${ACTIONTYPE}" = "passage_retrieval_indexing" ] || [ "${ACTIONTYPE}" = "all" ]; then
@@ -163,10 +128,10 @@ if [ "${ACTIONTYPE}" = "passage_retrieval_indexing" ] || [ "${ACTIONTYPE}" = "al
         --method ${METHOD} \
         --config_path ${CONFIG_PATH} \
         --config_name ${CONFIG_NAME} \
+        --input_passages ${INPUT_PASSAGES} \
         --results_dir ${RESULTS_DIR} \
         --prefix ${MYPREFIX} \
-        --actiontype passage_retrieval_indexing \
-        "${INPUT_ARTIFACT_ARGS[@]}"
+        --actiontype passage_retrieval_indexing
 fi
 
 if [ "${ACTIONTYPE}" = "inference" ] || [ "${ACTIONTYPE}" = "all" ]; then
@@ -180,6 +145,6 @@ if [ "${ACTIONTYPE}" = "inference" ] || [ "${ACTIONTYPE}" = "all" ]; then
         --actiontype inference \
         --do_evaluation \
         --gold ${GOLD_QUESTIONS} \
-        "${INPUT_INDEX_ARGS[@]}" \
+        "${EXTERNAL_INDEX_ARGS[@]}" \
         "${BATCH_MODE_ARGS[@]}"
 fi

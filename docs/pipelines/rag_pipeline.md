@@ -10,20 +10,20 @@ The pipeline does not define the behavior of the individual components. See the 
 
 ```text
 Passages (input)
-→ Passage Retrieval indexing
-  → Retrieval index (output)
+↓ Passage Retrieval (indexing)
+Retrieval index (output)
 ```
 
 ### Inference:
 
 ```text
 Question (input)
-→ Passage Retrieval search
-  → Retrieved passages (output)
+↓ Passage Retrieval (search)
+Retrieved passages (output)
 
 Question and Retrieved passages (input)
-→ Question Answering
-  → Answer (output)
+↓ Question Answering
+Answer (output)
 ```
 
 ## Components
@@ -50,12 +50,11 @@ All constructor arguments must be specified.
 ```python
 from kapipe.pipelines import RAGPipeline
 
-
-# Initialize the components before constructing the pipeline
+# Initialize the components
 passage_retrieval = ...
 qa = ...
 
-# Connect the initialized components
+# Instantiate the RAG pipeline
 rag = RAGPipeline(
     passage_retrieval=passage_retrieval,
     qa=qa,
@@ -69,10 +68,13 @@ rag = RAGPipeline(
 rag.make_index(
     passages=passages,
     index_dir="./indexes",
+    passage_retrieval_indexing_kwargs={
+        "batch_size": 1024,
+    },
 )
 ```
 
-Additional keyword arguments are forwarded to the Passage Retrieval component. Omit arguments unsupported by the selected component.
+Values in `passage_retrieval_indexing_kwargs` are forwarded to the Passage Retrieval component. Omit arguments unsupported by the selected component.
 
 ### Load the Index:
 
@@ -83,10 +85,12 @@ rag.load_index(
 )
 ```
 
+`load_index()` must be called before inference.
+
 ### Run Inference:
 
 ```python
-# Retrieve passages and answer multiple questions
+# Retrieve passages and answer the questions
 result_questions = rag.infer(
     questions=questions,
     top_k=5,
@@ -95,9 +99,36 @@ result_questions = rag.infer(
 
 `top_k` controls the number of passages returned by Passage Retrieval.
 
+### Use the OpenAI Batch API During Inference:
+
+When the Question Answering component is `LLMQA` backed by `OpenAILLM`, inference can submit and fetch answer-generation requests through the OpenAI Batch API.
+Passage Retrieval still runs during both calls.
+
+```python
+# Submit requests for inference
+result_questions = rag.infer(
+    questions=questions,
+    top_k=5,
+    batch_mode="submit",
+    batch_dir="./batches",
+)
+assert result_questions is None
+
+# Fetch the responses for inference
+result_questions = rag.infer(
+    questions=questions,
+    top_k=5,
+    batch_mode="fetch",
+    batch_dir="./batches",
+)
+```
+
+When `batch_mode` is specified, `batch_dir` is required.
+Valid modes are `"submit"` and `"fetch"`.
+
 ## Indexing Outputs
 
-`make_index()` creates a retrieval index under `index_dir`.
+`make_index()` creates `passage_retrieval_index/` under `index_dir`.
 
 The contents of the retrieval index depend on the selected Passage Retrieval component.
 

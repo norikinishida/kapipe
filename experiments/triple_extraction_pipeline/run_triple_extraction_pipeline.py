@@ -13,6 +13,7 @@ from kapipe.utils import StopWatch
 
 from kapipe.pipelines import TripleExtractionPipeline
 
+from kapipe.chunking import BaseChunker, Chunker
 from kapipe.llms import BaseLLM, HuggingFaceLLM, OpenAILLM
 from kapipe.ner import (
     BaseNER,
@@ -37,11 +38,11 @@ from kapipe.docre import (
 )
 
 
-def main(args):
+def main(args: argparse.Namespace) -> None:
     torch.autograd.set_detect_anomaly(True)
     transformers.logging.set_verbosity_error()
 
-    sw = StopWatch()
+    sw: StopWatch = StopWatch()
     sw.start("main")
 
     ##################
@@ -49,49 +50,94 @@ def main(args):
     ##################
 
     # Method
-    method_name = args.method
-    config_path = args.config_path
-    config_name = args.config_name
+    method_name: str = args.method
+    config_path: str = args.config_path
+    config_name: str = args.config_name
 
     # Input Data
-    input_documents_path = args.input_documents
+    input_documents_path: str = args.input_documents
 
     # Output Path
-    results_dir = args.results_dir
-    prefix = args.prefix
+    results_dir: str = args.results_dir
+    prefix: str | None = args.prefix
     if prefix is None or prefix == "None":
         prefix = utils.get_current_time()
         args.prefix = prefix
 
+    # Action
+    actiontype: str = args.actiontype
+
     # Evaluation
-    do_evaluation = args.do_evaluation
-    gold_documents_path = args.gold
+    do_evaluation: bool = args.do_evaluation
+    gold_documents_path: str | None = args.gold
+
+    # Batch API
+    batch_mode: str | None = args.batch_mode
 
     ##################
     # Logging Setup
     ##################
 
     # Set base output path
-    base_output_path = os.path.join(
+    base_output_path: str = os.path.join(
         results_dir,
         "triple_extraction_pipeline",
         method_name,
         config_name,
-        prefix
+        prefix,
     )
     utils.mkdir(base_output_path)
 
-    # Extract the base filename from the input documents path
-    base_filename = os.path.splitext(os.path.basename(input_documents_path))[0]
+    # Extract the base filename
+    base_filename: str = os.path.splitext(os.path.basename(input_documents_path))[0]
+
+    # Intermediate artifacts will be saved to `intermediate_dir`
+    intermediate_dir: str | None = None
+    if actiontype != "all":
+        intermediate_dir = os.path.join(
+            base_output_path,
+            "intermediate",
+            base_filename,
+        )
+        utils.mkdir(intermediate_dir)
+
+    # Set the Batch API directory
+    batch_dir: str | None = None
+    if batch_mode is not None:
+        batch_dir = os.path.join(
+            base_output_path,
+            "batch_api",
+            actiontype,
+            base_filename,
+        )
+        utils.mkdir(batch_dir)
 
     # Set logger
-    set_logger(
-        os.path.join(
-            base_output_path,
-            f"{base_filename}.triple_extraction_pipeline.log"
-        ),
-        # overwrite=True
-    )
+    if batch_mode is None:
+        if actiontype == "all":
+            set_logger(
+                os.path.join(
+                    base_output_path,
+                    f"{base_filename}.triple_extraction_pipeline.log",
+                ),
+                # overwrite=True
+            )
+        else:
+            set_logger(
+                os.path.join(
+                    base_output_path,
+                    f"{base_filename}.{actiontype}.log",
+                ),
+                # overwrite=True
+            )
+    else:
+        set_logger(
+            os.path.join(
+                base_output_path,
+                f"{base_filename}.{actiontype}.{batch_mode}.log",
+            ),
+            # overwrite=True
+        )
 
     # Show arguments
     logging.info(utils.pretty_format_dict(vars(args)))
@@ -101,14 +147,17 @@ def main(args):
     ##################
 
     # Load documents
-    documents = utils.read_json(input_documents_path)
+    documents: list[dict[str, Any]] = utils.read_json(input_documents_path)
 
     ##################
     # Method Instantiation
     ##################
 
     # Load the experiment configuration
-    config = utils.get_hocon_config(config_path=config_path, config_name=config_name)
+    config: dict[str, Any] = utils.get_hocon_config(
+        config_path=config_path,
+        config_name=config_name,
+    )
 
     # Save the experiment configuration to the output path
     utils.write_json(os.path.join(base_output_path, "config.json"), config)
@@ -140,12 +189,16 @@ def main(args):
         loaded_llm_map=loaded_llm_map,
     )
 
+    # Instantiate the Chunking component
+    chunker: BaseChunker = Chunker()
+
     # Instantiate the Triple Extraction pipeline
-    extractor = TripleExtractionPipeline(
+    extractor: TripleExtractionPipeline = TripleExtractionPipeline(
         ner=ner,
         ed_retrieval=ed_retrieval,
         ed_reranking=ed_reranking,
         docre=docre,
+        chunker=chunker,
     )
 
     ##################
@@ -155,65 +208,71 @@ def main(args):
     logging.info(f"Applying the Triple Extraction pipeline to {len(documents)} documents in {input_documents_path} ...")
 
     # Apply the Triple Extraction pipeline to the documents
-    result_documents: list[dict[str, Any]] = extractor.extract_triples(
+    result_documents: list[dict[str, Any]] | None = extractor.extract_triples(
+        # Input
         documents=documents,
-        retrieval_size=config["ed_retrieval"]["retrieval_size"]
+        # Component-specific arguments
+        retrieval_size=config["ed_retrieval"]["retrieval_size"],
+        # Target component
+        target_component=None if actiontype == "all" else actiontype,
+        intermediate_dir=intermediate_dir,
+        # Batch API
+        batch_mode=batch_mode,
+        batch_dir=batch_dir,
     )
 
-    # Save the results
-    output_documents_path = os.path.join(
-        base_output_path,
-        f"{base_filename}.pred.json"
-    )
-    utils.write_json(output_documents_path, result_documents)
-    logging.info(f"Saved the prediction results to {output_documents_path}")
+    if actiontype == "all" or actiontype == "docre":
+        if batch_mode != "submit":
+            # Save the results
+            output_documents_path: str = os.path.join(
+                base_output_path,
+                f"{base_filename}.pred.json",
+            )
+            utils.write_json(output_documents_path, result_documents)
+            logging.info(f"Saved the prediction results to {output_documents_path}")
 
-    ##################
-    # Evaluation
-    ##################
+            ##################
+            # Evaluation
+            ##################
 
-    if do_evaluation:
-        # Validate that the gold documents path is provided
-        if gold_documents_path is None:
-            raise ValueError("--gold is required when --do_evaluation is set")
+            if do_evaluation:
+                # Evaluate the prediction results
+                ner_scores = evaluation.ner.fscore(
+                    pred_path=output_documents_path,
+                    gold_path=gold_documents_path,
+                )
+                ed_scores_mention_level = evaluation.ed.fscore(
+                    pred_path=output_documents_path,
+                    gold_path=gold_documents_path,
+                    inkb=False,
+                    skip_normalization=True,
+                    on_predicted_spans=True,
+                )
+                ed_scores_entity_level = evaluation.ed.entity_level_fscore(
+                    pred_path=output_documents_path,
+                    gold_path=gold_documents_path,
+                )
+                docre_scores = evaluation.docre.fscore(
+                    pred_path=output_documents_path,
+                    gold_path=gold_documents_path,
+                    skip_intra_inter=True,
+                    skip_ign=True,
+                )
+                scores = {
+                    "ner": ner_scores,
+                    "ed_mention_level": ed_scores_mention_level,
+                    "ed_entity_level": ed_scores_entity_level,
+                    "docre": docre_scores,
+                }
+                logging.info(utils.pretty_format_dict(scores))
 
-        # Evaluate the prediction results
-        ner_scores = evaluation.ner.fscore(
-            pred_path=output_documents_path,
-            gold_path=gold_documents_path
-        )
-        ed_scores_mention_level = evaluation.ed.fscore(
-            pred_path=output_documents_path,
-            gold_path=gold_documents_path,
-            inkb=False,
-            skip_normalization=True,
-            on_predicted_spans=True
-        )
-        ed_scores_entity_level = evaluation.ed.entity_level_fscore(
-            pred_path=output_documents_path,
-            gold_path=gold_documents_path
-        )
-        docre_scores = evaluation.docre.fscore(
-            pred_path=output_documents_path,
-            gold_path=gold_documents_path,
-            skip_intra_inter=True,
-            skip_ign=True
-        )
-        scores = {
-            "ner": ner_scores,
-            "ed_mention_level": ed_scores_mention_level,
-            "ed_entity_level": ed_scores_entity_level,
-            "docre": docre_scores,
-        }
-        logging.info(utils.pretty_format_dict(scores))
-
-        # Save the evaluation results
-        output_evaluation_path = os.path.join(
-            base_output_path,
-            f"{base_filename}.eval.json"
-        )
-        utils.write_json(output_evaluation_path, scores)
-        logging.info(f"Saved the evaluation results to {output_evaluation_path}")
+                # Save the evaluation results
+                output_evaluation_path: str = os.path.join(
+                    base_output_path,
+                    f"{base_filename}.eval.json",
+                )
+                utils.write_json(output_evaluation_path, scores)
+                logging.info(f"Saved the evaluation results to {output_evaluation_path}")
 
     ##################
     # Closing
@@ -446,7 +505,7 @@ if __name__ == "__main__":
         lambda r: "huggingface.co" not in r.getMessage()
     )
 
-    parser = argparse.ArgumentParser()
+    parser: argparse.ArgumentParser = argparse.ArgumentParser()
 
     # Method
     parser.add_argument("--method", type=str, required=True)
@@ -460,10 +519,32 @@ if __name__ == "__main__":
     parser.add_argument("--results_dir", type=str, required=True)
     parser.add_argument("--prefix", type=str, default=None)
 
+    # Action
+    parser.add_argument(
+        "--actiontype",
+        type=str,
+        required=True,
+        choices=[
+            "all",
+            "ner",
+            "ed_retrieval",
+            "ed_reranking",
+            "docre",
+        ],
+    )
+
     # Evaluation
     parser.add_argument("--do_evaluation", action="store_true")
     parser.add_argument("--gold", type=str, default=None)
 
-    args = parser.parse_args()
+    # Batch API
+    parser.add_argument(
+        "--batch_mode",
+        type=str,
+        default=None,
+        choices=["submit", "fetch"],
+    )
+
+    args: argparse.Namespace = parser.parse_args()
 
     main(args)

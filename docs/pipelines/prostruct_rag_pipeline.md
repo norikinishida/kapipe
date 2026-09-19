@@ -12,44 +12,44 @@ The pipeline does not define the behavior of the individual components. See the 
 
 ```text
 Passages (input)
-→ Proposition Extraction
-  → Propositions (output)
+↓ Proposition Extraction
+Propositions (output)
 
 Propositions (input)
-→ Proposition Relation Extraction
-  → Triples (output)
+↓ Proposition Relation Extraction
+Triples (output)
 
 Triples (input)
-→ Proposition Relation Refinement
-  → Refined triples (output)
+↓ Proposition Relation Refinement
+Refined triples (output)
 
 Refined triples (input)
-→ Passage Graph Construction
-  → Graph (output)
+↓ Passage Graph Construction
+Graph (output)
 
 Propositions (input)
-→ Passage Retrieval indexing
-  → Retrieval index (output)
+↓ Passage Retrieval (indexing)
+Retrieval index (output)
 ```
 
 ### Inference:
 
 ```text
-Questions (input)
-→ Passage Retrieval search
-  → Anchor propositions (output)
+Question (input)
+↓ Passage Retrieval (search)
+Anchor propositions (output)
 
 Anchor propositions (input)
-→ Graph Retrieval
-  → Neighborhood nodes and edges (output)
+↓ Graph Retrieval
+Neighborhood nodes and edges (output)
 
 Neighborhood nodes and edges (input)
-→ Context Formatting
-  → Structured textual context (output)
+↓ Context Formatting
+Structured textual context (output)
 
-Each question and its structured textual context (input)
-→ Question Answering
-  → Answers (output)
+Question and Structured textual context (input)
+↓ Question Answering
+Answer (output)
 ```
 
 ## Components
@@ -65,9 +65,7 @@ Each question and its structured textual context (input)
 | `context_formatting` | [Context Formatting](../components/context_formatting.md) | Inference |
 | `qa` | [Question Answering](../components/qa.md) | Inference |
 
-All constructor arguments must be specified. Components unused by the intended operation may be set to `None`.
-
-Calling a method without a component required by that operation raises an error.
+All constructor arguments must be specified.
 
 ## Pipeline Methods
 
@@ -84,8 +82,7 @@ Calling a method without a component required by that operation raises an error.
 ```python
 from kapipe.pipelines import ProStructRAGPipeline
 
-
-# Initialize the components before constructing the pipeline
+# Initialize the components
 proposition_extraction = ...
 proposition_relation_extraction = ...
 proposition_relation_refinement = ...
@@ -95,7 +92,7 @@ graph_retrieval = ...
 context_formatting = ...
 qa = ...
 
-# Connect the initialized components
+# Instantiate the ProStruct-RAG pipeline
 prostruct_rag = ProStructRAGPipeline(
     proposition_extraction=proposition_extraction,
     proposition_relation_extraction=proposition_relation_extraction,
@@ -128,67 +125,42 @@ prostruct_rag.make_index(
 ```
 
 `top_k`, `prefilter_k`, and `search_batch_size` control candidate retrieval during Proposition Relation Extraction.
-
 Values in `proposition_relation_extraction_indexing_kwargs` and `passage_retrieval_indexing_kwargs` are forwarded to the corresponding retrieval components. Omit arguments unsupported by the selected components.
 
 ### Build the Index Step by Step:
 
 Set `target_component` to run only one indexing step.
 
-| `target_component` | Input |
-|---|---|
-| `proposition_extraction` | `passages` |
-| `proposition_relation_extraction` | Propositions |
-| `proposition_relation_refinement` | Extracted triples |
-| `passage_graph_construction` | Propositions and refined triples |
-| `passage_retrieval_indexing` | Propositions |
-
 ```python
-# Example 1: Run only Proposition Relation Extraction over the specified input
+# Example 1: Run only Proposition Relation Extraction over the input under `index_dir`
 prostruct_rag.make_index(
-    passages=None,
+    passages=passages,
     index_dir="./indexes",
     top_k=20,
     prefilter_k=100,
     search_batch_size=10,
     target_component="proposition_relation_extraction",
-    input_artifact_paths={
-        "propositions": "/path/to/propositions.jsonl",
-    },
 )
 
 # Example 2: Run only Proposition Relation Refinement over the input under `index_dir`
 prostruct_rag.make_index(
-    passages=None,
+    passages=passages,
     index_dir="./indexes",
     top_k=20,
     prefilter_k=100,
     search_batch_size=10,
     target_component="proposition_relation_refinement",
-    input_artifact_paths=None,
 )
 ```
 
-The component required by the selected step must be initialized. Other constructor arguments can be `None`.
-
-If `input_artifact_paths` is omitted, the selected step loads its inputs from the standard filenames under `index_dir`.
-
-The supported artifact overrides are:
-
-| Key | Artifact |
-|---|---|
-| `propositions` | Proposition records in JSONL format |
-| `triples` | Extracted proposition relation records in JSON format |
-| `refined_triples` | Refined proposition relation records in JSON format |
+When run individually, steps after Proposition Extraction load their inputs from the standard filenames under `index_dir`.
 
 ### Use the OpenAI Batch API During Indexing:
 
 The Proposition Extraction, Proposition Relation Extraction, and Proposition Relation Refinement steps support the OpenAI Batch API when their LLM component uses `OpenAILLM`.
 
-Run one target component twice with identical inputs and settings. The first call submits the requests and returns without creating the component output. After every submitted batch is complete, the second call fetches the responses and creates the output.
-
 ```python
-# Submit Proposition Extraction requests
+# Submit requests for Proposition Extraction
 prostruct_rag.make_index(
     passages=passages,
     index_dir="./indexes",
@@ -200,7 +172,7 @@ prostruct_rag.make_index(
     batch_dir="./batches",
 )
 
-# Fetch the responses using the same passages and settings
+# Fetch the responses for Proposition Extraction
 prostruct_rag.make_index(
     passages=passages,
     index_dir="./indexes",
@@ -213,9 +185,9 @@ prostruct_rag.make_index(
 )
 ```
 
-When `batch_mode` is specified, `target_component` and `batch_dir` are required. Valid modes are `"submit"` and `"fetch"`; running all indexing steps at once is not supported in batch mode.
-
-The pipeline stores the returned batch ID list at `<batch_dir>/<target_component>/batch_ids.json`. Use the same `batch_dir`, inputs, input order, component settings, and retrieval settings for submission and fetching.
+When `batch_mode` is specified, `target_component` and `batch_dir` are required.
+Valid modes are `"submit"` and `"fetch"`.
+Running all indexing steps at once is not supported in batch mode.
 
 ### Load the Index:
 
@@ -226,12 +198,12 @@ prostruct_rag.load_index(
 )
 ```
 
-`load_index()` must be called before inference, including when the same pipeline instance created the index. Graph Retrieval is initialized from the saved graph during this call.
+`load_index()` must be called before inference.
 
 ### Run Inference:
 
 ```python
-# Retrieve proposition subgraphs and answer multiple questions
+# Retrieve proposition subgraphs and answer the questions
 result_questions = prostruct_rag.infer(
     questions=questions,
     top_k=10,
@@ -241,14 +213,18 @@ result_questions = prostruct_rag.infer(
 )
 ```
 
-`top_k` controls the number of anchor propositions returned by Passage Retrieval. `hop_size` controls neighborhood expansion during Graph Retrieval. Each anchor proposition is matched to its graph node using `passage_key`.
+`top_k` controls the number of anchor propositions returned by Passage Retrieval.
+`hop_size` controls neighborhood expansion during Graph Retrieval.
+If `append_question_timestamp` is `True`, the input question must contain a `timestamp`. The timestamp is appended to the question text as `(Date: <timestamp>)` before Question Answering.
+If `remove_same_timestamp_updates` is `True`, `updates` edges whose head and tail timestamps are equal are excluded from Context Formatting.
 
 ### Use the OpenAI Batch API During Inference:
 
-When the Question Answering component is `LLMQA` backed by `OpenAILLM`, inference can submit and fetch answer-generation requests through the OpenAI Batch API. Passage Retrieval, Graph Retrieval, and Context Formatting still run during both calls.
+When the Question Answering component is `LLMQA` backed by `OpenAILLM`, inference can submit and fetch answer-generation requests through the OpenAI Batch API.
+Passage Retrieval, Graph Retrieval, and Context Formatting still run during both calls.
 
 ```python
-# Submit answer-generation requests and receive no results yet
+# Submit requests for inference
 result_questions = prostruct_rag.infer(
     questions=questions,
     top_k=10,
@@ -258,7 +234,7 @@ result_questions = prostruct_rag.infer(
 )
 assert result_questions is None
 
-# Fetch answers after all submitted batches are complete
+# Fetch the responses for inference
 result_questions = prostruct_rag.infer(
     questions=questions,
     top_k=10,
@@ -268,7 +244,8 @@ result_questions = prostruct_rag.infer(
 )
 ```
 
-The pipeline stores the batch ID list at `<batch_dir>/qa/batch_ids.json`. Use the same `questions`, question order, pipeline settings, and `batch_dir` for both calls. In `"fetch"` mode, `infer()` returns the same result structure as synchronous inference.
+When `batch_mode` is specified, `batch_dir` is required.
+Valid modes are `"submit"` and `"fetch"`.
 
 ## Indexing Outputs
 
@@ -294,10 +271,6 @@ The output preserves the fields returned by the Question Answering component and
 | `anchor_contexts` | Propositions returned by Passage Retrieval |
 | `graph_contexts` | Nodes and edges returned by Graph Retrieval |
 | `formatted_contexts` | Graph content converted into a textual QA context with passage key `<question_key>/context#0000` |
-
-If `append_question_timestamp` is `True`, the input question must contain a `timestamp`. The timestamp is appended to the question text as `(Date: <timestamp>)` before Question Answering.
-
-If `remove_same_timestamp_updates` is `True`, `updates` edges whose head and tail timestamps are equal are excluded from Context Formatting. They remain present in `graph_contexts`.
 
 The pipeline does not save inference output automatically. The caller is responsible for saving `result_questions`.
 

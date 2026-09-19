@@ -19,12 +19,17 @@ CONFIG_NAME=qwen3_embedding_06b___gpt5_4_nano
 # Input Data
 INPUT_PASSAGES=${STORAGE_DATA}/examples/corpus/passages.jsonl
 INPUT_QUESTIONS=${STORAGE_DATA}/examples/qa/questions.json
-GOLD_QUESTIONS=${STORAGE_DATA}/examples/qa/questions_with_answers.json
-GOLD_CONTEXTS=${STORAGE_DATA}/examples/qa/questions.gold_contexts.json
 
 # Output Path
 RESULTS_DIR=${STORAGE_RESULTS}
 MYPREFIX=example
+
+# (optional) Evaluation
+GOLD_QUESTIONS=${STORAGE_DATA}/examples/qa/questions_with_answers.json
+GOLD_CONTEXTS=${STORAGE_DATA}/examples/qa/questions.gold_contexts.json
+
+# (optional) External Index
+EXTERNAL_INDEX_DIR=
 
 ######
 # Command-line arguments
@@ -32,6 +37,7 @@ MYPREFIX=example
 
 # Initialize the requested action
 ACTIONTYPE=
+BATCH_MODE=
 
 # Parse command-line arguments
 while [ "$#" -gt 0 ]; do
@@ -42,21 +48,34 @@ while [ "$#" -gt 0 ]; do
         fi
         ACTIONTYPE=$2
         shift 2
+    elif [ "$1" = "--batch_mode" ]; then
+        if [ "$#" -lt 2 ]; then
+            echo "Error: --batch_mode requires a value"
+            exit 1
+        fi
+        BATCH_MODE=$2
+        shift 2
     else
         echo "Error: Unknown argument: $1"
         exit 1
     fi
 done
 
-# Validate that the action type is provided
-if [ -z "${ACTIONTYPE}" ]; then
-    echo "Usage: bash run_rag_pipeline.sh --actiontype {indexing|inference|all}"
-    exit 1
-fi
-
 ######
 # Experiment execution
 ######
+
+# Prepare the optional external index argument
+EXTERNAL_INDEX_ARGS=()
+if [ -n "${EXTERNAL_INDEX_DIR}" ]; then
+    EXTERNAL_INDEX_ARGS+=(--external_index_dir "${EXTERNAL_INDEX_DIR}")
+fi
+
+# Prepare the optional Batch API arguments
+BATCH_MODE_ARGS=()
+if [ -n "${BATCH_MODE}" ]; then
+    BATCH_MODE_ARGS=(--batch_mode "${BATCH_MODE}")
+fi
 
 if [ "${ACTIONTYPE}" = "indexing" ] || [ "${ACTIONTYPE}" = "all" ]; then
     python run_rag_pipeline.py \
@@ -80,5 +99,7 @@ if [ "${ACTIONTYPE}" = "inference" ] || [ "${ACTIONTYPE}" = "all" ]; then
         --actiontype inference \
         --do_evaluation \
         --gold_answers ${GOLD_QUESTIONS} \
-        --gold_contexts ${GOLD_CONTEXTS}
+        --gold_contexts ${GOLD_CONTEXTS} \
+        "${EXTERNAL_INDEX_ARGS[@]}" \
+        "${BATCH_MODE_ARGS[@]}"
 fi

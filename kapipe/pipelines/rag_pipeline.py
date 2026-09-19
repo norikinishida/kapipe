@@ -1,14 +1,18 @@
-# kapipe/pipelines/rag_pipeline.py
-
 from __future__ import annotations
 
+import logging
+import os
 from typing import Any
 
 from tqdm import tqdm
 
+from .. import utils
 from ..datatypes import ContextsForOneExample, Passage, Question
 from ..passage_retrieval.base import BasePassageRetriever
 from ..qa.base import BaseQA
+
+
+logger: logging.Logger = logging.getLogger(__name__)
 
 
 class RAGPipeline:
@@ -19,8 +23,9 @@ class RAGPipeline:
         passage_retrieval: BasePassageRetriever,
         qa: BaseQA,
     ) -> None:
-        self.passage_retrieval = passage_retrieval
-        self.qa = qa
+
+        self.passage_retrieval: BasePassageRetriever = passage_retrieval
+        self.qa: BaseQA = qa
 
     ####################
     # Indexing
@@ -28,16 +33,35 @@ class RAGPipeline:
 
     def make_index(
         self,
+        # Input
         passages: list[Passage],
+        # Output directory
         index_dir: str,
-        **kwargs: Any,
+        # Component-specific arguments
+        passage_retrieval_indexing_kwargs: dict[str, Any] | None = None,
     ) -> None:
         """Build an index over passages."""
 
+        # Use empty mappings when optional mappings are omitted
+        if passage_retrieval_indexing_kwargs is None:
+            passage_retrieval_indexing_kwargs = {}
+
+        # Create the common destination for every indexing artifact
+        utils.mkdir(index_dir)
+
+        ########################################
+        # [Step 1a] Passage Retrieval (Indexing)
+        ########################################
+
+        # Build the passage retrieval index
+        passage_retrieval_index_dir: str = os.path.join(
+            index_dir,
+            "passage_retrieval_index",
+        )
         self.passage_retrieval.make_index(
             passages=passages,
-            index_dir=index_dir,
-            **kwargs,
+            index_dir=passage_retrieval_index_dir,
+            **passage_retrieval_indexing_kwargs,
         )
 
     ####################
@@ -49,50 +73,99 @@ class RAGPipeline:
         index_dir: str,
     ) -> None:
         """Load an existing index."""
-        self.passage_retrieval.load_index(index_dir=index_dir)
+        self.passage_retrieval.load_index(
+            index_dir=os.path.join(index_dir, "passage_retrieval_index"),
+        )
 
     def infer(
         self,
+        # Input
         questions: list[Question],
+        # Component-specific arguments
         top_k: int,
-    ) -> list[Question]:
+        # Batch API
+        batch_mode: str | None = None,
+        batch_dir: str | None = None,
+    ) -> list[Question] | None:
         """Retrieve passages for each question and generate answers."""
 
-        # Validate that every inference component is initialized
-        if self.passage_retrieval is None:
-            raise ValueError("Passage retrieval component is not initialized.")
-        if self.qa is None:
-            raise ValueError("QA component is not initialized.")
-
-        # Validate that top_k is a positive integer
-        if top_k <= 0:
-            raise ValueError("top_k must be a positive integer.")
-
-        results: list[Question] = []
+        # Retrieve contexts for each question
+        contexts_list: list[ContextsForOneExample] = []
         for question in tqdm(questions, desc="Answering questions"):
 
-            # Retrieve passages using the natural language question
-            retrieved_passages = self.passage_retrieval.search(
+            ######################################
+            # [Step 1b] Passage Retrieval (Search)
+            ######################################
+
+            # Search top-k passages for the question
+            retrieved_passages: list[Passage] = self.passage_retrieval.search(
                 queries=[question["question"]],
                 top_k=top_k,
             )[0]
 
-            # Wrap retrieved passages in the QA context format
+            # Create a ContextsForOneExample object for the question
             contexts_for_question: ContextsForOneExample = {
                 "question_key": question["question_key"],
                 "contexts": retrieved_passages,
             }
+            contexts_list.append(contexts_for_question)
 
-            # Generate an answer using the retrieved passages
-            result = self.qa.answer(
-                question=question,
-                contexts_for_question=contexts_for_question,
+        ###############################
+        # [Step 2] Answer Generation
+        ###############################
+
+        if batch_mode is None:
+            results: list[Question] = []
+            for question, contexts_for_question in zip(
+                questions,
+                contexts_list,
+            ):
+                # Generate the final answer
+                result: Question = self.qa.answer(
+                    question=question,
+                    contexts_for_question=contexts_for_question,
+                )
+
+                # Preserve intermediate results
+                result["contexts"] = contexts_for_question["contexts"]
+
+                results.append(result)
+
+        elif batch_mode == "submit":
+            # Submit prompts
+            batch_ids: list[str] = self.qa.submit_batch(
+                questions=questions,
+                contexts=contexts_list,
+            )
+            utils.mkdir(batch_dir)
+            utils.write_json(
+                os.path.join(batch_dir, "batch_ids.json"),
+                batch_ids,
+            )
+            logger.info(f"Submitted batches {batch_ids}")
+
+        elif batch_mode == "fetch":
+            # Fetch and process the responses
+            batch_ids: list[str] = utils.read_json(
+                os.path.join(batch_dir, "batch_ids.json")
+            )
+            results: list[Question] = self.qa.fetch_and_process_batch(
+                questions=questions,
+                contexts=contexts_list,
+                batch_ids=batch_ids,
             )
 
-            # Preserve retrieved contexts in the pipeline output
-            result["contexts"] = retrieved_passages
+            # Preserve intermediate results
+            for result, contexts_for_question in zip(results, contexts_list):
+                result["contexts"] = contexts_for_question["contexts"]
 
-            results.append(result)
+        else:
+            raise ValueError(
+                f"Invalid batch_mode: {batch_mode}. "
+                "Expected None, 'submit', or 'fetch'."
+            )
+
+        if batch_mode == "submit":
+            return None
 
         return results
-

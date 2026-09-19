@@ -67,3 +67,11 @@ bash ./run_rag_pipeline.sh --actiontype all
 ```
 
 If you use the OpenAI API, set your API key in advance.
+
+You can use the OpenAI Batch API for `inference`.
+
+```bash
+bash ./run_rag_pipeline.sh --actiontype indexing
+bash ./run_rag_pipeline.sh --actiontype inference --batch_mode submit
+bash ./run_rag_pipeline.sh --actiontype inference --batch_mode fetch
+```

@@ -20,17 +20,8 @@ CONFIG_NAME=llm___egc___hl___llm___w100___contriever___gpt4o___cdr
 # Input Data
 INPUT_DOCUMENTS=${STORAGE_DATA}/examples/docre/documents.json
 ENTITY_DICT=${STORAGE_DATA}/examples/kb/entity_dict.json
+ADDITIONAL_TRIPLES=
 INPUT_QUESTIONS=${STORAGE_DATA}/examples/qa/questions.json
-
-# Input Artifacts
-INPUT_DOCUMENTS_WITH_TRIPLES=
-INPUT_GRAPH=
-INPUT_COMMUNITIES=
-INPUT_REPORTS=
-INPUT_CHUNKED_REPORTS=
-
-# Input Index
-INPUT_INDEX_DIR=
 
 # Output Path
 RESULTS_DIR=${STORAGE_RESULTS}
@@ -39,12 +30,16 @@ MYPREFIX=example
 # (optional) Evaluation
 GOLD_QUESTIONS=${STORAGE_DATA}/examples/qa/questions_with_answers.json
 
+# (optional) External Index
+EXTERNAL_INDEX_DIR=
+
 ######
 # Command-line arguments
 ######
 
 # Initialize the requested action
 ACTIONTYPE=
+BATCH_MODE=
 
 # Parse command-line arguments
 while [ "$#" -gt 0 ]; do
@@ -55,47 +50,42 @@ while [ "$#" -gt 0 ]; do
         fi
         ACTIONTYPE=$2
         shift 2
+    elif [ "$1" = "--batch_mode" ]; then
+        if [ "$#" -lt 2 ]; then
+            echo "Error: --batch_mode requires a value"
+            exit 1
+        fi
+        BATCH_MODE=$2
+        shift 2
     else
         echo "Error: Unknown argument: $1"
         exit 1
     fi
 done
 
-# Validate that the action type is provided
-if [ -z "${ACTIONTYPE}" ]; then
-    echo "Usage: bash run_graphrag_pipeline.sh --actiontype {triple_extraction|entity_graph_construction|community_clustering|report_generation|chunking|passage_retrieval_indexing|inference|all}"
-    exit 1
-fi
-
 ######
 # Experiment execution
 ######
 
-# Prepare the optional input artifact arguments
-INPUT_ARTIFACT_ARGS=()
-if [ -n "${INPUT_DOCUMENTS_WITH_TRIPLES}" ]; then
-    INPUT_ARTIFACT_ARGS+=(--input_documents_with_triples "${INPUT_DOCUMENTS_WITH_TRIPLES}")
-fi
-if [ -n "${INPUT_GRAPH}" ]; then
-    INPUT_ARTIFACT_ARGS+=(--input_graph "${INPUT_GRAPH}")
-fi
-if [ -n "${INPUT_COMMUNITIES}" ]; then
-    INPUT_ARTIFACT_ARGS+=(--input_communities "${INPUT_COMMUNITIES}")
-fi
-if [ -n "${INPUT_REPORTS}" ]; then
-    INPUT_ARTIFACT_ARGS+=(--input_reports "${INPUT_REPORTS}")
-fi
-if [ -n "${INPUT_CHUNKED_REPORTS}" ]; then
-    INPUT_ARTIFACT_ARGS+=(--input_chunked_reports "${INPUT_CHUNKED_REPORTS}")
+# Prepare the optional additional triples argument
+ADDITIONAL_TRIPLES_ARGS=()
+if [ -n "${ADDITIONAL_TRIPLES}" ]; then
+    ADDITIONAL_TRIPLES_ARGS+=(--additional_triples "${ADDITIONAL_TRIPLES}")
 fi
 
-# Prepare the optional input index argument
-INPUT_INDEX_ARGS=()
-if [ -n "${INPUT_INDEX_DIR}" ]; then
-    INPUT_INDEX_ARGS+=(--input_index_dir "${INPUT_INDEX_DIR}")
+# Prepare the optional external index argument
+EXTERNAL_INDEX_ARGS=()
+if [ -n "${EXTERNAL_INDEX_DIR}" ]; then
+    EXTERNAL_INDEX_ARGS+=(--external_index_dir "${EXTERNAL_INDEX_DIR}")
 fi
 
-if [ "${ACTIONTYPE}" = "triple_extraction" ] || [ "${ACTIONTYPE}" = "all" ]; then
+# Prepare the optional Batch API arguments
+BATCH_MODE_ARGS=()
+if [ -n "${BATCH_MODE}" ]; then
+    BATCH_MODE_ARGS=(--batch_mode "${BATCH_MODE}")
+fi
+
+if [ "${ACTIONTYPE}" = "ner" ] || [ "${ACTIONTYPE}" = "all" ]; then
     python run_graphrag_pipeline.py \
         --method ${METHOD} \
         --config_path ${CONFIG_PATH} \
@@ -103,7 +93,43 @@ if [ "${ACTIONTYPE}" = "triple_extraction" ] || [ "${ACTIONTYPE}" = "all" ]; the
         --input_documents ${INPUT_DOCUMENTS} \
         --results_dir ${RESULTS_DIR} \
         --prefix ${MYPREFIX} \
-        --actiontype triple_extraction
+        --actiontype ner \
+        "${BATCH_MODE_ARGS[@]}"
+fi
+
+if [ "${ACTIONTYPE}" = "ed_retrieval" ] || [ "${ACTIONTYPE}" = "all" ]; then
+    python run_graphrag_pipeline.py \
+        --method ${METHOD} \
+        --config_path ${CONFIG_PATH} \
+        --config_name ${CONFIG_NAME} \
+        --input_documents ${INPUT_DOCUMENTS} \
+        --results_dir ${RESULTS_DIR} \
+        --prefix ${MYPREFIX} \
+        --actiontype ed_retrieval
+fi
+
+if [ "${ACTIONTYPE}" = "ed_reranking" ] || [ "${ACTIONTYPE}" = "all" ]; then
+    python run_graphrag_pipeline.py \
+        --method ${METHOD} \
+        --config_path ${CONFIG_PATH} \
+        --config_name ${CONFIG_NAME} \
+        --input_documents ${INPUT_DOCUMENTS} \
+        --results_dir ${RESULTS_DIR} \
+        --prefix ${MYPREFIX} \
+        --actiontype ed_reranking \
+        "${BATCH_MODE_ARGS[@]}"
+fi
+
+if [ "${ACTIONTYPE}" = "docre" ] || [ "${ACTIONTYPE}" = "all" ]; then
+    python run_graphrag_pipeline.py \
+        --method ${METHOD} \
+        --config_path ${CONFIG_PATH} \
+        --config_name ${CONFIG_NAME} \
+        --input_documents ${INPUT_DOCUMENTS} \
+        --results_dir ${RESULTS_DIR} \
+        --prefix ${MYPREFIX} \
+        --actiontype docre \
+        "${BATCH_MODE_ARGS[@]}"
 fi
 
 if [ "${ACTIONTYPE}" = "entity_graph_construction" ] || [ "${ACTIONTYPE}" = "all" ]; then
@@ -111,11 +137,12 @@ if [ "${ACTIONTYPE}" = "entity_graph_construction" ] || [ "${ACTIONTYPE}" = "all
         --method ${METHOD} \
         --config_path ${CONFIG_PATH} \
         --config_name ${CONFIG_NAME} \
+        --input_documents ${INPUT_DOCUMENTS} \
         --entity_dict ${ENTITY_DICT} \
         --results_dir ${RESULTS_DIR} \
         --prefix ${MYPREFIX} \
         --actiontype entity_graph_construction \
-        "${INPUT_ARTIFACT_ARGS[@]}"
+        "${ADDITIONAL_TRIPLES_ARGS[@]}"
 fi
 
 if [ "${ACTIONTYPE}" = "community_clustering" ] || [ "${ACTIONTYPE}" = "all" ]; then
@@ -123,10 +150,10 @@ if [ "${ACTIONTYPE}" = "community_clustering" ] || [ "${ACTIONTYPE}" = "all" ]; 
         --method ${METHOD} \
         --config_path ${CONFIG_PATH} \
         --config_name ${CONFIG_NAME} \
+        --input_documents ${INPUT_DOCUMENTS} \
         --results_dir ${RESULTS_DIR} \
         --prefix ${MYPREFIX} \
-        --actiontype community_clustering \
-        "${INPUT_ARTIFACT_ARGS[@]}"
+        --actiontype community_clustering
 fi
 
 if [ "${ACTIONTYPE}" = "report_generation" ] || [ "${ACTIONTYPE}" = "all" ]; then
@@ -134,10 +161,10 @@ if [ "${ACTIONTYPE}" = "report_generation" ] || [ "${ACTIONTYPE}" = "all" ]; the
         --method ${METHOD} \
         --config_path ${CONFIG_PATH} \
         --config_name ${CONFIG_NAME} \
+        --input_documents ${INPUT_DOCUMENTS} \
         --results_dir ${RESULTS_DIR} \
         --prefix ${MYPREFIX} \
-        --actiontype report_generation \
-        "${INPUT_ARTIFACT_ARGS[@]}"
+        --actiontype report_generation
 fi
 
 if [ "${ACTIONTYPE}" = "chunking" ] || [ "${ACTIONTYPE}" = "all" ]; then
@@ -145,10 +172,10 @@ if [ "${ACTIONTYPE}" = "chunking" ] || [ "${ACTIONTYPE}" = "all" ]; then
         --method ${METHOD} \
         --config_path ${CONFIG_PATH} \
         --config_name ${CONFIG_NAME} \
+        --input_documents ${INPUT_DOCUMENTS} \
         --results_dir ${RESULTS_DIR} \
         --prefix ${MYPREFIX} \
-        --actiontype chunking \
-        "${INPUT_ARTIFACT_ARGS[@]}"
+        --actiontype chunking
 fi
 
 if [ "${ACTIONTYPE}" = "passage_retrieval_indexing" ] || [ "${ACTIONTYPE}" = "all" ]; then
@@ -156,10 +183,10 @@ if [ "${ACTIONTYPE}" = "passage_retrieval_indexing" ] || [ "${ACTIONTYPE}" = "al
         --method ${METHOD} \
         --config_path ${CONFIG_PATH} \
         --config_name ${CONFIG_NAME} \
+        --input_documents ${INPUT_DOCUMENTS} \
         --results_dir ${RESULTS_DIR} \
         --prefix ${MYPREFIX} \
-        --actiontype passage_retrieval_indexing \
-        "${INPUT_ARTIFACT_ARGS[@]}"
+        --actiontype passage_retrieval_indexing
 fi
 
 if [ "${ACTIONTYPE}" = "inference" ] || [ "${ACTIONTYPE}" = "all" ]; then
@@ -173,5 +200,6 @@ if [ "${ACTIONTYPE}" = "inference" ] || [ "${ACTIONTYPE}" = "all" ]; then
         --actiontype inference \
         --do_evaluation \
         --gold ${GOLD_QUESTIONS} \
-        "${INPUT_INDEX_ARGS[@]}"
+        "${EXTERNAL_INDEX_ARGS[@]}" \
+        "${BATCH_MODE_ARGS[@]}"
 fi

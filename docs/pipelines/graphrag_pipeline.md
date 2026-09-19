@@ -12,40 +12,52 @@ The pipeline does not define the behavior of the individual components. See the 
 
 ```text
 Documents (input)
-→ Triple Extraction
-  → Documents with triples (output)
+↓ Named Entity Recognition
+Documents with mentions (output)
+
+Documents with mentions (input)
+↓ Entity Disambiguation (Retrieval)
+Documents with candidate entities (output)
+
+Documents with candidate entities (input)
+↓ Entity Disambiguation (Reranking)
+Documents with entities (output)
+
+Documents with entities (input)
+↓ Document-level Relation Extraction
+Documents with triples (output)
 
 Documents with triples (input)
-→ Entity Graph Construction
-  → Entity graph (output)
+↓ Entity Graph Construction
+Entity graph (output)
 
 Entity graph (input)
-→ Community Clustering
-  → Communities (output)
+↓ Community Clustering
+Communities (output)
 
 Entity graph and Communities (input)
-→ Report Generation
-  → Community reports (output)
+↓ Report Generation
+Community reports (output)
 
 Community reports (input)
-→ Chunking
-  → Chunked reports (output)
+↓ Chunking
+Chunked reports (output)
 
 Chunked reports (input)
-→ Passage Retrieval indexing
-  → Retrieval index (output)
+↓ Passage Retrieval (indexing)
+Retrieval index (output)
 ```
 
 ### Inference:
 
 ```text
 Question (input)
-→ Passage Retrieval search
-  → Retrieved chunks (output)
+↓ Passage Retrieval (search)
+Retrieved chunks (output)
 
 Question and Retrieved chunks (input)
-→ Question Answering
-  → Answer (output)
+↓ Question Answering
+Answer (output)
 ```
 
 ## Components
@@ -63,9 +75,7 @@ Question and Retrieved chunks (input)
 | `passage_retrieval` | [Passage Retrieval](../components/passage_retrieval.md) | Indexing and inference |
 | `qa` | [Question Answering](../components/qa.md) | Inference |
 
-All constructor arguments must be specified. Components unused by the intended operation may be set to `None`.
-
-Calling a method without a component required by that operation raises an error.
+All constructor arguments must be specified.
 
 ## Pipeline Methods
 
@@ -82,8 +92,7 @@ Calling a method without a component required by that operation raises an error.
 ```python
 from kapipe.pipelines import GraphRAGPipeline
 
-
-# Initialize the components before constructing the pipeline
+# Initialize the components
 ner = ...
 ed_retrieval = ...
 ed_reranking = ...
@@ -95,7 +104,7 @@ chunker = ...
 passage_retrieval = ...
 qa = ...
 
-# Connect the initialized components
+# Instantiate the GraphRAG pipeline
 graphrag = GraphRAGPipeline(
     ner=ner,
     ed_retrieval=ed_retrieval,
@@ -119,74 +128,81 @@ graphrag.make_index(
     index_dir="./indexes",
     retrieval_size=10,
     window_size=128,
-    entity_dict_path="./entity_dict.json",
-    additional_triples_path=None,
+    entity_dict=entity_dict,
+    additional_triples=additional_triples,
     node_attr_keys=("name", "entity_type", "description"),
     edge_attr_keys=("relation",),
     passage_retrieval_indexing_kwargs={
-        "batch_size": 64,
+        "batch_size": 1024,
     },
 )
 ```
 
-`retrieval_size` controls candidate retrieval during Entity Disambiguation. `window_size` controls Chunking of community reports.
-
-`entity_dict_path` and `additional_triples_path` are passed to Entity Graph Construction. `node_attr_keys` and `edge_attr_keys` select the graph attributes used during Report Generation.
-
+`retrieval_size` controls candidate retrieval during Entity Disambiguation.
+`entity_dict` and `additional_triples` are passed to Entity Graph Construction.
+`node_attr_keys` and `edge_attr_keys` select the graph attributes used during Report Generation.
+`window_size` controls Chunking of community reports.
 Values in `passage_retrieval_indexing_kwargs` are forwarded to the Passage Retrieval component. Omit arguments unsupported by the selected component.
 
 ### Build the Index Step by Step:
 
 Set `target_component` to run only one indexing step.
 
-| `target_component` | Input |
-|---|---|
-| `triple_extraction` | `documents` |
-| `entity_graph_construction` | Documents with triples |
-| `community_clustering` | Entity graph |
-| `report_generation` | Entity graph and communities |
-| `chunking` | Community reports |
-| `passage_retrieval_indexing` | Chunked reports |
-
 ```python
-# Example 1: Run only Entity Graph Construction over the specified input
+# Example 1: Run only Entity Graph Construction over the input under `index_dir`
 graphrag.make_index(
-    documents=None,
+    documents=documents,
     index_dir="./indexes",
     retrieval_size=10,
     window_size=128,
-    entity_dict_path="./entity_dict.json",
-    additional_triples_path=None,
+    entity_dict=entity_dict,
+    additional_triples=additional_triples,
     target_component="entity_graph_construction",
-    input_artifact_paths={
-        "documents_with_triples": "/path/to/documents_with_triples.json",
-    },
 )
 
 # Example 2: Run only Report Generation over inputs under `index_dir`
 graphrag.make_index(
-    documents=None,
+    documents=documents,
     index_dir="./indexes",
     retrieval_size=10,
     window_size=128,
     target_component="report_generation",
-    input_artifact_paths=None,
 )
 ```
 
-The components required by the selected step must be initialized. Other constructor arguments can be `None`.
+When run individually, steps after NER load their inputs from the standard filenames under `index_dir`.
 
-If `input_artifact_paths` is omitted, the selected step loads its inputs from the standard filenames under `index_dir`.
+### Use the OpenAI Batch API During Indexing:
 
-The supported artifact overrides are:
+The NER, Entity Disambiguation (Reranking), and Document-level Relation Extraction steps support the OpenAI Batch API when their LLM component uses `OpenAILLM`.
 
-| Key | Artifact |
-|---|---|
-| `documents_with_triples` | Documents with extracted triples in JSON format |
-| `graph` | Entity graph in GraphML format |
-| `communities` | Community records in JSON format |
-| `reports` | Community reports in JSONL format |
-| `chunked_reports` | Chunked community reports in JSONL format |
+```python
+# Submit requests for NER
+graphrag.make_index(
+    documents=documents,
+    index_dir="./indexes",
+    retrieval_size=10,
+    window_size=128,
+    target_component="ner",
+    batch_mode="submit",
+    batch_dir="./batches",
+)
+
+# Fetch the responses for NER
+graphrag.make_index(
+    documents=documents,
+    index_dir="./indexes",
+    retrieval_size=10,
+    window_size=128,
+    target_component="ner",
+    batch_mode="fetch",
+    batch_dir="./batches",
+)
+```
+
+When `batch_mode` is specified, `target_component` and `batch_dir` are required.
+Valid modes are `"submit"` and `"fetch"`.
+Running all indexing steps at once is not supported in batch mode.
 
 ### Load the Index:
 
@@ -196,6 +212,8 @@ graphrag.load_index(
     index_dir="./indexes",
 )
 ```
+
+`load_index()` must be called before inference.
 
 ### Run Inference:
 
@@ -209,13 +227,44 @@ result_questions = graphrag.infer(
 
 `top_k` controls the number of report chunks returned by Passage Retrieval.
 
+### Use the OpenAI Batch API During Inference:
+
+When the Question Answering component is `LLMQA` backed by `OpenAILLM`, inference can submit and fetch answer-generation requests through the OpenAI Batch API.
+Passage Retrieval still runs during both calls.
+
+```python
+# Submit requests for inference
+result_questions = graphrag.infer(
+    questions=questions,
+    top_k=5,
+    batch_mode="submit",
+    batch_dir="./batches",
+)
+assert result_questions is None
+
+# Fetch the responses for inference
+result_questions = graphrag.infer(
+    questions=questions,
+    top_k=5,
+    batch_mode="fetch",
+    batch_dir="./batches",
+)
+```
+
+When `batch_mode` is specified, `batch_dir` is required.
+Valid modes are `"submit"` and `"fetch"`.
+
 ## Indexing Outputs
 
 `make_index()` creates the following artifacts under `index_dir`.
 
 | Path | Created By |
 |---|---|
-| `documents_with_triples.json` | Triple Extraction |
+| `documents_with_mentions.json` | Named Entity Recognition |
+| `documents_with_candidates.json` | Entity Disambiguation (Retrieval) |
+| `candidate_entities.json` | Entity Disambiguation (Retrieval) |
+| `documents_with_entities.json` | Entity Disambiguation (Reranking) |
+| `documents_with_triples.json` | Document-level Relation Extraction |
 | `graph.graphml` | Entity Graph Construction |
 | `communities.json` | Community Clustering |
 | `reports.jsonl` | Report Generation |

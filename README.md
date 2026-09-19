@@ -6,13 +6,16 @@
 
 **KAPipe** is a modular framework for building knowledge acquisition systems from unstructured data.
 
-In KAPipe, a knowledge acquisition system consists of four stages:
+In KAPipe, knowledge acquisition is organized into four stages:
 
 1. **Extraction**: extracting knowledge units from unstructured data.
 2. **Organization**: organizing extracted knowledge units into structured representations such as knowledge graph.
 3. **Retrieval**: retrieving relevant knowledge for a given request.
 4. **Utilization**: using retrieved knowledge to solve for downstream tasks such as question answering.
 
+For each stage, KAPipe provides reusable *components* that implement specific approaches.
+For example, KAPipe provides Document-level Relation Extraction and Proposition Extraction components for extraction, and Passage Retrieval and Graph Retrieval components for retrieval.
+Together, these components serve as building blocks for constructing knowledge acquisition systems.
 
 KAPipe is used in the following papers:
 
@@ -82,7 +85,7 @@ The following table summarizes the components currently supported by KAPipe.
 ## Pipelines
 
 Pipelines (`kapipe.pipelines`) are convenience classes for chaining components that are commonly used together.
-Internally, a pipeline connects the outputs of one component to the inputs of the next component.
+They represent selected compositions and are not intended to cover every possible combination of components.
 
 | Pipeline | Description | Docs | Example |
 |---|---|---|---|
@@ -121,8 +124,8 @@ data_dir = "experiments/passage_retrieval/data/examples"
 index_dir = "./indexes"
 
 # Load passages and questions
-passages = utils.read_jsonl(os.path.join(data_dir, "passages.jsonl"))
-questions = utils.read_json(os.path.join(data_dir, "questions.json"))
+passages = utils.read_jsonl(os.path.join(data_dir, "corpus", "passages.jsonl"))
+questions = utils.read_json(os.path.join(data_dir, "qa", "questions.json"))
 
 # Instantiate the Passage Retrieval component
 passage_retrieval = Qwen3Embedding(
@@ -206,6 +209,17 @@ from kapipe.qa import LLMQA
 data_dir = "experiments/graphrag_pipeline_tacl2026/data/examples"
 index_dir = "./indexes"
 
+# Load input documents, entity dictionary, and questions
+documents = utils.read_json(
+    os.path.join(data_dir, "docre", "documents.json")
+)
+entity_dict = utils.read_json(
+    os.path.join(data_dir, "kb", "entity_dict.json")
+)
+questions = utils.read_json(
+    os.path.join(data_dir, "qa", "questions.json")
+)
+
 # Instantiate the components
 llm = OpenAILLM(model_name="gpt-5.4-nano", max_new_tokens=8192)
 ner = LLMNER.from_identifier(llm, "llm_ner_cdr")
@@ -244,14 +258,12 @@ graphrag = GraphRAGPipeline(
 )
 
 # Build the GraphRAG index
-documents = utils.read_json(os.path.join(data_dir, "documents.json"))
 graphrag.make_index(
     documents=documents,
+    index_dir=index_dir,
     retrieval_size=10,
     window_size=100,
-    index_dir=index_dir,
-    entity_dict_path=os.path.join(data_dir, "entity_dict.json"),
-    additional_triples_path=None,
+    entity_dict=entity_dict,
     passage_retrieval_indexing_kwargs={
         "batch_size": 64,
     },
@@ -261,7 +273,6 @@ graphrag.make_index(
 graphrag.load_index(index_dir=index_dir)
 
 # Answer questions using the GraphRAG index
-questions = utils.read_json(os.path.join(data_dir, "questions.json"))
 answers = graphrag.infer(
     questions=questions,
     top_k=5,

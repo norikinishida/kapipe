@@ -70,7 +70,7 @@ def main(args: argparse.Namespace) -> None:
     torch.autograd.set_detect_anomaly(True)
     transformers.logging.set_verbosity_error()
 
-    sw = StopWatch()
+    sw: StopWatch = StopWatch()
     sw.start("main")
 
     ##################
@@ -78,94 +78,107 @@ def main(args: argparse.Namespace) -> None:
     ##################
 
     # Method
-    method_name = args.method
-    config_path = args.config_path
-    config_name = args.config_name
+    method_name: str = args.method
+    config_path: str = args.config_path
+    config_name: str = args.config_name
 
     # Input Data
-    input_documents_path = args.input_documents
-    entity_dict_path = args.entity_dict
-    additional_triples_path = args.additional_triples
-    input_questions_path = args.input_questions
-
-    # Input Artifacts
-    input_artifact_paths: dict[str, str] = {}
-    if args.input_documents_with_triples is not None:
-        input_artifact_paths["documents_with_triples"] = (
-            args.input_documents_with_triples
-        )
-    if args.input_graph is not None:
-        input_artifact_paths["graph"] = args.input_graph
-    if args.input_communities is not None:
-        input_artifact_paths["communities"] = args.input_communities
-    if args.input_reports is not None:
-        input_artifact_paths["reports"] = args.input_reports
-    if args.input_chunked_reports is not None:
-        input_artifact_paths["chunked_reports"] = args.input_chunked_reports
-
-    # Input Index
-    input_index_dir: str | None = args.input_index_dir
+    input_documents_path: str | None = args.input_documents
+    entity_dict_path: str | None = args.entity_dict
+    additional_triples_path: str | None = args.additional_triples
+    input_questions_path: str | None = args.input_questions
 
     # Output Path
-    results_dir = args.results_dir
-    prefix = args.prefix
+    results_dir: str = args.results_dir
+    prefix: str | None = args.prefix
     if prefix is None or prefix == "None":
         prefix = utils.get_current_time()
         args.prefix = prefix
 
     # Action
-    actiontype = args.actiontype
-    if actiontype != "inference" and input_index_dir is not None:
-        raise ValueError("--input_index_dir is only available for inference")
+    actiontype: str = args.actiontype
 
     # Evaluation
-    do_evaluation = args.do_evaluation
-    gold_questions_path = args.gold
+    do_evaluation: bool = args.do_evaluation
+    gold_questions_path: str | None = args.gold
+
+    # External Index
+    external_index_dir: str | None = args.external_index_dir
+
+    # Batch API
+    batch_mode: str | None = args.batch_mode
 
     ##################
     # Logging Setup
     ##################
 
     # Set base output path
-    base_output_path = os.path.join(
+    base_output_path: str = os.path.join(
         results_dir,
         "graphrag_pipeline",
         method_name,
         config_name,
-        prefix
+        prefix,
     )
     utils.mkdir(base_output_path)
 
     # Extract the base filename
-    base_filename: str | None = None
     if actiontype == "inference":
-        if input_questions_path is None:
-            raise ValueError(
-                f"--input_questions is required for {actiontype}"
-            )
-        base_filename = os.path.splitext(
+        base_filename: str = os.path.splitext(
             os.path.basename(input_questions_path)
         )[0]
 
     # Index will be saved to `index_dir`
-    if actiontype == "inference" and input_index_dir is not None:
-        index_dir: str = input_index_dir
-    else:
-        index_dir = os.path.join(base_output_path, "indexes")
-    if actiontype != "inference":
-        utils.mkdir(index_dir)
+    index_dir: str = os.path.join(base_output_path, "indexes")
+    utils.mkdir(index_dir)
+
+    # Set the Batch API directory
+    batch_dir: str | None = None
+    if batch_mode is not None:
+        if actiontype != "inference":
+            batch_dir = os.path.join(
+                base_output_path,
+                "batch_api",
+                actiontype,
+            )
+        else:
+            batch_dir = os.path.join(
+                base_output_path,
+                "batch_api",
+                actiontype,
+                base_filename,
+            )
+        utils.mkdir(batch_dir)
 
     # Set logger
-    if actiontype != "inference":
-        set_logger(
-            os.path.join(base_output_path, f"{actiontype}.log"),
-            # overwrite=True
-        )
+    if batch_mode is None:
+        if actiontype != "inference":
+            set_logger(
+                os.path.join(base_output_path, f"{actiontype}.log"),
+                # overwrite=True
+            )
+        else:
+            set_logger(
+                os.path.join(
+                    base_output_path,
+                    f"{base_filename}.{actiontype}.log",
+                ),
+                # overwrite=True
+            )
     else:
-        set_logger(
-            os.path.join(base_output_path, f"{base_filename}.inference.log"),
-            # overwrite=True
-        )
+        if actiontype != "inference":
+            set_logger(
+                os.path.join(base_output_path, f"{actiontype}.{batch_mode}.log"),
+                # overwrite=True
+            )
+        else:
+            set_logger(
+                os.path.join(
+                    base_output_path,
+                    f"{base_filename}.{actiontype}.{batch_mode}.log",
+                ),
+                # overwrite=True
+            )
 
     # Show arguments
     logging.info(utils.pretty_format_dict(vars(args)))
@@ -182,92 +195,75 @@ def main(args: argparse.Namespace) -> None:
     ##################
 
     # Load the experiment configuration
-    config = utils.get_hocon_config(
+    config: dict[str, Any] = utils.get_hocon_config(
         config_path=config_path,
-        config_name=config_name
+        config_name=config_name,
     )
 
     # Save the experiment configuration to the output path
-    utils.write_json(os.path.join(base_output_path, "config.json"), config)
+    utils.write_json(
+        os.path.join(base_output_path, "config.json"),
+        config,
+    )
 
     # Initialize the loaded LLM map
     loaded_llm_map: dict[str, BaseLLM] = {}
 
     # Instantiate the NER component
-    ner: BaseNER | None = None
-    if actiontype == "triple_extraction":
-        ner, loaded_llm_map = instantiate_ner_component(
-            ner_config=config["ner"],
-            loaded_llm_map=loaded_llm_map,
-        )
+    ner, loaded_llm_map = instantiate_ner_component(
+        ner_config=config["ner"],
+        loaded_llm_map=loaded_llm_map,
+    )
 
     # Instantiate the ED-Retrieval component
-    ed_retrieval: BaseEDRetriever | None = None
-    if actiontype == "triple_extraction":
-        ed_retrieval, loaded_llm_map = instantiate_ed_retrieval_component(
-            ed_retrieval_config=config["ed_retrieval"],
-            loaded_llm_map=loaded_llm_map,
-        )
+    ed_retrieval, loaded_llm_map = instantiate_ed_retrieval_component(
+        ed_retrieval_config=config["ed_retrieval"],
+        loaded_llm_map=loaded_llm_map,
+    )
 
     # Instantiate the ED-Reranking component
-    ed_reranking: BaseEDReranker | None = None
-    if actiontype == "triple_extraction":
-        ed_reranking, loaded_llm_map = instantiate_ed_reranking_component(
-            ed_reranking_config=config["ed_reranking"],
-            loaded_llm_map=loaded_llm_map,
-        )
+    ed_reranking, loaded_llm_map = instantiate_ed_reranking_component(
+        ed_reranking_config=config["ed_reranking"],
+        loaded_llm_map=loaded_llm_map,
+    )
 
     # Instantiate the DocRE component
-    docre: BaseDocRE | None = None
-    if actiontype == "triple_extraction":
-        docre, loaded_llm_map = instantiate_docre_component(
-            docre_config=config["docre"],
-            loaded_llm_map=loaded_llm_map,
-        )
+    docre, loaded_llm_map = instantiate_docre_component(
+        docre_config=config["docre"],
+        loaded_llm_map=loaded_llm_map,
+    )
 
     # Instantiate the Entity Graph Construction component
-    entity_graph_construction: BaseEntityGraphConstructor | None = None
-    if actiontype == "entity_graph_construction":
-        entity_graph_construction = instantiate_entity_graph_construction_component(
-            entity_graph_construction_config=config["entity_graph_construction"],
-        )
+    entity_graph_construction = instantiate_entity_graph_construction_component(
+        entity_graph_construction_config=config["entity_graph_construction"],
+    )
 
     # Instantiate the Community Clustering component
-    community_clustering: BaseCommunityClusterer | None = None
-    if actiontype == "community_clustering":
-        community_clustering = instantiate_community_clustering_component(
-            community_clustering_config=config["community_clustering"],
-        )
+    community_clustering = instantiate_community_clustering_component(
+        community_clustering_config=config["community_clustering"],
+    )
 
     # Instantiate the Report Generation component
-    report_generation: BaseReportGenerator | None = None
-    if actiontype == "report_generation":
-        report_generation, loaded_llm_map = instantiate_report_generation_component(
-            report_generation_config=config["report_generation"],
-            loaded_llm_map=loaded_llm_map,
-        )
+    report_generation, loaded_llm_map = instantiate_report_generation_component(
+        report_generation_config=config["report_generation"],
+        loaded_llm_map=loaded_llm_map,
+    )
 
     # Instantiate the Chunking component
-    chunker: BaseChunker | None = None
-    if actiontype == "chunking":
-        chunker = instantiate_chunking_component(
-            chunking_config=config["chunking"],
-        )
+    chunker = instantiate_chunking_component(
+        chunking_config=config["chunking"],
+    )
 
     # Instantiate the Passage Retrieval component
-    passage_retrieval: BasePassageRetriever | None = None
-    if actiontype in ["passage_retrieval_indexing", "inference"]:
-        passage_retrieval = instantiate_passage_retrieval_component(
-            passage_retrieval_config=config["passage_retrieval"],
-        )
+    passage_retrieval = instantiate_passage_retrieval_component(
+        passage_retrieval_config=config["passage_retrieval"],
+    )
 
     # Instantiate the QA component
-    qa: BaseQA | None = None
-    if actiontype == "inference":
-        qa, loaded_llm_map = instantiate_qa_component(
-            qa_config=config["qa"],
-            loaded_llm_map=loaded_llm_map,
-        )
+    qa, loaded_llm_map = instantiate_qa_component(
+        qa_config=config["qa"],
+        loaded_llm_map=loaded_llm_map,
+    )
 
     # Instantiate the GraphRAG pipeline
     graphrag: GraphRAGPipeline = GraphRAGPipeline(
@@ -288,17 +284,18 @@ def main(args: argparse.Namespace) -> None:
     ##################
 
     if actiontype != "inference":
-        # Load documents only when Triple Extraction is selected
-        if actiontype == "triple_extraction":
-            if input_documents_path is None:
-                raise ValueError(
-                    "--input_documents is required for triple_extraction"
-                )
-            documents: list[dict[str, Any]] | None = utils.read_json(
-                input_documents_path
-            )
-        else:
-            documents = None
+        # Load documents
+        documents: list[dict[str, Any]] = utils.read_json(input_documents_path)
+
+        # Load optional entity dictionary
+        entity_dict: list[dict[str, Any]] | None = None
+        if entity_dict_path is not None:
+            entity_dict = utils.read_json(entity_dict_path)
+
+        # Load optional additional triples
+        additional_triples: list[dict[str, Any]] | None = None
+        if additional_triples_path is not None:
+            additional_triples = utils.read_json(additional_triples_path)
 
         # Set component-specific arguments
         if config["passage_retrieval"]["method_name"] == "bm25":
@@ -319,8 +316,8 @@ def main(args: argparse.Namespace) -> None:
             # Component-specific arguments
             retrieval_size=config["ed_retrieval"]["retrieval_size"],
             window_size=config["chunking"]["window_size"],
-            entity_dict_path=entity_dict_path,
-            additional_triples_path=additional_triples_path,
+            entity_dict=entity_dict,
+            additional_triples=additional_triples,
             node_attr_keys=tuple(
                 config["report_generation"]["node_attr_keys"]
             ),
@@ -328,16 +325,14 @@ def main(args: argparse.Namespace) -> None:
                 config["report_generation"]["edge_attr_keys"]
             ),
             passage_retrieval_indexing_kwargs=passage_retrieval_indexing_kwargs,
-            # Target component for indexing
+            # Target component
             target_component=actiontype,
-            input_artifact_paths=input_artifact_paths,
+            # Batch API
+            batch_mode=batch_mode,
+            batch_dir=batch_dir,
         )
 
     else:
-        # Validate that the input questions path is provided
-        if input_questions_path is None:
-            raise ValueError("--input_questions is required for inference")
-
         # Load questions
         questions: list[dict[str, Any]] = utils.read_json(input_questions_path)
 
@@ -346,103 +341,111 @@ def main(args: argparse.Namespace) -> None:
             f"questions in {input_questions_path} ..."
         )
 
-        # Load the built index
-        graphrag.load_index(index_dir=index_dir)
+        # Load the index
+        if external_index_dir is not None:
+            graphrag.load_index(index_dir=external_index_dir)
+        else:
+            graphrag.load_index(index_dir=index_dir)
 
         # Run all inference components for every question
-        result_questions: list[dict[str, Any]] = graphrag.infer(
+        result_questions: list[dict[str, Any]] | None = graphrag.infer(
+            # Input
             questions=questions,
+            # Component-specific parameters
             top_k=config["passage_retrieval"]["top_k"],
+            # Batch API
+            batch_mode=batch_mode,
+            batch_dir=batch_dir,
         )
 
-        # Save the results
-        output_questions_path = os.path.join(
-            base_output_path,
-            f"{base_filename}.pred.json",
-        )
-        utils.write_json(output_questions_path, result_questions)
-        logging.info(f"Saved the prediction results to {output_questions_path}")
+        if batch_mode != "submit":
 
-        # Save the prompts, raw responses, parsed answers, and optional gold answers
-        output_prompt_and_responses_path: str = os.path.join(
-            base_output_path,
-            f"{base_filename}.prompt_and_responses.txt",
-        )
-        with open(
-            output_prompt_and_responses_path,
-            "w",
-            encoding="utf-8",
-        ) as fout:
-            # Write one human-readable block for each question
-            for result_question in result_questions:
-                fout.write("=" * 80 + "\n\n")
-
-                fout.write("QUESTION KEY:\n")
-                fout.write(result_question["question_key"] + "\n\n")
-
-                fout.write("PROMPT:\n")
-                fout.write(result_question["qa_prompt"].rstrip() + "\n\n")
-
-                fout.write("GENERATED TEXT:\n")
-                fout.write(
-                    result_question["qa_generated_text"].rstrip() + "\n\n"
-                )
-
-                fout.write("PARSED ANSWER:\n")
-                fout.write(result_question["output_answer"].rstrip() + "\n\n")
-
-                # Write gold answers only when they are included in the input question
-                if "answers" in result_question:
-                    fout.write("GOLD ANSWERS:\n")
-                    for answer in result_question["answers"]:
-                        fout.write(f"- {answer['answer']}\n")
-                    fout.write("\n")
-
-        logging.info(
-            "Saved the prompts and responses to "
-            f"{output_prompt_and_responses_path}"
-        )
-
-        ##################
-        # Evaluation
-        ##################
-
-        if do_evaluation:
-            # Validate that the gold questions path is provided
-            if gold_questions_path is None:
-                raise ValueError("--gold is required when --do_evaluation is set")
-
-            # Evaluate the prediction results
-            qa_scores = evaluation.qa.accuracy(
-                pred_path=output_questions_path,
-                gold_path=gold_questions_path,
-                exact_match=False,
+            # Save the results
+            output_questions_path: str = os.path.join(
+                base_output_path,
+                f"{base_filename}.pred.json",
             )
-            qa_scores.update(
-                evaluation.qa.token_level_f1(
-                    pred_path=output_questions_path,
-                    gold_path=gold_questions_path,
-                )
+            utils.write_json(output_questions_path, result_questions)
+            logging.info(f"Saved inference results to {output_questions_path}")
+
+            # Save the prompts, raw responses, parsed answers, and optional gold answers
+            output_prompt_and_responses_path: str = os.path.join(
+                base_output_path,
+                f"{base_filename}.prompt_and_responses.txt",
             )
-            qa_scores.update(
-                evaluation.qa.recall(
+            with open(
+                output_prompt_and_responses_path,
+                "w",
+                encoding="utf-8",
+            ) as fout:
+                # Write one human-readable block for each question
+                for result_question in result_questions:
+                    fout.write("=" * 80 + "\n\n")
+
+                    fout.write("QUESTION KEY:\n")
+                    fout.write(result_question["question_key"] + "\n\n")
+
+                    fout.write("PROMPT:\n")
+                    fout.write(result_question["qa_prompt"].rstrip() + "\n\n")
+
+                    fout.write("GENERATED TEXT:\n")
+                    fout.write(
+                        result_question["qa_generated_text"].rstrip() + "\n\n"
+                    )
+
+                    fout.write("PARSED ANSWER:\n")
+                    fout.write(result_question["output_answer"].rstrip() + "\n\n")
+
+                    # Write gold answers only when they are included in the input question
+                    if "answers" in result_question:
+                        fout.write("GOLD ANSWERS:\n")
+                        for answer in result_question["answers"]:
+                            fout.write(f"- {answer['answer']}\n")
+                        fout.write("\n")
+
+            logging.info(
+                "Saved the prompts and responses to "
+                f"{output_prompt_and_responses_path}"
+            )
+
+            ##################
+            # Evaluation
+            ##################
+
+            if do_evaluation:
+                # Evaluate the prediction results
+                qa_scores: dict[str, Any] = evaluation.qa.accuracy(
                     pred_path=output_questions_path,
                     gold_path=gold_questions_path,
                     exact_match=False,
                 )
-            )
-            scores = {
-                "qa": qa_scores,
-            }
-            logging.info(utils.pretty_format_dict(scores))
+                qa_scores.update(
+                    evaluation.qa.token_level_f1(
+                        pred_path=output_questions_path,
+                        gold_path=gold_questions_path,
+                    )
+                )
+                qa_scores.update(
+                    evaluation.qa.recall(
+                        pred_path=output_questions_path,
+                        gold_path=gold_questions_path,
+                        exact_match=False,
+                    )
+                )
+                scores: dict[str, Any] = {
+                    "qa": qa_scores,
+                }
+                logging.info(utils.pretty_format_dict(scores))
 
-            # Save the evaluation results
-            output_evaluation_path = os.path.join(
-                base_output_path,
-                f"{base_filename}.eval.json",
-            )
-            utils.write_json(output_evaluation_path, scores)
-            logging.info(f"Saved the evaluation results to {output_evaluation_path}")
+                # Save the evaluation results
+                output_evaluation_path: str = os.path.join(
+                    base_output_path,
+                    f"{base_filename}.eval.json",
+                )
+                utils.write_json(output_evaluation_path, scores)
+                logging.info(
+                    f"Saved the evaluation results to {output_evaluation_path}"
+                )
 
     ##################
     # Closing
@@ -842,7 +845,7 @@ if __name__ == "__main__":
         lambda r: "huggingface.co" not in r.getMessage()
     )
 
-    parser = argparse.ArgumentParser()
+    parser: argparse.ArgumentParser = argparse.ArgumentParser()
 
     # Method
     parser.add_argument("--method", type=str, required=True)
@@ -855,16 +858,6 @@ if __name__ == "__main__":
     parser.add_argument("--additional_triples", type=str, default=None)
     parser.add_argument("--input_questions", type=str, default=None)
 
-    # Input Artifacts
-    parser.add_argument("--input_documents_with_triples", type=str, default=None)
-    parser.add_argument("--input_graph", type=str, default=None)
-    parser.add_argument("--input_communities", type=str, default=None)
-    parser.add_argument("--input_reports", type=str, default=None)
-    parser.add_argument("--input_chunked_reports", type=str, default=None)
-
-    # Input Index
-    parser.add_argument("--input_index_dir", type=str, default=None)
-
     # Output Path
     parser.add_argument("--results_dir", type=str, required=True)
     parser.add_argument("--prefix", type=str, default=None)
@@ -875,7 +868,10 @@ if __name__ == "__main__":
         type=str,
         required=True,
         choices=[
-            "triple_extraction",
+            "ner",
+            "ed_retrieval",
+            "ed_reranking",
+            "docre",
             "entity_graph_construction",
             "community_clustering",
             "report_generation",
@@ -889,6 +885,17 @@ if __name__ == "__main__":
     parser.add_argument("--do_evaluation", action="store_true")
     parser.add_argument("--gold", type=str, default=None)
 
-    args = parser.parse_args()
+    # External Index
+    parser.add_argument("--external_index_dir", type=str, default=None)
+
+    # Batch API
+    parser.add_argument(
+        "--batch_mode",
+        type=str,
+        default=None,
+        choices=["submit", "fetch"],
+    )
+
+    args: argparse.Namespace = parser.parse_args()
 
     main(args)

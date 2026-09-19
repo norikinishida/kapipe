@@ -28,32 +28,30 @@ class ProStructRAGPipeline:
 
     def __init__(
         self,
-        proposition_extraction: BasePropositionExtractor | None,
-        proposition_relation_extraction: BasePropositionRelationExtractor | None,
-        proposition_relation_refinement: BasePropositionRelationRefiner | None,
-        passage_graph_construction: BasePassageGraphConstructor | None,
-        passage_retrieval: BasePassageRetriever | None,
-        graph_retrieval: BaseGraphRetriever | None,
-        context_formatting: BaseContextFormatter | None,
-        qa: BaseQA | None,
+        proposition_extraction: BasePropositionExtractor,
+        proposition_relation_extraction: BasePropositionRelationExtractor,
+        proposition_relation_refinement: BasePropositionRelationRefiner,
+        passage_graph_construction: BasePassageGraphConstructor,
+        passage_retrieval: BasePassageRetriever,
+        graph_retrieval: BaseGraphRetriever,
+        context_formatting: BaseContextFormatter,
+        qa: BaseQA,
     ) -> None:
 
-        self.proposition_extraction: BasePropositionExtractor | None = (
-            proposition_extraction
+        self.proposition_extraction: BasePropositionExtractor = proposition_extraction
+        self.proposition_relation_extraction: BasePropositionRelationExtractor = (
+            proposition_relation_extraction
         )
-        self.proposition_relation_extraction: (
-            BasePropositionRelationExtractor | None
-        ) = proposition_relation_extraction
-        self.proposition_relation_refinement: (
-            BasePropositionRelationRefiner | None
-        ) = proposition_relation_refinement
-        self.passage_graph_construction: BasePassageGraphConstructor | None = (
+        self.proposition_relation_refinement: BasePropositionRelationRefiner = (
+            proposition_relation_refinement
+        )
+        self.passage_graph_construction: BasePassageGraphConstructor = (
             passage_graph_construction
         )
-        self.passage_retrieval: BasePassageRetriever | None = passage_retrieval
-        self.graph_retrieval: BaseGraphRetriever | None = graph_retrieval
-        self.context_formatting: BaseContextFormatter | None = context_formatting
-        self.qa: BaseQA | None = qa
+        self.passage_retrieval: BasePassageRetriever = passage_retrieval
+        self.graph_retrieval: BaseGraphRetriever = graph_retrieval
+        self.context_formatting: BaseContextFormatter = context_formatting
+        self.qa: BaseQA = qa
 
     ####################
     # Indexing
@@ -62,7 +60,7 @@ class ProStructRAGPipeline:
     def make_index(
         self,
         # Input
-        passages: list[Passage] | None,
+        passages: list[Passage],
         # Output directory
         index_dir: str,
         # Component-specific arguments
@@ -71,9 +69,8 @@ class ProStructRAGPipeline:
         search_batch_size: int,
         proposition_relation_extraction_indexing_kwargs: dict[str, Any] | None = None,
         passage_retrieval_indexing_kwargs: dict[str, Any] | None = None,
-        # Target component for indexing
+        # Target component
         target_component: str | None = None,
-        input_artifact_paths: dict[str, str] | None = None,
         # Batch API
         batch_mode: str | None = None,
         batch_dir: str | None = None,
@@ -85,8 +82,6 @@ class ProStructRAGPipeline:
             proposition_relation_extraction_indexing_kwargs = {}
         if passage_retrieval_indexing_kwargs is None:
             passage_retrieval_indexing_kwargs = {}
-        if input_artifact_paths is None:
-            input_artifact_paths = {}
 
         # Validate the target component
         valid_target_components: list[str] = [
@@ -99,31 +94,9 @@ class ProStructRAGPipeline:
         if target_component is not None:
             if target_component not in valid_target_components:
                 raise ValueError(
-                    f"Unknown indexing target_component: {target_component}. "
+                    f"Unknown target_component: {target_component}. "
                     f"Expected one of: {valid_target_components}."
                 )
-
-        # Validate that input artifacts are used only for standalone execution
-        if input_artifact_paths:
-            if target_component is None:
-                raise ValueError(
-                    "`input_artifact_paths` requires `target_component`."
-                )
-
-        # Validate input artifact names
-        valid_artifact_names: set[str] = {
-            "propositions",
-            "triples",
-            "refined_triples",
-        }
-        unknown_artifact_names: set[str] = (
-            set(input_artifact_paths) - valid_artifact_names
-        )
-        if unknown_artifact_names:
-            raise ValueError(
-                "Unknown indexing input artifacts: "
-                f"{sorted(unknown_artifact_names)}."
-            )
 
         # Validate that a target component is specified when using batch mode
         if batch_mode is not None:
@@ -144,18 +117,6 @@ class ProStructRAGPipeline:
             target_component is None
             or target_component == "proposition_extraction"
         ):
-            # Validate that the Proposition Extraction component is initialized
-            if self.proposition_extraction is None:
-                raise ValueError(
-                    "Proposition Extraction component is not initialized."
-                )
-
-            # Validate that the input passages are provided
-            if passages is None:
-                raise ValueError(
-                    "Argument `passages` is required for proposition extraction."
-                )
-
             # Apply the Proposition Extraction component to the passages
             if batch_mode is None:
                 propositions: list[Passage] = []
@@ -221,20 +182,10 @@ class ProStructRAGPipeline:
             target_component is None
             or target_component == "proposition_relation_extraction"
         ):
-            # Validate that the Proposition Relation Extraction component 
-            # is initialized.
-            if self.proposition_relation_extraction is None:
-                raise ValueError(
-                    "Proposition relation extraction component is not initialized."
-                )
-
-            # Load propositions for standalone execution
+            # Load inputs for standalone execution
             if target_component is not None:
                 propositions: list[Passage] = utils.read_jsonl(
-                    input_artifact_paths.get(
-                        "propositions",
-                        os.path.join(index_dir, "propositions.jsonl"),
-                    )
+                    os.path.join(index_dir, "propositions.jsonl")
                 )
 
             # Build index for propositions
@@ -330,20 +281,10 @@ class ProStructRAGPipeline:
             target_component is None
             or target_component == "proposition_relation_refinement"
         ):
-            # Validate that the Proposition Relation Refinement component 
-            # is initialized.
-            if self.proposition_relation_refinement is None:
-                raise ValueError(
-                    "Proposition relation refinement component is not initialized."
-                )
-
-            # Load triples for standalone execution
+            # Load inputs for standalone execution
             if target_component is not None:
                 triples: list[dict[str, Any]] = utils.read_json(
-                    input_artifact_paths.get(
-                        "triples",
-                        os.path.join(index_dir, "triples.json"),
-                    )
+                    os.path.join(index_dir, "triples.json")
                 )
 
             # Apply the Proposition Relation Refinement component to the triples
@@ -433,25 +374,13 @@ class ProStructRAGPipeline:
             target_component is None
             or target_component == "passage_graph_construction"
         ):
-            # Validate that the Passage Graph Construction component is initialized
-            if self.passage_graph_construction is None:
-                raise ValueError(
-                    "Passage graph construction component is not initialized."
-                )
-
-            # Load propositions and refined triples for standalone execution
+            # Load inputs for standalone execution
             if target_component is not None:
                 propositions: list[Passage] = utils.read_jsonl(
-                    input_artifact_paths.get(
-                        "propositions",
-                        os.path.join(index_dir, "propositions.jsonl"),
-                    )
+                    os.path.join(index_dir, "propositions.jsonl")
                 )
                 refined_triples: list[dict[str, Any]] = utils.read_json(
-                    input_artifact_paths.get(
-                        "refined_triples",
-                        os.path.join(index_dir, "refined_triples.json"),
-                    )
+                    os.path.join(index_dir, "refined_triples.json")
                 )
 
             # Apply the Passage Graph Construction component to the triples
@@ -480,19 +409,10 @@ class ProStructRAGPipeline:
             target_component is None
             or target_component == "passage_retrieval_indexing"
         ):
-            # Validate that the Passage Retrieval component is initialized
-            if self.passage_retrieval is None:
-                raise ValueError(
-                    "Passage retrieval component is not initialized."
-                )
-
-            # Load propositions for standalone execution
+            # Load inputs for standalone execution
             if target_component is not None:
                 propositions: list[Passage] = utils.read_jsonl(
-                    input_artifact_paths.get(
-                        "propositions",
-                        os.path.join(index_dir, "propositions.jsonl"),
-                    )
+                    os.path.join(index_dir, "propositions.jsonl")
                 )
 
             # Build index
@@ -527,10 +447,10 @@ class ProStructRAGPipeline:
         self,
         # Input
         questions: list[Question],
-        # Component-specific parameters
+        # Component-specific arguments
         top_k: int,
         hop_size: int,
-        # ProStruct-RAG-specific parameters
+        # ProStruct-RAG-specific arguments
         remove_same_timestamp_updates: bool = True,
         append_question_timestamp: bool = True,
         # Batch API
@@ -538,16 +458,6 @@ class ProStructRAGPipeline:
         batch_dir: str | None = None,
     ) -> list[Question] | None:
         """Run all inference components and answer one question."""
-
-        # Validate that every inference component is initialized
-        if self.passage_retrieval is None:
-            raise ValueError("Passage retrieval component is not initialized.")
-        if self.graph_retrieval is None:
-            raise ValueError("Graph retrieval component is not initialized.")
-        if self.context_formatting is None:
-            raise ValueError("Context formatting component is not initialized.")
-        if self.qa is None:
-            raise ValueError("QA component is not initialized.")
 
         # Process each question individually
         question_with_time_list: list[Question] = []
@@ -601,7 +511,7 @@ class ProStructRAGPipeline:
             graph_contexts_list.append(graph_contexts)
 
             #################################
-            # [Step 7] Context Formatting
+            # ProStruct-RAG-specific processing
             #################################
 
             # Remove same-timestamp update edges when requested
@@ -616,6 +526,10 @@ class ProStructRAGPipeline:
                         if head_timestamp == tail_timestamp:
                             continue
                 filtered_edges.append(edge)
+
+            #################################
+            # [Step 7] Context Formatting
+            #################################
 
             # Convert the graph into LLM-readable context
             text: str = self.context_formatting.convert(
@@ -635,7 +549,7 @@ class ProStructRAGPipeline:
             formatted_contexts_list.append(formatted_contexts)
 
             #################################
-            # [Step 8-1] Answer Generation
+            # ProStruct-RAG-specific processing
             #################################
 
             # Add the query date using the ProStruct-RAG representation
@@ -651,7 +565,7 @@ class ProStructRAGPipeline:
             question_with_time_list.append(question_with_time)
 
         #################################
-        # [Step 8-2] Answer Generation
+        # [Step 8] Answer Generation
         #################################
 
         if batch_mode is None:
@@ -673,7 +587,7 @@ class ProStructRAGPipeline:
                     contexts_for_question=formatted_contexts,
                 )
 
-                # Preserve all intermediate results in the question object
+                # Preserve intermediate results
                 result["anchor_contexts"] = anchor_contexts
                 result["graph_contexts"] = graph_contexts
                 result["formatted_contexts"] = formatted_contexts
@@ -704,6 +618,7 @@ class ProStructRAGPipeline:
                 batch_ids=batch_ids
             )
 
+            # Preserve intermediate results
             for (
                 result,
                 anchor_contexts,
@@ -715,7 +630,6 @@ class ProStructRAGPipeline:
                 graph_contexts_list,
                 formatted_contexts_list
             ):
-                # Preserve all intermediate results in the question object
                 result["anchor_contexts"] = anchor_contexts
                 result["graph_contexts"] = graph_contexts
                 result["formatted_contexts"] = formatted_contexts

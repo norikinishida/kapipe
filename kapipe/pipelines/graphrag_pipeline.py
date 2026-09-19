@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 import os
 from typing import Any
 
@@ -10,6 +11,7 @@ from .. import utils
 from ..chunking.base import BaseChunker
 from ..community_clustering.base import BaseCommunityClusterer
 from ..datatypes import (
+    CandidateEntitiesForDocument,
     CommunityRecord,
     ContextsForOneExample,
     Document,
@@ -27,37 +29,40 @@ from ..qa.base import BaseQA
 from ..report_generation.base import BaseReportGenerator
 
 
+logger: logging.Logger = logging.getLogger(__name__)
+
+
 class GraphRAGPipeline:
     """Pipeline for running the full GraphRAG workflow or one component."""
 
     def __init__(
         self,
-        ner: BaseNER | None,
-        ed_retrieval: BaseEDRetriever | None,
-        ed_reranking: BaseEDReranker | None,
-        docre: BaseDocRE | None,
-        entity_graph_construction: BaseEntityGraphConstructor | None,
-        community_clustering: BaseCommunityClusterer | None,
-        report_generation: BaseReportGenerator | None,
-        chunker: BaseChunker | None,
-        passage_retrieval: BasePassageRetriever | None,
-        qa: BaseQA | None,
+        ner: BaseNER,
+        ed_retrieval: BaseEDRetriever,
+        ed_reranking: BaseEDReranker,
+        docre: BaseDocRE,
+        entity_graph_construction: BaseEntityGraphConstructor,
+        community_clustering: BaseCommunityClusterer,
+        report_generation: BaseReportGenerator,
+        chunker: BaseChunker,
+        passage_retrieval: BasePassageRetriever,
+        qa: BaseQA,
     ) -> None:
 
-        self.ner: BaseNER | None = ner
-        self.ed_retrieval: BaseEDRetriever | None = ed_retrieval
-        self.ed_reranking: BaseEDReranker | None = ed_reranking
-        self.docre: BaseDocRE | None = docre
-        self.entity_graph_construction: BaseEntityGraphConstructor | None = (
+        self.ner: BaseNER = ner
+        self.ed_retrieval: BaseEDRetriever = ed_retrieval
+        self.ed_reranking: BaseEDReranker = ed_reranking
+        self.docre: BaseDocRE = docre
+        self.entity_graph_construction: BaseEntityGraphConstructor = (
             entity_graph_construction
         )
-        self.community_clustering: BaseCommunityClusterer | None = (
+        self.community_clustering: BaseCommunityClusterer = (
             community_clustering
         )
-        self.report_generation: BaseReportGenerator | None = report_generation
-        self.chunker: BaseChunker | None = chunker
-        self.passage_retrieval: BasePassageRetriever | None = passage_retrieval
-        self.qa: BaseQA | None = qa
+        self.report_generation: BaseReportGenerator = report_generation
+        self.chunker: BaseChunker = chunker
+        self.passage_retrieval: BasePassageRetriever = passage_retrieval
+        self.qa: BaseQA = qa
 
     ####################
     # Indexing
@@ -66,32 +71,35 @@ class GraphRAGPipeline:
     def make_index(
         self,
         # Input
-        documents: list[Document] | None,
+        documents: list[Document],
         # Output directory
         index_dir: str,
         # Component-specific arguments
         retrieval_size: int,
         window_size: int,
-        entity_dict_path: str | None = None,
-        additional_triples_path: str | None = None,
+        entity_dict: list[EntityPage] | None = None,
+        additional_triples: list[dict[str, Any]] | None = None,
         node_attr_keys: tuple[str, ...] = ("name", "entity_type", "description"),
         edge_attr_keys: tuple[str, ...] = ("relation",),
         passage_retrieval_indexing_kwargs: dict[str, Any] | None = None,
-        # Target component for indexing
+        # Target component
         target_component: str | None = None,
-        input_artifact_paths: dict[str, str] | None = None,
+        # Batch API
+        batch_mode: str | None = None,
+        batch_dir: str | None = None,
     ) -> None:
         """Build the full index or run one selected indexing component."""
 
         # Use empty mappings when optional mappings are omitted
         if passage_retrieval_indexing_kwargs is None:
             passage_retrieval_indexing_kwargs = {}
-        if input_artifact_paths is None:
-            input_artifact_paths = {}
 
         # Validate the target component
         valid_target_components: list[str] = [
-            "triple_extraction",
+            "ner",
+            "ed_retrieval",
+            "ed_reranking",
+            "docre",
             "entity_graph_construction",
             "community_clustering",
             "report_generation",
@@ -101,88 +109,235 @@ class GraphRAGPipeline:
         if target_component is not None:
             if target_component not in valid_target_components:
                 raise ValueError(
-                    f"Unknown indexing target_component: {target_component}. "
+                    f"Unknown target_component: {target_component}. "
                     f"Expected one of: {valid_target_components}."
                 )
 
-        # Validate that input artifacts are used only for standalone execution
-        if input_artifact_paths:
+        # Validate that a target component is specified when using batch mode
+        if batch_mode is not None:
             if target_component is None:
                 raise ValueError(
-                    "`input_artifact_paths` requires `target_component`."
+                    "`target_component` is required when `batch_mode` is specified."
                 )
-
-        # Validate input artifact names
-        valid_artifact_names: set[str] = {
-            "documents_with_triples",
-            "graph",
-            "communities",
-            "reports",
-            "chunked_reports",
-        }
-        unknown_artifact_names: set[str] = (
-            set(input_artifact_paths) - valid_artifact_names
-        )
-        if unknown_artifact_names:
-            raise ValueError(
-                "Unknown indexing input artifacts: "
-                f"{sorted(unknown_artifact_names)}."
-            )
 
         # Create the common destination for every indexing artifact
         utils.mkdir(index_dir)
 
         ##############################
-        # [Step 1] Triple Extraction
+        # [Step 1a] NER
         ##############################
 
-        # Extract relational triples from the input documents
-        if target_component is None or target_component == "triple_extraction":
-            # Validate that every Triple Extraction components are initialized
-            if self.ner is None:
-                raise ValueError("NER component is not initialized.")
-            if self.ed_retrieval is None:
-                raise ValueError("Entity retrieval component is not initialized.")
-            if self.ed_reranking is None:
-                raise ValueError("Entity reranking component is not initialized.")
-            if self.docre is None:
+        # Extract entity mentions from the input documents
+        if target_component is None or target_component == "ner":
+            # Apply the NER component to the documents
+            if batch_mode is None:
+                documents_with_mentions: list[Document] = []
+                for document in tqdm(documents, desc="Extracting entity mentions"):
+                    documents_with_mentions.append(
+                        self.ner.extract(document=document)
+                    )
+
+            elif batch_mode == "submit":
+                # Submit prompts
+                batch_ids: list[str] = self.ner.submit_batch(documents=documents)
+                utils.mkdir(batch_dir)
+                utils.write_json(
+                    os.path.join(batch_dir, "batch_ids.json"),
+                    batch_ids,
+                )
+                logger.info(f"Submitted batches {batch_ids}")
+
+            elif batch_mode == "fetch":
+                # Fetch and process the responses
+                batch_ids: list[str] = utils.read_json(
+                    os.path.join(batch_dir, "batch_ids.json")
+                )
+                documents_with_mentions: list[Document] = (
+                    self.ner.fetch_and_process_batch(
+                        documents=documents,
+                        batch_ids=batch_ids,
+                    )
+                )
+
+            else:
                 raise ValueError(
-                    "Document-level relation extraction component is not initialized."
+                    f"Invalid batch_mode: {batch_mode}. "
+                    "Expected None, 'submit', or 'fetch'."
                 )
 
-            # Validate that documents are provided for triple extraction
-            if documents is None:
-                raise ValueError(
-                    "Argument `documents` is required for triple extraction."
+            if batch_mode != "submit":
+                # Save documents with extracted mentions
+                utils.write_json(
+                    os.path.join(index_dir, "documents_with_mentions.json"),
+                    documents_with_mentions,
                 )
 
-            # Extract triples document by document
-            documents_with_triples: list[Document] = []
-            for document in tqdm(documents, desc="Extracting triples"):
-                # Extract entity mentions
-                document = self.ner.extract(document=document)
+        ##############################
+        # [Step 1b] ED-Retrieval
+        ##############################
 
-                # Retrieve candidate entities
-                document, candidate_entities_for_doc = self.ed_retrieval.search(
-                    document=document,
-                    retrieval_size=retrieval_size,
+        # Retrieve candidate entities for the extracted mentions
+        if target_component is None or target_component == "ed_retrieval":
+            # Load inputs for standalone execution
+            if target_component is not None:
+                documents_with_mentions: list[Document] = utils.read_json(
+                    os.path.join(index_dir, "documents_with_mentions.json")
                 )
 
-                # Rerank candidate entities
-                document = self.ed_reranking.rerank(
-                    document=document,
-                    candidate_entities_for_doc=candidate_entities_for_doc,
+            # Retrieve candidate entities document by document
+            documents_with_candidates: list[Document] = []
+            candidate_entities: list[CandidateEntitiesForDocument] = []
+            for document in tqdm(
+                documents_with_mentions, desc="Retrieving candidate entities"
+            ):
+                document_with_candidates, candidate_entities_for_doc = (
+                    self.ed_retrieval.search(
+                        document=document,
+                        retrieval_size=retrieval_size,
+                    )
                 )
+                documents_with_candidates.append(document_with_candidates)
+                candidate_entities.append(candidate_entities_for_doc)
 
-                # Extract document-level relations
-                document = self.docre.extract(document=document)
-                documents_with_triples.append(document)
-
-            # Save documents with extracted triples
+            # Save documents and candidate entities for reranking
             utils.write_json(
-                os.path.join(index_dir, "documents_with_triples.json"),
-                documents_with_triples,
+                os.path.join(index_dir, "documents_with_candidates.json"),
+                documents_with_candidates,
             )
+            utils.write_json(
+                os.path.join(index_dir, "candidate_entities.json"),
+                candidate_entities,
+            )
+
+        ##############################
+        # [Step 1c] ED-Reranking
+        ##############################
+
+        # Rerank candidate entities for the extracted mentions
+        if target_component is None or target_component == "ed_reranking":
+            # Load inputs for standalone execution
+            if target_component is not None:
+                documents_with_candidates: list[Document] = utils.read_json(
+                    os.path.join(index_dir, "documents_with_candidates.json")
+                )
+                candidate_entities: list[CandidateEntitiesForDocument] = (
+                    utils.read_json(
+                        os.path.join(index_dir, "candidate_entities.json")
+                    )
+                )
+
+            # Apply the ED-Reranking component to the documents
+            if batch_mode is None:
+                documents_with_entities: list[Document] = []
+                for document, candidate_entities_for_doc in tqdm(
+                    zip(documents_with_candidates, candidate_entities),
+                    total=len(documents_with_candidates),
+                    desc="Reranking candidate entities",
+                ):
+                    documents_with_entities.append(
+                        self.ed_reranking.rerank(
+                            document=document,
+                            candidate_entities_for_doc=candidate_entities_for_doc,
+                        )
+                    )
+
+            elif batch_mode == "submit":
+                # Submit prompts
+                batch_ids: list[str] = self.ed_reranking.submit_batch(
+                    documents=documents_with_candidates,
+                    candidate_entities=candidate_entities,
+                )
+                utils.mkdir(batch_dir)
+                utils.write_json(
+                    os.path.join(batch_dir, "batch_ids.json"),
+                    batch_ids,
+                )
+                logger.info(f"Submitted batches {batch_ids}")
+
+            elif batch_mode == "fetch":
+                # Fetch and process the responses
+                batch_ids: list[str] = utils.read_json(
+                    os.path.join(batch_dir, "batch_ids.json")
+                )
+                documents_with_entities: list[Document] = (
+                    self.ed_reranking.fetch_and_process_batch(
+                        documents=documents_with_candidates,
+                        candidate_entities=candidate_entities,
+                        batch_ids=batch_ids,
+                    )
+                )
+
+            else:
+                raise ValueError(
+                    f"Invalid batch_mode: {batch_mode}. "
+                    "Expected None, 'submit', or 'fetch'."
+                )
+
+            if batch_mode != "submit":
+                # Save documents with disambiguated entities
+                utils.write_json(
+                    os.path.join(index_dir, "documents_with_entities.json"),
+                    documents_with_entities,
+                )
+
+        ##############################
+        # [Step 1d] DocRE
+        ##############################
+
+        # Extract document-level relations
+        if target_component is None or target_component == "docre":
+            # Load inputs for standalone execution
+            if target_component is not None:
+                documents_with_entities: list[Document] = utils.read_json(
+                    os.path.join(index_dir, "documents_with_entities.json")
+                )
+
+            # Apply the DocRE component to the documents
+            if batch_mode is None:
+                documents_with_triples: list[Document] = []
+                for document in tqdm(
+                    documents_with_entities, desc="Extracting triples"
+                ):
+                    documents_with_triples.append(
+                        self.docre.extract(document=document)
+                    )
+
+            elif batch_mode == "submit":
+                # Submit prompts
+                batch_ids: list[str] = self.docre.submit_batch(
+                    documents=documents_with_entities
+                )
+                utils.mkdir(batch_dir)
+                utils.write_json(
+                    os.path.join(batch_dir, "batch_ids.json"),
+                    batch_ids,
+                )
+                logger.info(f"Submitted batches {batch_ids}")
+
+            elif batch_mode == "fetch":
+                # Fetch and process the responses
+                batch_ids: list[str] = utils.read_json(
+                    os.path.join(batch_dir, "batch_ids.json")
+                )
+                documents_with_triples: list[Document] = (
+                    self.docre.fetch_and_process_batch(
+                        documents=documents_with_entities,
+                        batch_ids=batch_ids,
+                    )
+                )
+
+            else:
+                raise ValueError(
+                    f"Invalid batch_mode: {batch_mode}. "
+                    "Expected None, 'submit', or 'fetch'."
+                )
+
+            if batch_mode != "submit":
+                # Save documents with extracted triples
+                utils.write_json(
+                    os.path.join(index_dir, "documents_with_triples.json"),
+                    documents_with_triples,
+                )
 
         ######################################
         # [Step 2] Entity Graph Construction
@@ -193,29 +348,11 @@ class GraphRAGPipeline:
             target_component is None
             or target_component == "entity_graph_construction"
         ):
-            # Validate that the Entity Graph Construction component is initialized
-            if self.entity_graph_construction is None:
-                raise ValueError(
-                    "Entity graph construction component is not initialized."
-                )
-
-            # Load extracted documents only for standalone graph construction
+            # Load inputs for standalone graph construction
             if target_component is not None:
-                documents_with_triples_path: str = input_artifact_paths.get(
-                    "documents_with_triples",
-                    os.path.join(index_dir, "documents_with_triples.json"),
+                documents_with_triples: list[Document] = utils.read_json(
+                    os.path.join(index_dir, "documents_with_triples.json")
                 )
-                documents_with_triples = utils.read_json(documents_with_triples_path)
-
-            # Load optional entity dictionary
-            entity_dict: list[EntityPage] | None = None
-            if entity_dict_path is not None:
-                entity_dict = utils.read_json(entity_dict_path)
-
-            # Load optional additional triples
-            additional_triples: list[dict[str, Any]] | None = None
-            if additional_triples_path is not None:
-                additional_triples = utils.read_json(additional_triples_path)
 
             # Construct the entity graph from the extracted triples
             graph: nx.MultiDiGraph = (
@@ -238,19 +375,10 @@ class GraphRAGPipeline:
             target_component is None
             or target_component == "community_clustering"
         ):
-            # Validate that the Community Clustering component is initialized
-            if self.community_clustering is None:
-                raise ValueError(
-                    "Community clustering component is not initialized."
-                )
-
-            # Load the graph for standalone execution
+            # Load inputs for standalone execution
             if target_component is not None:
                 graph = nx.read_graphml(
-                    input_artifact_paths.get(
-                        "graph",
-                        os.path.join(index_dir, "graph.graphml"),
-                    )
+                    os.path.join(index_dir, "graph.graphml")
                 )
 
             # Cluster graph communities
@@ -270,23 +398,13 @@ class GraphRAGPipeline:
 
         # Generate textual reports from graph communities
         if target_component is None or target_component == "report_generation":
-            # Validate that the Report Generation component is initialized
-            if self.report_generation is None:
-                raise ValueError("Report generation component is not initialized.")
-
-            # Load the graph and communities for standalone execution
+            # Load inputs for standalone execution
             if target_component is not None:
                 graph = nx.read_graphml(
-                    input_artifact_paths.get(
-                        "graph",
-                        os.path.join(index_dir, "graph.graphml"),
-                    )
+                    os.path.join(index_dir, "graph.graphml")
                 )
                 communities = utils.read_json(
-                    input_artifact_paths.get(
-                        "communities",
-                        os.path.join(index_dir, "communities.json"),
-                    )
+                    os.path.join(index_dir, "communities.json")
                 )
 
             # Generate community reports
@@ -308,17 +426,10 @@ class GraphRAGPipeline:
 
         # Split the community reports into retrieval units
         if target_component is None or target_component == "chunking":
-            # Validate that the Chunking component is initialized
-            if self.chunker is None:
-                raise ValueError("Chunker is not initialized.")
-
-            # Load community reports for standalone execution
+            # Load inputs for standalone execution
             if target_component is not None:
                 reports = utils.read_jsonl(
-                    input_artifact_paths.get(
-                        "reports",
-                        os.path.join(index_dir, "reports.jsonl"),
-                    )
+                    os.path.join(index_dir, "reports.jsonl")
                 )
 
             # Split each report into smaller chunks
@@ -346,20 +457,13 @@ class GraphRAGPipeline:
             target_component is None
             or target_component == "passage_retrieval_indexing"
         ):
-            # Validate that the Passage Retrieval component is initialized
-            if self.passage_retrieval is None:
-                raise ValueError("Passage retrieval component is not initialized.")
-
-            # Load chunked reports for standalone execution
+            # Load inputs for standalone execution
             if target_component is not None:
                 chunked_reports = utils.read_jsonl(
-                    input_artifact_paths.get(
-                        "chunked_reports",
-                        os.path.join(index_dir, "chunked_reports.jsonl"),
-                    )
+                    os.path.join(index_dir, "chunked_reports.jsonl")
                 )
 
-            # Build and save the component-specific retrieval index
+            # Build index
             passage_retrieval_index_dir: str = os.path.join(
                 index_dir,
                 "passage_retrieval_index",
@@ -382,53 +486,93 @@ class GraphRAGPipeline:
 
     def infer(
         self,
+        # Input
         questions: list[Question],
+        # Component-specific parameters
         top_k: int,
-    ) -> list[Question]:
+        # Batch API
+        batch_mode: str | None = None,
+        batch_dir: str | None = None,
+    ) -> list[Question] | None:
         """Run all inference components and answer the questions."""
 
-        # Validate that every inference component is initialized
-        if self.passage_retrieval is None:
-            raise ValueError("Passage retrieval component is not initialized.")
-        if self.qa is None:
-            raise ValueError("QA component is not initialized.")
-
-        # Validate that top_k is a positive integer
-        if top_k <= 0:
-            raise ValueError("top_k must be a positive integer.")
-
-        results: list[Question] = []
+        # Retrieve contexts for each question
+        contexts_list: list[ContextsForOneExample] = []
         for question in tqdm(questions, desc="Answering questions"):
 
             ######################################
             # [Step 6b] Passage Retrieval (Search)
             ######################################
 
-            # Retrieve relevant chunked reports
+            # Search top-k chunked reports for the question
             retrieved_chunked_reports: list[Passage] = self.passage_retrieval.search(
                 queries=[question["question"]],
                 top_k=top_k,
             )[0]
 
-            # Wrap retrieved chunked reports in the QA context format
+            # Create a ContextsForOneExample object for the question
             contexts_for_question: ContextsForOneExample = {
                 "question_key": question["question_key"],
                 "contexts": retrieved_chunked_reports,
             }
+            contexts_list.append(contexts_for_question)
 
-            ###############################
-            # [Step 7] Answer Generation
-            ###############################
+        ###############################
+        # [Step 7] Answer Generation
+        ###############################
 
-            # Generate the final answer
-            result: Question = self.qa.answer(
-                question=question,
-                contexts_for_question=contexts_for_question,
+        if batch_mode is None:
+            results: list[Question] = []
+            for question, contexts_for_question in zip(
+                questions,
+                contexts_list,
+            ):
+                # Generate the final answer
+                result: Question = self.qa.answer(
+                    question=question,
+                    contexts_for_question=contexts_for_question,
+                )
+
+                # Preserve intermediate results
+                result["contexts"] = contexts_for_question["contexts"]
+
+                results.append(result)
+
+        elif batch_mode == "submit":
+            # Submit prompts
+            batch_ids: list[str] = self.qa.submit_batch(
+                questions=questions,
+                contexts=contexts_list,
+            )
+            utils.mkdir(batch_dir)
+            utils.write_json(
+                os.path.join(batch_dir, "batch_ids.json"),
+                batch_ids,
+            )
+            logger.info(f"Submitted batches {batch_ids}")
+
+        elif batch_mode == "fetch":
+            # Fetch and process the responses
+            batch_ids: list[str] = utils.read_json(
+                os.path.join(batch_dir, "batch_ids.json")
+            )
+            results: list[Question] = self.qa.fetch_and_process_batch(
+                questions=questions,
+                contexts=contexts_list,
+                batch_ids=batch_ids,
             )
 
-            # Preserve retrieved contexts
-            result["contexts"] = retrieved_chunked_reports
+            # Preserve intermediate results
+            for result, contexts_for_question in zip(results, contexts_list):
+                result["contexts"] = contexts_for_question["contexts"]
 
-            results.append(result)
+        else:
+            raise ValueError(
+                f"Invalid batch_mode: {batch_mode}. "
+                "Expected None, 'submit', or 'fetch'."
+            )
+
+        if batch_mode == "submit":
+            return None
 
         return results

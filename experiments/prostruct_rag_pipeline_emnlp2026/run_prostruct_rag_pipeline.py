@@ -70,18 +70,6 @@ def main(args: argparse.Namespace) -> None:
     input_passages_path: str | None = args.input_passages
     input_questions_path: str | None = args.input_questions
 
-    # Input Artifacts
-    input_artifact_paths: dict[str, str] = {}
-    if args.input_propositions is not None:
-        input_artifact_paths["propositions"] = args.input_propositions
-    if args.input_triples is not None:
-        input_artifact_paths["triples"] = args.input_triples
-    if args.input_refined_triples is not None:
-        input_artifact_paths["refined_triples"] = args.input_refined_triples
-
-    # Input Index
-    input_index_dir: str | None = args.input_index_dir
-
     # Output Path
     results_dir: str = args.results_dir
     prefix: str | None = args.prefix
@@ -96,26 +84,11 @@ def main(args: argparse.Namespace) -> None:
     do_evaluation: bool = args.do_evaluation
     gold_questions_path: str | None = args.gold
 
+    # External Index
+    external_index_dir: str | None = args.external_index_dir
+
     # Batch API
     batch_mode: str | None = args.batch_mode
-
-    # Validate that the input index directory is only used for inference
-    if actiontype != "inference" and input_index_dir is not None:
-        raise ValueError("--input_index_dir is only available for inference")
-
-    # Validate that Batch API mode is used only with supported actions
-    if batch_mode is not None:
-        batch_actiontypes: set[str] = {
-            "proposition_extraction",
-            "proposition_relation_extraction",
-            "proposition_relation_refinement",
-            "inference",
-        }
-        if actiontype not in batch_actiontypes:
-            raise ValueError(
-                "--batch_mode is only available for "
-                f"{sorted(batch_actiontypes)}"
-            )
 
     ##################
     # Logging Setup
@@ -132,25 +105,16 @@ def main(args: argparse.Namespace) -> None:
     utils.mkdir(base_output_path)
 
     # Extract the base filename
-    base_filename: str | None = None
     if actiontype == "inference":
-        if input_questions_path is None:
-            raise ValueError(
-                f"--input_questions is required for {actiontype}"
-            )
-        base_filename = os.path.splitext(
+        base_filename: str = os.path.splitext(
             os.path.basename(input_questions_path)
         )[0]
 
     # Index will be saved to `index_dir`
-    if actiontype == "inference" and input_index_dir is not None:
-        index_dir: str = input_index_dir
-    else:
-        index_dir = os.path.join(base_output_path, "indexes")
-    if actiontype != "inference":
-        utils.mkdir(index_dir)
+    index_dir = os.path.join(base_output_path, "indexes")
+    utils.mkdir(index_dir)
 
-    # Set the Batch API directory shared with the pipeline
+    # Set the Batch API directory
     batch_dir: str | None = None
     if batch_mode is not None:
         if actiontype != "inference":
@@ -166,6 +130,7 @@ def main(args: argparse.Namespace) -> None:
                 actiontype,
                 base_filename,
             )
+        utils.mkdir(batch_dir)
 
     # Set logger
     if batch_mode is None:
@@ -227,88 +192,65 @@ def main(args: argparse.Namespace) -> None:
     loaded_llm_map: dict[str, BaseLLM] = {}
 
     # Instantiate the Proposition Extraction component
-    proposition_extraction: BasePropositionExtractor | None = None
-    if actiontype == "proposition_extraction":
-        proposition_extraction, loaded_llm_map = (
-            instantiate_proposition_extraction_component(
-                proposition_extraction_config=config["proposition_extraction"],
-                loaded_llm_map=loaded_llm_map,
-            )
-        )
-
-    # Instantiate the Proposition Relation Extraction component
-    proposition_relation_extraction: (
-        BasePropositionRelationExtractor | None
-    ) = None
-    if actiontype == "proposition_relation_extraction":
-        proposition_relation_extraction, loaded_llm_map = (
-            instantiate_proposition_relation_extraction_component(
-                proposition_relation_extraction_config=(
-                    config["proposition_relation_extraction"]
-                ),
-                loaded_llm_map=loaded_llm_map,
-            )
-        )
-
-    # Instantiate the Proposition Relation Refinement component
-    proposition_relation_refinement: (
-        BasePropositionRelationRefiner | None
-    ) = None
-    if actiontype == "proposition_relation_refinement":
-        proposition_relation_refinement, loaded_llm_map = (
-            instantiate_proposition_relation_refinement_component(
-                proposition_relation_refinement_config=(
-                    config["proposition_relation_refinement"]
-                ),
-                loaded_llm_map=loaded_llm_map,
-            )
-        )
-
-    # Instantiate the Passage Graph Construction component
-    passage_graph_construction: BasePassageGraphConstructor | None = None
-    if actiontype == "passage_graph_construction":
-        passage_graph_construction = (
-            instantiate_passage_graph_construction_component(
-                passage_graph_construction_config=(
-                    config["passage_graph_construction"]
-                ),
-            )
-        )
-
-    # Instantiate the Passage Retrieval component
-    passage_retrieval: BasePassageRetriever | None = None
-    if (
-        actiontype == "passage_retrieval_indexing"
-        or actiontype == "inference"
-    ):
-        passage_retrieval = instantiate_passage_retrieval_component(
-            passage_retrieval_config=config["passage_retrieval"],
-        )
-
-    # Instantiate the Graph Retrieval component
-    graph_retrieval: BaseGraphRetriever | None = None
-    if actiontype == "inference":
-        graph_retrieval = instantiate_graph_retrieval_component(
-            graph_retrieval_config=config["graph_retrieval"],
-        )
-
-    # Instantiate the Context Formatting component
-    context_formatting: BaseContextFormatter | None = None
-    if actiontype == "inference":
-        context_formatting = instantiate_context_formatting_component(
-            context_formatting_config=config["context_formatting"],
-        )
-
-    # Instantiate the QA component
-    qa: BaseQA | None = None
-    if actiontype == "inference":
-        qa, loaded_llm_map = instantiate_qa_component(
-            qa_config=config["qa"],
+    proposition_extraction, loaded_llm_map = (
+        instantiate_proposition_extraction_component(
+            proposition_extraction_config=config["proposition_extraction"],
             loaded_llm_map=loaded_llm_map,
         )
+    )
+
+    # Instantiate the Proposition Relation Extraction component
+    proposition_relation_extraction, loaded_llm_map = (
+        instantiate_proposition_relation_extraction_component(
+            proposition_relation_extraction_config=(
+                config["proposition_relation_extraction"]
+            ),
+            loaded_llm_map=loaded_llm_map,
+        )
+    )
+
+    # Instantiate the Proposition Relation Refinement component
+    proposition_relation_refinement, loaded_llm_map = (
+        instantiate_proposition_relation_refinement_component(
+            proposition_relation_refinement_config=(
+                config["proposition_relation_refinement"]
+            ),
+            loaded_llm_map=loaded_llm_map,
+        )
+    )
+
+    # Instantiate the Passage Graph Construction component
+    passage_graph_construction = (
+        instantiate_passage_graph_construction_component(
+            passage_graph_construction_config=(
+                config["passage_graph_construction"]
+            ),
+        )
+    )
+
+    # Instantiate the Passage Retrieval component
+    passage_retrieval = instantiate_passage_retrieval_component(
+        passage_retrieval_config=config["passage_retrieval"],
+    )
+
+    # Instantiate the Graph Retrieval component
+    graph_retrieval = instantiate_graph_retrieval_component(
+        graph_retrieval_config=config["graph_retrieval"],
+    )
+
+    # Instantiate the Context Formatting component
+    context_formatting = instantiate_context_formatting_component(
+        context_formatting_config=config["context_formatting"],
+    )
+
+    # Instantiate the QA component
+    qa, loaded_llm_map = instantiate_qa_component(
+        qa_config=config["qa"],
+        loaded_llm_map=loaded_llm_map,
+    )
 
     # Instantiate the ProStruct-RAG pipeline
-    prostruct_rag: ProStructRAGPipeline = ProStructRAGPipeline(
+    prostruct_rag = ProStructRAGPipeline(
         proposition_extraction=proposition_extraction,
         proposition_relation_extraction=proposition_relation_extraction,
         proposition_relation_refinement=proposition_relation_refinement,
@@ -324,15 +266,8 @@ def main(args: argparse.Namespace) -> None:
     ##################
 
     if actiontype != "inference":
-        # Load passages only when Proposition Extraction is selected
-        if actiontype == "proposition_extraction":
-            if input_passages_path is None:
-                raise ValueError(
-                    "--input_passages is required for proposition_extraction"
-                )
-            passages: list[dict[str, Any]] = utils.read_jsonl(input_passages_path)
-        else:
-            passages = None
+        # Load passages
+        passages: list[dict[str, Any]] = utils.read_jsonl(input_passages_path)
 
         # Set component-specific arguments
         if config["proposition_relation_extraction"]["retriever"]["method_name"] == (
@@ -354,7 +289,7 @@ def main(args: argparse.Namespace) -> None:
                 ),
             }
 
-        # Run the selected ProStruct-RAG indexing component
+        # Run indexing components
         prostruct_rag.make_index(
             # Input
             passages=passages,
@@ -380,21 +315,14 @@ def main(args: argparse.Namespace) -> None:
                 proposition_relation_extraction_indexing_kwargs
             ),
             passage_retrieval_indexing_kwargs=passage_retrieval_indexing_kwargs,
-            # Target component for indexing
+            # Target component
             target_component=actiontype,
-            input_artifact_paths=input_artifact_paths,
             # Batch API
             batch_mode=batch_mode,
             batch_dir=batch_dir,
         )
 
     else:
-        assert base_filename is not None
-
-        # Validate that the input questions path is provided for inference
-        if input_questions_path is None:
-            raise ValueError("--input_questions is required for inference")
-
         # Load questions
         questions: list[dict[str, Any]] = utils.read_json(input_questions_path)
 
@@ -403,17 +331,20 @@ def main(args: argparse.Namespace) -> None:
             f"{len(questions)} questions in {input_questions_path} ..."
         )
 
-        # Load the built index
-        prostruct_rag.load_index(index_dir=index_dir)
+        # Load the index
+        if external_index_dir is not None:
+            prostruct_rag.load_index(index_dir=external_index_dir)
+        else:
+            prostruct_rag.load_index(index_dir=index_dir)
 
         # Run all inference components for every question
         result_questions: list[dict[str, Any]] | None = prostruct_rag.infer(
             # Input
             questions=questions,
-            # Component-specific parameters
+            # Component-specific arguments
             top_k=config["passage_retrieval"]["top_k"],
             hop_size=config["graph_retrieval"]["hop_size"],
-            # ProStruct-RAG-specific parameters
+            # ProStruct-RAG-specific arguments
             remove_same_timestamp_updates=True,
             append_question_timestamp=True,
             # Batch API
@@ -476,12 +407,6 @@ def main(args: argparse.Namespace) -> None:
             ##################
 
             if do_evaluation:
-                # Validate that the gold questions path is provided
-                if gold_questions_path is None:
-                    raise ValueError(
-                        "--gold is required when --do_evaluation is set"
-                    )
-
                 # Evaluate the prediction results
                 qa_scores: dict[str, Any] = evaluation.qa.accuracy(
                     pred_path=output_questions_path,
@@ -842,14 +767,6 @@ if __name__ == "__main__":
     parser.add_argument("--input_passages", type=str, default=None)
     parser.add_argument("--input_questions", type=str, default=None)
 
-    # Input Artifacts
-    parser.add_argument("--input_propositions", type=str, default=None)
-    parser.add_argument("--input_triples", type=str, default=None)
-    parser.add_argument("--input_refined_triples", type=str, default=None)
-
-    # Input Index
-    parser.add_argument("--input_index_dir", type=str, default=None)
-
     # Output Path
     parser.add_argument("--results_dir", type=str, required=True)
     parser.add_argument("--prefix", type=str, default=None)
@@ -872,6 +789,9 @@ if __name__ == "__main__":
     # Evaluation
     parser.add_argument("--do_evaluation", action="store_true")
     parser.add_argument("--gold", type=str, default=None)
+
+    # External Index
+    parser.add_argument("--external_index_dir", type=str, default=None)
 
     # Batch API
     parser.add_argument(

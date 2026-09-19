@@ -77,7 +77,10 @@ If you modified the configuration file or added new configuration entries, make 
 Run each action sequentially using the following commands:
 
 ```bash
-bash ./run_graphrag_pipeline.sh --actiontype triple_extraction
+bash ./run_graphrag_pipeline.sh --actiontype ner
+bash ./run_graphrag_pipeline.sh --actiontype ed_retrieval
+bash ./run_graphrag_pipeline.sh --actiontype ed_reranking
+bash ./run_graphrag_pipeline.sh --actiontype docre
 bash ./run_graphrag_pipeline.sh --actiontype entity_graph_construction
 bash ./run_graphrag_pipeline.sh --actiontype community_clustering
 bash ./run_graphrag_pipeline.sh --actiontype report_generation
@@ -93,3 +96,22 @@ bash ./run_graphrag_pipeline.sh --actiontype all
 ```
 
 If you use the OpenAI API, set your API key in advance.
+
+You can use the OpenAI Batch API for the following actions: `ner`, `ed_reranking`, `docre`, `inference`.
+
+```bash
+bash ./run_graphrag_pipeline.sh --actiontype ner --batch_mode submit
+bash ./run_graphrag_pipeline.sh --actiontype ner --batch_mode fetch
+bash ./run_graphrag_pipeline.sh --actiontype ed_retrieval
+bash ./run_graphrag_pipeline.sh --actiontype ed_reranking --batch_mode submit
+bash ./run_graphrag_pipeline.sh --actiontype ed_reranking --batch_mode fetch
+bash ./run_graphrag_pipeline.sh --actiontype docre --batch_mode submit
+bash ./run_graphrag_pipeline.sh --actiontype docre --batch_mode fetch
+bash ./run_graphrag_pipeline.sh --actiontype entity_graph_construction
+bash ./run_graphrag_pipeline.sh --actiontype community_clustering
+bash ./run_graphrag_pipeline.sh --actiontype report_generation
+bash ./run_graphrag_pipeline.sh --actiontype chunking
+bash ./run_graphrag_pipeline.sh --actiontype passage_retrieval_indexing
+bash ./run_graphrag_pipeline.sh --actiontype inference --batch_mode submit
+bash ./run_graphrag_pipeline.sh --actiontype inference --batch_mode fetch
+```
