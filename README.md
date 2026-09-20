@@ -17,6 +17,8 @@ For each stage, KAPipe provides reusable *components* that implement specific ap
 For example, KAPipe provides Document-level Relation Extraction and Proposition Extraction components for extraction, and Passage Retrieval and Graph Retrieval components for retrieval.
 Together, these components serve as building blocks for constructing knowledge acquisition systems.
 
+**Note:** KAPipe is designed for research and experimentation rather than production use. It is under active development and may introduce breaking changes without prior notice.
+
 KAPipe is used in the following papers:
 
 - Nishida et al., EMNLP 2026, **Beyond Retrieval: Structuring Evolving and Inconsistent External Knowledge with Proposition Relations for RAG**. (to appear)
