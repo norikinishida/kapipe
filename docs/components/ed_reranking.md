@@ -247,7 +247,7 @@ model = ...
 # Instantiate the LLM-based ED-Reranking component with the user-defined entity dictionary
 reranker = LLMED(
     model=model,
-    prompt_template_name_or_path="ed_04_zeroshot",
+    prompt_template_name_or_path="ed_11_zeroshot",
     knowledge_base_name="<your KB name>",
     entity_dict_path="/path/to/entity_dict.json",
 )
@@ -289,6 +289,8 @@ If you want to use your own entity dictionary with `BlinkCrossEncoder`, train th
 See [experiments/ed_reranking/run_ed_reranking_train_eval.py](../../experiments/ed_reranking/run_ed_reranking_train_eval.py) for runnable training and evaluation examples.
 
 ## Custom Prompt Templates
+
+`prompt_template_name_or_path` accepts either the name of a built-in prompt template ([`kapipe/ed_reranking/prompt_templates/*.txt`](../../kapipe/ed_reranking/prompt_templates)) or a path to a user-defined prompt template.
 
 A custom prompt template for `LLMED` supports the following placeholders.
 

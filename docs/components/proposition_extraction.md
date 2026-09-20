@@ -134,6 +134,8 @@ Each proposition receives a `passage_key` of the form `<source_passage_key>/prop
 
 ## Custom Prompt Templates
 
+`prompt_template_name_or_path` accepts either the name of a built-in prompt template ([`kapipe/proposition_extraction/prompt_templates/*.txt`](../../kapipe/proposition_extraction/prompt_templates)) or a path to a user-defined prompt template.
+
 A custom prompt template for `LLMPropositionExtractor` supports the following placeholder.
 
 | Placeholder | Required | Description |

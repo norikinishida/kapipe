@@ -138,7 +138,10 @@ model = HuggingFaceLLM(
 )
 
 # Instantiate the LLM-based Report Generation component
-generator = LLMBasedReportGenerator(model=model)
+generator = LLMBasedReportGenerator(
+    model=model,
+    prompt_template_name_or_path="report_generation_01_zeroshot",
+)
 
 # Generate reports for graph communities
 reports = generator.generate_community_reports(
@@ -150,6 +153,8 @@ reports = generator.generate_community_reports(
 ```
 
 ## Custom Prompt Templates
+
+`prompt_template_name_or_path` accepts either the name of a built-in prompt template ([`kapipe/report_generation/prompt_templates/*.txt`](../../kapipe/report_generation/prompt_templates)) or a path to a user-defined prompt template.
 
 A custom prompt template for `LLMBasedReportGenerator` supports the following placeholder.
 

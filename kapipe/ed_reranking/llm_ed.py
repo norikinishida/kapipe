@@ -108,9 +108,9 @@ class LLMED(BaseEDReranker):
         # External
         model: HuggingFaceLLM | OpenAILLM,
         # Internal
-        prompt_template_name_or_path: str,
         knowledge_base_name: str,
         entity_dict_path: str,
+        prompt_template_name_or_path: str = "ed_11_zeroshot",
         # Optional (Internal)
         demonstration_documents: list[Document] | str | None = None,
         demonstration_candidate_entities: (

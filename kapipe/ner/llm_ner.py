@@ -97,9 +97,9 @@ class LLMNER(BaseNER):
         # External
         model: HuggingFaceLLM | OpenAILLM,
         # Internal
-        prompt_template_name_or_path: str,
         vocab_etype: dict[str, int] | str,
         etype_meta_info: dict[str, dict[str, str]] | str,
+        prompt_template_name_or_path: str = "ner_14_zeroshot",
         # Optional (Internal)
         demonstration_documents: list[Document] | str | None = None,
         # Optional

@@ -186,6 +186,8 @@ See [experiments/ner/run_ner_train_eval.py](../../experiments/ner/run_ner_train_
 
 ## Custom Prompt Templates
 
+`prompt_template_name_or_path` accepts either the name of a built-in prompt template ([`kapipe/ner/prompt_templates/*.txt`](../../kapipe/ner/prompt_templates)) or a path to a user-defined prompt template.
+
 A custom prompt template for `LLMNER` supports the following placeholders.
 
 | Placeholder | Required | Description |

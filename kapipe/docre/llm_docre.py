@@ -103,7 +103,6 @@ class LLMDocRE(BaseDocRE):
         # External
         model: HuggingFaceLLM | OpenAILLM,
         # Internal
-        prompt_template_name_or_path: str,
         knowledge_base_name: str,
         mention_style: str,
         with_span_annotation: bool,
@@ -111,6 +110,7 @@ class LLMDocRE(BaseDocRE):
         possible_tail_entity_types: list[str] | None,
         vocab_relation: dict[str, int] | str,
         rel_meta_info: dict[str, dict[str, str]] | str,
+        prompt_template_name_or_path: str = "docre_09_zeroshot",
         # Optional (Internal)
         entity_dict_path: str | None = None,
         demonstration_documents: list[Document] | str | None = None,

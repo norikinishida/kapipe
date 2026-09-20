@@ -174,6 +174,8 @@ The `n_contexts` argument controls how many passages are used. If `n_contexts` i
 
 ## Custom Prompt Templates
 
+`prompt_template_name_or_path` accepts either the name of a built-in prompt template ([`kapipe/qa/prompt_templates/*.txt`](../../kapipe/qa/prompt_templates)) or a path to a user-defined prompt template.
+
 A custom prompt template for `LLMQA` supports the following placeholders.
 
 | Placeholder | Required | Description |

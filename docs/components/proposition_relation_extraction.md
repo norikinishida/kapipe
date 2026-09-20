@@ -200,6 +200,8 @@ If `use_timestamp` is `False`, no temporal filtering is applied to ensure that e
 
 ## Custom Prompt Templates
 
+`prompt_template_name_or_path` accepts either the name of a built-in prompt template ([`kapipe/proposition_relation_extraction/prompt_templates/*.txt`](../../kapipe/proposition_relation_extraction/prompt_templates)) or a path to a user-defined prompt template.
+
 A custom prompt template for `LLMPropositionRelationExtractor` supports the following placeholders.
 
 | Placeholder | Required | Description |

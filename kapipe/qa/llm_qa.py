@@ -26,7 +26,7 @@ class LLMQA(BaseQA):
         # External
         model: HuggingFaceLLM | OpenAILLM,
         # Internal
-        prompt_template_name_or_path: str,
+        prompt_template_name_or_path: str = "qa_04_without_context",
         # Optional
         n_contexts: int = -1,
     ):

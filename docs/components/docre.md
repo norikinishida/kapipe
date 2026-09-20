@@ -269,6 +269,8 @@ See [experiments/docre/run_docre_train_eval.py](../../experiments/docre/run_docr
 
 ## Custom Prompt Templates
 
+`prompt_template_name_or_path` accepts either the name of a built-in prompt template ([`kapipe/docre/prompt_templates/*.txt`](../../kapipe/docre/prompt_templates)) or a path to a user-defined prompt template.
+
 A custom prompt template for `LLMDocRE` supports the following placeholders.
 
 | Placeholder | Required | Description |
