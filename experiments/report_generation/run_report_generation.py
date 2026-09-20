@@ -58,9 +58,15 @@ def main(args):
     )
     utils.mkdir(base_output_path)
 
+    # Extract the base filename
+    base_filename = os.path.splitext(os.path.basename(input_communities_path))[0]
+
     # Set logger
     set_logger(
-        os.path.join(base_output_path, "report_generation.log"),
+        os.path.join(
+            base_output_path,
+            f"{base_filename}.report_generation.log",
+        ),
         # overwrite=True
     )
 
@@ -137,7 +143,10 @@ def main(args):
     )
 
     # Save the Report Generation results
-    path_output_reports = os.path.join(base_output_path, "reports.jsonl")
+    path_output_reports = os.path.join(
+        base_output_path,
+        f"{base_filename}.reports.jsonl",
+    )
     with open(path_output_reports, "w") as f:
         for r in reports:
             line = json.dumps(r)

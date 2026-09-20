@@ -2,7 +2,7 @@ import importlib
 from types import ModuleType
 
 
-__version__ = "0.1.5"
+__version__ = "0.2.0"
 
 
 __all__ = [
@@ -15,17 +15,23 @@ __all__ = [
     "ed_retrieval",
     "ed_reranking",
     "docre",
+    "proposition_extraction",
+    "proposition_relation_extraction",
+    "proposition_relation_refinement",
 
     # Components for Knowledge Organization
     "entity_graph_construction",
+    "passage_graph_construction",
     "community_clustering",
     "report_generation",
     "chunking",
 
     # Components for Knowledge Retrieval
     "passage_retrieval",
+    "graph_retrieval",
 
     # Components for Knowledge Utilization
+    "context_formatting",
     "qa",
 
     # Others
@@ -44,7 +50,7 @@ __all__ = [
 def __getattr__(name: str) -> ModuleType:
     """Function to lazily import public subpackages."""
 
-    # Reject unknown public names immediately
+    # Validate that the requested name is part of the public API
     if name not in __all__:
         raise AttributeError(
             f"module '{__name__}' has no attribute '{name}'"

@@ -37,11 +37,11 @@ python -m pip install -r requirements.txt
 This directory already includes example data.
 
 ```bash
-experiments/graphrag_pipeline_tacl2026/data/examples/documents.json
-experiments/graphrag_pipeline_tacl2026/data/examples/documents_with_triples.json
-experiments/graphrag_pipeline_tacl2026/data/examples/entity_dict.json
-experiments/graphrag_pipeline_tacl2026/data/examples/questions.json
-experiments/graphrag_pipeline_tacl2026/data/examples/questions_with_answers.json
+experiments/graphrag_pipeline_tacl2026/data/examples/docre/documents.json
+experiments/graphrag_pipeline_tacl2026/data/examples/docre/documents_with_triples.json
+experiments/graphrag_pipeline_tacl2026/data/examples/kb/entity_dict.json
+experiments/graphrag_pipeline_tacl2026/data/examples/qa/questions.json
+experiments/graphrag_pipeline_tacl2026/data/examples/qa/questions_with_answers.json
 ```
 
 ### CDR-QA and Linked-DocRED-QA datasets
@@ -49,16 +49,16 @@ experiments/graphrag_pipeline_tacl2026/data/examples/questions_with_answers.json
 We provide the CDR-QA and Linked-DocRED-QA datasets used in the above paper in the following directories.
 
 ```bash
-experiments/graphrag_pipeline_tacl2026/data/cdr_qa/neighborhood_questions.json
-experiments/graphrag_pipeline_tacl2026/data/cdr_qa/intersection_questions.json
-experiments/graphrag_pipeline_tacl2026/data/cdr_qa/multihop_questions.json
+experiments/graphrag_pipeline_tacl2026/data/cdr_qa/qa/neighborhood_questions.json
+experiments/graphrag_pipeline_tacl2026/data/cdr_qa/qa/intersection_questions.json
+experiments/graphrag_pipeline_tacl2026/data/cdr_qa/qa/multihop_questions.json
 
-experiments/graphrag_pipeline_tacl2026/data/linked_docred_qa/neighborhood_questions.json
-experiments/graphrag_pipeline_tacl2026/data/linked_docred_qa/intersection_questions.json
-experiments/graphrag_pipeline_tacl2026/data/linked_docred_qa/multihop_questions.json
+experiments/graphrag_pipeline_tacl2026/data/linked_docred_qa/qa/neighborhood_questions.json
+experiments/graphrag_pipeline_tacl2026/data/linked_docred_qa/qa/intersection_questions.json
+experiments/graphrag_pipeline_tacl2026/data/linked_docred_qa/qa/multihop_questions.json
 ```
 
-The original CDR and Linked-DocRED datasets, as well as the corresponding KBs (MeSH and DBPedia), can be prepared using the scripts in `experiments/datasets/docre` and `experiments/datasets/kb`.
+The original CDR and Linked-DocRED datasets, as well as the corresponding KBs (MeSH and DBPedia), can be prepared using the scripts in `experiments/datasets/`.
 
 ## Step 3. Configuration Setup
 
@@ -74,26 +74,44 @@ First, check `STORAGE_DATA` and `STORAGE_RESULTS` in the execution script and ad
 
 If you modified the configuration file or added new configuration entries, make sure that the execution script refers to the intended configuration.
 
-The pipeline consists of seven sequential actions.
-
-- `triple_extraction`: extract triples from documents using NER, ED-Retrieval, ED-Reranking, and DocRE components.
-- `entity_graph_construction`: build an entity graph from triples.
-- `community_clustering`: cluster entities in the graph.
-- `report_generation`: generate reports for the clustered communities.
-- `chunking`: split community reports into chunks.
-- `retrieval_indexing`: build a passage retrieval index over chunked reports.
-- `inference`: retrieve report chunks for each question and generate answers.
-
-Run one action at a time:
+Run each action sequentially using the following commands:
 
 ```bash
-bash ./run_graphrag_pipeline.sh --actiontype triple_extraction
+bash ./run_graphrag_pipeline.sh --actiontype ner
+bash ./run_graphrag_pipeline.sh --actiontype ed_retrieval
+bash ./run_graphrag_pipeline.sh --actiontype ed_reranking
+bash ./run_graphrag_pipeline.sh --actiontype docre
+bash ./run_graphrag_pipeline.sh --actiontype entity_graph_construction
+bash ./run_graphrag_pipeline.sh --actiontype community_clustering
+bash ./run_graphrag_pipeline.sh --actiontype report_generation
+bash ./run_graphrag_pipeline.sh --actiontype chunking
+bash ./run_graphrag_pipeline.sh --actiontype passage_retrieval_indexing
+bash ./run_graphrag_pipeline.sh --actiontype inference
 ```
 
-Run all actions:
+Run all actions at once:
 
 ```bash
 bash ./run_graphrag_pipeline.sh --actiontype all
 ```
 
 If you use the OpenAI API, set your API key in advance.
+
+You can use the OpenAI Batch API for the following actions: `ner`, `ed_reranking`, `docre`, `inference`.
+
+```bash
+bash ./run_graphrag_pipeline.sh --actiontype ner --batch_mode submit
+bash ./run_graphrag_pipeline.sh --actiontype ner --batch_mode fetch
+bash ./run_graphrag_pipeline.sh --actiontype ed_retrieval
+bash ./run_graphrag_pipeline.sh --actiontype ed_reranking --batch_mode submit
+bash ./run_graphrag_pipeline.sh --actiontype ed_reranking --batch_mode fetch
+bash ./run_graphrag_pipeline.sh --actiontype docre --batch_mode submit
+bash ./run_graphrag_pipeline.sh --actiontype docre --batch_mode fetch
+bash ./run_graphrag_pipeline.sh --actiontype entity_graph_construction
+bash ./run_graphrag_pipeline.sh --actiontype community_clustering
+bash ./run_graphrag_pipeline.sh --actiontype report_generation
+bash ./run_graphrag_pipeline.sh --actiontype chunking
+bash ./run_graphrag_pipeline.sh --actiontype passage_retrieval_indexing
+bash ./run_graphrag_pipeline.sh --actiontype inference --batch_mode submit
+bash ./run_graphrag_pipeline.sh --actiontype inference --batch_mode fetch
+```

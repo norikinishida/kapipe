@@ -2,7 +2,7 @@ from __future__ import annotations
  
 import copy
 import logging
-import re
+# import re
 
 import torch
 from tqdm import tqdm
@@ -26,7 +26,7 @@ class LLMQA(BaseQA):
         # External
         model: HuggingFaceLLM | OpenAILLM,
         # Internal
-        prompt_template_name_or_path: str,
+        prompt_template_name_or_path: str = "qa_04_without_context",
         # Optional
         n_contexts: int = -1,
     ):
@@ -151,81 +151,223 @@ class LLMQA(BaseQA):
 
         question_key = question["question_key"]
 
-        # Parse each generated line
-        answer = generated_text
-        rationale = ""
-        score = 0.0
-        for generated_line in generated_text.split("\n"):
-            generated_line = generated_line.strip()
+        ######
+        # Pattern 1: Parse the generated text as string lines
+        ######
 
-            # Skip the empty line
-            if generated_line == "":
-                continue
+        # # Parse each generated line
+        # answer = generated_text
+        # rationale = ""
+        # score = 0.0
+        # for generated_line in generated_text.split("\n"):
+        #     generated_line = generated_line.strip()
+
+        #     # Skip the empty line
+        #     if generated_line == "":
+        #         continue
             
-            # Parse the generated_line
-            if generated_line.startswith("Answer:"):
-                answer = generated_line[len("Answer:"):].strip()
-            elif generated_line.startswith("Rationale:"):
-                rationale = generated_line[len("Rationale:"):].strip()
-            elif generated_line.startswith("Score:"):
-                # Parse a numeric score and an optional percent sign
-                # match = re.search(r"Score:\s*([\d.]+)%?", generated_line)
-                # if match:
-                #     score_str = match.group(1)
-                #     try:
-                #         score = float(score_str)
-                #         if f"{score_str}%" in generated_line:
-                #             score /= 100.0
-                #     except ValueError:
-                #         logger.warning(f"Failed to parse score: {score_str}")
-                #         score = 0.0
-                match = re.search(r"Score:\s*([\d.]+)\s*(%)?", generated_line)
-                if match:
-                    score_str = match.group(1)
-                    percent_mark = match.group(2)
+        #     # Parse the generated_line
+        #     if generated_line.startswith("Answer:"):
+        #         answer = generated_line[len("Answer:"):].strip()
+        #     elif generated_line.startswith("Rationale:"):
+        #         rationale = generated_line[len("Rationale:"):].strip()
+        #     elif generated_line.startswith("Score:"):
+        #         # Parse a numeric score and an optional percent sign
+        #         # match = re.search(r"Score:\s*([\d.]+)%?", generated_line)
+        #         # if match:
+        #         #     score_str = match.group(1)
+        #         #     try:
+        #         #         score = float(score_str)
+        #         #         if f"{score_str}%" in generated_line:
+        #         #             score /= 100.0
+        #         #     except ValueError:
+        #         #         logger.warning(f"Failed to parse score: {score_str}")
+        #         #         score = 0.0
+        #         match = re.search(r"Score:\s*([\d.]+)\s*(%)?", generated_line)
+        #         if match:
+        #             score_str = match.group(1)
+        #             percent_mark = match.group(2)
 
-                    # Convert the parsed score into a float
-                    score = float(score_str)
+        #             # Convert the parsed score into a float
+        #             score = float(score_str)
 
-                    # Normalize percent scores into the 0.0-1.0 range
-                    if percent_mark == "%":
-                        score /= 100.0
-                else:
-                    score = 0.0
-            else:
-                logger.info(f"[{question_key}] Skipped a generated line of invalid formatting: '{generated_line}'")
+        #             # Normalize percent scores into the 0.0-1.0 range
+        #             if percent_mark == "%":
+        #                 score /= 100.0
+        #         else:
+        #             score = 0.0
+        #     else:
+        #         logger.info(f"[{question_key}] Skipped a generated line of invalid formatting: '{generated_line}'")
 
-        return answer, rationale, score
- 
-    def batch_answer(
+        ######
+        # Pattern 2: Parse the generated text as JSON
+        ######
+
+        # Parse the preferred JSON output format
+        output = utils.safe_json_loads(
+            generated_text=generated_text,
+            fallback=None,
+        )
+
+        # If the JSON parsing failed, return a fallback response
+        if output is None:
+            logger.warning(
+                f"[{question_key}] Failed to parse generated JSON: "
+                f"{generated_text}"
+            )
+            return generated_text.strip(), "", 0.0
+
+        # If any required field is missing, return a fallback response
+        required_keys = {"rationale", "answer", "score"}
+        if not required_keys.issubset(output.keys()):
+            logger.warning(
+                f"[{question_key}] Missing fields in generated JSON: "
+                f"{output}"
+            )
+            return generated_text.strip(), "", 0.0
+
+        # Extract every required field directly
+        rationale = output["rationale"]
+        answer = output["answer"]
+        score = output["score"]
+
+        # If any field has an invalid type, return a fallback response
+        if not isinstance(rationale, str):
+            logger.warning(
+                f"[{question_key}] Invalid rationale: {rationale}"
+            )
+            return generated_text.strip(), "", 0.0
+        if not isinstance(answer, str):
+            logger.warning(
+                f"[{question_key}] Invalid answer: {answer}"
+            )
+            return generated_text.strip(), "", 0.0
+        if type(score) not in (int, float):
+            logger.warning(
+                f"[{question_key}] Invalid score: {score}"
+            )
+            return generated_text.strip(), "", 0.0
+
+        # If the score is outside the valid range, return a fallback response
+        score = float(score)
+        if not 0.0 <= score <= 1.0:
+            logger.warning(
+                f"[{question_key}] Score outside [0.0, 1.0]: {score}"
+            )
+            return generated_text.strip(), "", 0.0
+
+        return answer.strip(), rationale.strip(), score
+
+    def submit_batch(
         self,
         questions: list[Question],
-        # optional: context augmentation
-        contexts: list[ContextsForOneExample] | None = None
-    ) -> list[Question]:
-        """Answer a batch of questions."""
+        contexts: list[ContextsForOneExample] | list[None] | None = None,
+    ) -> list[str]:
+        """Submit question-answering prompts and return OpenAI Batch IDs.
 
-        results: list[Question] = []
+        Pass the same questions and contexts in the same order to
+        fetch_and_process_batch(). Keep the model settings, prompt template,
+        and n_contexts unchanged between calls.
+        """
 
-        # Use a list of None for contexts if not provided
+        # Validate that the model is an OpenAILLM instance for Batch API usage
+        if not isinstance(self.model, OpenAILLM):
+            raise TypeError("Batch API requires OpenAILLM")
+
+        # Validate that contexts are provided for every question, or use None
         if contexts is None:
             contexts = [None] * len(questions)
 
-        # Check that every question has a corresponding context entry
+        # Validate that there is one context entry for every question
         if len(contexts) != len(questions):
             raise ValueError(
-                f"Expected {len(questions)} contexts, but got {len(contexts)}"
+                f"Expected {len(questions)} contexts, "
+                f"but got {len(contexts)}"
             )
 
-        for question, contexts_for_q in tqdm(
-            zip(questions, contexts),
-            total=len(questions),
-            desc="answering steps"
+        # Generate prompts using the same method as answer()
+        prompts: list[str] = []
+        for question, contexts_for_question in zip(
+            questions,
+            contexts,
+            strict=True,
         ):
-            result = self.answer(
+            prompt: str = self.generate_prompt(
                 question=question,
-                contexts_for_question=contexts_for_q
+                contexts_for_question=contexts_for_question,
             )
+            prompts.append(prompt)
+
+        # Submit the prompts and get the Batch IDs
+        batch_ids: list[str] = self.model.submit_batch(prompts=prompts)
+        return batch_ids
+
+    def fetch_and_process_batch(
+        self,
+        questions: list[Question],
+        batch_ids: list[str],
+        contexts: list[ContextsForOneExample] | list[None] | None = None,
+    ) -> list[Question]:
+        """Fetch responses and answer the original questions.
+
+        Require the same questions, contexts, order, model settings, prompt
+        template, and n_contexts used at submission. Raise an error if the
+        batch is not complete.
+        """
+
+        # Validate that the model is an OpenAILLM instance for Batch API usage
+        if not isinstance(self.model, OpenAILLM):
+            raise TypeError("Batch API requires OpenAILLM")
+
+        # Use an empty context for every question when contexts are omitted
+        if contexts is None:
+            contexts = [None] * len(questions)
+
+        # Validate that there is one context entry for every question
+        if len(contexts) != len(questions):
+            raise ValueError(
+                f"Expected {len(questions)} contexts, "
+                f"but got {len(contexts)}"
+            )
+
+        # Fetch generated texts in the original request order
+        generated_texts: list[str] = self.model.fetch_batch(
+            batch_ids=batch_ids
+        )
+
+        # Validate that the number of generated texts matches the number of questions
+        if len(generated_texts) != len(questions):
+            raise ValueError(
+                "The response count does not match the question count"
+            )
+
+        # Process each Batch response using the same procedure as answer()
+        results: list[Question] = []
+        for question, contexts_for_question, generated_text in zip(
+            questions,
+            contexts,
+            generated_texts,
+            strict=True,
+        ):
+            # Regenerate the original prompt stored in the result
+            prompt: str = self.generate_prompt(
+                question=question,
+                contexts_for_question=contexts_for_question,
+            )
+
+            # Parse the generated response into structured fields
+            answer, rationale, helpfulness_score = self.parse(
+                question=question,
+                generated_text=generated_text,
+            )
+
+            # Integrate the structured fields into a copied question
+            result = copy.deepcopy(question)
+            result["output_answer"] = answer
+            result["rationale"] = rationale
+            result["helpfulness_score"] = helpfulness_score
+            result["qa_prompt"] = prompt
+            result["qa_generated_text"] = generated_text
             results.append(result)
 
         return results

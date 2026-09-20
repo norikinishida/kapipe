@@ -1,0 +1,22 @@
+[
+    {
+        "question_key": "question#001",
+        "question": "What conflicting transaction-processing rates did the independent audits report for the Northbridge payment system in February 2025?",
+        "timestamp": "2025-03-02",
+        "answers": [
+            {
+                "answer": "99.9% and 82.0%"
+            }
+        ]
+    },
+    {
+        "question_key": "question#002",
+        "question": "How did the reported within-two-second processing rate change from January 2025 to February 2025 according to the preliminary report and the 99.9% audit?",
+        "timestamp": "2025-03-02",
+        "answers": [
+            {
+                "answer": "It increased from 97.0% to 99.9%, a rise of 2.9 percentage points."
+            }
+        ]
+    }
+]

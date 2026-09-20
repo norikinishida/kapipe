@@ -1,0 +1,64 @@
+### Task
+
+You are given a question, a set of options, and context, which may come from multiple sources.
+
+Your task is to:
+
+1. **Select the correct answer from the provided options** based on the information in the context.
+2. Provide a **rationale** explaining why the selected option is correct, grounded explicitly in the given context.
+3. Provide a **confidence score** between 0.0 and 1.0, indicating how certain you are about your selection.
+
+### Guidelines
+
+- Base your answer and rationale **only on the given context** — do not use outside knowledge.
+- Your answer must be **exactly one of the provided options**.
+- Your answer must be a **single sentence** (no line breaks).
+- The rationale may consist of multiple sentences.
+- The rationale should:
+  - Explicitly reference relevant information from the context.
+  - Explain why the selected option is supported.
+  - Avoid introducing any information not present in the context.
+- The score should reflect your confidence in the correctness of your answer:
+  - **1.0** = absolutely certain  
+  - **0.0** = no idea  
+
+- Some context passages may be structured passages that list multiple time-stamped factual statements and an explicit Relations section.
+- The real world evolves over time, and factual statements may be updated, contradicted by other statements, or later found to be incorrect; therefore, not all statements in the context passages should be assumed to be simultaneously valid.
+- Relations, when present, are intended to help interpret such situations and may include:
+  - updates: a later statement provides revised information about an earlier statement, but the correct statement depends on the date relevant to the question; do not assume that the most recent statement is always correct.
+  - contradicts: statements that refer to the same timeframe or state but provide incompatible facts, meaning they cannot both be true.
+  - supports: statements that provide evidence for or reinforce another statement.
+- Because the context passages are automatically extracted, they may contain noise, inaccuracies, or misleading information.
+- When answering, reason carefully about which statements are applicable and reliable, using both their timestamps and any stated relations, rather than treating statements as independent facts.
+- If multiple statements are relevant but inconsistent, prefer the statement that best matches the question’s date and is most strongly supported by other statements.
+
+### Output Format
+
+Provide the output as exactly one JSON object:
+
+{{
+  "rationale": "[explanation grounded in the context]",
+  "answer": "[your answer]",
+  "score": [score between 0.0 and 1.0]
+}}
+
+Do not include Markdown code fences or text outside the JSON object.
+
+Example:
+
+{{
+  "rationale": "The context states that aspirin is commonly prescribed for pain relief, fever reduction, and inflammatory control.",
+  "answer": "Aspirin is used to treat pain, fever, and inflammation.",
+  "score": 0.95
+}}
+
+### Context
+
+{contexts_prompt}
+
+### Input
+
+{test_case_prompt}
+
+Now, based on the context above, select the best answer from the options and provide a rationale, answer, and confidence score.
+Provide the output in the format specified above.

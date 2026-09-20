@@ -247,7 +247,7 @@ model = ...
 # Instantiate the LLM-based ED-Reranking component with the user-defined entity dictionary
 reranker = LLMED(
     model=model,
-    prompt_template_name_or_path="ed_04_zeroshot",
+    prompt_template_name_or_path="ed_11_zeroshot",
     knowledge_base_name="<your KB name>",
     entity_dict_path="/path/to/entity_dict.json",
 )
@@ -259,6 +259,29 @@ result_document = reranker.rerank(
 )
 ```
 
+## OpenAI Batch API
+
+`LLMED` supports the OpenAI Batch API when its model is an `OpenAILLM` instance.
+
+```python
+# Submit all ED-reranking prompts to one or more OpenAI batches
+batch_ids: list[str] = reranker.submit_batch(
+    documents=documents,
+    candidate_entities=candidate_entities,
+)
+
+# Fetch and process the results after all OpenAI batches are complete
+result_documents = reranker.fetch_and_process_batch(
+    documents=documents,
+    candidate_entities=candidate_entities,
+    batch_ids=batch_ids,
+)
+```
+
+`submit_batch()` automatically splits requests into batches containing at most 50,000 requests and 200 MB of JSONL input. It returns the batch IDs in submission order, and `fetch_and_process_batch()` merges their responses in the original document order. Mentions are grouped into requests of up to five per document; documents without mentions do not produce Batch API requests. If every document has no mentions, `submit_batch()` raises a `ValueError`.
+
+Pass the same `documents` and `candidate_entities` in the same order to both methods. The two lists must have the same length, and corresponding `doc_key` values must match. Keep the model settings and prompt template unchanged between submission and fetching. `fetch_and_process_batch()` raises a `RuntimeError` if any OpenAI batch is incomplete or contains failed requests.
+
 ## Training with a Custom Entity Dictionary (Concepts)
 
 If you want to use your own entity dictionary with `BlinkCrossEncoder`, train the BLINK Cross-Encoder model for that dictionary first.
@@ -266,6 +289,8 @@ If you want to use your own entity dictionary with `BlinkCrossEncoder`, train th
 See [experiments/ed_reranking/run_ed_reranking_train_eval.py](../../experiments/ed_reranking/run_ed_reranking_train_eval.py) for runnable training and evaluation examples.
 
 ## Custom Prompt Templates
+
+`prompt_template_name_or_path` accepts either the name of a built-in prompt template ([`kapipe/ed_reranking/prompt_templates/*.txt`](../../kapipe/ed_reranking/prompt_templates)) or a path to a user-defined prompt template.
 
 A custom prompt template for `LLMED` supports the following placeholders.
 

@@ -108,9 +108,9 @@ class LLMED(BaseEDReranker):
         # External
         model: HuggingFaceLLM | OpenAILLM,
         # Internal
-        prompt_template_name_or_path: str,
         knowledge_base_name: str,
         entity_dict_path: str,
+        prompt_template_name_or_path: str = "ed_11_zeroshot",
         # Optional (Internal)
         demonstration_documents: list[Document] | str | None = None,
         demonstration_candidate_entities: (
@@ -269,8 +269,8 @@ class LLMED(BaseEDReranker):
                 generated_text = self.model.generate(prompt)
                 generated_text_list.append(generated_text)
 
-                # Convert the generated text into mention-level records
-                target_mentions = self.structurize(
+                # Parse the generated text into mention-level records
+                target_mentions = self.parse(
                     document=document,
                     candidate_entities_for_doc=candidate_entities_for_doc,
                     generated_text=generated_text,
@@ -298,14 +298,14 @@ class LLMED(BaseEDReranker):
 
             return result_document
 
-    def structurize(
+    def parse(
         self,
         document: Document,
         candidate_entities_for_doc: CandidateEntitiesForDocument,
         generated_text: str,
         target_mention_indices: list[int]
     ) -> list[Mention]:
-        """Structurize the generated text into mention-level entity records."""
+        """Parse the generated text into mention-level entity records."""
 
         doc_key = document["doc_key"]
 
@@ -409,28 +409,6 @@ class LLMED(BaseEDReranker):
                 assert mentions[m_i]["entity_id"] == "NO-PRED"
 
         return [mentions[m_i] for m_i in target_mention_indices]
-
-    def batch_rerank(
-        self,
-        documents: list[Document],
-        candidate_entities: list[CandidateEntitiesForDocument],
-    ) -> list[Document]:
-        """Rerank candidate entities for a batch of documents."""
-
-        result_documents: list[Document] = []
-
-        for (document, candidate_entities_for_doc) in tqdm(
-                zip(documents, candidate_entities),
-                total=len(documents),
-                desc="reranking steps"
-            ):
-            result_document = self.rerank(
-                document=document,
-                candidate_entities_for_doc=candidate_entities_for_doc,
-            )
-            result_documents.append(result_document)
-
-        return result_documents
 
     def generate_prompt(
         self,
@@ -657,6 +635,177 @@ class LLMED(BaseEDReranker):
 
         return prompt.rstrip()
 
+    def submit_batch(
+        self,
+        documents: list[Document],
+        candidate_entities: list[CandidateEntitiesForDocument],
+    ) -> list[str]:
+        """Submit ED-reranking prompts and return the OpenAI Batch IDs.
+
+        Pass the same documents and candidate entities in the same order to
+        fetch_and_process_batch(). Keep the model settings and prompt template
+        unchanged between calls.
+        """
+
+        # Validate that the model is an OpenAILLM instance for Batch API usage
+        if not isinstance(self.model, OpenAILLM):
+            raise TypeError("Batch API requires OpenAILLM")
+
+        # Validate that there is one candidate entity record for every document
+        if len(documents) != len(candidate_entities):
+            raise ValueError(
+                "The number of documents does not match "
+                "the number of candidate entity records"
+            )
+
+        # Generate prompts using the same method as rerank()
+        prompts: list[str] = []
+        for document, candidate_entities_for_doc in zip(
+            documents,
+            candidate_entities,
+            strict=True,
+        ):
+            # Validate that the document and candidate entities match
+            if document["doc_key"] != candidate_entities_for_doc["doc_key"]:
+                raise ValueError("Document and candidate entity keys do not match")
+
+            # Split mentions into groups
+            indices = list(range(0, len(document["mentions"])))
+            for m_i in range(0, len(document["mentions"]), N_MENT_PER_CHUNK):
+                # Get mention indices for this group
+                target_mention_indices = indices[m_i: m_i + N_MENT_PER_CHUNK]
+
+                # Generate the prompt
+                prompt = self.generate_prompt(
+                    document=document,
+                    candidate_entities_for_doc=candidate_entities_for_doc,
+                    target_mention_indices=target_mention_indices,
+                )
+                prompts.append(prompt)
+
+        # Validate that there is at least one prompt to submit
+        if len(prompts) == 0:
+            raise ValueError(
+                "No prompts to submit because all documents have no mentions"
+            )
+
+        # Submit the prompts and get the Batch IDs
+        batch_ids: list[str] = self.model.submit_batch(prompts=prompts)
+        return batch_ids
+
+    def fetch_and_process_batch(
+        self,
+        documents: list[Document],
+        candidate_entities: list[CandidateEntitiesForDocument],
+        batch_ids: list[str],
+    ) -> list[Document]:
+        """Fetch responses and rerank mentions in the original documents.
+
+        Require the same documents, candidate entities, order, model settings,
+        and prompt template used at submission. Raise an error if the batch
+        is not complete.
+        """
+
+        # Validate that the model is an OpenAILLM instance for Batch API usage
+        if not isinstance(self.model, OpenAILLM):
+            raise TypeError("Batch API requires OpenAILLM")
+
+        # Validate that there is one candidate entity record for every document
+        if len(documents) != len(candidate_entities):
+            raise ValueError(
+                "The number of documents does not match "
+                "the number of candidate entity records"
+            )
+
+        # Record the document for each submitted request
+        request_document_indices: list[int] = []
+        for document_i, document in enumerate(documents):
+            for _ in range(0, len(document["mentions"]), N_MENT_PER_CHUNK):
+                request_document_indices.append(document_i)
+
+        # Fetch generated texts in the original request order
+        generated_texts: list[str] = self.model.fetch_batch(batch_ids=batch_ids)
+
+        # Validate that the number of generated texts matches the number of requests
+        if len(generated_texts) != len(request_document_indices):
+            raise ValueError(
+                "The response count does not match the submitted request count"
+            )
+
+        # Group the responses by their original documents
+        generated_texts_by_document: list[list[str]] = [
+            [] for _ in documents
+        ]
+        for document_i, generated_text in zip(
+            request_document_indices,
+            generated_texts,
+            strict=True,
+        ):
+            generated_texts_by_document[document_i].append(generated_text)
+
+        # Process each Batch response using the same procedure as rerank()
+        result_documents: list[Document] = []
+        for document, candidate_entities_for_doc, generated_text_list in zip(
+            documents,
+            candidate_entities,
+            generated_texts_by_document,
+            strict=True,
+        ):
+            # Validate that the document and candidate entities match
+            if document["doc_key"] != candidate_entities_for_doc["doc_key"]:
+                raise ValueError("Document and candidate entity keys do not match")
+
+            # Split mentions into groups and perform reranking on the groups iteratively
+            prompt_list: list[str] = []
+            target_mentions_list: list[list[Mention]] = []
+            indices = list(range(0, len(document["mentions"])))
+
+            for m_i, generated_text in zip(
+                range(0, len(document["mentions"]), N_MENT_PER_CHUNK),
+                generated_text_list,
+                strict=True,
+            ):
+                # Get mention indices for this group
+                target_mention_indices = indices[m_i: m_i + N_MENT_PER_CHUNK]
+
+                # Generate the prompt
+                prompt = self.generate_prompt(
+                    document=document,
+                    candidate_entities_for_doc=candidate_entities_for_doc,
+                    target_mention_indices=target_mention_indices,
+                )
+                prompt_list.append(prompt)
+
+                # Parse the generated text into mention-level records
+                target_mentions = self.parse(
+                    document=document,
+                    candidate_entities_for_doc=candidate_entities_for_doc,
+                    generated_text=generated_text,
+                    target_mention_indices=target_mention_indices
+                )
+                target_mentions_list.append(target_mentions)
+
+            # Aggregate the mention-level records
+            mentions = utils.flatten_lists(target_mentions_list)
+            assert len(mentions) == len(document["mentions"])
+            entities: list[Entity] = utils.aggregate_mentions_to_entities(
+                document=document,
+                mentions=mentions
+            )
+
+            # Integrate the entities into the document
+            result_document = copy.deepcopy(document)
+            for m_i in range(len(result_document["mentions"])):
+                result_document["mentions"][m_i].update(mentions[m_i])
+            result_document["entities"] = entities
+            result_document["ed_prompt"] = "\n@@@@@@@@@@\n".join(prompt_list)
+            result_document["ed_generated_text"] = "\n@@@@@@@@@@\n".join(
+                generated_text_list
+            )
+            result_documents.append(result_document)
+
+        return result_documents
+
 
  #####################
 # Trainer (Evaluator)
@@ -735,10 +884,17 @@ class LLMEDTrainer:
         get_scores_only: bool = False
     ) -> dict[str, Any]:
         # Apply the reranker
-        result_documents = reranker.batch_rerank(
-            documents=documents,
-            candidate_entities=candidate_entities,
-        )
+        result_documents: list[Document] = []
+        for (document, candidate_entities_for_doc) in tqdm(
+                zip(documents, candidate_entities),
+                total=len(documents),
+                desc="reranking steps"
+            ):
+            result_document = reranker.rerank(
+                document=document,
+                candidate_entities_for_doc=candidate_entities_for_doc,
+            )
+            result_documents.append(result_document)
 
         # Save the prediction results
         utils.write_json(self.paths[f"{split}_pred_path"], result_documents)

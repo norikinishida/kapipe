@@ -1,12 +1,12 @@
 from __future__ import annotations
 
 import logging
+from typing import Any
 
 import networkx as nx
 from tqdm import tqdm
 
-from ..datatypes import EntityPage
-from .. import utils
+from ..datatypes import Document, EntityPage
 from .base import BaseEntityGraphConstructor
 
 
@@ -31,81 +31,78 @@ class EntityGraphConstructor(BaseEntityGraphConstructor):
     
     def construct_entity_graph(
         self,
-        documents_path_list: list[str] | None,
-        entity_dict_path: str | None,
-        additional_triples_path: str | None,
+        documents: list[Document] | None,
+        entity_dict: list[EntityPage] | None,
+        additional_triples: list[dict[str, Any]] | None,
     ) -> nx.MultiDiGraph:
         """Construct a directed, multi-edge graph from the provided documents and entity dictionary."""
 
-        # Load the entity dictionary (if provided).
-        # Entity dictionary is a mapping from an entity ID (str) to the corresponding
-        # entity page.
-        if entity_dict_path is not None:
-            entity_dict = utils.read_json(entity_dict_path)
-            entity_dict = {epage["entity_id"]: epage for epage in entity_dict}
-            logger.info(f"Loaded entity dictionary with {len(entity_dict)} entries.")
+        # Create a mapping from entity ID to entity page for quick lookup
+        if entity_dict is not None:
+            entity_dict: dict[str, EntityPage] = {
+                epage["entity_id"]: epage
+                for epage in entity_dict
+            }
+            logger.info(
+                f"Received entity dictionary with {len(entity_dict)} entries."
+            )
         else:
             entity_dict = {}
             logger.info(
-                "No entity dictionary provided. Falling back to document entities only."
+                "No entity dictionary provided. "
+                "Falling back to document entities only."
             )
 
         # Initialize a directed, multi-edge graph
         graph = nx.MultiDiGraph()
 
-        # Add triples from external file if provided
-        if additional_triples_path is not None:
-            # Load the additional triples
-            triples = utils.read_json(additional_triples_path)
-            for triple in tqdm(triples, desc="Adding additional triples"):
+        # Add optional triples from an existing graph
+        if additional_triples is not None:
+            for triple in tqdm(
+                additional_triples,
+                desc="Adding additional triples"
+            ):
                 # Add the single triple to the graph
                 self._add_triple_to_graph(
                     graph=graph,
                     triple=triple,
                     entity_dict=entity_dict,
-                    doc_key="ExistingKG"
-                )
+                    doc_key="ExistingKG",
+                )            
 
         # Add triples from documents
-        if documents_path_list is None:
-            documents_path_list = []
-        for documents_path in documents_path_list:
-            # Load the documents
-            documents = utils.read_json(documents_path)
-            logger.info(
-                f"Loading triples from {len(documents)} documents in {documents_path}"
-            )
+        if documents is None:
+            documents = []
+        for document in tqdm(documents, f"Processing documents"):
+            # Get the associated triples from the document
+            doc_key = document["doc_key"]
+            triples = document["relations"]
+            entities = document["entities"]
+            for triple in triples:
+                head_index = triple["arg1"]
+                tail_index = triple["arg2"]
+                relation = triple["relation"]
+                head_id = entities[head_index]["entity_id"]
+                tail_id = entities[tail_index]["entity_id"]
+                head_type = entities[head_index]["entity_type"]
+                tail_type = entities[tail_index]["entity_type"]
+                triple_obj = {
+                    "head": head_id,
+                    "tail": tail_id,
+                    "relation": relation,
+                    "head_type": head_type,
+                    "tail_type": tail_type
+                }
 
-            for document in tqdm(documents, f"Processing {documents_path}"):
-                # Get the associated triples from the document
-                doc_key = document["doc_key"]
-                triples = document["relations"]
-                entities = document["entities"]
-                for triple in triples:
-                    head_index = triple["arg1"]
-                    tail_index = triple["arg2"]
-                    relation = triple["relation"]
-                    head_id = entities[head_index]["entity_id"]
-                    tail_id = entities[tail_index]["entity_id"]
-                    head_type = entities[head_index]["entity_type"]
-                    tail_type = entities[tail_index]["entity_type"]
-                    triple_obj = {
-                        "head": head_id,
-                        "tail": tail_id,
-                        "relation": relation,
-                        "head_type": head_type,
-                        "tail_type": tail_type
-                    }
+                # Add the single triple to the graph
+                self._add_triple_to_graph(
+                    graph=graph,
+                    triple=triple_obj,
+                    entity_dict=entity_dict,
+                    doc_key=doc_key
+                )
 
-                    # Add the single triple to the graph
-                    self._add_triple_to_graph(
-                        graph=graph,
-                        triple=triple_obj,
-                        entity_dict=entity_dict,
-                        doc_key=doc_key
-                    )
-
-        # Final deduplication and doc_key_list consolidation
+        # Consolidate document keys for every node and edge
         for node, prop in graph.nodes(data=True):
             graph.nodes[node]["doc_key_list"] = "|".join(
                 sorted(list(set(prop["doc_key_list"])))
@@ -123,7 +120,7 @@ class EntityGraphConstructor(BaseEntityGraphConstructor):
     def _add_triple_to_graph(
         self,
         graph: nx.MultiDiGraph,
-        triple: dict[str,str],
+        triple: dict[str, Any],
         entity_dict: dict[str, EntityPage],
         doc_key: str
     ) -> None:

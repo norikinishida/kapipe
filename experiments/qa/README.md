@@ -33,14 +33,14 @@ python -m pip install -r requirements.txt
 This directory already includes example data.
 
 ```bash
-experiments/qa/data/examples/questions.json
-experiments/qa/data/examples/questions.contexts.json
-experiments/qa/data/examples/questions_with_answers.json
+experiments/qa/data/examples/qa/questions.json
+experiments/qa/data/examples/qa/questions.contexts.json
+experiments/qa/data/examples/qa/questions_with_answers.json
 ```
 
 ### Benchmark datasets
 
-You can also prepare benchmark datasets with the scripts in `experiments/datasets/qa`. 
+You can also prepare benchmark datasets with the scripts in `experiments/datasets/`. 
 
 ## Step 3. Configuration Setup
 
@@ -63,3 +63,11 @@ bash ./run_qa.sh
 ```
 
 If you use the OpenAI API, set your API key in advance.
+
+To use the OpenAI Batch API, submit the requests and fetch the results after the batches complete.
+Batch IDs are saved as `*.batch_ids.json` in the experiment output directory.
+
+```bash
+bash ./run_qa.sh --batch_mode submit
+bash ./run_qa.sh --batch_mode fetch
+```

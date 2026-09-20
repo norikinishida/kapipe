@@ -33,6 +33,7 @@ Each context passage contains the following fields.
 
 | Field | Type | Description |
 |---|---|---|
+| `passage_key` | `str` | Unique passage identifier |
 | `title` | `str` | Passage title, if available |
 | `text` | `str` | Passage text |
 
@@ -41,12 +42,14 @@ Each context passage contains the following fields.
     "question_key": "question#001",
     "contexts": [
         {
+            "passage_key": "passage#002",
             "title": "CCNU (lomustine) toxicity in dogs: a retrospective study (2002-07).",
             "text": "OBJECTIVE: To describe the incidence of haematological, renal, hepatic and gastrointestinal toxicities in tumour-bearing dogs ...",
             "score": 0.7051769495010376,
             "rank": 1
         },
         {
+            "passage_key": "passage#003",
             "title": "Reduced cardiotoxicity and preserved antitumor efficacy of liposome-encapsulated doxorubicin and cyclophosphamide compared with ...",
             "text": "PURPOSE: To determine whether Myocet (liposome-encapsulated doxorubicin; The Liposome Company, Elan Corporation, Princeton, ...",
             "score": 0.5899654626846313,
@@ -108,7 +111,7 @@ model = HuggingFaceLLM(
 # Instantiate the LLM-based QA component
 answerer = LLMQA(
     model=model,
-    prompt_template_name_or_path="qa_03_with_context",
+    prompt_template_name_or_path="qa_04_with_context",
     n_contexts=10,
 )
 
@@ -130,7 +133,7 @@ model = ...
 # Instantiate the LLM-based QA component
 answerer = LLMQA(
     model=model,
-    prompt_template_name_or_path="qa_03_without_context",
+    prompt_template_name_or_path="qa_04_without_context",
 )
 
 # Answer a question without retrieved contexts
@@ -140,6 +143,29 @@ result_question = answerer.answer(
 )
 ```
 
+## OpenAI Batch API
+
+`LLMQA` supports the OpenAI Batch API when its model is an `OpenAILLM` instance.
+
+```python
+# Submit all question-answering prompts to one or more OpenAI batches
+batch_ids = answerer.submit_batch(
+    questions=questions,
+    contexts=contexts,
+)
+
+# Fetch and process the results after all OpenAI batches are complete
+result_questions = answerer.fetch_and_process_batch(
+    questions=questions,
+    contexts=contexts,
+    batch_ids=batch_ids,
+)
+```
+
+`submit_batch()` automatically splits requests into batches containing at most 50,000 requests and 200 MB of JSONL input. It returns the batch IDs in submission order, and `fetch_and_process_batch()` merges their responses in the original question order.
+
+Pass the same `questions` and `contexts` in the same order to both methods. The two lists must have the same length. Keep the model settings, prompt template, and `n_contexts` unchanged between submission and fetching. `fetch_and_process_batch()` raises a `RuntimeError` if any OpenAI batch is incomplete or contains failed requests.
+
 ## Context Usage
 
 If `contexts_for_question` is provided, the retrieved passages are inserted into the QA prompt.
@@ -147,6 +173,8 @@ If `contexts_for_question` is provided, the retrieved passages are inserted into
 The `n_contexts` argument controls how many passages are used. If `n_contexts` is `-1`, all contexts are used.
 
 ## Custom Prompt Templates
+
+`prompt_template_name_or_path` accepts either the name of a built-in prompt template ([`kapipe/qa/prompt_templates/*.txt`](../../kapipe/qa/prompt_templates)) or a path to a user-defined prompt template.
 
 A custom prompt template for `LLMQA` supports the following placeholders.
 

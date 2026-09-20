@@ -67,17 +67,17 @@ def main(args):
     search_results_dir = os.path.join(base_output_path, "search_results")
     utils.mkdir(search_results_dir)
 
+    # Extract the base filename
     base_filename = os.path.splitext(os.path.basename(input_file_path))[0]
 
+    # Set logger
     if actiontype == "indexing":
-        # Set logger
         set_logger(
             os.path.join(index_dir, "indexing.log"),
             # overwrite=True
         )
 
     elif actiontype == "search":
-        # Set logger
         set_logger(
             os.path.join(search_results_dir, f"{base_filename}.search.log"),
             # overwrite=True
@@ -188,7 +188,8 @@ def main(args):
                     "contexts": passages
                 }
                 contexts.append(contexts_for_question)
- 
+
+        # Save the retrieval results
         output_contexts_path = os.path.join(
             search_results_dir,
             f"{base_filename}.contexts.json",
@@ -201,7 +202,7 @@ def main(args):
     ##################
 
     if do_evaluation:
-        # Require gold contexts only when evaluation is requested
+        # Validate that the gold contexts path is provided
         if gold_contexts_path is None:
             raise ValueError("--gold is required when --do_evaluation is set")
 
@@ -209,13 +210,11 @@ def main(args):
         scores = evaluation.passage_retrieval.precision_recall_at_k(
             pred_path=output_contexts_path,
             gold_path=gold_contexts_path,
-            passage_to_identifier=lambda p: p["text"]
         )
         scores.update(
             evaluation.passage_retrieval.ndcg_at_k(
                 pred_path=output_contexts_path,
                 gold_path=gold_contexts_path,
-                passage_to_identifier=lambda p: p["text"]
             )
         )
         logging.info(utils.pretty_format_dict(scores))

@@ -228,7 +228,7 @@ rel_meta_info = {
 # Instantiate the LLM-based DocRE component with the user-defined relation schema
 extractor = LLMDocRE(
     model=model,
-    prompt_template_name_or_path="docre_08_zeroshot",
+    prompt_template_name_or_path="docre_09_zeroshot",
     knowledge_base_name="<your KB name>",
     mention_style="all_mentions",
     with_span_annotation=True,
@@ -242,6 +242,25 @@ extractor = LLMDocRE(
 result_document = extractor.extract(document=document)
 ```
 
+## OpenAI Batch API
+
+`LLMDocRE` supports the OpenAI Batch API when its model is an `OpenAILLM` instance.
+
+```python
+# Submit all document prompts to one or more OpenAI batches
+batch_ids: list[str] = extractor.submit_batch(documents=documents)
+
+# Fetch and process the results after all OpenAI batches are complete
+result_documents = extractor.fetch_and_process_batch(
+    documents=documents,
+    batch_ids=batch_ids,
+)
+```
+
+`submit_batch()` automatically splits requests into batches containing at most 50,000 requests and 200 MB of JSONL input. It returns the batch IDs in submission order, and `fetch_and_process_batch()` merges their responses in the original document order. Documents with one or fewer entities do not produce Batch API requests. If every document has one or fewer entities, `submit_batch()` raises a `ValueError`.
+
+Pass the same `documents` in the same order to both methods. Keep the model settings and prompt template unchanged between submission and fetching. `fetch_and_process_batch()` raises a `RuntimeError` if any OpenAI batch is incomplete or contains failed requests.
+
 ## Training with a Custom Relation Schema
 
 If you want to use your own relation schema with `ATLOP`, `MAATLOP`, or `MAQA`, train the DocRE model for that schema first.
@@ -249,6 +268,8 @@ If you want to use your own relation schema with `ATLOP`, `MAATLOP`, or `MAQA`, 
 See [experiments/docre/run_docre_train_eval.py](../../experiments/docre/run_docre_train_eval.py) for runnable training and evaluation examples.
 
 ## Custom Prompt Templates
+
+`prompt_template_name_or_path` accepts either the name of a built-in prompt template ([`kapipe/docre/prompt_templates/*.txt`](../../kapipe/docre/prompt_templates)) or a path to a user-defined prompt template.
 
 A custom prompt template for `LLMDocRE` supports the following placeholders.
 

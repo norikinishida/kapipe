@@ -145,7 +145,7 @@ def main(args):
                 "Definition": row["Definition"]
             }
             for _, row in pd.read_csv(
-                f"../datasets/meta/{dataset_name}/entity_types.csv"
+                f"../datasets/{dataset_name}/meta/entity_types.csv"
             ).iterrows()
         }
 

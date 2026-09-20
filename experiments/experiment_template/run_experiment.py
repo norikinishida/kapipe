@@ -44,9 +44,12 @@ def main(args):
     )
     utils.mkdir(base_output_path)
 
+    # Extract the base filename
+    base_filename = os.path.splitext(os.path.basename(INPUT_SOMETHING_PATH))[0]
+
     # Set logger
     set_logger(
-        os.path.join(base_output_path, "COMPONENT_NAME.log"),
+        os.path.join(base_output_path, f"{base_filename}.COMPONENT_NAME.log"),
         # overwrite=True
     )
 
@@ -87,7 +90,10 @@ def main(args):
     RESULTS = WORKER.WORK_SOMETHING(SOMETHING)
 
     # Save the results
-    OUTPUT_RESULTS_PATH = os.path.join(base_output_path, "RESULTS")
+    OUTPUT_RESULTS_PATH = os.path.join(
+        base_output_path,
+        f"{base_filename}.RESULTS",
+    )
     SAVE_SOMETHING(OUTPUT_RESULTS_PATH, RESULTS)
     logging.info(f"Saved the results to {OUTPUT_RESULTS_PATH}")
 

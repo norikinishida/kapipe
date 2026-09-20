@@ -6,6 +6,7 @@ __all__ = [
     "TripleExtractionPipeline",
     "RAGPipeline",
     "GraphRAGPipeline",
+    "ProStructRAGPipeline",
 ]
 
     
@@ -13,13 +14,14 @@ _NAME_TO_MODULE = {
     "TripleExtractionPipeline": "triple_extraction_pipeline",
     "RAGPipeline": "rag_pipeline",
     "GraphRAGPipeline": "graphrag_pipeline",
+    "ProStructRAGPipeline": "prostruct_rag_pipeline",
 }
 
 
 def __getattr__(name: str) -> Any:
     """Function to lazily import public objects."""
 
-    # Reject unknown public names immediately
+    # Validate that the requested name is part of the public API
     if name not in __all__:
         raise AttributeError(
             f"module '{__name__}' has no attribute '{name}'"

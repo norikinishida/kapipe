@@ -33,14 +33,14 @@ python -m pip install -r requirements.txt
 This directory already includes example data.
 
 ```bash
-experiments/docre/data/examples/documents_with_disambiguated_entities.json
-experiments/docre/data/examples/documents_with_triples.json
-experiments/docre/data/examples/entity_dict.json
+experiments/docre/data/examples/docre/documents_with_disambiguated_entities.json
+experiments/docre/data/examples/docre/documents_with_triples.json
+experiments/docre/data/examples/kb/entity_dict.json
 ```
 
 ### Benchmark datasets
 
-You can also prepare benchmark datasets (e.g., CDR, Linked-DocRED) with the scripts in `experiments/datasets/docre`.
+You can also prepare benchmark datasets (e.g., CDR, Linked-DocRED) with the scripts in `experiments/datasets/`.
 
 ## Step 3. Configuration Setup
 
@@ -64,3 +64,11 @@ bash ./run_docre.sh
 ```
 
 If you use the OpenAI API, set your API key in advance.
+
+To use the OpenAI Batch API, submit the requests and fetch the results after the batches complete.
+Batch IDs are saved as `*.batch_ids.json` in the experiment output directory.
+
+```bash
+bash ./run_docre.sh --batch_mode submit
+bash ./run_docre.sh --batch_mode fetch
+```

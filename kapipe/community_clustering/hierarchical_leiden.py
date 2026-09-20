@@ -58,41 +58,43 @@ class HierarchicalLeiden(BaseCommunityClusterer):
         for partition in community_mapping:
             # Get attributes of each node
             node_id = str(partition.node)
-            community_id = str(partition.cluster)
-            parent_id = (
+            community_key = str(partition.cluster)
+            parent_community_key = (
                 str(partition.parent_cluster)
                 if partition.parent_cluster is not None else "ROOT"
             )
             level = int(partition.level)
 
             # Add a new community record
-            if community_id not in communities:
-                communities[community_id] = {
-                    "community_id": community_id,
+            if community_key not in communities:
+                communities[community_key] = {
+                    "community_key": community_key,
                     "nodes": [],
                     "level": level,
-                    "parent_community_id": parent_id,
-                    "child_community_ids": [],
+                    "parent_community_key": parent_community_key,
+                    "child_community_keys": [],
                 }
 
             # Add this node to the existing community record
-            communities[community_id]["nodes"].append(node_id)
+            communities[community_key]["nodes"].append(node_id)
 
         # Add the ROOT community record
         communities["ROOT"] = {
-            "community_id": "ROOT",
+            "community_key": "ROOT",
             "nodes": None,
             "level": -1,
-            "parent_community_id": None,
-            "child_community_ids": []
+            "parent_community_key": None,
+            "child_community_keys": []
         }
 
         # Add parent-child relationships
-        for community_id, community in communities.items():
-            if community_id == "ROOT":
+        for community_key, community in communities.items():
+            if community_key == "ROOT":
                 continue
-            parent_id = community["parent_community_id"]
-            communities[parent_id]["child_community_ids"].append(community_id)
+            parent_community_key = community["parent_community_key"]
+            communities[parent_community_key]["child_community_keys"].append(
+                community_key
+            )
 
         # Sort the community records  based on the depth level
         communities = list(communities.values())
@@ -143,4 +145,3 @@ class HierarchicalLeiden(BaseCommunityClusterer):
         fixed_graph.add_edges_from(edges)
 
         return fixed_graph
-

@@ -103,7 +103,6 @@ class LLMDocRE(BaseDocRE):
         # External
         model: HuggingFaceLLM | OpenAILLM,
         # Internal
-        prompt_template_name_or_path: str,
         knowledge_base_name: str,
         mention_style: str,
         with_span_annotation: bool,
@@ -111,6 +110,7 @@ class LLMDocRE(BaseDocRE):
         possible_tail_entity_types: list[str] | None,
         vocab_relation: dict[str, int] | str,
         rel_meta_info: dict[str, dict[str, str]] | str,
+        prompt_template_name_or_path: str = "docre_09_zeroshot",
         # Optional (Internal)
         entity_dict_path: str | None = None,
         demonstration_documents: list[Document] | str | None = None,
@@ -146,7 +146,8 @@ class LLMDocRE(BaseDocRE):
             logger.info(f"Loaded relation meta-information from {meta_path}")
         self.rel_meta_info = rel_meta_info
 
-        # Require entity dictionary only when canonical entity names are used
+        # Validate that the entity dictionary path is provided 
+        # when using canonical entity names.
         if self.mention_style == "canonical_name" and entity_dict_path is None:
             raise ValueError(
                 "entity_dict_path is required when mention_style is canonical_name"
@@ -293,8 +294,8 @@ class LLMDocRE(BaseDocRE):
             # Generate a reponse
             generated_text = self.model.generate(prompt)
 
-            # Structurize the generated text into triples
-            triples: list[Triple] = self.structurize(
+            # Parse the generated text into triples
+            triples: list[Triple] = self.parse(
                 document=document,
                 generated_text=generated_text
             )
@@ -448,8 +449,8 @@ class LLMDocRE(BaseDocRE):
 
         return prompt.rstrip()
 
-    def structurize(self, document: Document, generated_text: str) -> list[Triple]:
-        """Structurize the generated text into triples."""
+    def parse(self, document: Document, generated_text: str) -> list[Triple]:
+        """Parse the generated text into triples."""
 
         doc_key = document["doc_key"]
 
@@ -525,21 +526,101 @@ class LLMDocRE(BaseDocRE):
 
         return triples
 
-    def batch_extract(
+    def submit_batch(
         self,
         documents: list[Document],
+    ) -> list[str]:
+        """Submit DocRE prompts and return the OpenAI Batch IDs.
+
+        Pass the same documents in the same order to fetch_and_process_batch().
+        Keep the model settings and prompt template unchanged between calls.
+        """
+
+        # Validate that the model is an OpenAILLM instance for Batch API usage
+        if not isinstance(self.model, OpenAILLM):
+            raise TypeError("Batch API requires OpenAILLM")
+
+        # Generate prompts using the same method as extract().
+        # Skip relation extraction if there are 1 or fewer entities.
+        prompts: list[str] = []
+        for document in documents:
+            if len(document["entities"]) <= 1:
+                continue
+            prompt: str = self.generate_prompt(document=document)
+            prompts.append(prompt)
+
+        # Validate that there is at least one prompt to submit
+        if len(prompts) == 0:
+            raise ValueError(
+                "No prompts to submit because all documents have 1 or fewer entities"
+            )
+
+        # Submit the prompts and get the Batch IDs
+        batch_ids: list[str] = self.model.submit_batch(prompts=prompts)
+        return batch_ids
+
+    def fetch_and_process_batch(
+        self,
+        documents: list[Document],
+        batch_ids: list[str],
     ) -> list[Document]:
-        """Extract triples from a batch of documents."""
+        """Fetch responses and extract relations from the original documents.
 
+        Require the same documents, order, model settings, and prompt template
+        used at submission. Raise an error if the batch is not complete.
+        """
+
+        # Validate that the model is an OpenAILLM instance for Batch API usage
+        if not isinstance(self.model, OpenAILLM):
+            raise TypeError("Batch API requires OpenAILLM")
+
+        # Fetch generated texts in the original request order
+        generated_texts: list[str] = self.model.fetch_batch(batch_ids=batch_ids)
+
+        # Validate that the number of generated texts matches the number of submitted documents
+        submitted_documents: list[Document] = []
+        for document in documents:
+            # Match submit_batch(), which skips documents with 1 or fewer entities
+            if len(document["entities"]) <= 1:
+                continue
+            submitted_documents.append(document)
+        if len(generated_texts) != len(submitted_documents):
+            raise ValueError(
+                "The response count does not match the submitted document count"
+            )
+
+        # Process each Batch response using the same procedure as extract()
         result_documents: list[Document] = []
+        generated_text_i = 0
+        for document in documents:
+            # Skip relation extraction if there are 1 or fewer entities
+            if len(document["entities"]) <= 1:
+                result_document = copy.deepcopy(document)
+                result_document["relations"] = []
+                result_document["docre_prompt"] = ""
+                result_document["docre_generated_text"] = ""
+                result_documents.append(result_document)
+                continue
 
-        for document in tqdm(
-            documents,
-            total=len(documents),
-            desc="extraction steps"
-        ):
-            result_document = self.extract(document=document)
+            # Regenerate the original prompt stored in the result
+            prompt: str = self.generate_prompt(document=document)
+            generated_text = generated_texts[generated_text_i]
+
+            # Parse the generated text into triples
+            triples: list[Triple] = self.parse(
+                document=document,
+                generated_text=generated_text
+            )
+
+            # Integrate the triples into the document
+            result_document = copy.deepcopy(document)
+            result_document["relations"] = triples
+            result_document["docre_prompt"] = prompt
+            result_document["docre_generated_text"] = generated_text
             result_documents.append(result_document)
+
+            # Increment the index for the next generated text
+            generated_text_i += 1
 
         return result_documents
 
@@ -645,7 +726,14 @@ class LLMDocRETrainer:
     ) -> dict[str, Any] | None:
 
         # Apply the extractor
-        result_documents = extractor.batch_extract(documents=documents)
+        result_documents: list[Document] = []
+        for document in tqdm(
+            documents,
+            total=len(documents),
+            desc="extraction steps"
+        ):
+            result_document = extractor.extract(document=document)
+            result_documents.append(result_document)
 
         # Save the prediction results
         utils.write_json(self.paths[f"{split}_pred_path"], result_documents)
@@ -698,7 +786,16 @@ class LLMDocRETrainer:
     ) -> dict[str, Any] | None:
 
         # Apply the extractor
-        result_documents = extractor.batch_extract(documents=documents)
+        result_documents: list[Document] = []
+        for document in tqdm(
+            documents,
+            total=len(documents),
+            desc="extraction steps"
+        ):
+            result_document = extractor.extract(document=document)
+            result_documents.append(result_document)
+
+        # Save the prediction results
         utils.write_json(self.paths[f"{split}_pred_path"], result_documents)
 
         with open(

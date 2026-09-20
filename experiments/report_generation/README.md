@@ -33,8 +33,8 @@ python -m pip install -r requirements.txt
 This directory already includes example data.
 
 ```bash
-experiments/report_generation/data/examples/graph.graphml
-experiments/report_generation/data/examples/communities.json
+experiments/report_generation/data/examples/misc/graph.graphml
+experiments/report_generation/data/examples/misc/communities.json
 ```
 
 ## Step 3. Configuration Setup

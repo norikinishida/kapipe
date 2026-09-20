@@ -33,8 +33,8 @@ python -m pip install -r requirements.txt
 This directory already includes example data.
 
 ```bash
-experiments/triple_extraction_pipeline/data/examples/documents.json
-experiments/triple_extraction_pipeline/data/examples/documents_with_triples.json
+experiments/triple_extraction_pipeline/data/examples/docre/documents.json
+experiments/triple_extraction_pipeline/data/examples/docre/documents_with_triples.json
 ```
 
 ## Step 3. Configuration Setup
@@ -51,10 +51,31 @@ First, check `STORAGE_DATA` and `STORAGE_RESULTS` in the execution script and ad
 
 If you modified the configuration file or added new configuration entries, make sure that the execution script refers to the intended configuration.
 
-Then run:
+Run each action sequentially using the following commands:
 
 ```bash
-bash ./run_triple_extraction_pipeline.sh
+bash ./run_triple_extraction_pipeline.sh --actiontype ner
+bash ./run_triple_extraction_pipeline.sh --actiontype ed_retrieval
+bash ./run_triple_extraction_pipeline.sh --actiontype ed_reranking
+bash ./run_triple_extraction_pipeline.sh --actiontype docre
+```
+
+Run all actions at once:
+
+```bash
+bash ./run_triple_extraction_pipeline.sh --actiontype all
 ```
 
 If you use the OpenAI API, set your API key in advance.
+
+You can use the OpenAI Batch API for the following actions: `ner`, `ed_reranking`, `docre`.
+
+```bash
+bash ./run_triple_extraction_pipeline.sh --actiontype ner --batch_mode submit
+bash ./run_triple_extraction_pipeline.sh --actiontype ner --batch_mode fetch
+bash ./run_triple_extraction_pipeline.sh --actiontype ed_retrieval
+bash ./run_triple_extraction_pipeline.sh --actiontype ed_reranking --batch_mode submit
+bash ./run_triple_extraction_pipeline.sh --actiontype ed_reranking --batch_mode fetch
+bash ./run_triple_extraction_pipeline.sh --actiontype docre --batch_mode submit
+bash ./run_triple_extraction_pipeline.sh --actiontype docre --batch_mode fetch
+```

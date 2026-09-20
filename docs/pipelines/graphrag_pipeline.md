@@ -1,92 +1,98 @@
-# GraphRAG Pipeline (`kapipe.pipelines.GraphRAGPipeline`)
+# GraphRAG (`kapipe.pipelines.GraphRAGPipeline`)
 
-**GraphRAG Pipeline** connects components for triple extraction, knowledge graph organization, retrieval, and question answering.
+**GraphRAG** pipeline connects components for triple extraction, knowledge graph organization, retrieval, and question answering.
 
-Each step can be run independently. Intermediate results are saved under `index_dir`, allowing later steps to resume from previously generated files.
+Each indexing step can be run independently. Intermediate results are saved under `index_dir`, allowing later steps to resume from previously generated files.
 
 The pipeline does not define the behavior of the individual components. See the corresponding component documentation for their inputs, outputs, methods, and configuration.
 
 ## Component Flow
 
-Knowledge extraction and structuring:
+### Index construction:
 
 ```text
-Documents
-  → Named Entity Recognition
-  → Entity Disambiguation (Retrieval)
-  → Entity Disambiguation (Reranking)
-  → Document-level Relation Extraction
-  → Entity Graph Construction
-  → Community Clustering
-  → Report Generation
-  → Chunking
-  → Passage Retrieval index
+Documents (input)
+↓ Named Entity Recognition
+Documents with mentions (output)
+
+Documents with mentions (input)
+↓ Entity Disambiguation (Retrieval)
+Documents with candidate entities (output)
+
+Documents with candidate entities (input)
+↓ Entity Disambiguation (Reranking)
+Documents with entities (output)
+
+Documents with entities (input)
+↓ Document-level Relation Extraction
+Documents with triples (output)
+
+Documents with triples (input)
+↓ Entity Graph Construction
+Entity graph (output)
+
+Entity graph (input)
+↓ Community Clustering
+Communities (output)
+
+Entity graph and Communities (input)
+↓ Report Generation
+Community reports (output)
+
+Community reports (input)
+↓ Chunking
+Chunked reports (output)
+
+Chunked reports (input)
+↓ Passage Retrieval (indexing)
+Retrieval index (output)
 ```
 
-Inference:
+### Inference:
 
 ```text
-Question
-  → Passage Retrieval
-  → Retrieved report chunks
-  → Question Answering
-  → Answer
-```
+Question (input)
+↓ Passage Retrieval (search)
+Retrieved chunks (output)
 
-Raw text can optionally be converted into a document using the Chunking component before knowledge structuring.
+Question and Retrieved chunks (input)
+↓ Question Answering
+Answer (output)
+```
 
 ## Components
 
-| Constructor Argument | Component |
-|---|---|
-| `ner` | [Named Entity Recognition](../components/ner.md) |
-| `ed_retrieval` | [Entity Disambiguation (Retrieval)](../components/ed_retrieval.md) |
-| `ed_reranking` | [Entity Disambiguation (Reranking)](../components/ed_reranking.md) |
-| `docre` | [Document-level Relation Extraction](../components/docre.md) |
-| `entity_graph_construction` | [Entity Graph Construction](../components/entity_graph_construction.md) |
-| `community_clustering` | [Community Clustering](../components/community_clustering.md) |
-| `report_generation` | [Report Generation](../components/report_generation.md) |
-| `chunker` | [Chunking](../components/chunking.md) |
-| `passage_retrieval` | [Passage Retrieval](../components/passage_retrieval.md) |
-| `qa` | [Question Answering](../components/qa.md) |
-
-All constructor arguments must be specified. Components unused by the intended step may be set to `None`.
-
-Calling a processing method without its required component raises `ValueError`.
-
-## Methods
-
-| Step | Method | Connected Component |
+| Constructor Argument | Component | Used During |
 |---|---|---|
-| Optional | `convert_text_to_document()` | Chunking |
-| 1 | `extract_triples()` | NER, ED Retrieval, ED Reranking, DocRE |
-| 2 | `construct_entity_graph()` | Entity Graph Construction |
-| 3 | `cluster_communities()` | Community Clustering |
-| 4 | `generate_community_reports()` | Report Generation |
-| 5 | `chunk_reports()` | Chunking |
-| 6 | `make_passage_retrieval_index()` | Passage Retrieval |
-| 7 | `infer()` | Passage Retrieval, Question Answering |
+| `ner` | [Named Entity Recognition](../components/ner.md) | Indexing |
+| `ed_retrieval` | [Entity Disambiguation (Retrieval)](../components/ed_retrieval.md) | Indexing |
+| `ed_reranking` | [Entity Disambiguation (Reranking)](../components/ed_reranking.md) | Indexing |
+| `docre` | [Document-level Relation Extraction](../components/docre.md) | Indexing |
+| `entity_graph_construction` | [Entity Graph Construction](../components/entity_graph_construction.md) | Indexing |
+| `community_clustering` | [Community Clustering](../components/community_clustering.md) | Indexing |
+| `report_generation` | [Report Generation](../components/report_generation.md) | Indexing |
+| `chunker` | [Chunking](../components/chunking.md) | Indexing |
+| `passage_retrieval` | [Passage Retrieval](../components/passage_retrieval.md) | Indexing and inference |
+| `qa` | [Question Answering](../components/qa.md) | Inference |
 
-The following methods load intermediate results.
+All constructor arguments must be specified.
 
-| Method | Loaded Result |
+## Pipeline Methods
+
+| Method | Description |
 |---|---|
-| `load_documents_with_triples()` | Documents with extracted triples |
-| `load_entity_graph()` | Entity graph |
-| `load_communities()` | Community records |
-| `load_community_reports()` | Community reports |
-| `load_chunked_reports()` | Chunked community reports |
-| `load_passage_retrieval_index()` | Passage retrieval index |
+| `make_index()` | Runs all indexing steps or one selected indexing step |
+| `load_index()` | Loads the retrieval index for inference |
+| `infer()` | Retrieves chunks for each question and generates answers |
 
 ## Usage
 
-### Initialize the Pipeline
+### Initialize the Pipeline:
 
 ```python
 from kapipe.pipelines import GraphRAGPipeline
 
-
-# Initialize the components before constructing the pipeline
+# Initialize the components
 ner = ...
 ed_retrieval = ...
 ed_reranking = ...
@@ -98,7 +104,7 @@ chunker = ...
 passage_retrieval = ...
 qa = ...
 
-# Connect the initialized components
+# Instantiate the GraphRAG pipeline
 graphrag = GraphRAGPipeline(
     ner=ner,
     ed_retrieval=ed_retrieval,
@@ -113,147 +119,166 @@ graphrag = GraphRAGPipeline(
 )
 ```
 
-### Run Knowledge Extraction and Structuring
+### Build the Index at Once:
 
 ```python
-import os
-
-
-# Set the shared directory for intermediate results
-index_dir = "./indexes"
-
-# Extract triples from the input documents
-documents_with_triples = graphrag.extract_triples(
+# Run all indexing steps
+graphrag.make_index(
     documents=documents,
+    index_dir="./indexes",
     retrieval_size=10,
-    index_dir=index_dir,
-)
-
-# Construct an entity graph from the saved triple extraction result
-graph = graphrag.construct_entity_graph(
-    documents_path_list=[
-        os.path.join(index_dir, "documents_with_triples.json"),
-    ],
-    entity_dict_path="./entity_dict.json",
-    additional_triples_path=None,
-    index_dir=index_dir,
-)
-
-# Cluster the entity graph into communities
-communities = graphrag.cluster_communities(
-    graph=graph,
-    index_dir=index_dir,
-)
-
-# Generate textual reports from the communities
-reports = graphrag.generate_community_reports(
-    graph=graph,
-    communities=communities,
-    index_dir=index_dir,
-)
-
-# Split the reports into chunks for retrieval
-chunked_reports = graphrag.chunk_reports(
-    reports=reports,
     window_size=128,
-    index_dir=index_dir,
-)
-
-# Build a retrieval index over the report chunks
-graphrag.make_passage_retrieval_index(
-    chunked_reports=chunked_reports,
-    index_dir=index_dir,
-    batch_size=64,
+    entity_dict=entity_dict,
+    additional_triples=additional_triples,
+    node_attr_keys=("name", "entity_type", "description"),
+    edge_attr_keys=("relation",),
+    passage_retrieval_indexing_kwargs={
+        "batch_size": 1024,
+    },
 )
 ```
 
-Additional keyword arguments passed to `make_passage_retrieval_index()` are forwarded to the Passage Retrieval component.
+`retrieval_size` controls candidate retrieval during Entity Disambiguation.
+`entity_dict` and `additional_triples` are passed to Entity Graph Construction.
+`node_attr_keys` and `edge_attr_keys` select the graph attributes used during Report Generation.
+`window_size` controls Chunking of community reports.
+Values in `passage_retrieval_indexing_kwargs` are forwarded to the Passage Retrieval component. Omit arguments unsupported by the selected component.
 
-### Run Inference
+### Build the Index Step by Step:
+
+Set `target_component` to run only one indexing step.
 
 ```python
-# Load the retrieval index created during knowledge structuring
-graphrag.load_passage_retrieval_index(
+# Example 1: Run only Entity Graph Construction over the input under `index_dir`
+graphrag.make_index(
+    documents=documents,
     index_dir="./indexes",
+    retrieval_size=10,
+    window_size=128,
+    entity_dict=entity_dict,
+    additional_triples=additional_triples,
+    target_component="entity_graph_construction",
 )
 
-# Retrieve report chunks and answer one question
-result_question = graphrag.infer(
-    question=question,
+# Example 2: Run only Report Generation over inputs under `index_dir`
+graphrag.make_index(
+    documents=documents,
+    index_dir="./indexes",
+    retrieval_size=10,
+    window_size=128,
+    target_component="report_generation",
+)
+```
+
+When run individually, steps after NER load their inputs from the standard filenames under `index_dir`.
+
+### Use the OpenAI Batch API During Indexing:
+
+The NER, Entity Disambiguation (Reranking), and Document-level Relation Extraction steps support the OpenAI Batch API when their LLM component uses `OpenAILLM`.
+
+```python
+# Submit requests for NER
+graphrag.make_index(
+    documents=documents,
+    index_dir="./indexes",
+    retrieval_size=10,
+    window_size=128,
+    target_component="ner",
+    batch_mode="submit",
+    batch_dir="./batches",
+)
+
+# Fetch the responses for NER
+graphrag.make_index(
+    documents=documents,
+    index_dir="./indexes",
+    retrieval_size=10,
+    window_size=128,
+    target_component="ner",
+    batch_mode="fetch",
+    batch_dir="./batches",
+)
+```
+
+When `batch_mode` is specified, `target_component` and `batch_dir` are required.
+Valid modes are `"submit"` and `"fetch"`.
+Running all indexing steps at once is not supported in batch mode.
+
+### Load the Index:
+
+```python
+# Load the report-chunk retrieval index
+graphrag.load_index(
+    index_dir="./indexes",
+)
+```
+
+`load_index()` must be called before inference.
+
+### Run Inference:
+
+```python
+# Retrieve report chunks and answer multiple questions
+result_questions = graphrag.infer(
+    questions=questions,
     top_k=5,
 )
 ```
 
-The retrieved report chunks are preserved in the pipeline output as `contexts`.
+`top_k` controls the number of report chunks returned by Passage Retrieval.
 
-### Resume from Intermediate Results
+### Use the OpenAI Batch API During Inference:
 
-```python
-# Load the entity graph and communities from previous steps
-graph = graphrag.load_entity_graph(
-    index_dir="./indexes",
-)
-communities = graphrag.load_communities(
-    index_dir="./indexes",
-)
-
-# Resume the pipeline from report generation
-reports = graphrag.generate_community_reports(
-    graph=graph,
-    communities=communities,
-    index_dir="./indexes",
-)
-```
-
-A pipeline used for only a subset of the steps may set the other components to `None`.
+When the Question Answering component is `LLMQA` backed by `OpenAILLM`, inference can submit and fetch answer-generation requests through the OpenAI Batch API.
+Passage Retrieval still runs during both calls.
 
 ```python
-from kapipe.pipelines import GraphRAGPipeline
-
-
-# Initialize only the components required for inference
-passage_retrieval = ...
-qa = ...
-
-# Omit components that are not used during inference
-graphrag = GraphRAGPipeline(
-    ner=None,
-    ed_retrieval=None,
-    ed_reranking=None,
-    docre=None,
-    entity_graph_construction=None,
-    community_clustering=None,
-    report_generation=None,
-    chunker=None,
-    passage_retrieval=passage_retrieval,
-    qa=qa,
-)
-
-# Load the index and run inference
-graphrag.load_passage_retrieval_index(
-    index_dir="./indexes",
-)
-result_question = graphrag.infer(
-    question=question,
+# Submit requests for inference
+result_questions = graphrag.infer(
+    questions=questions,
     top_k=5,
+    batch_mode="submit",
+    batch_dir="./batches",
+)
+assert result_questions is None
+
+# Fetch the responses for inference
+result_questions = graphrag.infer(
+    questions=questions,
+    top_k=5,
+    batch_mode="fetch",
+    batch_dir="./batches",
 )
 ```
 
-## Intermediate Files
+When `batch_mode` is specified, `batch_dir` is required.
+Valid modes are `"submit"` and `"fetch"`.
 
-| File | Created By | Loaded By |
-|---|---|---|
-| `documents_with_triples.json` | `extract_triples()` | `load_documents_with_triples()` |
-| `graph.graphml` | `construct_entity_graph()` | `load_entity_graph()` |
-| `communities.json` | `cluster_communities()` | `load_communities()` |
-| `reports.jsonl` | `generate_community_reports()` | `load_community_reports()` |
-| `chunked_reports.jsonl` | `chunk_reports()` | `load_chunked_reports()` |
-| Component-dependent index files | `make_passage_retrieval_index()` | `load_passage_retrieval_index()` |
+## Indexing Outputs
 
-All fixed intermediate filenames are created under `index_dir`.
+`make_index()` creates the following artifacts under `index_dir`.
 
-The Passage Retrieval index format and filenames depend on the selected Passage Retrieval component.
+| Path | Created By |
+|---|---|
+| `documents_with_mentions.json` | Named Entity Recognition |
+| `documents_with_candidates.json` | Entity Disambiguation (Retrieval) |
+| `candidate_entities.json` | Entity Disambiguation (Retrieval) |
+| `documents_with_entities.json` | Entity Disambiguation (Reranking) |
+| `documents_with_triples.json` | Document-level Relation Extraction |
+| `graph.graphml` | Entity Graph Construction |
+| `communities.json` | Community Clustering |
+| `reports.jsonl` | Report Generation |
+| `chunked_reports.jsonl` | Chunking |
+| `passage_retrieval_index/` | Passage Retrieval indexing |
+
+The contents of `passage_retrieval_index/` depend on the selected Passage Retrieval component.
+
+## Inference Output
+
+Each output preserves the fields returned by the Question Answering component and adds `contexts`, containing the report chunks returned by Passage Retrieval.
+
+The pipeline does not save inference output automatically. The caller is responsible for saving `result_questions`.
 
 ## Example
 
-See [experiments/graphrag_pipeline_tacl2026](../../experiments/graphrag_pipeline_tacl2026) for a runnable example.
+See [experiments/graphrag_pipeline_tacl2026](../../experiments/graphrag_pipeline_tacl2026) for runnable examples.

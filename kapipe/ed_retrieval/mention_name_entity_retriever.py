@@ -72,21 +72,3 @@ class MentionNameEntityRetriever(BaseEDRetriever):
         }
 
         return result_document, candidate_entities_for_doc
-
-    def batch_search(
-        self,
-        documents: list[Document],
-        retrieval_size: int,
-    ) -> tuple[list[Document], list[CandidateEntitiesForDocument]]:
-        """Retrieve candidate entities for each mention in a batch of documents."""
-
-        result_documents: list[Document] = []
-        candidate_entities: list[CandidateEntitiesForDocument] = []
-        for document in tqdm(documents, desc="retrieval steps"):
-            result_document, candidate_entities_for_doc = self.search(
-                document=document, retrieval_size=retrieval_size
-            )
-            result_documents.append(result_document)
-            candidate_entities.append(candidate_entities_for_doc)
-
-        return result_documents, candidate_entities

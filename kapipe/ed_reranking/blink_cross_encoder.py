@@ -289,28 +289,6 @@ class BlinkCrossEncoder(BaseEDReranker):
 
             return result_document
 
-    def batch_rerank(
-        self,
-        documents: list[Document],
-        candidate_entities: list[CandidateEntitiesForDocument]
-    ) -> list[Document]:
-        """Rerank candidate entities for a batch of documents."""
-
-        result_documents: list[Document] = []
-
-        for document, candidate_entities_for_doc in tqdm(
-            zip(documents, candidate_entities),
-            total=len(documents),
-            desc="reranking steps"
-        ):
-            result_document = self.rerank(
-                document=document,
-                candidate_entities_for_doc=candidate_entities_for_doc
-            )
-            result_documents.append(result_document)
-
-        return result_documents
-
 
 #####################
 # Trainer (Evaluator), Model, Preprocessor
@@ -698,10 +676,19 @@ class BlinkCrossEncoderTrainer:
         get_scores_only: bool = False,
     ) -> dict[str, Any] | None:
         # Apply the reranker
-        result_documents = reranker.batch_rerank(
-            documents=documents,
-            candidate_entities=candidate_entities
-        )
+        result_documents: list[Document] = []
+        for document, candidate_entities_for_doc in tqdm(
+            zip(documents, candidate_entities),
+            total=len(documents),
+            desc="reranking steps"
+        ):
+            result_document = reranker.rerank(
+                document=document,
+                candidate_entities_for_doc=candidate_entities_for_doc
+            )
+            result_documents.append(result_document)
+
+        # Save the prediction results
         utils.write_json(self.paths[f"{split}_pred_path"], result_documents)
 
         if prediction_only:

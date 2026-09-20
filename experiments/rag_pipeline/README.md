@@ -33,10 +33,10 @@ python -m pip install -r requirements.txt
 This directory already includes example data.
 
 ```bash
-experiments/rag_pipeline/data/examples/passages.jsonl
-experiments/rag_pipeline/data/examples/questions.json
-experiments/rag_pipeline/data/examples/questions_with_answers.json
-experiments/rag_pipeline/data/examples/questions.gold_contexts.json
+experiments/rag_pipeline/data/examples/corpus/passages.jsonl
+experiments/rag_pipeline/data/examples/qa/questions.json
+experiments/rag_pipeline/data/examples/qa/questions_with_answers.json
+experiments/rag_pipeline/data/examples/qa/questions.gold_contexts.json
 ```
 
 ## Step 3. Configuration Setup
@@ -53,21 +53,25 @@ First, check `STORAGE_DATA` and `STORAGE_RESULTS` in the execution script and ad
 
 If you modified the configuration file or added new configuration entries, make sure that the execution script refers to the intended configuration.
 
-The pipeline consists of two sequential actions.
-
-- `indexing`: build a retrieval index over passages.
-- `inference`: retrieve passages for each question and generate answers
-
-Run one action at a time:
+Run each action sequentially using the following commands:
 
 ```bash
 bash ./run_rag_pipeline.sh --actiontype indexing
+bash ./run_rag_pipeline.sh --actiontype inference
 ```
 
-Run all actions:
+Run all actions at once:
 
 ```bash
 bash ./run_rag_pipeline.sh --actiontype all
 ```
 
 If you use the OpenAI API, set your API key in advance.
+
+You can use the OpenAI Batch API for `inference`.
+
+```bash
+bash ./run_rag_pipeline.sh --actiontype indexing
+bash ./run_rag_pipeline.sh --actiontype inference --batch_mode submit
+bash ./run_rag_pipeline.sh --actiontype inference --batch_mode fetch
+```

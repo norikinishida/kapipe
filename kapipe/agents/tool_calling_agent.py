@@ -38,7 +38,7 @@ class AgentTrajectory:
     ) -> None:
         """Append one step and update the final answer when execution finishes."""
 
-        # Prevent mutation after the agent has produced its final answer
+        # Validate that a new step is not provided after the final answer has been set
         if self.final_answer is not None:
             raise RuntimeError(
                 "A step cannot be added after the final answer."
@@ -102,7 +102,6 @@ class ToolCallingAgent:
             raise ValueError(
                 "The prompt template must contain {initial_input}."
             )
- 
         if "{execution_trajectory}" not in self.prompt_template:
             raise ValueError(
                 "The prompt template must contain {execution_trajectory}."
@@ -333,7 +332,7 @@ class ToolCallingAgent:
 
             return cast(dict[str, Any], parsed_output)
 
-        # Reject unsupported action types
+        # Validate that the action type is supported
         raise ValueError(
             "action_type must be either 'use_tool' or 'finish'."
         )
@@ -345,7 +344,7 @@ class ToolCallingAgent:
     ) -> None:
         """Ensure that a value can be included in subsequent JSON prompts."""
 
-        # Reject Python-specific values that cannot be represented as JSON
+        # Validate that the value can be serialized to JSON
         try:
             json.dumps(value, ensure_ascii=False)
         except (TypeError, ValueError) as error:

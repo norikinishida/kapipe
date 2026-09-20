@@ -2,23 +2,34 @@
 
 # KAPipe
 
-**KAPipe** is a modular framework for building ***Knowledge Acquisition Systems*** from unstructured data.
+![An overview of knowledge acquisition system](./images/knowledge_acquisition_systems_overview_figure002.png)
 
-KAPipe decomposes knowledge acquisition into four main stages:
+**KAPipe** is a modular framework for building knowledge acquisition systems from unstructured data.
+
+In KAPipe, knowledge acquisition is organized into four stages:
 
 1. **Extraction**: extracting knowledge units from unstructured data.
 2. **Organization**: organizing extracted knowledge units into structured representations such as knowledge graph.
-3. **Retrieval**: retrieving relevant knowledge for a given query or task.
-4. **Utilization**: using retrieved structured knowledge for downstream tasks such as question answering.
+3. **Retrieval**: retrieving relevant knowledge for a given request.
+4. **Utilization**: using retrieved knowledge to solve for downstream tasks such as question answering.
 
-![An overview of knowledge acquisition system](./images/knowledge_acquisition_systems_overview_figure002.png)
+For each stage, KAPipe provides reusable *components* that implement specific approaches.
+For example, KAPipe provides Document-level Relation Extraction and Proposition Extraction components for extraction, and Passage Retrieval and Graph Retrieval components for retrieval.
+Together, these components serve as building blocks for constructing knowledge acquisition systems.
+
+**Note:** KAPipe is designed for research and experimentation rather than production use. It is under active development and may introduce breaking changes without prior notice.
 
 KAPipe is used in the following papers:
 
-- [Nishida et al., TACL 2026, **Dissecting GraphRAG: A Modular Analysis of Knowledge Structuring for Factoid Question Answering**.](https://aclanthology.org/2026.tacl-1.29/)
-- [Oumaima and Nishida et al., BioNLP 2024, **Mention-Agnostic Information Extraction for Ontological Annotation of Biomedical Articles**.](https://aclanthology.org/2024.bionlp-1.37/)
+- Nishida et al., EMNLP 2026, **Beyond Retrieval: Structuring Evolving and Inconsistent External Knowledge with Proposition Relations for RAG**. (to appear)
 
-![An example of graph-based RAG architecture](./images/nishida_et_al_tacl_2026.png)
+![An example of ProStruct-RAG](./images/nishida_et_al_emnlp_2026.png)
+
+- [Nishida et al., TACL 2026, **Dissecting GraphRAG: A Modular Analysis of Knowledge Structuring for Factoid Question Answering**.](https://aclanthology.org/2026.tacl-1.29/)
+
+![An example of graph-based RAG](./images/nishida_et_al_tacl_2026.png)
+
+- [Oumaima and Nishida et al., BioNLP 2024, **Mention-Agnostic Information Extraction for Ontological Annotation of Biomedical Articles**.](https://aclanthology.org/2024.bionlp-1.37/)
 
 ## Installation
 
@@ -60,23 +71,30 @@ The following table summarizes the components currently supported by KAPipe.
 | Extraction | Entity Disambiguation (Retrieval) | `kapipe.ed_retrieval` | [Docs](docs/components/ed_retrieval.md) | [Example](experiments/ed_retrieval) |
 | Extraction | Entity Disambiguation (Reranking) | `kapipe.ed_reranking` | [Docs](docs/components/ed_reranking.md) | [Example](experiments/ed_reranking) |
 | Extraction | Document-level Relation Extraction | `kapipe.docre` | [Docs](docs/components/docre.md) | [Example](experiments/docre) |
+| Extraction | Proposition Extraction | `kapipe.proposition_extraction` | [Docs](docs/components/proposition_extraction.md) | [Example](experiments/proposition_extraction) |
+| Extraction | Proposition Relation Extraction | `kapipe.proposition_relation_extraction` | [Docs](docs/components/proposition_relation_extraction.md) | [Example](experiments/proposition_relation_extraction) |
+| Extraction | Proposition Relation Refinement | `kapipe.proposition_relation_refinement` | [Docs](docs/components/proposition_relation_refinement.md) | [Example](experiments/proposition_relation_refinement) |
 | Organization | Entity Graph Construction | `kapipe.entity_graph_construction` | [Docs](docs/components/entity_graph_construction.md) | [Example](experiments/entity_graph_construction) |
+| Organization | Passage Graph Construction | `kapipe.passage_graph_construction` | [Docs](docs/components/passage_graph_construction.md) | [Example](experiments/passage_graph_construction) |
 | Organization | Community Clustering | `kapipe.community_clustering` | [Docs](docs/components/community_clustering.md) | [Example](experiments/community_clustering) |
 | Organization | Report Generation | `kapipe.report_generation` | [Docs](docs/components/report_generation.md) | [Example](experiments/report_generation) |
 | Organization | Chunking | `kapipe.chunking` | [Docs](docs/components/chunking.md) | [Example](experiments/chunking) |
 | Retrieval | Passage Retrieval | `kapipe.passage_retrieval` | [Docs](docs/components/passage_retrieval.md) | [Example](experiments/passage_retrieval) |
+| Retrieval | Graph Retrieval | `kapipe.graph_retrieval` | [Docs](docs/components/graph_retrieval.md) | [Example](experiments/graph_retrieval) |
+| Utilization | Context Formatting | `kapipe.context_formatting` | [Docs](docs/components/context_formatting.md) | [Example](experiments/context_formatting) |
 | Utilization | Question Answering | `kapipe.qa` | [Docs](docs/components/qa.md) | [Example](experiments/qa) |
 
 ## Pipelines
 
 Pipelines (`kapipe.pipelines`) are convenience classes for chaining components that are commonly used together.
-Internally, a pipeline connects the outputs of one component to the inputs of the next component.
+They represent selected compositions and are not intended to cover every possible combination of components.
 
 | Pipeline | Description | Docs | Example |
 |---|---|---|---|
 | `TripleExtractionPipeline` | Chains NER, Entity Disambiguation (Retrieval), Entity Disambiguation (Reranking), and Document-level Relation Extraction components | [Docs](docs/pipelines/triple_extraction_pipeline.md) | [Example](experiments/triple_extraction_pipeline) |
 | `RAGPipeline` | Chains Passage Retrieval and Question Answering components | [Docs](docs/pipelines/rag_pipeline.md) | [Example](experiments/rag_pipeline) |
 | `GraphRAGPipeline` | Chains triple extraction, Entity Graph Construction, Community Clustering, Report Generation, Passage Retrieval, and Question Answering components | [Docs](docs/pipelines/graphrag_pipeline.md) | [Example](experiments/graphrag_pipeline_tacl2026) |
+| `ProStructRAGPipeline` | Chains Proposition Extraction, Proposition Relation Extraction, Proposition Relation Refinement, Passage Graph Construction, Passage Retrieval, Graph Retrieval, Context Formatting, and Question Answering components | [Docs](docs/pipelines/prostruct_rag_pipeline.md) | [Example](experiments/prostruct_rag_pipeline_emnlp2026) |
 
 ## Agents
 
@@ -108,8 +126,8 @@ data_dir = "experiments/passage_retrieval/data/examples"
 index_dir = "./indexes"
 
 # Load passages and questions
-passages = utils.read_jsonl(os.path.join(data_dir, "passages.jsonl"))
-questions = utils.read_json(os.path.join(data_dir, "questions.json"))
+passages = utils.read_jsonl(os.path.join(data_dir, "corpus", "passages.jsonl"))
+questions = utils.read_json(os.path.join(data_dir, "qa", "questions.json"))
 
 # Instantiate the Passage Retrieval component
 passage_retrieval = Qwen3Embedding(
@@ -124,7 +142,7 @@ passage_retrieval = Qwen3Embedding(
 llm = OpenAILLM(model_name="gpt-5.4-nano", max_new_tokens=8192)
 qa = LLMQA(
     model=llm,
-    prompt_template_name_or_path="qa_03_with_context",
+    prompt_template_name_or_path="qa_04_with_context",
 )
 
 # Build a retrieval index over passages
@@ -193,6 +211,17 @@ from kapipe.qa import LLMQA
 data_dir = "experiments/graphrag_pipeline_tacl2026/data/examples"
 index_dir = "./indexes"
 
+# Load input documents, entity dictionary, and questions
+documents = utils.read_json(
+    os.path.join(data_dir, "docre", "documents.json")
+)
+entity_dict = utils.read_json(
+    os.path.join(data_dir, "kb", "entity_dict.json")
+)
+questions = utils.read_json(
+    os.path.join(data_dir, "qa", "questions.json")
+)
+
 # Instantiate the components
 llm = OpenAILLM(model_name="gpt-5.4-nano", max_new_tokens=8192)
 ner = LLMNER.from_identifier(llm, "llm_ner_cdr")
@@ -213,7 +242,7 @@ passage_retrieval = Qwen3Embedding(
 )
 qa = LLMQA(
     model=llm,
-    prompt_template_name_or_path="qa_03_with_context",
+    prompt_template_name_or_path="qa_04_with_context",
 )
 
 # Instantiate the GraphRAG pipeline
@@ -230,56 +259,26 @@ graphrag = GraphRAGPipeline(
     qa=qa,
 )
 
-# Step 1. Extract triples from documents
-documents = utils.read_json(os.path.join(data_dir, "documents.json"))
-graphrag.extract_triples(
+# Build the GraphRAG index
+graphrag.make_index(
     documents=documents,
+    index_dir=index_dir,
     retrieval_size=10,
-    index_dir=index_dir,
-)
-
-# Step 2. Construct an entity graph from triples
-graph = graphrag.construct_entity_graph(
-    documents_path_list=[os.path.join(index_dir, "documents_with_triples.json")],
-    entity_dict_path=os.path.join(data_dir, "entity_dict.json"),
-    additional_triples_path=None,
-    index_dir=index_dir,
-)
-
-# Step 3. Cluster the graph into communities (subgraphs)
-communities = graphrag.cluster_communities(
-    graph=graph,
-    index_dir=index_dir,
-)
-
-# Step 4. Generate reports for each community
-reports = graphrag.generate_community_reports(
-    graph=graph,
-    communities=communities,
-    index_dir=index_dir,
-)
-
-# Step 5. Chunk community reports into chunks
-chunked_reports = graphrag.chunk_reports(
-    reports=reports,
     window_size=100,
-    index_dir=index_dir,
+    entity_dict=entity_dict,
+    passage_retrieval_indexing_kwargs={
+        "batch_size": 64,
+    },
 )
 
-# Step 6. Build a retrieval index over the chunked reports
-graphrag.make_passage_retrieval_index(
-    chunked_reports=chunked_reports,
-    batch_size=64,
-    index_dir=index_dir,
-)
+# Load the GraphRAG index
+graphrag.load_index(index_dir=index_dir)
 
-# Step 7. Load the retrieval index and answer questions
-graphrag.load_passage_retrieval_index(index_dir=index_dir)
-questions = utils.read_json(os.path.join(data_dir, "questions.json"))
-answers = [
-    graphrag.infer(question=question, top_k=5)
-    for question in questions
-]
+# Answer questions using the GraphRAG index
+answers = graphrag.infer(
+    questions=questions,
+    top_k=5,
+)
 
 # Save the results
 utils.write_json("./predictions.json", answers)
@@ -318,4 +317,3 @@ Transactions of the Association for Computational Linguistics (TACL), vol. 14, p
     pages = "627--655"
 }
 ```
-

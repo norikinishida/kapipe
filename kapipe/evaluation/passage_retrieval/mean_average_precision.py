@@ -2,16 +2,12 @@ from ... import utils
 
 
 def mean_average_precision(
-    pred_path,
-    gold_path,
-    passage_to_identifier=None
-):
-    scores = {}
+    pred_path: str | list[dict],
+    gold_path: str | list[dict]
+) -> dict[str, float]:
+    scores: dict[str, float] = {}
 
-    if passage_to_identifier is None:
-        passage_to_identifier = lambda p: p["text"]
-
-    # Load
+    # Load 
     if isinstance(pred_path, str):
         pred_contexts = utils.read_json(pred_path)
     else:
@@ -32,42 +28,51 @@ def mean_average_precision(
     # Evaluate
     scores["mean_average_precision"] = _mean_average_precision(
         pred_contexts=pred_contexts,
-        gold_contexts=gold_contexts,
-        passage_to_identifier=passage_to_identifier
+        gold_contexts=gold_contexts
     )
     return scores
 
 
-def _mean_average_precision(pred_contexts, gold_contexts, passage_to_identifier):
-    scores = {}
+def _mean_average_precision(
+    pred_contexts: list[dict],
+    gold_contexts: list[dict]
+) -> dict[str, float]:
+    scores: dict[str, float] = {}
 
-    average_precision_list = []
+    average_precision_list: list[float] = []
 
     for pred_contexts_for_doc, gold_contexts_for_doc in zip(pred_contexts, gold_contexts):
-        pred_passage_ids = [passage_to_identifier(p) for p in pred_contexts_for_doc["contexts"]]
+        # Extract predicted passage keys for the current document
+        pred_passage_keys = [p["passage_key"] for p in pred_contexts_for_doc["contexts"]]
 
-        unique_pred_passage_ids = []
-        seen_pred_passage_ids = set()
-        for pred_passage_id in pred_passage_ids:
-            if pred_passage_id in seen_pred_passage_ids:
+        # Remove duplicate predicted passage keys while preserving order
+        unique_pred_passage_keys = []
+        seen_pred_passage_keys = set()
+        for pred_passage_key in pred_passage_keys:
+            if pred_passage_key in seen_pred_passage_keys:
                 continue
-            unique_pred_passage_ids.append(pred_passage_id)
-            seen_pred_passage_ids.add(pred_passage_id)
-        pred_passage_ids = unique_pred_passage_ids
+            unique_pred_passage_keys.append(pred_passage_key)
+            seen_pred_passage_keys.add(pred_passage_key)
+        pred_passage_keys = unique_pred_passage_keys
 
-        gold_passage_ids = [passage_to_identifier(p) for p in gold_contexts_for_doc["contexts"]]
-        gold_passage_ids = set(gold_passage_ids)
+        # Extract gold passage keys for the current document
+        # and convert to a set for fast lookup.
+        gold_passage_keys = [p["passage_key"] for p in gold_contexts_for_doc["contexts"]]
+        gold_passage_keys = set(gold_passage_keys)
 
+        # Compute average precision for the current document
         hits = 0
         sum_precisions = 0.0
-        for rank, pid in enumerate(pred_passage_ids, 1):
-            if pid in gold_passage_ids:
+        for rank, pid in enumerate(pred_passage_keys, 1):
+            if pid in gold_passage_keys:
                 hits += 1
                 sum_precisions += hits / rank
-        ap = sum_precisions / len(gold_passage_ids)
+        ap = sum_precisions / len(gold_passage_keys)
         average_precision_list.append(ap)
 
+    # Compute mean average precision across all documents
     sum_ = sum(average_precision_list)
     n = len(average_precision_list)
     scores["mean_average_precision"] = (sum_ / n if n != 0 else 0.0) * 100.0
+
     return scores

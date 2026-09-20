@@ -150,7 +150,7 @@ etype_meta_info = {
 # Instantiate the LLM-based NER component with the user-defined entity type schema
 extractor = LLMNER(
     model=model,
-    prompt_template_name_or_path="ner_13_zeroshot",
+    prompt_template_name_or_path="ner_14_zeroshot",
     vocab_etype=vocab_etype,
     etype_meta_info=etype_meta_info,
 )
@@ -159,6 +159,25 @@ extractor = LLMNER(
 result_document = extractor.extract(document=document)
 ```
 
+## OpenAI Batch API
+
+`LLMNER` supports the OpenAI Batch API when its model is an `OpenAILLM` instance.
+
+```python
+# Submit all document prompts to one or more OpenAI batches
+batch_ids: list[str] = extractor.submit_batch(documents=documents)
+
+# Fetch and process the results after all OpenAI batches are complete
+result_documents = extractor.fetch_and_process_batch(
+    documents=documents,
+    batch_ids=batch_ids,
+)
+```
+
+`submit_batch()` automatically splits requests into batches containing at most 50,000 requests and 200 MB of JSONL input. It returns the batch IDs in submission order, and `fetch_and_process_batch()` merges their responses in the original document order.
+
+Pass the same `documents` in the same order to both methods. Keep the model settings and prompt template unchanged between submission and fetching. `fetch_and_process_batch()` raises a `RuntimeError` if any OpenAI batch is incomplete or contains failed requests.
+
 ## Training with a Custom Entity Type Schema
 
 If you want to use your own entity type schema with `BiaffineNER`, train the BiaffineNER model for that schema first.
@@ -166,6 +185,8 @@ If you want to use your own entity type schema with `BiaffineNER`, train the Bia
 See [experiments/ner/run_ner_train_eval.py](../../experiments/ner/run_ner_train_eval.py) for runnable training and evaluation examples.
 
 ## Custom Prompt Templates
+
+`prompt_template_name_or_path` accepts either the name of a built-in prompt template ([`kapipe/ner/prompt_templates/*.txt`](../../kapipe/ner/prompt_templates)) or a path to a user-defined prompt template.
 
 A custom prompt template for `LLMNER` supports the following placeholders.
 

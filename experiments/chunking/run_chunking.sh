@@ -17,7 +17,7 @@ CONFIG_PATH=config/default.conf
 CONFIG_NAME=en_core_sci_md_w50
 
 # Input Data
-INPUT_PASSAGES=${STORAGE_DATA}/examples/articles.jsonl
+INPUT_PASSAGES=${STORAGE_DATA}/examples/corpus/articles.jsonl
 
 # Output Path
 RESULTS_DIR=${STORAGE_RESULTS}

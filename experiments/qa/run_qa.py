@@ -43,6 +43,9 @@ def main(args):
     do_evaluation = args.do_evaluation
     gold_questions_path = args.gold
 
+    # Batch API
+    batch_mode: str | None = args.batch_mode
+
     ##################
     # Logging Setup
     ##################
@@ -57,13 +60,20 @@ def main(args):
     )
     utils.mkdir(base_output_path)
 
+    # Extract the base filename
     base_filename = os.path.splitext(os.path.basename(input_questions_path))[0]
 
     # Set logger
-    set_logger(
-        os.path.join(base_output_path, f"{base_filename}.qa.log"),
-        # overwrite=True
-    )
+    if batch_mode is None:
+        set_logger(
+            os.path.join(base_output_path, f"{base_filename}.qa.log"),
+            # overwrite=True
+        )
+    else:
+        set_logger(
+            os.path.join(base_output_path, f"{base_filename}.qa.{batch_mode}.log"),
+            # overwrite=True
+        )
 
     # Show arguments
     logging.info(utils.pretty_format_dict(vars(args)))
@@ -120,84 +130,124 @@ def main(args):
     # Method Execution
     ##################
 
-    logging.info(f"Applying the QA component to {len(questions)} questions (+ contexts) in {input_questions_path} ({input_contexts_path}) ...")
+    logging.info(
+        f"Applying the QA component to {len(questions)} questions (+ contexts) "
+        f"in {input_questions_path} ({input_contexts_path}) ..."
+    )
 
     # Apply the QA component to the questions
-    result_questions = []
-    for question, contexts_for_q in tqdm(
-        zip(questions, contexts),
-        total=len(questions)
-    ):
-        result_question = answerer.answer(
-            question=question,
-            contexts_for_question=contexts_for_q
+    if batch_mode is None:
+        result_questions = []
+        for question, contexts_for_q in tqdm(
+            zip(questions, contexts),
+            total=len(questions)
+        ):
+            result_question = answerer.answer(
+                question=question,
+                contexts_for_question=contexts_for_q
+            )
+            result_questions.append(result_question)
+
+    elif batch_mode == "submit":
+        # Submit prompts
+        batch_ids: list[str] = answerer.submit_batch(
+            questions=questions,
+            contexts=contexts
         )
-        result_questions.append(result_question)
-
-    # Save the QA results
-    output_questions_path = os.path.join(
-        base_output_path,
-        f"{base_filename}.pred.json"
-    )
-    utils.write_json(output_questions_path, result_questions)
-    logging.info(f"Saved the prediction results to {output_questions_path}")
-
-    # Save the prompt-response pairs in plain text
-    if "qa_prompt" in result_questions[0] and "qa_generated_text" in result_questions[0]:
-        output_text_path = os.path.join(
-            base_output_path,
-            f"{base_filename}.prompt_and_response.txt"
+        utils.write_json(
+            os.path.join(
+                base_output_path,
+                f"{base_filename}.batch_ids.json",
+            ),
+            batch_ids,
         )
-        with open(output_text_path, "w") as f:
-            for q in result_questions:
-                question_key = q["question_key"]
-                prompt = q["qa_prompt"]
-                generated_text = q["qa_generated_text"]
-                f.write("-------------------------------------\n\n")
-                f.write(f"QUESTION_KEY: {question_key}\n\n")
-                f.write("PROMPT:\n")
-                f.write(prompt + "\n\n")
-                f.write("GENERATED TEXT:\n")
-                f.write(generated_text + "\n\n")
-                f.flush()
+        logging.info(f"Submitted batches: {batch_ids}")
 
-    ##################
-    # Evaluation
-    ##################
-
-    if do_evaluation:
-        # Require gold answers only when evaluation is requested
-        if gold_questions_path is None:
-            raise ValueError("--gold is required when --do_evaluation is set")
-
-        # Evaluate the prediction results
-        scores = evaluation.qa.accuracy(
-            pred_path=output_questions_path,
-            gold_path=gold_questions_path,
-            exact_match=False,
-        )
-        scores.update(
-            evaluation.qa.token_level_f1(
-                pred_path=output_questions_path,
-                gold_path=gold_questions_path
+    elif batch_mode == "fetch":
+        # Fetch and process the responses
+        batch_ids: list[str] = utils.read_json(
+            os.path.join(
+                base_output_path,
+                f"{base_filename}.batch_ids.json",
             )
         )
-        scores.update(
-            evaluation.qa.recall(
+        result_questions = answerer.fetch_and_process_batch(
+            questions=questions,
+            contexts=contexts,
+            batch_ids=batch_ids,
+        )
+
+    else:
+        raise ValueError(
+            f"Invalid batch_mode: {batch_mode}. "
+            "Expected None, 'submit', or 'fetch'."
+        )
+
+    if batch_mode != "submit":
+        # Save the QA results
+        output_questions_path = os.path.join(
+            base_output_path,
+            f"{base_filename}.pred.json"
+        )
+        utils.write_json(output_questions_path, result_questions)
+        logging.info(f"Saved the prediction results to {output_questions_path}")
+
+        # Save the prompt-response pairs in plain text
+        if "qa_prompt" in result_questions[0] and "qa_generated_text" in result_questions[0]:
+            output_text_path = os.path.join(
+                base_output_path,
+                f"{base_filename}.prompt_and_response.txt"
+            )
+            with open(output_text_path, "w") as f:
+                for q in result_questions:
+                    question_key = q["question_key"]
+                    prompt = q["qa_prompt"]
+                    generated_text = q["qa_generated_text"]
+                    f.write("-------------------------------------\n\n")
+                    f.write(f"QUESTION_KEY: {question_key}\n\n")
+                    f.write("PROMPT:\n")
+                    f.write(prompt + "\n\n")
+                    f.write("GENERATED TEXT:\n")
+                    f.write(generated_text + "\n\n")
+                    f.flush()
+
+        ##################
+        # Evaluation
+        ##################
+
+        if do_evaluation:
+            # Validate that the gold questions path is provided
+            if gold_questions_path is None:
+                raise ValueError("--gold is required when --do_evaluation is set")
+
+            # Evaluate the prediction results
+            scores = evaluation.qa.accuracy(
                 pred_path=output_questions_path,
                 gold_path=gold_questions_path,
                 exact_match=False,
             )
-        )
-        logging.info(utils.pretty_format_dict(scores))
+            scores.update(
+                evaluation.qa.token_level_f1(
+                    pred_path=output_questions_path,
+                    gold_path=gold_questions_path
+                )
+            )
+            scores.update(
+                evaluation.qa.recall(
+                    pred_path=output_questions_path,
+                    gold_path=gold_questions_path,
+                    exact_match=False,
+                )
+            )
+            logging.info(utils.pretty_format_dict(scores))
 
-        # Save the evaluation result
-        output_evaluation_path = os.path.join(
-            base_output_path,
-            f"{base_filename}.eval.json"
-        )
-        utils.write_json(output_evaluation_path, scores)
-        logging.info(f"Saved the evaluation results to {output_evaluation_path}")
+            # Save the evaluation result
+            output_evaluation_path = os.path.join(
+                base_output_path,
+                f"{base_filename}.eval.json"
+            )
+            utils.write_json(output_evaluation_path, scores)
+            logging.info(f"Saved the evaluation results to {output_evaluation_path}")
 
     ##################
     # Closing
@@ -250,6 +300,14 @@ if __name__ == "__main__":
     # Evaluation
     parser.add_argument("--do_evaluation", action="store_true")
     parser.add_argument("--gold", type=str, default=None)
+
+    # Batch API
+    parser.add_argument(
+        "--batch_mode",
+        type=str,
+        default=None,
+        choices=["submit", "fetch"],
+    )
 
     args = parser.parse_args()
 

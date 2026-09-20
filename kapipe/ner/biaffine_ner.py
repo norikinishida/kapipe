@@ -329,16 +329,6 @@ class BiaffineNER(BaseNER):
 
         return mentions
 
-    def batch_extract(self, documents: list[Document]) -> list[Document]:
-        """Extract named entity mentions from a batch of documents."""
-
-        result_documents = []
-        for document in tqdm(documents, desc="extraction steps"):
-            result_document = self.extract(document=document)
-            result_documents.append(result_document)
-
-        return result_documents
-
 
 class SpanBasedDecoder:
     """
@@ -730,7 +720,12 @@ class BiaffineNERTrainer:
         get_scores_only: bool = False
     ) -> dict[str, Any] | None:
         # Apply the extractor
-        result_documents = extractor.batch_extract(documents=documents)
+        result_documents = []
+        for document in tqdm(documents, desc="extraction steps"):
+            result_document = extractor.extract(document=document)
+            result_documents.append(result_document)
+
+        # Save the prediction results
         utils.write_json(self.paths[f"{split}_pred_path"], result_documents)
 
         if prediction_only:

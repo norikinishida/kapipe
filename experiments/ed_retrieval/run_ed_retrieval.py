@@ -54,12 +54,16 @@ def main(args):
         prefix
     )
     utils.mkdir(base_output_path)
-    
+
+    # Extract the base filename
     base_filename = os.path.splitext(os.path.basename(input_documents_path))[0]
 
     # Set logger
     set_logger(
-        os.path.join(base_output_path, f"{base_filename}.ed_retrieval.log"),
+        os.path.join(
+            base_output_path,
+            f"{base_filename}.ed_retrieval.log",
+        ),
         # overwrite=True
     )
 
@@ -135,7 +139,7 @@ def main(args):
     ##################
 
     if do_evaluation:
-        # Require gold documents only when evaluation is requested
+        # Validate that the gold documents path is provided
         if gold_documents_path is None:
             raise ValueError("--gold is required when --do_evaluation is set")
 

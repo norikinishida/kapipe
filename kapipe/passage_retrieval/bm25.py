@@ -139,7 +139,7 @@ class BM25(BasePassageRetriever):
     ) -> None:
         """Save the built index."""
 
-        # Require a built index before saving
+        # Validate that the BM25 index has been built before saving
         if (
             self.passages is None
             or self.word_to_id is None
@@ -241,7 +241,7 @@ class BM25(BasePassageRetriever):
     def _search_one(self, query: str, top_k: int) -> list[Passage]:
         """Retrieve the top-k passages for a single query."""
 
-        # Require a built index before retrieval
+        # Validate that the BM25 index has been built before retrieval
         if self.passages is None:
             raise RuntimeError(
                 "Passages are not indexed. Call make_index() first"
@@ -256,7 +256,7 @@ class BM25(BasePassageRetriever):
         # all sharing the same entity_id.
         # To avoid redundant matches for the same entity in the top-k results,
         # we filter out lower-ranked passages that have an entity_id already seen.
-        # This ensures that the final top-k results do not contain duplicate entity_ids.
+        # This ensures that the final top-k results do not contain duplicate entity_id.
 
         # Sort passages by descending scores
         sorted_indices = np.argsort(scores)[::-1]
@@ -291,7 +291,7 @@ class BM25(BasePassageRetriever):
     ) -> np.ndarray:
         """Compute BM25 scores for all indexed passages."""
 
-        # Require a built index before scoring
+        # Validate that the BM25 index has been built before scoring
         if (
             self.n_passages is None
             or self.word_to_id is None
@@ -316,9 +316,9 @@ class BM25(BasePassageRetriever):
         )
         query_token_ids = query_token_ids[query_token_ids >= 0]
 
-        # Use random scores when the query contains no known words
+        # Use zero scores when the query contains no known words
         if len(query_token_ids) == 0:
-            return np.random.random((self.n_passages,))
+            return np.zeros((self.n_passages,))
 
         # Extract IDFs for query words
         # (query_len,)

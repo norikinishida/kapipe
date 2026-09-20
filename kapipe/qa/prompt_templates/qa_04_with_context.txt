@@ -1,6 +1,6 @@
 ### Task
 
-You are given a question and a set of **context**, each possibly from a different document.
+You are given a question and context, which may come from multiple sources.
 
 Your task is to:
 
@@ -22,19 +22,23 @@ Your task is to:
 
 ### Output Format
 
-Provide the output in the following format:
+Provide the output as exactly one JSON object:
 
-Rationale: [explanation grounded in the context]
-Answer: [your answer]
-Score: [score between 0.0 and 1.0]
+{{
+  "rationale": "[explanation grounded in the context]",
+  "answer": "[your answer]",
+  "score": [score between 0.0 and 1.0]
+}}
 
-Ensure each field (Rationale, Answer, and Score) is output as a separate line starting with its respective label.
+Do not include Markdown code fences or text outside the JSON object.
 
 Example:
 
-Rationale: The context passages state that aspirin is commonly prescribed for pain relief, fever reduction, and inflammatory control, and no passage contradicts these uses.
-Answer: Aspirin is used to treat pain, fever, and inflammation.
-Score: 0.95
+{{
+  "rationale": "The context states that aspirin is commonly prescribed for pain relief, fever reduction, and inflammatory control.",
+  "answer": "Aspirin is used to treat pain, fever, and inflammation.",
+  "score": 0.95
+}}
 
 ### Context
 

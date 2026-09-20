@@ -19,17 +19,23 @@ Your task is to:
 
 ### Output Format
 
-Provide the output in the following format:
+Provide the output as exactly one JSON object:
 
-Rationale: [explanation supporting your answer]
-Answer: [your answer]
-Score: [score between 0.0 and 1.0]
+{{
+  "rationale": "[explanation supporting your answer]",
+  "answer": "[your answer]",
+  "score": [score between 0.0 and 1.0]
+}}
+
+Do not include Markdown code fences or text outside the JSON object.
 
 Example:
 
-Rationale: Aspirin has analgesic, antipyretic, and anti-inflammatory effects.
-Answer: Aspirin is used to treat pain, fever, and inflammation.
-Score: 0.95
+{{
+  "rationale": "Aspirin has analgesic, antipyretic, and anti-inflammatory effects.",
+  "answer": "Aspirin is used to treat pain, fever, and inflammation.",
+  "score": 0.95
+}}
 
 ### Input
 

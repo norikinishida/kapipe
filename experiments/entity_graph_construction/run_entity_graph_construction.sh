@@ -17,9 +17,9 @@ CONFIG_PATH=./config/default.conf
 CONFIG_NAME=keep
 
 # Input Data
-DOCUMENTS=${STORAGE_DATA}/examples/documents_with_triples.json
-ADDITIONAL_TRIPLES=${STORAGE_DATA}/examples/additional_triples.json
-ENTITY_DICT=${STORAGE_DATA}/examples/entity_dict.json
+DOCUMENTS=${STORAGE_DATA}/examples/docre/documents_with_triples.json
+ADDITIONAL_TRIPLES=${STORAGE_DATA}/examples/misc/additional_triples.json
+ENTITY_DICT=${STORAGE_DATA}/examples/kb/entity_dict.json
 
 # Output Data
 RESULTS_DIR=${STORAGE_RESULTS}

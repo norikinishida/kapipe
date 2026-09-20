@@ -150,7 +150,7 @@ def main(args):
                 "Pretty Name": row["Pretty Name"],
                 "Definition": row["Definition"]
             }
-            for _, row in pd.read_csv(f"../datasets/meta/{dataset_name}/relations.csv").iterrows()
+            for _, row in pd.read_csv(f"../datasets/{dataset_name}/meta/relations.csv").iterrows()
         }
  
     # Create supplemental information for DocRED/Re-DocRED official evaluation

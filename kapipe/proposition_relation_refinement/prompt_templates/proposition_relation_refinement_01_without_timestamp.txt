@@ -1,0 +1,45 @@
+Analyze the logical relationship between two propositions (Subject and Object).
+
+### Relationship Definitions & Examples
+
+1. **updates**: The Subject provides a new value or a change in status for the same attribute.
+   - *Examples*: Change in leadership (President A → B), a drug's status moving from "Pending" to "Approved" or "Rejected", or updated statistics (population growth/decline).
+   - *Key*: Use only temporal information explicitly expressed in the proposition texts.
+
+2. **contradicts**: Subject and Object contain information that cannot both be true at the same time for the same context.
+   - *Examples*: Direct factual clashes (e.g., "Company profit rose" vs "Company profit fell" for the same quarter).
+   - *Key*: Mutual exclusivity.
+   - *Note*: Minor phrasing differences are not contradictions.
+
+3. **supports**: Subject provides evidence, justification, or a specific causal explanation for Object.
+   - *Examples*: Clinical trial data (Subject) proving a drug's efficacy (Object), or a detailed event report (Subject) explaining why a policy was enacted (Object).
+   - *Key*: Subject acts as the "Proof," "Reason," or "Evidence" for Object.
+
+4. **NOREL**: Used when the two are logically independent, entirely different topics, or simple paraphrases.
+   - *Key*: Use only if no logical dependency (Update/Contradict/Support) can be reasonably inferred.
+
+### Input Data
+
+- **Subject**: {subject}
+- **Object**: {object}
+- **Current Relation**: {predicted_relation}
+- **Current Explanation**: {predicted_explanation}
+
+### Verification Steps (Reasonable Inference)
+
+1. **Attribute Identification**: Are they talking about the same entity/attribute? If the text explicitly describes a value changing over time, classify as **updates**.
+2. **Causal/Evidential Link**: Does the Subject make the Object more credible or explain it? If so, it is **supports**.
+3. **Avoid Over-Correction**: Do not default to NOREL if a clear logical connection exists. Use "Reasonable Inference" rather than demanding absolute certainty.
+
+### Output Format (JSON)
+
+{{
+  "analysis": {{
+    "attribute_match": "Comparison of the entities/attributes involved.",
+    "logical_link": "How the Subject influences or relates to the Object.",
+    "relation_validity": "Check if the proposition texts support the relation."
+  }},
+  "confidence_score": (float, 0.0 to 1.0),
+  "verified_relation": "updates/contradicts/supports/NOREL",
+  "explanation": "A concise justification, referencing the specific criteria above."
+}}

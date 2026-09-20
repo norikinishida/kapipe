@@ -33,13 +33,13 @@ python -m pip install -r requirements.txt
 This directory already includes example data.
 
 ```bash
-experiments/ner/data/examples/documents.json
-experiments/ner/data/examples/documents_with_typed_mentions.json
+experiments/ner/data/examples/ner/documents.json
+experiments/ner/data/examples/ner/documents_with_typed_mentions.json
 ```
 
 ### Benchmark datasets
 
-You can also prepare benchmark datasets (e.g., CDR, Linked-DocRED) with the scripts in `experiments/datasets/ner`.
+You can also prepare benchmark datasets (e.g., CDR, Linked-DocRED) with the scripts in `experiments/datasets/`.
 
 ## Step 3. Configuration Setup
 
@@ -64,6 +64,10 @@ bash ./run_ner.sh
 
 If you use the OpenAI API, set your API key in advance.
 
+To use the OpenAI Batch API, submit the requests and fetch the results after the batches complete.
+Batch IDs are saved as `*.batch_ids.json` in the experiment output directory.
+
 ```bash
-export OPENAI_API_KEY=<your-openai-api-key>
+bash ./run_ner.sh --batch_mode submit
+bash ./run_ner.sh --batch_mode fetch
 ```

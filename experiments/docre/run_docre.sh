@@ -7,9 +7,6 @@
 STORAGE_DATA=/home/nishida/projects/kapipe/experiments/docre/data
 STORAGE_RESULTS=/home/nishida/projects/kapipe/experiments/docre/results
 
-# STORAGE_DATA=/home/nishida/storage/projects/kapipe/experiments/datasets/docre
-# STORAGE_RESULTS=/home/nishida/storage/projects/kapipe/experiments/docre/results
-
 ######
 # Experiment configuration
 ######
@@ -33,14 +30,14 @@ else
 fi
 
 # Input Data
-INPUT_DOCUMENTS=${STORAGE_DATA}/examples/documents_with_disambiguated_entities.json
+INPUT_DOCUMENTS=${STORAGE_DATA}/examples/docre/documents_with_disambiguated_entities.json
 
 # Output Path
 RESULTS_DIR=${STORAGE_RESULTS}
 MYPREFIX=example
 
 # (optional) Evaluation
-GOLD_DOCUMENTS=${STORAGE_DATA}/examples/documents_with_triples.json
+GOLD_DOCUMENTS=${STORAGE_DATA}/examples/docre/documents_with_triples.json
 
 ######
 # Experiment execution
@@ -54,4 +51,5 @@ python run_docre.py \
     --results_dir ${RESULTS_DIR} \
     --prefix ${MYPREFIX} \
     --do_evaluation \
-    --gold ${GOLD_DOCUMENTS}
+    --gold ${GOLD_DOCUMENTS} \
+    "$@"

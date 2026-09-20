@@ -14,25 +14,25 @@ class Tool:
         output_schema: dict[str, Any],
         function: Callable[[Any], Any],
     ) -> None:
-        # Reject invalid names because the agent uses the name as a tool identifier
+        # Validate the tool name
         if not isinstance(name, str):
             raise TypeError("name must be a string.")
         if not name.strip():
             raise ValueError("name must not be empty.")
 
-        # Reject invalid descriptions because the LLM uses them for tool selection
+        # Validate the description
         if not isinstance(description, str):
             raise TypeError("description must be a string.")
         if not description.strip():
             raise ValueError("description must not be empty.")
 
-        # Require dictionary-based schemas for prompt construction
+        # Validate the input and output schemas
         if not isinstance(input_schema, dict):
             raise TypeError("input_schema must be a dictionary.")
         if not isinstance(output_schema, dict):
             raise TypeError("output_schema must be a dictionary.")
 
-        # Require an executable function
+        # Validate that the function is callable
         if not callable(function):
             raise TypeError("function must be callable.")
 

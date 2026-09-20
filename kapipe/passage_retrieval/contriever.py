@@ -266,10 +266,11 @@ class Contriever(BasePassageRetriever):
             self.anns.save(index_file)
             logger.info("Completed saving")
 
-        # Verify that passages and index vectors remain aligned
+        # Validate that the ANN index was loaded or built
         if self.anns.anns_index is None:
             raise RuntimeError("Failed to load or build the ANN index")
 
+        # Validate that passages and index vectors remain aligned
         if self.anns.anns_index.ntotal != len(self.passages):
             raise RuntimeError(
                 "Index/passages mismatch: "
@@ -289,7 +290,7 @@ class Contriever(BasePassageRetriever):
     ) -> list[list[Passage]]:
         """Retrieve the top-k passages for each query."""
 
-        # Require passage data and an ANN index before retrieval
+        # Validate that passage data and an ANN index are available before retrieval
         if self.passages is None:
             raise RuntimeError(
                 "Passages are not loaded. Call make_index() or load_index() first"
