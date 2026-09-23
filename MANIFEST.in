@@ -12,3 +12,8 @@ prune kapipe/_legacy
 prune kapipe/llms/_legacy
 prune kapipe/pipelines/_legacy
 prune kapipe/qa/_legacy
+prune kapipe/ner/prompt_templates/_legacy
+prune kapipe/ed_reranking/prompt_templates/_legacy
+prune kapipe/docre/prompt_templates/_legacy
+prune kapipe/proposition_extraction/prompt_templates/_legacy
+prune kapipe/qa/prompt_templates/_legacy
