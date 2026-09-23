@@ -98,7 +98,7 @@ model = HuggingFaceLLM(
 # Instantiate the LLM-based Proposition Extraction component
 extractor = LLMPropositionExtractor(
     model=model,
-    prompt_template_name_or_path="proposition_extraction_01",
+    prompt_template_name_or_path="proposition_extraction_02",
 )
 
 # Extract propositions from a passage

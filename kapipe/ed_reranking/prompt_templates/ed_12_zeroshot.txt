@@ -17,24 +17,31 @@ Your task is to:
 
 ### Output Format
 
-For each entity mention, output a line in this format:
+Return a JSON array with one object for each entity mention. Each object must contain:
 
-- Mention Text | Concept ID
+- `"mention"`: the exact mention text
+- `"entity_id"`: the selected Concept ID or `"NA"`
 
-Use bullet points (`-`) for each line. Example:
+Do not return Markdown code fences or any text outside the JSON array. Example:
 
-- Aspirin | C0004057  
-- Stage II breast cancer | C0278488  
-- light therapy | NA
+[
+    {{
+        "mention": "Aspirin",
+        "entity_id": "C0004057"
+    }},
+    {{
+        "mention": "Stage II breast cancer",
+        "entity_id": "C0278488"
+    }},
+    {{
+        "mention": "light therapy",
+        "entity_id": "NA"
+    }}
+]
 
-### Examples
-
-{demonstrations_prompt}
-
-### Test Case
-
-Now, assign the most appropriate Concept ID to each entity mention in the following text, using the context of the document.
+### Input
 
 {test_case_prompt}
 
-Provide the output in the bullet-point format specified above.
+Now, assign the most appropriate Concept ID to each entity mention in this text, using the context of the document.
+Provide the output in the JSON array format specified above.

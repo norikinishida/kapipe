@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from collections import defaultdict
 import copy
+import json
 import logging
 import os
 import re
@@ -110,7 +111,7 @@ class LLMED(BaseEDReranker):
         # Internal
         knowledge_base_name: str,
         entity_dict_path: str,
-        prompt_template_name_or_path: str = "ed_11_zeroshot",
+        prompt_template_name_or_path: str = "ed_12_zeroshot",
         # Optional (Internal)
         demonstration_documents: list[Document] | str | None = None,
         demonstration_candidate_entities: (
@@ -197,13 +198,6 @@ class LLMED(BaseEDReranker):
 
         # Generate the prompt section for demonstrations
         self.demonstrations_prompt = self.generate_demonstrations_prompt()
-
-        # Define regular expression for output parsing.
-        # Parse generated lines of the following form:
-        #
-        #     - [mention text] | [entity ID]
-        #
-        self.re_comp = re.compile(r"(.+?)\s*(.+?)\s*\|\s*(.+?)$")
 
         logger.info("########## LLMED Initialization Ends ##########")
 
@@ -338,27 +332,69 @@ class LLMED(BaseEDReranker):
                 }
             )
 
-        # Parse each generated line
-        names = []
-        entity_ids = []
-        for generated_line in generated_text.split("\n"):
-            generated_line = generated_line.strip()
+        # Parse the generated response as a JSON array
+        records = utils.safe_json_loads(
+            generated_text=generated_text,
+            fallback=[],
+            list_type=True,
+        )
 
-            # Skip the empty line
-            if generated_line == "":
+        # Extract valid mention names and entity IDs
+        names: list[str] = []
+        entity_ids: list[str] = []
+        for record in records:
+            # Skip malformed array elements
+            if not isinstance(record, dict):
+                logger.warning(
+                    "[%s] Skipped an entity assignment that is not a JSON "
+                    "object: %s",
+                    doc_key,
+                    record,
+                )
                 continue
 
-            # Parse the generated line
-            parsed = self.re_comp.findall(generated_line)
-            if not (len(parsed) == 1 and len(parsed[0]) == 3):
-                logger.info(f"[{doc_key}] Skipped a generated line of invalid formatting: '{generated_line}'")
+            # Skip records that do not contain all required keys
+            required_keys = {"mention", "entity_id"}
+            if not required_keys.issubset(record.keys()):
+                logger.warning(
+                    "[%s] Skipped an entity assignment with missing fields: %s",
+                    doc_key,
+                    record,
+                )
                 continue
-            _, name, entity_id = parsed[0]
+
+            # Skip records with a non-string mention
+            name = record["mention"]
+            if not isinstance(name, str):
+                logger.warning(
+                    "[%s] Skipped an entity assignment with a non-string "
+                    "mention: %s",
+                    doc_key,
+                    record,
+                )
+                continue
+            name = name.strip()
+
+            # Skip records with a non-string entity ID
+            entity_id = record["entity_id"]
+            if not isinstance(entity_id, str):
+                logger.warning(
+                    "[%s] Skipped an entity assignment with a non-string "
+                    "entity ID: %s",
+                    doc_key,
+                    record,
+                )
+                continue
+            entity_id = entity_id.strip()
+
+            # Add the parsed fields
             names.append(name)
             entity_ids.append(entity_id)
 
+        # Assign entity IDs by output order when every target mention is present
         if len(names) == len(entity_ids) == len(target_mention_indices):
-            # The number of entities (i.e., len(names), len(entity_ids)) is the same with that of all mentions in the document
+            # The number of entities (i.e., len(names), len(entity_ids)) is the same
+            # with that of all mentions in the document.
             if len(document["mentions"]) == 0:
                 assert len(target_mention_indices) == 0
             else:
@@ -367,12 +403,13 @@ class LLMED(BaseEDReranker):
     
                     # Check whether the entity ID can be found in the possible list
                     if entity_id not in possible_entity_ids:
-                        logger.info(f"[{doc_key}] Skipped a generated line with invalid concept ID: {entity_id}")
+                        logger.info(f"[{doc_key}] Skipped a generated record with invalid concept ID: {entity_id}")
                         continue
     
                     # Add mention
                     mentions[target_mention_indices[m_i]]["entity_id"] = entity_id
 
+        # Match records by mention name when the output length is unexpected
         else:
             for name, entity_id in zip(names, entity_ids):
 
@@ -389,13 +426,13 @@ class LLMED(BaseEDReranker):
                         normalized_name2 = n
                         break
                 if normalized_name2 is None:
-                    logger.info(f"[{doc_key}] Skipped a generated line with invalid mention: '{normalized_name}' not in {list(normalized_name_to_mention_indices.keys())}")
+                    logger.info(f"[{doc_key}] Skipped a generated record with invalid mention: '{normalized_name}' not in {list(normalized_name_to_mention_indices.keys())}")
                     continue
                 normalized_name = normalized_name2
 
                 # Check whether the entity ID can be found in the possible list
                 if entity_id not in possible_entity_ids:
-                    logger.info(f"[{doc_key}] Skipped a generated line with invalid concept ID: {entity_id}")
+                    logger.info(f"[{doc_key}] Skipped a generated record with invalid concept ID: {entity_id}")
                     continue
 
                 # Add mention
@@ -403,7 +440,7 @@ class LLMED(BaseEDReranker):
                 for m_i in mention_indices:
                     mentions[m_i]["entity_id"] = entity_id
 
-        # Check
+        # Check that non-target mentions remain unchanged
         for m_i in range(len(document["mentions"])):
             if m_i not in target_mention_indices:
                 assert mentions[m_i]["entity_id"] == "NO-PRED"
@@ -612,10 +649,9 @@ class LLMED(BaseEDReranker):
     ) -> str:
         """Generate a prompt for the output based on the provided document, candidate entity pages, and target mention indices."""
 
-        prompt = ""
-
+        # Convert the gold entity assignments into JSON records
+        records: list[dict[str, str]] = []
         words = " ".join(document["sentences"]).split()
-
         for m_i, mention in enumerate(document["mentions"]):
             if m_i in target_mention_indices:
                 begin_i, end_i = mention["span"]
@@ -631,9 +667,13 @@ class LLMED(BaseEDReranker):
                 }:
                     entity_id = "NA"
 
-                prompt += f"- {name} | {entity_id}\n"
+                records.append({
+                    "mention": name,
+                    "entity_id": entity_id,
+                })
 
-        return prompt.rstrip()
+        # Serialize the records as a JSON array
+        return json.dumps(records, ensure_ascii=False, indent=4)
 
     def submit_batch(
         self,

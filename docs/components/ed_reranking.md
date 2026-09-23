@@ -247,7 +247,7 @@ model = ...
 # Instantiate the LLM-based ED-Reranking component with the user-defined entity dictionary
 reranker = LLMED(
     model=model,
-    prompt_template_name_or_path="ed_11_zeroshot",
+    prompt_template_name_or_path="ed_12_zeroshot",
     knowledge_base_name="<your KB name>",
     entity_dict_path="/path/to/entity_dict.json",
 )
