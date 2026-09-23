@@ -15,14 +15,14 @@ The goal is to decompose the text into a set of simple, standalone facts that co
 - Do not add new information or interpretations that are not supported by the text.
 - Exclude opinions, emotions, speculations, or figurative language — focus only on objective factual content.
 - Keep the language concise and declarative.
-- If there are no factual statements to extract, output exactly: No facts found.
+- If there are no factual statements to extract, return an empty JSON array (`[]`).
 
 ### Output Format
 
-- Write **each fact on a new line**.
-- Do **not** use quotes, numbering, or bullet points.
-- Output plain text only — no headings, explanations, or additional formatting.
-- The entire output should consist solely of the facts (or the phrase "No facts found.").
+- Return a JSON array with one object for each extracted fact.
+- Each object must contain a `"text"` field with the factual statement.
+- Do not return Markdown code fences or any text outside the JSON array.
+- The entire output should consist solely of the JSON array.
 
 ### Examples
 
@@ -34,12 +34,26 @@ Following his ouster, hundreds of OpenAI employees, including co-founder and boa
 Microsoft CEO Satya Nadella said Monday that Altman and others from OpenAI would be joining to start a "new advanced AI research team."
 
 Output:
-OpenAI brings Sam Altman back as CEO less than a week after he was fired by the board.
-Sam Altman was fired by the board of OpenAI.
-Hundreds of OpenAI employees, including Ilya Sutskever, signed a letter demanding that remaining board members resign or they would leave.
-Ilya Sutskever is a co-founder and board member of OpenAI.
-Satya Nadella said that Sam Altman and others from OpenAI would be joining to start a new advanced AI research team.
-Satya Nadella is the CEO of Microsoft.
+[
+    {{
+        "text": "OpenAI brings Sam Altman back as CEO less than a week after he was fired by the board."
+    }},
+    {{
+        "text": "Sam Altman was fired by the board of OpenAI."
+    }},
+    {{
+        "text": "Hundreds of OpenAI employees, including Ilya Sutskever, signed a letter demanding that remaining board members resign or they would leave."
+    }},
+    {{
+        "text": "Ilya Sutskever is a co-founder and board member of OpenAI."
+    }},
+    {{
+        "text": "Satya Nadella said that Sam Altman and others from OpenAI would be joining to start a new advanced AI research team."
+    }},
+    {{
+        "text": "Satya Nadella is the CEO of Microsoft."
+    }}
+]
 
 #### Example 2
 
@@ -48,9 +62,17 @@ Google announced a partnership with Anthropic to integrate Claude models into Go
 The collaboration aims to improve safety and reliability in large language models.
 
 Output:
-Google announced a partnership with Anthropic to integrate Claude models into Google Cloud services.
-The collaboration aims to improve safety and reliability in large language models.
-Claude models will be integrated into Google Cloud services through the partnership between Google and Anthropic.
+[
+    {{
+        "text": "Google announced a partnership with Anthropic to integrate Claude models into Google Cloud services."
+    }},
+    {{
+        "text": "The collaboration aims to improve safety and reliability in large language models."
+    }},
+    {{
+        "text": "Claude models will be integrated into Google Cloud services through the partnership between Google and Anthropic."
+    }}
+]
 
 ### Input
 
@@ -58,4 +80,4 @@ Input:
 {input_text}
 
 Now, extract all factual statements explicitly described in this text.
-Write each fact on a new line, following the same style as in the examples.
+Provide the output in the JSON array format specified above.

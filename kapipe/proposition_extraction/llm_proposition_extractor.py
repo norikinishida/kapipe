@@ -1,11 +1,16 @@
 from __future__ import annotations
 
+import logging
+
 import torch
 
 from .. import utils
 from ..datatypes import Passage
 from ..llms import BaseLLM, OpenAILLM
 from .base import BasePropositionExtractor
+
+
+logger = logging.getLogger(__name__)
 
 
 class LLMPropositionExtractor(BasePropositionExtractor):
@@ -16,7 +21,7 @@ class LLMPropositionExtractor(BasePropositionExtractor):
         # External
         model: BaseLLM,
         # Internal
-        prompt_template_name_or_path: str = "proposition_extraction_01",
+        prompt_template_name_or_path: str = "proposition_extraction_02",
     ) -> None:
 
         self.model = model
@@ -97,11 +102,53 @@ class LLMPropositionExtractor(BasePropositionExtractor):
     ) -> list[str]:
         """Parse the generated response into proposition statements."""
 
-        statements = [
-            line.strip()
-            for line in generated_text.split("\n")
-            if line.strip() != ""
-        ]
+        # Parse the generated response as a JSON array
+        records = utils.safe_json_loads(
+            generated_text=generated_text,
+            fallback=[],
+            list_type=True,
+        )
+
+        # Extract valid proposition statements
+        statements: list[str] = []
+        for record in records:
+            # Skip malformed array elements
+            if not isinstance(record, dict):
+                logger.warning(
+                    "Skipped a proposition that is not a JSON object: %s",
+                    record,
+                )
+                continue
+
+            # Skip records that do not contain all required keys
+            required_keys = {"text"}
+            if not required_keys.issubset(record.keys()):
+                logger.warning(
+                    "Skipped a proposition with missing fields: %s",
+                    record,
+                )
+                continue
+
+            # Skip records with non-string text
+            statement = record["text"]
+            if not isinstance(statement, str):
+                logger.warning(
+                    "Skipped a proposition with non-string text: %s",
+                    record,
+                )
+                continue
+            statement = statement.strip()
+
+            # Skip empty proposition statements
+            if statement == "":
+                logger.warning(
+                    "Skipped a proposition with empty text: %s",
+                    record,
+                )
+                continue
+
+            # Add the proposition statement
+            statements.append(statement)
 
         return statements
 

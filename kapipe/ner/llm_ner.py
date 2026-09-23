@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import copy
+import json
 import logging
 import os
 import re
@@ -99,7 +100,7 @@ class LLMNER(BaseNER):
         # Internal
         vocab_etype: dict[str, int] | str,
         etype_meta_info: dict[str, dict[str, str]] | str,
-        prompt_template_name_or_path: str = "ner_14_zeroshot",
+        prompt_template_name_or_path: str = "ner_15_zeroshot",
         # Optional (Internal)
         demonstration_documents: list[Document] | str | None = None,
         # Optional
@@ -168,13 +169,6 @@ class LLMNER(BaseNER):
 
         # Generate the prompt section for demonstrations
         self.demonstrations_prompt = self.generate_demonstrations_prompt()
-
-        # Define regular expression for output parsing.
-        # Parse generated lines of the followingform:
-        #
-        #     - [mention text] | [entity type]
-        #
-        self.re_comp = re.compile(r"(.+?)\s*(.+?)\s*\|\s*(.+?)$")
 
         # Create entity type mapping (normalized pretty name -> canonical name)
         # e.g., "Location" -> "LOC"
@@ -298,7 +292,8 @@ class LLMNER(BaseNER):
     def generate_output_prompt(self, document: Document) -> str:
         """Generate the prompt for the output mentions."""
 
-        prompt = ""
+        # Convert the gold mentions into JSON records
+        records: list[dict[str, str]] = []
         words = " ".join(document["sentences"]).split()
         for mention in document["mentions"]:
             begin_i, end_i = mention["span"]
@@ -308,9 +303,13 @@ class LLMNER(BaseNER):
                 pretty_name = self.etype_meta_info[etype]["Pretty Name"]
             else:
                 pretty_name = etype
-            prompt += f"- {name} | {pretty_name}\n"
+            records.append({
+                "mention": name,
+                "entity_type": pretty_name
+            })
 
-        return prompt.rstrip()
+        # Serialize the records as a JSON array
+        return json.dumps(records, ensure_ascii=False, indent=4)
 
     def parse(self, document: Document, generated_text: str) -> list[Mention]:
         """Parse the generated text into the mentions."""
@@ -342,22 +341,61 @@ class LLMNER(BaseNER):
             s_len = len(sent.split())
             token_index_to_sent_index.extend([s_i] * s_len)
 
-        # Parse the generated text and extract mention tuples
+        # Parse the generated response as a JSON array
+        records = utils.safe_json_loads(
+            generated_text=generated_text,
+            fallback=[],
+            list_type=True,
+        )
+
+        # Parse the generated records and extract mention tuples
         # (begin_token_index, end_token_index, entity_type)
         tuples: list[tuple[int, int, str]] = []
-        for generated_line in generated_text.split("\n"):
-            generated_line = generated_line.strip()
+        for record in records:
 
-            # Skip the empty line
-            if generated_line == "":
+            # Skip malformed array elements
+            if not isinstance(record, dict):
+                logger.warning(
+                    "[%s] Skipped an entity mention that is not a JSON "
+                    "object: %s",
+                    doc_key,
+                    record,
+                )
                 continue
 
-            # Parse the generated line
-            parsed = self.re_comp.findall(generated_line)
-            if not (len(parsed) == 1 and len(parsed[0]) == 3):
-                logger.info(f"[{doc_key}] Skipped a generated line of invalid formatting: '{generated_line}'")
+            # Skip records that do not contain all required keys
+            required_keys = {"mention", "entity_type"}
+            if not required_keys.issubset(record.keys()):
+                logger.warning(
+                    "[%s] Skipped an entity mention with missing fields: %s",
+                    doc_key,
+                    record,
+                )
                 continue
-            _, name, entity_type = parsed[0]
+
+            # Skip records with a non-string mention
+            name = record["mention"]
+            if not isinstance(name, str):
+                logger.warning(
+                    "[%s] Skipped an entity mention with a non-string "
+                    "mention: %s",
+                    doc_key,
+                    record,
+                )
+                continue
+            name = name.strip()
+
+            # Skip entries with a non-string entity type
+            entity_type = record["entity_type"]
+            if not isinstance(entity_type, str):
+                logger.warning(
+                    "[%s] Skipped an entity mention with a non-string "
+                    "entity type: %s",
+                    doc_key,
+                    record,
+                )
+                continue
+            entity_type = entity_type.strip()
 
             # Check whether the mention can be found in the input text
             # i.e., get word-level spans
@@ -378,15 +416,22 @@ class LLMNER(BaseNER):
             # Remove very long spans
             spans = [(b,e) for b,e in spans if (e - b) <= 10]
 
-            # Skip this line if no mention string is detected
+            # Skip this record if no mention string is detected
             if len(spans) == 0:
-                logger.info(f"[{doc_key}] Skipped a generated line with invalid mention: '{generated_line}'")
+                logger.info(
+                    f"[{doc_key}] Skipped a generated entity mention with "
+                    f"an invalid mention: '{record}'"
+                )
                 continue
 
             # Check whether the entity type can be found in the possible list
             normalized_entity_type = entity_type.lower()
             if not normalized_entity_type in self.normalized_to_canonical:
-                logger.info(f"[{doc_key}] A generated line contains invalid entity type: '{generated_line}'")
+                logger.info(
+                    f"[{doc_key}] A generated entity mention contains an "
+                    f"invalid entity type: '{record}'"
+                )
+                # NOTE: Keep entity types that are not in the possible list
                 # continue
 
             # Map the normalized entity type to the canonical entity type

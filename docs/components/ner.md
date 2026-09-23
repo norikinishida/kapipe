@@ -150,7 +150,7 @@ etype_meta_info = {
 # Instantiate the LLM-based NER component with the user-defined entity type schema
 extractor = LLMNER(
     model=model,
-    prompt_template_name_or_path="ner_14_zeroshot",
+    prompt_template_name_or_path="ner_15_zeroshot",
     vocab_etype=vocab_etype,
     etype_meta_info=etype_meta_info,
 )

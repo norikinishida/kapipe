@@ -4,7 +4,6 @@ from typing import Any
 
 __all__ = [
     "accuracy",
-    "llm4eval",
     "recall",
     "token_level_f1",
 ]
@@ -12,7 +11,6 @@ __all__ = [
 
 _NAME_TO_MODULE = {
     "accuracy": "accuracy",
-    "llm4eval": "llm4eval",
     "recall": "recall",
     "token_level_f1": "token_level_f1",
 }

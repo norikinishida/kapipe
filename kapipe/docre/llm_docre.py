@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 import copy
+import json
 import logging
 import os
-import re
 from typing import Any
 
 import torch
@@ -110,7 +110,7 @@ class LLMDocRE(BaseDocRE):
         possible_tail_entity_types: list[str] | None,
         vocab_relation: dict[str, int] | str,
         rel_meta_info: dict[str, dict[str, str]] | str,
-        prompt_template_name_or_path: str = "docre_09_zeroshot",
+        prompt_template_name_or_path: str = "docre_10_zeroshot",
         # Optional (Internal)
         entity_dict_path: str | None = None,
         demonstration_documents: list[Document] | str | None = None,
@@ -222,13 +222,6 @@ class LLMDocRE(BaseDocRE):
 
         # Generate the prompt section for demonstrations
         self.demonstrations_prompt = self.generate_demonstrations_prompt()
-
-        # Define regular expression for output parsing.
-        # Parse lines of the following form:
-        #
-        #     - [Entity0] | [relation name] | [Entity1]
-        #
-        self.re_comp = re.compile(r"(.+?)\s*(.+?)\s*\|\s*(.+?)\s*\|\s*(.+?)$")
 
         # Create relation label mapping (normalized pretty name -> canonical name)
         # e.g., "chemical-induce-disease" -> "CID"
@@ -439,15 +432,21 @@ class LLMDocRE(BaseDocRE):
     def generate_output_prompt(self, document: Document) -> str:
         """Generate the prompt for the output relations."""
 
-        prompt = ""
+        # Convert the gold relations into JSON records
+        records: list[dict[str, str]] = []
         for triple in document["relations"]:
             head_idx = triple["arg1"]
             tail_idx = triple["arg2"]
             rel = triple["relation"]
             pretty_name = self.rel_meta_info[rel]["Pretty Name"]
-            prompt += f"- Entity{head_idx} | {pretty_name} | Entity{tail_idx}\n"
+            records.append({
+                "head": f"Entity{head_idx}",
+                "relation": pretty_name,
+                "tail": f"Entity{tail_idx}",
+            })
 
-        return prompt.rstrip()
+        # Serialize the records as a JSON array
+        return json.dumps(records, ensure_ascii=False, indent=4)
 
     def parse(self, document: Document, generated_text: str) -> list[Triple]:
         """Parse the generated text into triples."""
@@ -459,22 +458,67 @@ class LLMDocRE(BaseDocRE):
         for e_i, e in enumerate(document["entities"]):
             entity_id_to_index[f"Entity{e_i}"] = e_i
 
+        # Parse the generated response as a JSON array
+        records = utils.safe_json_loads(
+            generated_text=generated_text,
+            fallback=[],
+            list_type=True,
+        )
+
+        # Parse the generated records into relation tuples
         tuples: list[tuple[int, str, int]] = []
-        for generated_line in generated_text.split("\n"):
-            generated_line = generated_line.strip()
-
-            # Skip the empty line
-            if generated_line == "":
+        for record in records:
+            # Skip malformed array elements
+            if not isinstance(record, dict):
+                logger.warning(
+                    "[%s] Skipped a relation that is not a JSON object: %s",
+                    doc_key,
+                    record,
+                )
                 continue
 
-            # Parse the generated line
-            parsed = self.re_comp.findall(generated_line)
-            if not (len(parsed) == 1 and len(parsed[0]) == 4):
-                logger.info(
-                    f"[{doc_key}] Skipped a generated line of invalid formatting: "
-                    f"'{generated_line}'")
+            # Skip records that do not contain all required keys
+            required_keys = {"head", "relation", "tail"}
+            if not required_keys.issubset(record.keys()):
+                logger.warning(
+                    "[%s] Skipped a relation with missing fields: %s",
+                    doc_key,
+                    record,
+                )
                 continue
-            _, head_id, relation, tail_id= parsed[0]
+
+            # Skip records with a non-string head entity ID
+            head_id = record["head"]
+            if not isinstance(head_id, str):
+                logger.warning(
+                    "[%s] Skipped a relation with a non-string head: %s",
+                    doc_key,
+                    record,
+                )
+                continue
+            head_id = head_id.strip()
+
+            # Skip records with a non-string relation label
+            relation = record["relation"]
+            if not isinstance(relation, str):
+                logger.warning(
+                    "[%s] Skipped a relation with a non-string label: %s",
+                    doc_key,
+                    record,
+                )
+                continue
+            relation = relation.strip()
+
+            # Skip records with a non-string tail entity ID
+            tail_id = record["tail"]
+            if not isinstance(tail_id, str):
+                logger.warning(
+                    "[%s] Skipped a relation with a non-string tail: %s",
+                    doc_key,
+                    record,
+                )
+                continue
+            tail_id = tail_id.strip()
 
             # Check whether the head/tail IDs can be found in the possible list
             if (
@@ -484,16 +528,17 @@ class LLMDocRE(BaseDocRE):
                 or
                 head_id == tail_id
             ):
-                logger.info(f"[{doc_key}] Skipped a generated line with invalid entity pair: '{generated_line}'")
+                logger.info(f"[{doc_key}] Skipped a generated record with invalid entity pair: '{record}'")
                 continue
 
             # Check whether the normalized relation label can be found in the possible set
             normalized_relation = relation.lower()
             if normalized_relation not in self.normalized_to_canonical:
                 logger.info(
-                    f"[{doc_key}] A generated line contains invalid relation: "
-                    f"'{generated_line}'"
+                    f"[{doc_key}] A generated record contains invalid relation: "
+                    f"'{record}'"
                 )
+                # NOTE: Keep relation labels that are not in the possible list
                 # continue
 
             # Transform the normalized relation to canonical label
