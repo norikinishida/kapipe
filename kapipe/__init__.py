@@ -2,7 +2,7 @@ import importlib
 from types import ModuleType
 
 
-__version__ = "0.3.0"
+__version__ = "0.3.1"
 
 
 __all__ = [

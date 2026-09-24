@@ -11,6 +11,7 @@ torchtext
 torchvision
 opt-einsum>=3.3.0
 transformers>=4.46.0
+huggingface_hub>=0.32.0
 accelerate>=1.0.1 
 bitsandbytes>=0.44.1
 openai>=1.53.0

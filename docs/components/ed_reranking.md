@@ -167,8 +167,6 @@ The following public snapshots can be loaded with `from_identifier(...)`.
 
 These snapshots are predefined resources for existing benchmark settings. You can also use your own entity dictionary by training or configuring a reranker for it.
 
-`identifier` is resolved through the public resource configuration installed under `~/.kapipe/download/config`.
-
 ## Usage
 
 ### Identical Entity Reranking:

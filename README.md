@@ -45,20 +45,6 @@ cd kapipe
 python -m pip install -e .
 ```
 
-Some pretrained models and configuration files are distributed separately.
-
-```bash
-mkdir -p ~/.kapipe
-mv release.YYYYMMDD.tar.gz ~/.kapipe
-cd ~/.kapipe
-tar -zxvf release.YYYYMMDD.tar.gz
-```
-
-Release files are available here:
-Please use the latest release file!
-
-[KAPipe Release Files](https://drive.google.com/drive/folders/16ypMCoLYf5kDxglDD_NYoCNAfhTy4Qwp)
-
 ## Components
 
 In KAPipe, a ***component*** is a modular processing unit that implements a specific approach within one of the four stages: extraction, organization, retrieval, or utilization.

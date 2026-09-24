@@ -151,8 +151,6 @@ The following public snapshots can be loaded with `from_identifier(...)`.
 
 These snapshots are predefined resources for common benchmark settings. You can also define your own relation schema and train or configure an extractor for it.
 
-`identifier` is resolved through the public resource configuration installed under `~/.kapipe/download/config`.
-
 ## Usage
 
 ### Predefined ATLOP-based DocRE:
