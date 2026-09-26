@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import copy
+from datetime import datetime
 import logging
 import os
 from typing import Any
@@ -29,6 +30,7 @@ class ProStructRAGPipeline:
     def __init__(
         self,
         proposition_extraction: BasePropositionExtractor,
+        intermediate_passage_retrieval: BasePassageRetriever,
         proposition_relation_extraction: BasePropositionRelationExtractor,
         proposition_relation_refinement: BasePropositionRelationRefiner,
         passage_graph_construction: BasePassageGraphConstructor,
@@ -39,6 +41,9 @@ class ProStructRAGPipeline:
     ) -> None:
 
         self.proposition_extraction: BasePropositionExtractor = proposition_extraction
+        self.intermediate_passage_retrieval: BasePassageRetriever = (
+            intermediate_passage_retrieval
+        )
         self.proposition_relation_extraction: BasePropositionRelationExtractor = (
             proposition_relation_extraction
         )
@@ -67,8 +72,10 @@ class ProStructRAGPipeline:
         top_k: int,
         prefilter_k: int,
         search_batch_size: int,
-        proposition_relation_extraction_indexing_kwargs: dict[str, Any] | None = None,
+        intermediate_passage_retrieval_indexing_kwargs: dict[str, Any] | None = None,
         passage_retrieval_indexing_kwargs: dict[str, Any] | None = None,
+        # Pipeline-specific arguments
+        use_timestamp_for_candidate_filtering_and_sorting: bool = True,
         # Target component
         target_component: str | None = None,
         # Batch API
@@ -78,8 +85,8 @@ class ProStructRAGPipeline:
         """Build the full index or run one selected indexing component."""
 
         # Use empty mappings when optional mappings are omitted
-        if proposition_relation_extraction_indexing_kwargs is None:
-            proposition_relation_extraction_indexing_kwargs = {}
+        if intermediate_passage_retrieval_indexing_kwargs is None:
+            intermediate_passage_retrieval_indexing_kwargs = {}
         if passage_retrieval_indexing_kwargs is None:
             passage_retrieval_indexing_kwargs = {}
 
@@ -188,26 +195,93 @@ class ProStructRAGPipeline:
                     os.path.join(index_dir, "propositions.jsonl")
                 )
 
-            # Build index for propositions
+            #################################
+            # Pipeline-specific processing
+            #################################
+
+            # Validate the intermediate retrieval arguments
+            if top_k <= 0:
+                raise ValueError("top_k must be greater than 0.")
+            if search_batch_size <= 0:
+                raise ValueError("search_batch_size must be greater than 0.")
+
+            # Build the intermediate retrieval index for propositions
             intermediate_index_dir: str = os.path.join(
                 index_dir,
                 "intermediate_passage_retrieval_index",
             )
-            self.proposition_relation_extraction.make_index(
-                propositions=propositions,
+            self.intermediate_passage_retrieval.make_index(
+                passages=propositions,
                 index_dir=intermediate_index_dir,
-                **proposition_relation_extraction_indexing_kwargs,
+                **intermediate_passage_retrieval_indexing_kwargs,
             )
 
-            # Retrieve tail propositions for each proposition
-            batch_tail_propositions: list[list[Passage]] = (
-                self.proposition_relation_extraction.batch_retrieve_tail_propositions(
-                    head_propositions=propositions,
-                    top_k=top_k,
-                    prefilter_k=prefilter_k,
-                    batch_size=search_batch_size,
+            # Retrieve candidate propositions in batches
+            batch_retrieved_propositions: list[list[Passage]] = []
+            for begin_i in range(0, len(propositions), search_batch_size):
+                batch_in: list[Passage] = propositions[
+                    begin_i:begin_i+search_batch_size
+                ]
+                batch_out: list[list[Passage]] = (
+                    self.intermediate_passage_retrieval.search(
+                        queries=[proposition["text"] for proposition in batch_in],
+                        top_k=prefilter_k,
+                    )
                 )
-            )
+                batch_retrieved_propositions.extend(batch_out)
+
+            # Filter and order candidate tails
+            batch_tail_propositions: list[list[Passage]] = []
+            for head_proposition, retrieved_propositions in zip(
+                propositions,
+                batch_retrieved_propositions,
+            ):
+                tail_propositions: list[Passage] = []
+
+                if use_timestamp_for_candidate_filtering_and_sorting:
+                    # Parse the head timestamp
+                    head_timestamp: datetime = datetime.strptime(
+                        head_proposition["timestamp"],
+                        "%Y-%m-%d",
+                    )
+
+                for retrieved_proposition in retrieved_propositions:
+                    # Remove the head proposition from its own candidates
+                    if (
+                        retrieved_proposition["passage_key"]
+                        == head_proposition["passage_key"]
+                    ):
+                        continue
+
+                    # Remove propositions published after the head proposition
+                    if use_timestamp_for_candidate_filtering_and_sorting:
+                        tail_timestamp: datetime = datetime.strptime(
+                            retrieved_proposition["timestamp"],
+                            "%Y-%m-%d",
+                        )
+                        if head_timestamp < tail_timestamp:
+                            continue
+
+                    # Keep the highest-ranked candidates after filtering
+                    tail_propositions.append(retrieved_proposition)
+                    if len(tail_propositions) == top_k:
+                        break
+
+                # Order the selected tails chronologically
+                if use_timestamp_for_candidate_filtering_and_sorting:
+                    tail_propositions = sorted(
+                        tail_propositions,
+                        key=lambda proposition: datetime.strptime(
+                            proposition["timestamp"],
+                            "%Y-%m-%d",
+                        ),
+                    )
+
+                batch_tail_propositions.append(tail_propositions)
+
+            #################################
+            # Proposition Relation Extraction
+            #################################
 
             # Extract proposition relations for each proposition 
             if batch_mode is None:
@@ -450,7 +524,7 @@ class ProStructRAGPipeline:
         # Component-specific arguments
         top_k: int,
         hop_size: int,
-        # ProStruct-RAG-specific arguments
+        # Pipeline-specific arguments
         remove_same_timestamp_updates: bool = True,
         append_question_timestamp: bool = True,
         # Batch API
@@ -511,7 +585,7 @@ class ProStructRAGPipeline:
             graph_contexts_list.append(graph_contexts)
 
             #################################
-            # ProStruct-RAG-specific processing
+            # Pipeline-specific processing
             #################################
 
             # Remove same-timestamp update edges when requested
@@ -549,7 +623,7 @@ class ProStructRAGPipeline:
             formatted_contexts_list.append(formatted_contexts)
 
             #################################
-            # ProStruct-RAG-specific processing
+            # Pipeline-specific processing
             #################################
 
             # Add the query date using the ProStruct-RAG representation

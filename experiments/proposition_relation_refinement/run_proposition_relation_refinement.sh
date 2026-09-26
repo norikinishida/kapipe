@@ -14,7 +14,7 @@ STORAGE_RESULTS=/home/nishida/projects/kapipe/experiments/proposition_relation_r
 # Method
 METHOD=llm_proposition_relation_refiner
 CONFIG_PATH=./config/llm_proposition_relation_refiner.conf
-CONFIG_NAME=gpt5_4_temporal
+CONFIG_NAME=gpt5_4
 
 # Input Data
 INPUT_TRIPLES=${STORAGE_DATA}/examples/misc/triples.json

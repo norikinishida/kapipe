@@ -4,23 +4,23 @@ You are given a question, a set of options, and context, which may come from mul
 
 Your task is to:
 
-1. **Select the correct answer from the provided options** based on the information in the context.
-2. Provide a **rationale** explaining why the selected option is correct, grounded explicitly in the given context.
-3. Provide a **confidence score** between 0.0 and 1.0, indicating how certain you are about your selection.
+1. Select the correct answer from the provided options based on the information in the context.
+2. Provide a rationale explaining why the selected option is correct, grounded explicitly in the given context.
+3. Provide a confidence score between 0.0 and 1.0, indicating how certain you are about your selection.
 
 ### Guidelines
 
-- Base your answer and rationale **only on the given context** — do not use outside knowledge.
-- Your answer must be **exactly one of the provided options**.
-- Your answer must be a **single sentence** (no line breaks).
+- Base your answer and rationale only on the given context — do not use outside knowledge.
+- Your answer must be exactly one of the provided options.
+- Your answer must be a single sentence (no line breaks).
 - The rationale may consist of multiple sentences.
 - The rationale should:
   - Explicitly reference relevant information from the context.
   - Explain why the selected option is supported.
   - Avoid introducing any information not present in the context.
 - The score should reflect your confidence in the correctness of your answer:
-  - **1.0** = absolutely certain  
-  - **0.0** = no idea  
+  - 1.0 = absolutely certain
+  - 0.0 = no idea
 
 - Some context passages may be structured passages that list multiple time-stamped factual statements and an explicit Relations section.
 - The real world evolves over time, and factual statements may be updated, contradicted by other statements, or later found to be incorrect; therefore, not all statements in the context passages should be assumed to be simultaneously valid.

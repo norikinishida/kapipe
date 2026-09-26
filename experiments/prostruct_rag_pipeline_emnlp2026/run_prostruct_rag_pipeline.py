@@ -199,6 +199,11 @@ def main(args: argparse.Namespace) -> None:
         )
     )
 
+    # Instantiate the intermediate Passage Retrieval component
+    intermediate_passage_retrieval = instantiate_passage_retrieval_component(
+        passage_retrieval_config=config["intermediate_passage_retrieval"],
+    )
+
     # Instantiate the Proposition Relation Extraction component
     proposition_relation_extraction, loaded_llm_map = (
         instantiate_proposition_relation_extraction_component(
@@ -252,6 +257,7 @@ def main(args: argparse.Namespace) -> None:
     # Instantiate the ProStruct-RAG pipeline
     prostruct_rag = ProStructRAGPipeline(
         proposition_extraction=proposition_extraction,
+        intermediate_passage_retrieval=intermediate_passage_retrieval,
         proposition_relation_extraction=proposition_relation_extraction,
         proposition_relation_refinement=proposition_relation_refinement,
         passage_graph_construction=passage_graph_construction,
@@ -270,19 +276,18 @@ def main(args: argparse.Namespace) -> None:
         passages: list[dict[str, Any]] = utils.read_jsonl(input_passages_path)
 
         # Set component-specific arguments
-        if config["proposition_relation_extraction"]["retriever"]["method_name"] == (
-            "bm25"
-        ):
-            proposition_relation_extraction_indexing_kwargs = {}
-            passage_retrieval_indexing_kwargs = {}
+        if config["intermediate_passage_retrieval"]["method_name"] == "bm25":
+            intermediate_passage_retrieval_indexing_kwargs = {}
         else:
-            proposition_relation_extraction_indexing_kwargs={
+            intermediate_passage_retrieval_indexing_kwargs = {
                 "batch_size": (
-                    config["proposition_relation_extraction"]["retriever"][
-                        "indexing_batch_size"
-                    ]
+                    config["intermediate_passage_retrieval"]["indexing_batch_size"]
                 ),
             }
+
+        if config["passage_retrieval"]["method_name"] == "bm25":
+            passage_retrieval_indexing_kwargs = {}
+        else:
             passage_retrieval_indexing_kwargs = {
                 "batch_size": (
                     config["passage_retrieval"]["indexing_batch_size"]
@@ -297,24 +302,20 @@ def main(args: argparse.Namespace) -> None:
             index_dir=index_dir,
             # Component-specific arguments
             top_k=(
-                config["proposition_relation_extraction"]["retriever"][
-                    "top_k"
-                ]
+                config["intermediate_passage_retrieval"]["top_k"]
             ),
             prefilter_k=(
-                config["proposition_relation_extraction"]["retriever"][
-                    "prefilter_k"
-                ]
+                config["intermediate_passage_retrieval"]["prefilter_k"]
             ),
             search_batch_size=(
-                config["proposition_relation_extraction"]["retriever"][
-                    "search_batch_size"
-                ]
+                config["intermediate_passage_retrieval"]["search_batch_size"]
             ),
-            proposition_relation_extraction_indexing_kwargs=(
-                proposition_relation_extraction_indexing_kwargs
+            intermediate_passage_retrieval_indexing_kwargs=(
+                intermediate_passage_retrieval_indexing_kwargs
             ),
             passage_retrieval_indexing_kwargs=passage_retrieval_indexing_kwargs,
+            # Pipeline-specific arguments
+            use_timestamp_for_candidate_filtering_and_sorting=True,
             # Target component
             target_component=actiontype,
             # Batch API
@@ -344,7 +345,7 @@ def main(args: argparse.Namespace) -> None:
             # Component-specific arguments
             top_k=config["passage_retrieval"]["top_k"],
             hop_size=config["graph_retrieval"]["hop_size"],
-            # ProStruct-RAG-specific arguments
+            # Pipeline-specific arguments
             remove_same_timestamp_updates=True,
             append_question_timestamp=True,
             # Batch API
@@ -510,19 +511,10 @@ def instantiate_proposition_relation_extraction_component(
             loaded_llm_map=loaded_llm_map,
         )
 
-        # Instantiate the Passage Retrieval component for
-        # candidate proposition retrieval.
-        retriever: BasePassageRetriever = instantiate_passage_retrieval_component(
-            passage_retrieval_config=(
-                proposition_relation_extraction_config["retriever"]
-            ),
-        )
-
         # Instantiate the LLM-based Proposition Relation Extraction component
         proposition_relation_extraction: BasePropositionRelationExtractor = (
             LLMPropositionRelationExtractor(
                 model=llm,
-                retriever=retriever,
                 prompt_template_name_or_path=(
                     proposition_relation_extraction_config[
                         "prompt_template_name_or_path"

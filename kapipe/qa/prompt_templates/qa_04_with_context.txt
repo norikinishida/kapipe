@@ -4,21 +4,21 @@ You are given a question and context, which may come from multiple sources.
 
 Your task is to:
 
-1. **Answer the question** based on the information in the provided context.
-2. Provide a **rationale** for your answer, grounded explicitly in the given context.
-3. Provide a **confidence score** between 0.0 and 1.0, indicating how certain you are about your answer.
+1. Answer the question based on the information in the provided context.
+2. Provide a rationale for your answer, grounded explicitly in the given context.
+3. Provide a confidence score between 0.0 and 1.0, indicating how certain you are about your answer.
 
 ### Guidelines
 
-- Base your answer **only on the given context** — do not use outside knowledge.
-- Your answer must be a **single sentence** (no line breaks).
+- Base your answer only on the given context — do not use outside knowledge.
+- Your answer must be a single sentence (no line breaks).
 - The rationale may consist of multiple sentences.
 - The rationale should:
   - Explicitly reference relevant information from the context.
   - Avoid introducing any information not present in the context.
 - The score should reflect your confidence in the correctness of your answer:
-  - **1.0** = absolutely certain
-  - **0.0** = no idea
+  - 1.0 = absolutely certain
+  - 0.0 = no idea
 
 ### Output Format
 

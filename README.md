@@ -8,10 +8,10 @@
 
 In KAPipe, knowledge acquisition is organized into four stages:
 
-1. **Extraction**: extracting knowledge units from unstructured data.
-2. **Organization**: organizing extracted knowledge units into structured representations such as knowledge graph.
+1. **Extraction**: extracting knowledge units and their relations from unstructured data.
+2. **Organization**: organizing extracted knowledge as a whole into coherent structures such as knowledge graphs.
 3. **Retrieval**: retrieving relevant knowledge for a given request.
-4. **Utilization**: using retrieved knowledge to solve for downstream tasks such as question answering.
+4. **Utilization**: using retrieved knowledge to solve downstream tasks such as question answering.
 
 For each stage, KAPipe provides reusable *components* that implement specific approaches.
 For example, KAPipe provides Document-level Relation Extraction and Proposition Extraction components for extraction, and Passage Retrieval and Graph Retrieval components for retrieval.
@@ -53,6 +53,7 @@ The following table summarizes the components currently supported by KAPipe.
 
 | Stage | Component | Module | Docs | Example |
 |---|---|---|---|---|
+| Extraction | Chunking | `kapipe.chunking` | [Docs](docs/components/chunking.md) | [Example](experiments/chunking) |
 | Extraction | Named Entity Recognition | `kapipe.ner` | [Docs](docs/components/ner.md) | [Example](experiments/ner) |
 | Extraction | Entity Disambiguation (Retrieval) | `kapipe.ed_retrieval` | [Docs](docs/components/ed_retrieval.md) | [Example](experiments/ed_retrieval) |
 | Extraction | Entity Disambiguation (Reranking) | `kapipe.ed_reranking` | [Docs](docs/components/ed_reranking.md) | [Example](experiments/ed_reranking) |
@@ -64,7 +65,6 @@ The following table summarizes the components currently supported by KAPipe.
 | Organization | Passage Graph Construction | `kapipe.passage_graph_construction` | [Docs](docs/components/passage_graph_construction.md) | [Example](experiments/passage_graph_construction) |
 | Organization | Community Clustering | `kapipe.community_clustering` | [Docs](docs/components/community_clustering.md) | [Example](experiments/community_clustering) |
 | Organization | Report Generation | `kapipe.report_generation` | [Docs](docs/components/report_generation.md) | [Example](experiments/report_generation) |
-| Organization | Chunking | `kapipe.chunking` | [Docs](docs/components/chunking.md) | [Example](experiments/chunking) |
 | Retrieval | Passage Retrieval | `kapipe.passage_retrieval` | [Docs](docs/components/passage_retrieval.md) | [Example](experiments/passage_retrieval) |
 | Retrieval | Graph Retrieval | `kapipe.graph_retrieval` | [Docs](docs/components/graph_retrieval.md) | [Example](experiments/graph_retrieval) |
 | Utilization | Context Formatting | `kapipe.context_formatting` | [Docs](docs/components/context_formatting.md) | [Example](experiments/context_formatting) |

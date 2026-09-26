@@ -20,16 +20,16 @@ Subject is ALWAYS more recent or equal in time to Object.
 
 ### Input Data
 
-- **Subject (Newer)**: {subject}
-- **Object (Older)**: {object}
-- **Current Relation**: {predicted_relation}
-- **Current Explanation**: {predicted_explanation}
+- Subject (Newer): {subject}
+- Object (Older): {object}
+- Current Relation: {predicted_relation}
+- Current Explanation: {predicted_explanation}
 
 ### Verification Steps (Reasonable Inference)
 
-1. **Attribute Identification**: Are they talking about the same entity/attribute? If the value changed over time, classify as **updates**.
-2. **Causal/Evidential Link**: Does the Subject make the Object more credible or explain it? If so, it is **supports**.
-3. **Avoid Over-Correction**: Do not default to NOREL if a clear logical connection exists. Use "Reasonable Inference" rather than demanding absolute certainty.
+1. Attribute Identification: Are they talking about the same entity/attribute? If the value changed over time, classify as **updates**.
+2. Causal/Evidential Link: Does the Subject make the Object more credible or explain it? If so, it is **supports**.
+3. Avoid Over-Correction: Do not default to NOREL if a clear logical connection exists. Use "Reasonable Inference" rather than demanding absolute certainty.
 
 ### Output Format (JSON)
 

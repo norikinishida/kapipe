@@ -1,0 +1,70 @@
+### Task
+
+Analyze the relationship between two propositions (Subject and Object).
+Verify the current relation and explanation, and refine them if necessary.
+
+### Guidelines
+
+1. Determine whether the propositions describe the same entity or attribute.
+2. Determine whether the current relation accurately describes the relation from Subject to Object. If not, replace it with a concise relation label. If there is no direct relation, use **NOREL**.
+3. Do not default to NOREL if a clear connection exists. Use reasonable inference rather than demanding absolute certainty.
+
+### Output Format
+
+Provide the output as exactly one JSON object:
+
+{{
+  "analysis": {{
+    "attribute_match": "[comparison of the entities or attributes involved]",
+    "logical_link": "[how the two propositions are related]",
+    "relation_validity": "[whether the current relation is valid]"
+  }},
+  "confidence_score": [score between 0.0 and 1.0],
+  "verified_relation": "[verified relation label]",
+  "explanation": "[concise justification for the verified relation]"
+}}
+
+Do not include Markdown code fences or text outside the JSON object.
+
+### Example
+
+Subject Proposition:
+A clinical trial found that the drug XYZ reduced symptoms in most participants.
+
+Object Proposition:
+The drug XYZ is effective at reducing symptoms.
+
+Current Relation:
+contradicts
+
+Current Explanation:
+The clinical trial conflicts with the claim about the drug's effectiveness.
+
+Output:
+{{
+  "analysis": {{
+    "attribute_match": "Both propositions describe the drug's effectiveness at reducing symptoms.",
+    "logical_link": "The clinical trial provides evidence for the claim about the drug's effectiveness.",
+    "relation_validity": "The current relation is invalid because the propositions support rather than contradict each other."
+  }},
+  "confidence_score": 1.0,
+  "verified_relation": "supports",
+  "explanation": "The clinical trial provides evidence that the drug is effective at reducing symptoms."
+}}
+
+### Input
+
+Subject Proposition:
+{subject}
+
+Object Proposition:
+{object}
+
+Current Relation:
+{predicted_relation}
+
+Current Explanation:
+{predicted_explanation}
+
+Now, verify the relation and explanation, and refine them if necessary.
+Provide the output in the JSON format specified above.

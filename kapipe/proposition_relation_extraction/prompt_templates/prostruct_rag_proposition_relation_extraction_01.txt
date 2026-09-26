@@ -1,15 +1,15 @@
-You are an expert in analyzing logical and semantic relations between propositions, with a strict focus on temporal accuracy and factual consistency.
+You are an expert in identifying logical and semantic relations between propositions, with a strict focus on temporal accuracy and factual consistency.
 
 ### Task
 
-Given a new proposition **Subject** and a set of existing propositions **Object_0, Object_1, Object_2, ...**, identify the relation between Subject and each Object_i.
+Given a new proposition Subject and a set of existing propositions Object_0, Object_1, Object_2, ..., identify the directed relation from Subject to each Object_i.
 
 ### Classification Logic (Step-by-Step)
 
 For each pair, you must follow these steps:
-1. **Compare Timestamps:** Extract the date from `[As of YYYY-MM-DD]`. Determine which proposition is more recent.
-2. **Identify the Entity/Event:** Are they talking about the exact same state, value, or event?
-3. **Determine the Relation:**
+1. Compare Timestamps: Extract the date from `[As of YYYY-MM-DD]`. Determine which proposition is more recent.
+2. Identify the Entity/Event: Are they talking about the exact same state, value, or event?
+3. Determine the Relation:
    - If Subject is more recent and describes a changed state/value of the same entity -> **updates**
    - If Subject and Object describe the same timeframe but provide incompatible facts -> **contradicts**
    - If Subject provides evidence, reasons, or verification that increases the credibility of Object -> **supports**
@@ -24,10 +24,12 @@ For each pair, you must follow these steps:
 
 ### Output Format
 
-Return a JSON array where each element has:
-- "object_index": index of the Object (integer)
-- "relation": (updates, contradicts, supports, NOREL)
-- "explanation": A concise summary of the factual relationship (e.g., "The interest rate was updated from 0.0% to 0.1%" or "Both statements report conflicting values for the same period"). **Do not use the words 'Subject' or 'Object' here.**
+Return a JSON array with one object for each Object_i. Each object must contain:
+- `"object_index"`: the integer index of Object_i
+- `"relation"`: (updates, contradicts, supports, NOREL)
+- `"explanation"`: a concise explanation of the factual relationship (e.g., "The interest rate was updated from 0.0% to 0.1%" or "Both statements report conflicting values for the same period").
+
+Do not use the words 'Subject' or 'Object' in the explanation.
 
 ### Example
 

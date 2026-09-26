@@ -36,6 +36,8 @@ This directory already includes example data.
 experiments/proposition_relation_extraction/data/examples/misc/propositions.jsonl
 ```
 
+The first line is the head proposition. Every subsequent line is a tail proposition whose relation from the head is classified.
+
 ## Step 3. Configuration Setup
 
 Adjust the settings in the following configuration file (HOCON format).
@@ -43,6 +45,9 @@ Adjust the settings in the following configuration file (HOCON format).
 ```bash
 experiments/proposition_relation_extraction/config/llm_proposition_relation_extractor.conf
 ```
+
+The example uses the default `proposition_relation_extraction_01` prompt and
+does not assume temporal ordering between the head and tail propositions.
 
 ## Step 4. Experiment Running
 
