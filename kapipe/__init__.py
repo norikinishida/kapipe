@@ -11,6 +11,7 @@ __all__ = [
     "utils",
 
     # Components for Knowledge Extraction
+    "chunking",
     "ner",
     "ed_retrieval",
     "ed_reranking",
@@ -24,7 +25,6 @@ __all__ = [
     "passage_graph_construction",
     "community_clustering",
     "report_generation",
-    "chunking",
 
     # Components for Knowledge Retrieval
     "passage_retrieval",

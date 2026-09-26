@@ -53,6 +53,7 @@ The following table summarizes the components currently supported by KAPipe.
 
 | Stage | Component | Module | Docs | Example |
 |---|---|---|---|---|
+| Extraction | Chunking | `kapipe.chunking` | [Docs](docs/components/chunking.md) | [Example](experiments/chunking) |
 | Extraction | Named Entity Recognition | `kapipe.ner` | [Docs](docs/components/ner.md) | [Example](experiments/ner) |
 | Extraction | Entity Disambiguation (Retrieval) | `kapipe.ed_retrieval` | [Docs](docs/components/ed_retrieval.md) | [Example](experiments/ed_retrieval) |
 | Extraction | Entity Disambiguation (Reranking) | `kapipe.ed_reranking` | [Docs](docs/components/ed_reranking.md) | [Example](experiments/ed_reranking) |
@@ -64,7 +65,6 @@ The following table summarizes the components currently supported by KAPipe.
 | Organization | Passage Graph Construction | `kapipe.passage_graph_construction` | [Docs](docs/components/passage_graph_construction.md) | [Example](experiments/passage_graph_construction) |
 | Organization | Community Clustering | `kapipe.community_clustering` | [Docs](docs/components/community_clustering.md) | [Example](experiments/community_clustering) |
 | Organization | Report Generation | `kapipe.report_generation` | [Docs](docs/components/report_generation.md) | [Example](experiments/report_generation) |
-| Organization | Chunking | `kapipe.chunking` | [Docs](docs/components/chunking.md) | [Example](experiments/chunking) |
 | Retrieval | Passage Retrieval | `kapipe.passage_retrieval` | [Docs](docs/components/passage_retrieval.md) | [Example](experiments/passage_retrieval) |
 | Retrieval | Graph Retrieval | `kapipe.graph_retrieval` | [Docs](docs/components/graph_retrieval.md) | [Example](experiments/graph_retrieval) |
 | Utilization | Context Formatting | `kapipe.context_formatting` | [Docs](docs/components/context_formatting.md) | [Example](experiments/context_formatting) |
