@@ -80,7 +80,7 @@ They represent selected compositions and are not intended to cover every possibl
 | `TripleExtractionPipeline` | Chains NER, Entity Disambiguation (Retrieval), Entity Disambiguation (Reranking), and Document-level Relation Extraction components | [Docs](docs/pipelines/triple_extraction_pipeline.md) | [Example](experiments/triple_extraction_pipeline) |
 | `RAGPipeline` | Chains Passage Retrieval and Question Answering components | [Docs](docs/pipelines/rag_pipeline.md) | [Example](experiments/rag_pipeline) |
 | `GraphRAGPipeline` | Chains triple extraction, Entity Graph Construction, Community Clustering, Report Generation, Passage Retrieval, and Question Answering components | [Docs](docs/pipelines/graphrag_pipeline.md) | [Example](experiments/graphrag_pipeline_tacl2026) |
-| `ProStructRAGPipeline` | Chains Proposition Extraction, (intermediate Passage Retrieval,) Proposition Relation Extraction, Proposition Relation Refinement, Passage Graph Construction, Passage Retrieval, Graph Retrieval, Context Formatting, and Question Answering components | [Docs](docs/pipelines/prostruct_rag_pipeline.md) | [Example](experiments/prostruct_rag_pipeline_emnlp2026) |
+| `ProStructRAGPipeline` | Chains Proposition Extraction, Proposition Relation Extraction, Proposition Relation Refinement, Passage Graph Construction, Passage Retrieval, Graph Retrieval, Context Formatting, and Question Answering components | [Docs](docs/pipelines/prostruct_rag_pipeline.md) | [Example](experiments/prostruct_rag_pipeline_emnlp2026) |
 
 ## Agents
 
