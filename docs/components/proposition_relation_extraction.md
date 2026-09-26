@@ -1,12 +1,12 @@
 # Proposition Relation Extraction (`kapipe.proposition_relation_extraction`)
 
-**Proposition Relation Extraction** identifies directed logical and semantic relations between propositions.
+**Proposition Relation Extraction** identifies directed relations between propositions.
 
-This component (1) retrieves candidate tail propositions for each head proposition and (2) extract relations.
+This component classifies relations from one head proposition to given tail propositions.
 
 ## Input
 
-The input is a list of propositions.
+The input is one head proposition and a list of tail propositions.
 
 Each proposition is represented as a dictionary with the following fields.
 
@@ -16,19 +16,18 @@ Each proposition is represented as a dictionary with the following fields.
 | `text` | `str` | Proposition text |
 | `timestamp` | `str` | Date in `YYYY-MM-DD` format, if temporal relations are used |
 
-Additional metadata fields are preserved during candidate retrieval and relation extraction.
+Additional metadata fields are preserved during relation extraction.
 
-```json
-[
-    {
+```python
+head_proposition = {
         "passage_key": "proposition#001",
-        "text": "An independent audit found that the Northbridge payment system processed 99.9% of transactions within two seconds in February 2025.",
-        "timestamp": "2025-03-01"
-    },
+        "text": "An independent audit found that the Northbridge payment system processed 99.9% of transactions within two seconds in February 2025."
+}
+
+tail_propositions = [
     {
         "passage_key": "proposition#002",
-        "text": "A preliminary report found that the Northbridge payment system processed 97.0% of transactions within two seconds in January 2025.",
-        "timestamp": "2025-02-01"
+        "text": "A preliminary report found that the Northbridge payment system processed 97.0% of transactions within two seconds in January 2025."
     },
     ...
 ]
@@ -36,7 +35,7 @@ Additional metadata fields are preserved during candidate retrieval and relation
 
 ## Output
 
-The output is a list of directed proposition relation records.
+The output is a list of directed relation records.
 
 Each relation record contains the head proposition, relation label, tail proposition, and explanation.
 
@@ -52,14 +51,12 @@ Each relation record contains the head proposition, relation label, tail proposi
     {
         "head": {
             "passage_key": "proposition#001",
-            "text": "An independent audit found that the Northbridge payment system processed 99.9% of transactions within two seconds in February 2025.",
-            "timestamp": "2025-03-01"
+            "text": "An independent audit found that the Northbridge payment system processed 99.9% of transactions within two seconds in February 2025."
         },
         "relation": "updates",
         "tail": {
             "passage_key": "proposition#002",
-            "text": "A preliminary report found that the Northbridge payment system processed 97.0% of transactions within two seconds in January 2025.",
-            "timestamp": "2025-02-01"
+            "text": "A preliminary report found that the Northbridge payment system processed 97.0% of transactions within two seconds in January 2025."
         },
         "explanation": "The February audit updates the January processing rate from 97.0% to 99.9%."
     },
@@ -71,20 +68,17 @@ Entries classified as `NOREL` are excluded from the output.
 
 ## Relation Labels
 
-The default prompt templates support the following relation labels.
+The component does not define a fixed relation-label inventory. The selected prompt template determines the relation scheme.
 
-| Label | Definition |
-|---|---|
-| `updates` | The head proposition provides newer information that replaces an older state or value in the tail proposition |
-| `contradicts` | The head and tail propositions make incompatible factual claims that cannot both be true |
-| `supports` | The head proposition provides evidence, reasons, or verification that increases the credibility of the tail proposition |
-| `NOREL` | No direct logical relation applies; redundant statements and simple rephrasings without additional evidential value are also classified as `NOREL` |
+The default `proposition_relation_extraction_01` prompt predicts a concise relation label for each proposition pair. It predicts `NOREL` when no direct relation applies.
+
+The parser accepts any string as a relation label. It does not restrict predictions to labels demonstrated in the prompt examples.
 
 ## Supported Methods
 
 | Method | Description |
 |---|---|
-| LLM-based Proposition Relation Extraction | Retrieves candidate proposition pairs and classifies their relations using a proprietary or open-source LLM |
+| LLM-based Proposition Relation Extraction | Classifies given proposition pairs using a proprietary or open-source LLM |
 
 ## Usage
 
@@ -108,72 +102,35 @@ model = HuggingFaceLLM(
     quantization_bits=4,
 )
 
-# Instantiate a Passage Retrieval component for candidate retrieval
-from kapipe.passage_retrieval import Contriever
-retriever = Contriever(
-    model_name="facebook/contriever-msmarco",
-    max_passage_length=512,
-    pooling_method="average",
-    normalize=False,
-    metric="inner-product",
-)
-
 # Instantiate the LLM-based Proposition Relation Extraction component
 extractor = LLMPropositionRelationExtractor(
     model=model,
-    retriever=retriever,
-    prompt_template_name_or_path=(
-        "proposition_relation_extraction_01_with_timestamp"
-    ),
-    use_timestamp=True,
+    prompt_template_name_or_path="proposition_relation_extraction_01",
+    use_timestamp=False,
 )
 
-# Build an index over propositions
-extractor.make_index(
-    propositions=propositions,
-    index_dir="/path/to/index",
-    batch_size=1024,
-)
-
-# Retrieve candidate tail propositions for a head proposition
-tail_propositions = extractor.retrieve_tail_propositions(
-    head_proposition=propositions[0],
-    top_k=20,
-    prefilter_k=100,
-)
-
-# Extract directed relations from the head proposition to candidate tails
+# Extract directed relations from the head proposition to the given tails
 triples = extractor.extract(
-    head_proposition=propositions[0],
+    head_proposition=head_proposition,
     tail_propositions=tail_propositions,
 )
 ```
-
-After building an index, you can reload it with `extractor.load_index(index_dir="/path/to/index")`.
 
 ## OpenAI Batch API
 
 `LLMPropositionRelationExtractor` supports the OpenAI Batch API when its model is an `OpenAILLM` instance.
 
 ```python
-# Retrieve candidate tail propositions for every head proposition
-batch_tail_propositions = extractor.batch_retrieve_tail_propositions(
-    head_propositions=propositions,
-    top_k=20,
-    prefilter_k=100,
-    batch_size=1024,
-)
-
 # Submit all relation-extraction prompts to one or more OpenAI batches
 batch_ids = extractor.submit_batch(
-    head_propositions=propositions,
-    batch_tail_propositions=batch_tail_propositions,
+    head_propositions=[head_proposition],
+    batch_tail_propositions=[tail_propositions],
 )
 
 # Fetch and process the results after all OpenAI batches are complete
 triples = extractor.fetch_and_process_batch(
-    head_propositions=propositions,
-    batch_tail_propositions=batch_tail_propositions,
+    head_propositions=[head_proposition],
+    batch_tail_propositions=[tail_propositions],
     batch_ids=batch_ids,
 )
 ```
@@ -182,21 +139,11 @@ triples = extractor.fetch_and_process_batch(
 
 Pass the same `head_propositions` and `batch_tail_propositions` in the same order to both methods. Keep the model settings, prompt template, and `use_timestamp` unchanged between submission and fetching. `fetch_and_process_batch()` raises a `RuntimeError` if any OpenAI batch is incomplete or contains failed requests.
 
-## Candidate Retrieval
-
-Proposition Relation Extraction uses a Passage Retrieval component to find candidate tail propositions.
-
-The head proposition itself is removed from its candidate tails.
-
-The `prefilter_k` argument controls how many propositions are retrieved before filtering. The `top_k` argument controls how many candidates remain after filtering.
-
-For multiple head propositions, `batch_retrieve_tail_propositions()` performs the same processing in batches.
-
 ## Timestamp Usage
 
-If `use_timestamp` is `True`, each proposition must contain a `timestamp` in `YYYY-MM-DD` format. Candidate tails dated after the head proposition are excluded. The remaining candidates are ordered by timestamp before they are passed to the LLM. The timestamp is included in the prompt as `[As of YYYY-MM-DD]`.
+If `use_timestamp` is `True`, each proposition must contain a `timestamp` in `YYYY-MM-DD` format. During relation classification, the timestamp is included in the prompt as `[As of YYYY-MM-DD]`. This is useful when the prompt instructs the model to classify relations involving temporal information.
 
-If `use_timestamp` is `False`, no temporal filtering is applied to ensure that each tail proposition has the same timestamp as the head proposition or an earlier timestamp. Candidate tails may therefore be earlier than, simultaneous with, or later than the head proposition. Only the proposition text is included in the prompt.
+If temporal information is not relevant to the classification, `use_timestamp=False` may be sufficient. In this case, no `timestamp` field is required, and only the proposition text is included in the prompt.
 
 ## Custom Prompt Templates
 

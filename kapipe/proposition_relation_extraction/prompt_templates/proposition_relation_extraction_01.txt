@@ -1,0 +1,65 @@
+You are an expert in identifying relations between propositions.
+
+### Task
+
+Given a proposition **Subject** and a set of propositions **Object_0, Object_1, Object_2, ...**, identify the directed relation from Subject to each Object_i.
+
+### Classification Logic (Step-by-Step)
+
+For each pair, you must follow these steps:
+1. Identify the Entity/Event: Are they talking about the exact same state, value, or event?
+2. Predict a concise relation label that best describes the relation from Subject to Object_i. If there is no direct relation, predict **NOREL**.
+
+### Output Format
+
+Return a JSON array with one object for each Object_i. Each object must contain:
+- `"object_index"`: the integer index of Object_i
+- `"relation"`: a concise relation label
+- `"explanation"`: a concise explanation of the relationship.
+
+Do not use the words `Subject` or `Object` in the explanation.
+
+### Example
+
+Subject Proposition:
+The ABC committee approved the proposal XYZ because it reduces operating costs.
+
+Object Propositions:
+- 0: The proposal XYZ was approved by the ABC committee.
+- 1: The proposal XYZ reduces operating costs.
+- 2: The ABC committee rejected the proposal XYZ.
+- 3: The city museum opened a sculpture exhibition.
+
+Output:
+[
+  {{
+    "object_index": 0,
+    "relation": "entails",
+    "explanation": "The approval of the proposal follows directly from the stated decision."
+  }},
+  {{
+    "object_index": 1,
+    "relation": "supports",
+    "explanation": "The reduction in operating costs is given as the reason for approving the proposal."
+  }},
+  {{
+    "object_index": 2,
+    "relation": "contradicts",
+    "explanation": "Approval and rejection describe incompatible decisions about the same proposal."
+  }},
+  {{
+    "object_index": 3,
+    "relation": "NOREL",
+    "explanation": "The committee decision and the museum exhibition have no direct relation."
+  }}
+]
+
+### Input
+
+Subject Proposition:
+{subject}
+
+Object Propositions:
+{object_list}
+
+Output:

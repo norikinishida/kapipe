@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from datetime import datetime
 import logging
 from typing import Any
 
@@ -9,7 +8,6 @@ import torch
 from .. import utils
 from ..datatypes import Passage
 from ..llms import BaseLLM, OpenAILLM
-from ..passage_retrieval.base import BasePassageRetriever
 from .base import BasePropositionRelationExtractor
 
 
@@ -23,17 +21,13 @@ class LLMPropositionRelationExtractor(BasePropositionRelationExtractor):
         self,
         # External
         model: BaseLLM,
-        retriever: BasePassageRetriever,
         # Internal
-        prompt_template_name_or_path: str = (
-            "proposition_relation_extraction_01_without_timestamp"
-        ),
+        prompt_template_name_or_path: str = "proposition_relation_extraction_01",
         # Optional
         use_timestamp: bool = False,
     ) -> None:
 
         self.model = model
-        self.retriever = retriever
         self.prompt_template_name_or_path = prompt_template_name_or_path
         self.use_timestamp = use_timestamp
 
@@ -51,130 +45,6 @@ class LLMPropositionRelationExtractor(BasePropositionRelationExtractor):
                 raise ValueError(
                     f"The prompt template must contain {placeholder}."
                 )
-
-    def make_index(
-        self,
-        propositions: list[Passage],
-        index_dir: str,
-        **kwargs: Any,
-    ) -> None:
-        """Build a retrieval index from propositions."""
-
-        # Delegate index construction to the Passage Retrieval component
-        self.retriever.make_index(
-            passages=propositions,
-            index_dir=index_dir,
-            **kwargs,
-        )
-
-    def load_index(
-        self,
-        index_dir: str,
-    ) -> None:
-        """Load an existing proposition retrieval index."""
-
-        # Delegate index loading to the Passage Retrieval component
-        self.retriever.load_index(index_dir=index_dir)
-
-    def retrieve_tail_propositions(
-        self,
-        head_proposition: Passage,
-        top_k: int,
-        prefilter_k: int,
-    ) -> list[Passage]:
-        """Retrieve candidate tail propositions for a head proposition."""
-
-        # Validate input parameters
-        if top_k <= 0:
-            raise ValueError("top_k must be greater than 0.")
-
-        # Reuse batch retrieval to keep candidate filtering consistent
-        batch_tail_propositions = self.batch_retrieve_tail_propositions(
-            head_propositions=[head_proposition],
-            top_k=top_k,
-            prefilter_k=prefilter_k,
-            batch_size=1,
-        )
-
-        return batch_tail_propositions[0]
-
-    def batch_retrieve_tail_propositions(
-        self,
-        head_propositions: list[Passage],
-        top_k: int,
-        prefilter_k: int,
-        batch_size: int,
-    ) -> list[list[Passage]]:
-        """Retrieve candidate tail propositions for head propositions."""
-
-        # Validate input parameters
-        if top_k <= 0:
-            raise ValueError("top_k must be greater than 0.")
-        if batch_size <= 0:
-            raise ValueError("batch_size must be greater than 0.")
-
-        # Retrieve candidate propositions in batches
-        batch_retrieved_propositions: list[list[Passage]] = []
-        for begin_i in range(0, len(head_propositions), batch_size):
-            batch_in = head_propositions[begin_i:begin_i+batch_size]
-            batch_out = self.retriever.search(
-                queries=[proposition["text"] for proposition in batch_in],
-                top_k=prefilter_k,
-            )
-            batch_retrieved_propositions.extend(batch_out)
-
-        # Filter and order the candidates for each head proposition
-        batch_tail_propositions: list[list[Passage]] = []
-        for head_proposition, retrieved_propositions in zip(
-            head_propositions,
-            batch_retrieved_propositions,
-        ):
-            tail_propositions: list[Passage] = []
-
-            if self.use_timestamp:
-               head_timestamp = datetime.strptime(
-                   head_proposition["timestamp"],
-                   "%Y-%m-%d",
-               )
-
-            for retrieved_proposition in retrieved_propositions:
-                # Remove the head proposition from its own candidates
-                if (
-                    retrieved_proposition["passage_key"]
-                    == head_proposition["passage_key"]
-                ):
-                    continue
-
-                # Preserve the retrieval-only metadata in the tail proposition
-                tail_proposition = retrieved_proposition
-
-                # Filter out future propositions when timestamps are used
-                if self.use_timestamp:
-                    tail_timestamp = datetime.strptime(
-                        tail_proposition["timestamp"],
-                        "%Y-%m-%d",
-                    )
-                    if head_timestamp < tail_timestamp:
-                        continue
-
-                # Keep the highest-ranked candidates after filtering
-                tail_propositions.append(tail_proposition)
-                if len(tail_propositions) == top_k:
-                    break
-
-            # Sort candidate tails by timestamp when timestamps are used
-            if self.use_timestamp:
-                tail_propositions = sorted(
-                    tail_propositions,
-                    key=lambda proposition: datetime.strptime(
-                        proposition["timestamp"],
-                        "%Y-%m-%d",
-                    ),
-                )
-
-            batch_tail_propositions.append(tail_propositions)
-
-        return batch_tail_propositions
 
     def extract(
         self,

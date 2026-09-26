@@ -14,7 +14,7 @@ STORAGE_RESULTS=/home/nishida/projects/kapipe/experiments/proposition_relation_e
 # Method
 METHOD=llm_proposition_relation_extractor
 CONFIG_PATH=./config/llm_proposition_relation_extractor.conf
-CONFIG_NAME=gpt5_4_nano_contriever_temporal
+CONFIG_NAME=gpt5_4_nano
 
 # Input Data
 INPUT_PROPOSITIONS=${STORAGE_DATA}/examples/misc/propositions.jsonl

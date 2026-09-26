@@ -5,11 +5,8 @@ import os
 import sys
 from typing import Any
 
-from tqdm import tqdm
-
 from kapipe import utils
 from kapipe.llms import HuggingFaceLLM, OpenAILLM
-from kapipe.passage_retrieval import BM25, Contriever, Qwen3Embedding
 from kapipe.proposition_relation_extraction import LLMPropositionRelationExtractor
 from kapipe.utils import StopWatch
 
@@ -95,6 +92,11 @@ def main(args):
             propositions.append(proposition)
     logging.info(f"Number of propositions: {len(propositions)}")
 
+    # In this example, we use the first proposition as the head and
+    # the remaining ones as tails.
+    head_proposition = propositions[0]
+    tail_propositions = propositions[1:]
+
     ##################
     # Method Instantiation
     ##################
@@ -125,40 +127,10 @@ def main(args):
             raise ValueError(f"Unknown LLM provider: {config['llm_provider']}")
         logging.info("Instantiated the LLM model: %s" % repr(model))
 
-    # Instantiate the Passage Retrieval component
-    if config["retriever"]["method_name"] == "bm25":
-        retriever = BM25(
-            tokenizer=lambda text: text.lower().split(),
-            k1=config["retriever"]["k1"],
-            b=config["retriever"]["b"],
-        )
-    elif config["retriever"]["method_name"] == "contriever":
-        retriever = Contriever(
-            model_name=config["retriever"]["model_name"],
-            max_passage_length=config["retriever"]["max_passage_length"],
-            pooling_method=config["retriever"]["pooling_method"],
-            normalize=config["retriever"]["normalize"],
-            metric=config["retriever"]["metric"],
-        )
-    elif config["retriever"]["method_name"] == "qwen3_embedding":
-        retriever = Qwen3Embedding(
-            model_name=config["retriever"]["model_name"],
-            max_passage_length=config["retriever"]["max_passage_length"],
-            normalize=config["retriever"]["normalize"],
-            metric=config["retriever"]["metric"],
-            query_instruction=config["retriever"]["query_instruction"],
-        )
-    else:
-        raise ValueError(
-            "Invalid retrieval method name: %s"
-            % config["retriever"]["method_name"]
-        )
-
     # Instantiate the Proposition Relation Extraction component
     if method_name == "llm_proposition_relation_extractor":
         extractor = LLMPropositionRelationExtractor(
             model=model,
-            retriever=retriever,
             prompt_template_name_or_path=config["prompt_template_name_or_path"],
             use_timestamp=config["use_timestamp"],
         )
@@ -170,58 +142,27 @@ def main(args):
     ##################
 
     logging.info(
-        f"Applying the Proposition Relation Extraction component "
-        f"to {len(propositions)} propositions in {input_propositions_path} ..."
+        "Applying the Proposition Relation Extraction component to "
+        f"one head proposition and {len(tail_propositions)} tail propositions "
+        f"in {input_propositions_path} ..."
     )
 
     # Apply the Proposition Relation Extraction component to the propositions
-
-    # [Step 1-1] Build index for propositions
-    index_dir = os.path.join(
-        base_output_path,
-        "intermediate_proposition_retrieval"
-    )
-    if config["retriever"]["method_name"] == "bm25":
-        extractor.make_index(
-            propositions=propositions,
-            index_dir=index_dir,
-        )
-    else:
-        extractor.make_index(
-            propositions=propositions,
-            index_dir=index_dir,
-            batch_size=config["retriever"]["indexing_batch_size"],
-        )
-
-    # [Step 1-2] Retrieve tail propositions for each proposition
-    batch_tail_propositions = extractor.batch_retrieve_tail_propositions(
-        head_propositions=propositions,
-        top_k=config["retriever"]["top_k"],
-        prefilter_k=config["retriever"]["prefilter_k"],
-        batch_size=config["retriever"]["search_batch_size"],
-    )
-
-    # [Step 2] Extract proposition relations for each proposition
     if batch_mode is None:
-        triples = []
-        for head_proposition, tail_propositions in tqdm(
-            zip(propositions, batch_tail_propositions),
-            total=len(propositions)
-        ):
-            triples_for_head = extractor.extract(
-                head_proposition=head_proposition,
-                tail_propositions=tail_propositions,
-            )
-            triples.extend(triples_for_head)
+        triples = extractor.extract(
+            head_proposition=head_proposition,
+            tail_propositions=tail_propositions,
+        )
         logging.info(
-            f"Extracted {len(triples)} triples from {len(propositions)} propositions"
+            f"Extracted {len(triples)} triples from "
+            f"one head proposition and {len(tail_propositions)} tail propositions"
         )
 
     elif batch_mode == "submit":
         # Submit prompts
         batch_ids: list[str] = extractor.submit_batch(
-            head_propositions=propositions,
-            batch_tail_propositions=batch_tail_propositions,
+            head_propositions=[head_proposition],
+            batch_tail_propositions=[tail_propositions],
         )
         utils.write_json(
             os.path.join(
@@ -241,12 +182,13 @@ def main(args):
             )
         )
         triples: list[dict[str, Any]] = extractor.fetch_and_process_batch(
-            head_propositions=propositions,
-            batch_tail_propositions=batch_tail_propositions,
+            head_propositions=[head_proposition],
+            batch_tail_propositions=[tail_propositions],
             batch_ids=batch_ids,
         )
         logging.info(
-            f"Extracted {len(triples)} triples from {len(propositions)} propositions"
+            f"Extracted {len(triples)} triples from "
+            f"one head proposition and {len(tail_propositions)} tail propositions"
         )
 
     else:

@@ -8,10 +8,10 @@
 
 In KAPipe, knowledge acquisition is organized into four stages:
 
-1. **Extraction**: extracting knowledge units from unstructured data.
-2. **Organization**: organizing extracted knowledge units into structured representations such as knowledge graph.
+1. **Extraction**: extracting knowledge units and their relations from unstructured data.
+2. **Organization**: organizing extracted knowledge as a whole into coherent structures such as knowledge graphs.
 3. **Retrieval**: retrieving relevant knowledge for a given request.
-4. **Utilization**: using retrieved knowledge to solve for downstream tasks such as question answering.
+4. **Utilization**: using retrieved knowledge to solve downstream tasks such as question answering.
 
 For each stage, KAPipe provides reusable *components* that implement specific approaches.
 For example, KAPipe provides Document-level Relation Extraction and Proposition Extraction components for extraction, and Passage Retrieval and Graph Retrieval components for retrieval.
@@ -80,7 +80,7 @@ They represent selected compositions and are not intended to cover every possibl
 | `TripleExtractionPipeline` | Chains NER, Entity Disambiguation (Retrieval), Entity Disambiguation (Reranking), and Document-level Relation Extraction components | [Docs](docs/pipelines/triple_extraction_pipeline.md) | [Example](experiments/triple_extraction_pipeline) |
 | `RAGPipeline` | Chains Passage Retrieval and Question Answering components | [Docs](docs/pipelines/rag_pipeline.md) | [Example](experiments/rag_pipeline) |
 | `GraphRAGPipeline` | Chains triple extraction, Entity Graph Construction, Community Clustering, Report Generation, Passage Retrieval, and Question Answering components | [Docs](docs/pipelines/graphrag_pipeline.md) | [Example](experiments/graphrag_pipeline_tacl2026) |
-| `ProStructRAGPipeline` | Chains Proposition Extraction, Proposition Relation Extraction, Proposition Relation Refinement, Passage Graph Construction, Passage Retrieval, Graph Retrieval, Context Formatting, and Question Answering components | [Docs](docs/pipelines/prostruct_rag_pipeline.md) | [Example](experiments/prostruct_rag_pipeline_emnlp2026) |
+| `ProStructRAGPipeline` | Chains Proposition Extraction, (intermediate Passage Retrieval,) Proposition Relation Extraction, Proposition Relation Refinement, Passage Graph Construction, Passage Retrieval, Graph Retrieval, Context Formatting, and Question Answering components | [Docs](docs/pipelines/prostruct_rag_pipeline.md) | [Example](experiments/prostruct_rag_pipeline_emnlp2026) |
 
 ## Agents
 
