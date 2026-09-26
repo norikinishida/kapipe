@@ -17,7 +17,8 @@ Each relation record contains the following fields.
 | `tail` | `dict` | Tail proposition |
 | `explanation` | `str` | Predicted explanation of the relation |
 
-Each proposition must contain `passage_key` and `text`. A `timestamp` field in `YYYY-MM-DD` format is also required if temporal information is used.
+Each proposition must contain `passage_key` and `text`.
+A `timestamp` field in `YYYY-MM-DD` format is also required if temporal information is used.
 
 ```json
 {
@@ -40,7 +41,8 @@ Each proposition must contain `passage_key` and `text`. A `timestamp` field in `
 
 The output is a refined proposition relation record.
 
-The head and tail propositions are preserved. The refined relation and explanation replace the original prediction, which is retained in the `pre_refinement_relation` and `pre_refinement_explanation` fields.
+The head and tail propositions are preserved.
+The refined relation and explanation replace the original prediction, which is retained in the `pre_refinement_relation` and `pre_refinement_explanation` fields.
 
 | Field | Type | Description |
 |---|---|---|
@@ -72,14 +74,11 @@ The head and tail propositions are preserved. The refined relation and explanati
 
 ## Relation Labels
 
-The default prompt templates support the following relation labels.
+The component does not define a fixed relation-label inventory. The selected prompt template determines the relation scheme.
 
-| Label | Definition |
-|---|---|
-| `updates` | The head proposition provides newer information that replaces an older state or value in the tail proposition |
-| `contradicts` | The head and tail propositions make incompatible factual claims that cannot both be true |
-| `supports` | The head proposition provides evidence, reasons, or verification that increases the credibility of the tail proposition |
-| `NOREL` | No direct logical relation applies; redundant statements and simple rephrasings without additional evidential value are also classified as `NOREL` |
+The default `proposition_relation_refinement_01` prompt verifies the current relation label and refines it when necessary. It predicts `NOREL` when no direct relation applies.
+
+The parser accepts any string as a refined relation label. It does not restrict predictions to labels demonstrated in the prompt example.
 
 ## Supported Methods
 
@@ -112,10 +111,8 @@ model = HuggingFaceLLM(
 # Instantiate the LLM-based Proposition Relation Refinement component
 refiner = LLMPropositionRelationRefiner(
     model=model,
-    prompt_template_name_or_path=(
-        "proposition_relation_refinement_01_with_timestamp"
-    ),
-    use_timestamp=True,
+    prompt_template_name_or_path="proposition_relation_refinement_01",
+    use_timestamp=False,
 )
 
 # Refine a proposition relation record

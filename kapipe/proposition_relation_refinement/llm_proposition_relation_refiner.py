@@ -22,9 +22,7 @@ class LLMPropositionRelationRefiner(BasePropositionRelationRefiner):
         # External
         model: BaseLLM,
         # Internal
-        prompt_template_name_or_path: str = (
-            "proposition_relation_refinement_01_without_timestamp"
-        ),
+        prompt_template_name_or_path: str = "proposition_relation_refinement_01",
         # Optional
         use_timestamp: bool = False,
     ) -> None:
