@@ -2,7 +2,7 @@ You are an expert in identifying relations between propositions.
 
 ### Task
 
-Given a proposition **Subject** and a set of propositions **Object_0, Object_1, Object_2, ...**, identify the directed relation from Subject to each Object_i.
+Given a proposition Subject and a set of propositions Object_0, Object_1, Object_2, ..., identify the directed relation from Subject to each Object_i.
 
 ### Classification Logic (Step-by-Step)
 

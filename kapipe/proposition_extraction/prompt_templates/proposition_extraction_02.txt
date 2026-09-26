@@ -6,11 +6,11 @@ The goal is to decompose the text into a set of simple, standalone facts that co
 
 ### Guidelines
 
-- Each fact must be **simple, atomic, and self-contained** — it should express exactly one piece of information.
-- **Decontextualize** each statement:
+- Each fact must be simple, atomic, and self-contained — it should express exactly one piece of information.
+- Decontextualize each statement:
   - Replace pronouns or references (e.g., “he,” “she,” “the company”) with the full entity names.
   - Ensure that each fact can be understood without referring to other sentences.
-- **Split** complex or compound sentences into multiple facts if they contain multiple propositions.
+- Split complex or compound sentences into multiple facts if they contain multiple propositions.
 - Include all facts that are explicitly stated or clearly implied in the text.
 - Do not add new information or interpretations that are not supported by the text.
 - Exclude opinions, emotions, speculations, or figurative language — focus only on objective factual content.

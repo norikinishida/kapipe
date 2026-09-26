@@ -4,18 +4,18 @@ You are given a question.
 
 Your task is to:
 
-1. **Answer the question** to the best of your knowledge.
-2. Provide a **rationale** for your answer.
-3. Provide a **confidence score** between 0.0 and 1.0, indicating how certain you are about your answer.
+1. Answer the question to the best of your knowledge.
+2. Provide a rationale for your answer.
+3. Provide a confidence score between 0.0 and 1.0, indicating how certain you are about your answer.
 
 ### Guidelines
 
 - Base your answer on general knowledge or your own reasoning.
-- Your answer must be a **single sentence** (no line breaks).
+- Your answer must be a single sentence (no line breaks).
 - The rationale may consist of multiple sentences.
 - The score should reflect your confidence in the correctness of your answer:
-  - **1.0** = absolutely certain
-  - **0.0** = no idea
+  - 1.0 = absolutely certain
+  - 0.0 = no idea
 
 ### Output Format
 

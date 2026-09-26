@@ -1,11 +1,11 @@
 ### Task
 
-You are given a piece of text and a list of **detected entities**, each mapped to a concept in the {knowledge_base_name_prompt} knowledge base.
+You are given a piece of text and a list of detected entities, each mapped to a concept in the {knowledge_base_name_prompt} knowledge base.
 
 Your task is to:
 
-1. **Identify relations** between these entities based on the **context of the text**.
-2. For each entity pair that holds a relation, assign the most appropriate **relation label** from the predefined set.
+1. Identify relations between these entities based on the context of the text.
+2. For each entity pair that holds a relation, assign the most appropriate relation label from the predefined set.
 
 ### Relation Labels
 
@@ -13,10 +13,10 @@ Your task is to:
 
 ### Guidelines
 
-- Use the **full document context** to decide whether a relation exists between a pair of entities.
+- Use the full document context to decide whether a relation exists between a pair of entities.
 - You must select the relation label from the predefined set.
-- If **no meaningful relation** exists between two entities, do **not include** an object for that pair.
-- Each output must use the **entity IDs** of the subject and object entities, **not** their surface forms or canonical names.
+- If no meaningful relation exists between two entities, do not include an object for that pair.
+- Each output must use the entity IDs of the subject and object entities, not their surface forms or canonical names.
 - If no valid relations are present, return an empty JSON array (`[]`).
 
 ### Output Format
