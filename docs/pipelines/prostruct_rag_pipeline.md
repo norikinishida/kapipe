@@ -73,7 +73,7 @@ All constructor arguments must be specified.
 
 | Method | Description |
 |---|---|
-| `make_index()` | Runs all indexing steps or one selected indexing step |
+| `make_index()` | Creates or extends an index by running all indexing steps or one selected indexing step |
 | `load_index()` | Loads the proposition retrieval index and proposition graph for inference |
 | `infer()` | Retrieves and formats a proposition subgraph for each question and generates answers |
 
@@ -132,6 +132,33 @@ prostruct_rag.make_index(
 `top_k`, `prefilter_k`, and `search_batch_size` control intermediate candidate retrieval before Proposition Relation Extraction.
 Values in `intermediate_passage_retrieval_indexing_kwargs` and `passage_retrieval_indexing_kwargs` are forwarded to the corresponding Passage Retrieval components. Omit arguments unsupported by the selected components.
 If `use_timestamp_for_candidate_filtering_and_sorting` is `True`, candidate tails later than the head proposition are removed and the selected tails are sorted chronologically. Every proposition must contain a `timestamp` in `YYYY-MM-DD` format. If it is `False`, candidates are not filtered by timestamp, and retrieval order is preserved.
+
+### Extend an Existing Index:
+
+Call `make_index()` with new passages and the same `index_dir`.
+
+```python
+# Add new passages to the existing index
+prostruct_rag.make_index(
+    passages=new_passages,
+    index_dir="./indexes",
+    top_k=20,
+    prefilter_k=100,
+    search_batch_size=10,
+    intermediate_passage_retrieval_indexing_kwargs={
+        "batch_size": 1024,
+    },
+    passage_retrieval_indexing_kwargs={
+        "batch_size": 1024,
+    },
+    use_timestamp_for_candidate_filtering_and_sorting=True,
+)
+```
+
+Proposition Extraction, Proposition Relation Extraction, and Proposition Relation Refinement are applied only to `new_passages`.
+Their outputs are accumulated to the existing intermediate artifacts under `index_dir`.
+Intermediate Passage Retrieval searches the accumulated propositions so that Proposition Relation Extraction can classify relations from each newly extracted proposition to candidates drawn from the accumulated proposition collection.
+Passage Graph Construction and all later steps are recomputed from the accumulated propositions and refined triples.
 
 ### Build the Index Step by Step:
 

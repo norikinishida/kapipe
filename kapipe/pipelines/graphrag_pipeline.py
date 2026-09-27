@@ -123,6 +123,12 @@ class GraphRAGPipeline:
         # Create the common destination for every indexing artifact
         utils.mkdir(index_dir)
 
+        # Store the keys for the current target documents
+        target_doc_keys: set[str] = {
+            document["doc_key"]
+            for document in documents
+        }
+
         ##############################
         # [Step 1a] NER
         ##############################
@@ -131,9 +137,9 @@ class GraphRAGPipeline:
         if target_component is None or target_component == "ner":
             # Apply the NER component to the documents
             if batch_mode is None:
-                documents_with_mentions: list[Document] = []
+                new_documents_with_mentions: list[Document] = []
                 for document in tqdm(documents, desc="Extracting entity mentions"):
-                    documents_with_mentions.append(
+                    new_documents_with_mentions.append(
                         self.ner.extract(document=document)
                     )
 
@@ -152,7 +158,7 @@ class GraphRAGPipeline:
                 batch_ids: list[str] = utils.read_json(
                     os.path.join(batch_dir, "batch_ids.json")
                 )
-                documents_with_mentions: list[Document] = (
+                new_documents_with_mentions: list[Document] = (
                     self.ner.fetch_and_process_batch(
                         documents=documents,
                         batch_ids=batch_ids,
@@ -166,10 +172,22 @@ class GraphRAGPipeline:
                 )
 
             if batch_mode != "submit":
+                # Check if there are existing documents (with mentions)
+                # and read them if available.
+                output_documents_with_mentions_path: str = os.path.join(
+                    index_dir, "documents_with_mentions.json"
+                )
+                if os.path.exists(output_documents_with_mentions_path):
+                    existing_documents_with_mentions: list[Document] = (
+                        utils.read_json(output_documents_with_mentions_path)
+                    )
+                else:
+                    existing_documents_with_mentions = []
+
                 # Save documents with extracted mentions
                 utils.write_json(
-                    os.path.join(index_dir, "documents_with_mentions.json"),
-                    documents_with_mentions,
+                    output_documents_with_mentions_path,
+                    existing_documents_with_mentions + new_documents_with_mentions,
                 )
 
         ##############################
@@ -180,15 +198,28 @@ class GraphRAGPipeline:
         if target_component is None or target_component == "ed_retrieval":
             # Load inputs for standalone execution
             if target_component is not None:
-                documents_with_mentions: list[Document] = utils.read_json(
+                _documents_with_mentions: list[Document] = utils.read_json(
                     os.path.join(index_dir, "documents_with_mentions.json")
                 )
 
+                # Split the documents (with mentions) into new and existing
+                # based on the target document keys.
+                new_documents_with_mentions: list[Document] = [
+                    document
+                    for document in _documents_with_mentions
+                    if document["doc_key"] in target_doc_keys
+                ]
+                existing_documents_with_mentions: list[Document] = [
+                    document
+                    for document in _documents_with_mentions
+                    if document["doc_key"] not in target_doc_keys
+                ]
+
             # Retrieve candidate entities document by document
-            documents_with_candidates: list[Document] = []
-            candidate_entities: list[CandidateEntitiesForDocument] = []
+            new_documents_with_candidates: list[Document] = []
+            new_candidate_entities: list[CandidateEntitiesForDocument] = []
             for document in tqdm(
-                documents_with_mentions, desc="Retrieving candidate entities"
+                new_documents_with_mentions, desc="Retrieving candidate entities"
             ):
                 document_with_candidates, candidate_entities_for_doc = (
                     self.ed_retrieval.search(
@@ -196,17 +227,38 @@ class GraphRAGPipeline:
                         retrieval_size=retrieval_size,
                     )
                 )
-                documents_with_candidates.append(document_with_candidates)
-                candidate_entities.append(candidate_entities_for_doc)
+                new_documents_with_candidates.append(document_with_candidates)
+                new_candidate_entities.append(candidate_entities_for_doc)
+
+            # Check if there are existing documents (with candidates)
+            # and candidate entities and read them if available.
+            output_documents_with_candidates_path: str = os.path.join(
+                index_dir, "documents_with_candidates.json"
+            )
+            output_candidate_entities_path: str = os.path.join(
+                index_dir, "candidate_entities.json"
+            )
+            if os.path.exists(output_documents_with_candidates_path):
+                existing_documents_with_candidates: list[Document] = (
+                    utils.read_json(output_documents_with_candidates_path)
+                )
+            else:
+                existing_documents_with_candidates = []
+            if os.path.exists(output_candidate_entities_path):
+                existing_candidate_entities: list[CandidateEntitiesForDocument] = (
+                    utils.read_json(output_candidate_entities_path)
+                )
+            else:
+                existing_candidate_entities = []
 
             # Save documents and candidate entities for reranking
             utils.write_json(
-                os.path.join(index_dir, "documents_with_candidates.json"),
-                documents_with_candidates,
+                output_documents_with_candidates_path,
+                existing_documents_with_candidates + new_documents_with_candidates,
             )
             utils.write_json(
-                os.path.join(index_dir, "candidate_entities.json"),
-                candidate_entities,
+                output_candidate_entities_path,
+                existing_candidate_entities + new_candidate_entities,
             )
 
         ##############################
@@ -217,24 +269,65 @@ class GraphRAGPipeline:
         if target_component is None or target_component == "ed_reranking":
             # Load inputs for standalone execution
             if target_component is not None:
-                documents_with_candidates: list[Document] = utils.read_json(
+                _documents_with_candidates: list[Document] = utils.read_json(
                     os.path.join(index_dir, "documents_with_candidates.json")
                 )
-                candidate_entities: list[CandidateEntitiesForDocument] = (
+                _candidate_entities: list[CandidateEntitiesForDocument] = (
                     utils.read_json(
                         os.path.join(index_dir, "candidate_entities.json")
                     )
                 )
 
+                # Split documents (with candidates) and candidate entities
+                # into new and existing based on the target document keys
+                new_documents_with_candidates = [
+                    document
+                    for document in _documents_with_candidates
+                    if document["doc_key"] in target_doc_keys
+                ]
+                existing_documents_with_candidates = [
+                    document
+                    for document in _documents_with_candidates
+                    if document["doc_key"] not in target_doc_keys
+                ]
+                new_candidate_entities = [
+                    candidate_entities_for_doc
+                    for candidate_entities_for_doc in _candidate_entities
+                    if candidate_entities_for_doc["doc_key"] in target_doc_keys
+                ]
+                existing_candidate_entities = [
+                    candidate_entities_for_doc
+                    for candidate_entities_for_doc in _candidate_entities
+                    if candidate_entities_for_doc["doc_key"] not in target_doc_keys
+                ]
+
+            # Validate that documents and candidate entities remain aligned
+            document_keys: list[str] = [
+                document["doc_key"]
+                for document in new_documents_with_candidates
+            ]
+            candidate_entity_keys: list[str] = [
+                candidate_entities_for_doc["doc_key"]
+                for candidate_entities_for_doc in new_candidate_entities
+            ]
+            if document_keys != candidate_entity_keys:
+                raise ValueError(
+                    "Documents and candidate entities are not aligned: "
+                    f"{document_keys} != {candidate_entity_keys}"
+                )
+
             # Apply the ED-Reranking component to the documents
             if batch_mode is None:
-                documents_with_entities: list[Document] = []
+                new_documents_with_entities: list[Document] = []
                 for document, candidate_entities_for_doc in tqdm(
-                    zip(documents_with_candidates, candidate_entities),
-                    total=len(documents_with_candidates),
+                    zip(
+                        new_documents_with_candidates,
+                        new_candidate_entities
+                    ),
+                    total=len(new_documents_with_candidates),
                     desc="Reranking candidate entities",
                 ):
-                    documents_with_entities.append(
+                    new_documents_with_entities.append(
                         self.ed_reranking.rerank(
                             document=document,
                             candidate_entities_for_doc=candidate_entities_for_doc,
@@ -244,8 +337,8 @@ class GraphRAGPipeline:
             elif batch_mode == "submit":
                 # Submit prompts
                 batch_ids: list[str] = self.ed_reranking.submit_batch(
-                    documents=documents_with_candidates,
-                    candidate_entities=candidate_entities,
+                    documents=new_documents_with_candidates,
+                    candidate_entities=new_candidate_entities,
                 )
                 utils.mkdir(batch_dir)
                 utils.write_json(
@@ -259,10 +352,10 @@ class GraphRAGPipeline:
                 batch_ids: list[str] = utils.read_json(
                     os.path.join(batch_dir, "batch_ids.json")
                 )
-                documents_with_entities: list[Document] = (
+                new_documents_with_entities: list[Document] = (
                     self.ed_reranking.fetch_and_process_batch(
-                        documents=documents_with_candidates,
-                        candidate_entities=candidate_entities,
+                        documents=new_documents_with_candidates,
+                        candidate_entities=new_candidate_entities,
                         batch_ids=batch_ids,
                     )
                 )
@@ -274,10 +367,22 @@ class GraphRAGPipeline:
                 )
 
             if batch_mode != "submit":
+                # Check if there are existing documents (with entities) and
+                # read them if available.
+                output_documents_with_entities_path: str = os.path.join(
+                    index_dir, "documents_with_entities.json"
+                )
+                if os.path.exists(output_documents_with_entities_path):
+                    existing_documents_with_entities: list[Document] = (
+                        utils.read_json(output_documents_with_entities_path)
+                    )
+                else:
+                    existing_documents_with_entities = []
+
                 # Save documents with disambiguated entities
                 utils.write_json(
-                    os.path.join(index_dir, "documents_with_entities.json"),
-                    documents_with_entities,
+                    output_documents_with_entities_path,
+                    existing_documents_with_entities + new_documents_with_entities,
                 )
 
         ##############################
@@ -288,24 +393,38 @@ class GraphRAGPipeline:
         if target_component is None or target_component == "docre":
             # Load inputs for standalone execution
             if target_component is not None:
-                documents_with_entities: list[Document] = utils.read_json(
+                _documents_with_entities: list[Document] = utils.read_json(
                     os.path.join(index_dir, "documents_with_entities.json")
                 )
 
+                # Split the documents (with entities) into new and existing
+                # based on the target document keys.
+                new_documents_with_entities = [
+                    document
+                    for document in _documents_with_entities
+                    if document["doc_key"] in target_doc_keys
+                ]
+                existing_documents_with_triples = [
+                    document
+                    for document in _documents_with_entities
+                    if document["doc_key"] not in target_doc_keys
+                ]
+
             # Apply the DocRE component to the documents
             if batch_mode is None:
-                documents_with_triples: list[Document] = []
+                new_documents_with_triples: list[Document] = []
                 for document in tqdm(
-                    documents_with_entities, desc="Extracting triples"
+                    new_documents_with_entities,
+                    desc="Extracting triples",
                 ):
-                    documents_with_triples.append(
+                    new_documents_with_triples.append(
                         self.docre.extract(document=document)
                     )
 
             elif batch_mode == "submit":
                 # Submit prompts
                 batch_ids: list[str] = self.docre.submit_batch(
-                    documents=documents_with_entities
+                    documents=new_documents_with_entities
                 )
                 utils.mkdir(batch_dir)
                 utils.write_json(
@@ -319,9 +438,9 @@ class GraphRAGPipeline:
                 batch_ids: list[str] = utils.read_json(
                     os.path.join(batch_dir, "batch_ids.json")
                 )
-                documents_with_triples: list[Document] = (
+                new_documents_with_triples: list[Document] = (
                     self.docre.fetch_and_process_batch(
-                        documents=documents_with_entities,
+                        documents=new_documents_with_entities,
                         batch_ids=batch_ids,
                     )
                 )
@@ -333,10 +452,22 @@ class GraphRAGPipeline:
                 )
 
             if batch_mode != "submit":
+                # Check if there are existing documents with triples
+                # and read them if available.
+                output_documents_with_triples_path: str = os.path.join(
+                    index_dir, "documents_with_triples.json"
+                )
+                if os.path.exists(output_documents_with_triples_path):
+                    existing_documents_with_triples: list[Document] = (
+                        utils.read_json(output_documents_with_triples_path)
+                    )
+                else:
+                    existing_documents_with_triples = []
+
                 # Save documents with extracted triples
                 utils.write_json(
-                    os.path.join(index_dir, "documents_with_triples.json"),
-                    documents_with_triples,
+                    output_documents_with_triples_path,
+                    existing_documents_with_triples + new_documents_with_triples,
                 )
 
         ######################################
@@ -353,6 +484,8 @@ class GraphRAGPipeline:
                 documents_with_triples: list[Document] = utils.read_json(
                     os.path.join(index_dir, "documents_with_triples.json")
                 )
+            else:
+                documents_with_triples = existing_documents_with_triples + new_documents_with_triples
 
             # Construct the entity graph from the extracted triples
             graph: nx.MultiDiGraph = (

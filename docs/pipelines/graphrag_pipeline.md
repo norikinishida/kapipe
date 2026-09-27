@@ -81,7 +81,7 @@ All constructor arguments must be specified.
 
 | Method | Description |
 |---|---|
-| `make_index()` | Runs all indexing steps or one selected indexing step |
+| `make_index()` | Creates or extends an index by running all indexing steps or one selected indexing step |
 | `load_index()` | Loads the retrieval index for inference |
 | `infer()` | Retrieves chunks for each question and generates answers |
 
@@ -143,6 +143,31 @@ graphrag.make_index(
 `node_attr_keys` and `edge_attr_keys` select the graph attributes used during Report Generation.
 `window_size` controls Chunking of community reports.
 Values in `passage_retrieval_indexing_kwargs` are forwarded to the Passage Retrieval component. Omit arguments unsupported by the selected component.
+
+### Extend an Existing Index:
+
+Call `make_index()` with new documents and the same `index_dir`.
+
+```python
+# Add new documents to the existing index
+graphrag.make_index(
+    documents=new_documents,
+    index_dir="./indexes",
+    retrieval_size=10,
+    window_size=128,
+    entity_dict=entity_dict,
+    additional_triples=additional_triples,
+    node_attr_keys=("name", "entity_type", "description"),
+    edge_attr_keys=("relation",),
+    passage_retrieval_indexing_kwargs={
+        "batch_size": 1024,
+    },
+)
+```
+
+Named Entity Recognition, Entity Disambiguation, and Document-level Relation Extraction are applied only to `new_documents`.
+Their outputs are accumulated to the existing intermediate artifacts under `index_dir`.
+Entity Graph Construction and all later steps are recomputed from the accumulated documents.
 
 ### Build the Index Step by Step:
 
