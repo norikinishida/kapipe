@@ -115,6 +115,12 @@ class ProStructRAGPipeline:
         # Create the common destination for every indexing artifact
         utils.mkdir(index_dir)
 
+        # Store the keys for the current target passages
+        target_passage_keys: set[str] = {
+            passage["passage_key"]
+            for passage in passages
+        }
+
         #################################
         # [Step 1] Proposition Extraction
         #################################
@@ -126,16 +132,16 @@ class ProStructRAGPipeline:
         ):
             # Apply the Proposition Extraction component to the passages
             if batch_mode is None:
-                propositions: list[Passage] = []
+                new_propositions: list[Passage] = []
                 for passage in tqdm(passages, desc="Extracting propositions"):
                     propositions_for_passage: list[Passage] = (
                         self.proposition_extraction.extract(
                             passage=passage,
                         )
                     )
-                    propositions.extend(propositions_for_passage)
+                    new_propositions.extend(propositions_for_passage)
                 logger.info(
-                    f"Extracted {len(propositions)} propositions "
+                    f"Extracted {len(new_propositions)} propositions "
                     f"from {len(passages)} passages"
                 )
 
@@ -156,14 +162,14 @@ class ProStructRAGPipeline:
                 batch_ids: list[str] = utils.read_json(
                     os.path.join(batch_dir, "batch_ids.json")
                 )
-                propositions: list[Passage] = (
+                new_propositions: list[Passage] = (
                     self.proposition_extraction.fetch_and_process_batch(
                         passages=passages,
                         batch_ids=batch_ids,
                     )
                 )
                 logger.info(
-                    f"Extracted {len(propositions)} propositions "
+                    f"Extracted {len(new_propositions)} propositions "
                     f"from {len(passages)} passages"
                 )
 
@@ -174,10 +180,21 @@ class ProStructRAGPipeline:
                 )
 
             if batch_mode != "submit":
+                # Check if there are existing propositions and read them if available
+                output_propositions_path: str = os.path.join(
+                    index_dir, "propositions.jsonl"
+                )
+                if os.path.exists(output_propositions_path):
+                    existing_propositions: list[Passage] = utils.read_jsonl(
+                        output_propositions_path,
+                    ) 
+                else:
+                    existing_propositions = []
+
                 # Save the Proposition Extraction results
                 utils.write_jsonl(
-                    os.path.join(index_dir, "propositions.jsonl"),
-                    propositions,
+                    output_propositions_path,
+                    existing_propositions + new_propositions,
                 )
 
         #################################
@@ -191,9 +208,22 @@ class ProStructRAGPipeline:
         ):
             # Load inputs for standalone execution
             if target_component is not None:
-                propositions: list[Passage] = utils.read_jsonl(
+                _propositions: list[Passage] = utils.read_jsonl(
                     os.path.join(index_dir, "propositions.jsonl")
                 )
+
+                # Split propositions into new and existing
+                # based on the target passage keys.
+                new_propositions = [
+                    proposition
+                    for proposition in _propositions
+                    if proposition["source_passage_key"] in target_passage_keys
+                ]
+                existing_propositions = [
+                    proposition
+                    for proposition in _propositions
+                    if proposition["source_passage_key"] not in target_passage_keys
+                ]
 
             #################################
             # Pipeline-specific processing
@@ -211,15 +241,15 @@ class ProStructRAGPipeline:
                 "intermediate_passage_retrieval_index",
             )
             self.intermediate_passage_retrieval.make_index(
-                passages=propositions,
+                passages=existing_propositions + new_propositions,
                 index_dir=intermediate_index_dir,
                 **intermediate_passage_retrieval_indexing_kwargs,
             )
 
             # Retrieve candidate propositions in batches
             batch_retrieved_propositions: list[list[Passage]] = []
-            for begin_i in range(0, len(propositions), search_batch_size):
-                batch_in: list[Passage] = propositions[
+            for begin_i in range(0, len(new_propositions), search_batch_size):
+                batch_in: list[Passage] = new_propositions[
                     begin_i:begin_i+search_batch_size
                 ]
                 batch_out: list[list[Passage]] = (
@@ -233,7 +263,7 @@ class ProStructRAGPipeline:
             # Filter and order candidate tails
             batch_tail_propositions: list[list[Passage]] = []
             for head_proposition, retrieved_propositions in zip(
-                propositions,
+                new_propositions,
                 batch_retrieved_propositions,
             ):
                 tail_propositions: list[Passage] = []
@@ -285,10 +315,10 @@ class ProStructRAGPipeline:
 
             # Extract proposition relations for each proposition 
             if batch_mode is None:
-                triples: list[dict[str, Any]] = []
+                new_triples: list[dict[str, Any]] = []
                 for head_proposition, tail_propositions in tqdm(
-                    zip(propositions, batch_tail_propositions),
-                    total=len(propositions),
+                    zip(new_propositions, batch_tail_propositions),
+                    total=len(new_propositions),
                     desc="Extracting proposition relations",
                 ):
                     triples_for_head: list[dict[str, Any]] = (
@@ -297,17 +327,19 @@ class ProStructRAGPipeline:
                             tail_propositions=tail_propositions,
                         )
                     )
-                    triples.extend(triples_for_head)
+                    new_triples.extend(triples_for_head)
                 logger.info(
-                    f"Extracted {len(triples)} triples from "
-                    f"{len(propositions)} propositions"
+                    f"Extracted {len(new_triples)} triples from "
+                    f"{len(new_propositions)} x "
+                    f"{len(new_propositions) + len(existing_propositions)} proposition "
+                    "pairs"
                 )
 
             elif batch_mode == "submit":
                 # Submit prompts
                 batch_ids: list[str] = (
                     self.proposition_relation_extraction.submit_batch(
-                        head_propositions=propositions,
+                        head_propositions=new_propositions,
                         batch_tail_propositions=batch_tail_propositions,
                     )
                 )
@@ -323,16 +355,18 @@ class ProStructRAGPipeline:
                 batch_ids: list[str] = utils.read_json(
                     os.path.join(batch_dir, "batch_ids.json")
                 )
-                triples: list[dict[str, Any]] = (
+                new_triples: list[dict[str, Any]] = (
                     self.proposition_relation_extraction.fetch_and_process_batch(
-                        head_propositions=propositions,
+                        head_propositions=new_propositions,
                         batch_tail_propositions=batch_tail_propositions,
                         batch_ids=batch_ids,
                     )
                 )
                 logger.info(
-                    f"Extracted {len(triples)} triples from "
-                    f"{len(propositions)} propositions"
+                    f"Extracted {len(new_triples)} triples from "
+                    f"{len(new_propositions)} x "
+                    f"{len(new_propositions) + len(existing_propositions)} proposition "
+                    "pairs"
                 )
 
             else:
@@ -342,9 +376,19 @@ class ProStructRAGPipeline:
                 )
 
             if batch_mode != "submit":
+                # Check if there are existing triples and read them if available
+                output_triples_path: str = os.path.join(
+                    index_dir, "triples.json"
+                )
+                if os.path.exists(output_triples_path):
+                    existing_triples: list[dict[str, Any]] = utils.read_json(
+                        output_triples_path,
+                    ) 
+                else:
+                    existing_triples = []
+
                 # Save the Proposition Relation Extraction results 
-                output_triples_path = os.path.join(index_dir, "triples.json")
-                utils.write_json(output_triples_path, triples)
+                utils.write_json(output_triples_path, existing_triples + new_triples)
 
         #################################
         # [Step 3] Proposition Relation Refinement
@@ -357,16 +401,28 @@ class ProStructRAGPipeline:
         ):
             # Load inputs for standalone execution
             if target_component is not None:
-                triples: list[dict[str, Any]] = utils.read_json(
+                _triples: list[dict[str, Any]] = utils.read_json(
                     os.path.join(index_dir, "triples.json")
                 )
 
+                # Split triples into new and existing based on the target passage keys
+                new_triples = [
+                    triple
+                    for triple in _triples
+                    if triple["head"]["source_passage_key"] in target_passage_keys
+                ]
+                existing_triples = [
+                    triple
+                    for triple in _triples
+                    if triple["head"]["source_passage_key"] not in target_passage_keys
+                ]
+
             # Apply the Proposition Relation Refinement component to the triples
             if batch_mode is None:
-                refined_triples: list[dict[str, Any]] = []
+                new_refined_triples: list[dict[str, Any]] = []
                 n_deleted: int = 0
                 for triple in tqdm(
-                    triples,
+                    new_triples,
                     desc="Refining proposition relations",
                 ):
                     refined_triple: dict[str, Any] = (
@@ -379,10 +435,10 @@ class ProStructRAGPipeline:
                     if refined_triple["relation"] == "NOREL":
                         n_deleted += 1
                         continue
-                    refined_triples.append(refined_triple)
+                    new_refined_triples.append(refined_triple)
 
                 logger.info(
-                    f"Refinement complete: {len(refined_triples)} triples kept, "
+                    f"Refinement complete: {len(new_refined_triples)} triples kept, "
                     f"{n_deleted} triples removed"
                 )
 
@@ -390,7 +446,7 @@ class ProStructRAGPipeline:
                 # Submit prompts
                 batch_ids: list[str] = (
                     self.proposition_relation_refinement.submit_batch(
-                        triples=triples,
+                        triples=new_triples,
                     )
                 )
                 utils.mkdir(batch_dir)
@@ -407,22 +463,22 @@ class ProStructRAGPipeline:
                 )
                 tmp_refined_triples: list[dict[str, Any]] = (
                     self.proposition_relation_refinement.fetch_and_process_batch(
-                        triples=triples,
+                        triples=new_triples,
                         batch_ids=batch_ids,
                     )
                 )
 
                 # Remove triples classified as NOREL
-                refined_triples: list[dict[str, Any]] = []
+                new_refined_triples: list[dict[str, Any]] = []
                 n_deleted: int = 0
                 for refined_triple in tmp_refined_triples:
                     if refined_triple["relation"] == "NOREL":
                         n_deleted += 1
                         continue
-                    refined_triples.append(refined_triple)
+                    new_refined_triples.append(refined_triple)
 
                 logger.info(
-                    f"Refinement complete: {len(refined_triples)} triples kept, "
+                    f"Refinement complete: {len(new_refined_triples)} triples kept, "
                     f"{n_deleted} triples removed"
                 )
 
@@ -433,10 +489,22 @@ class ProStructRAGPipeline:
                 )
 
             if batch_mode != "submit":
+                # Check if there are existing refined triples and read them if available
+                output_refined_triples_path: str = os.path.join(
+                    index_dir,
+                    "refined_triples.json",
+                )
+                if os.path.exists(output_refined_triples_path):
+                    existing_refined_triples: list[dict[str, Any]] = utils.read_json(
+                        output_refined_triples_path,
+                    ) 
+                else:
+                    existing_refined_triples = []
+
                 # Save the Proposition Relation Refinement results
                 utils.write_json(
-                    os.path.join(index_dir, "refined_triples.json"),
-                    refined_triples,
+                    output_refined_triples_path,
+                    existing_refined_triples + new_refined_triples,
                 )
 
         #################################
@@ -456,6 +524,10 @@ class ProStructRAGPipeline:
                 refined_triples: list[dict[str, Any]] = utils.read_json(
                     os.path.join(index_dir, "refined_triples.json")
                 )
+            else:
+                # Merge existing and new propositions and refined triples
+                propositions = existing_propositions + new_propositions
+                refined_triples = existing_refined_triples + new_refined_triples
 
             # Apply the Passage Graph Construction component to the triples
             graph: nx.DiGraph = (
@@ -488,6 +560,9 @@ class ProStructRAGPipeline:
                 propositions: list[Passage] = utils.read_jsonl(
                     os.path.join(index_dir, "propositions.jsonl")
                 )
+            else:
+                # Merge existing and new propositions
+                propositions = existing_propositions + new_propositions
 
             # Build index
             passage_retrieval_index_dir: str = os.path.join(
