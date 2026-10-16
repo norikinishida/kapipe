@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "kapipe"
 version = "0.4.1"
-description = "A modular pipeline for knowledge acquisition"
+description = "A research-oriented modular framework for investigating knowledge access foundations"
 readme = { file = "README.md", content-type = "text/markdown" }
 requires-python = ">=3.10"
 license = { text = "LICENSE" }
@@ -14,11 +14,11 @@ authors = [
 ]
 keywords = [
   "NLP",
-  "knowledge acquisition",
   "information extraction",
   "knowledge graph",
-  "retrieval",
-  "question answering"
+  "information retrieval",
+  "question answering",
+  "retrieval-augmented generation"
 ]
 classifiers = [
   "Development Status :: 4 - Beta",
