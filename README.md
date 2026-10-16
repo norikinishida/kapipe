@@ -2,20 +2,21 @@
 
 # KAPipe
 
-![An overview of knowledge acquisition system](./images/knowledge_acquisition_systems_overview_figure002.png)
+![An overview of KAPipe](./images/knowledge_access_foundation_overview_figure002.png)
 
-**KAPipe** is a modular framework for building knowledge acquisition systems from unstructured data.
+**KAPipe** is a modular research framework for building *knowledge access foundations* from unstructured data.
 
-In KAPipe, knowledge acquisition is organized into four stages:
+A knowledge access foundation provides the capabilities needed for people and AI systems to access reliable knowledge.
+KAPipe organizes these capabilities into four stages:
 
 1. **Extraction**: extracting knowledge units and their relations from unstructured data.
-2. **Organization**: organizing extracted knowledge as a whole into coherent structures such as knowledge graphs.
+2. **Organization**: organizing extracted knowledge into coherent structures such as knowledge graphs.
 3. **Retrieval**: retrieving relevant knowledge for a given request.
 4. **Utilization**: using retrieved knowledge to solve downstream tasks such as question answering.
 
 For each stage, KAPipe provides reusable *components* that implement specific approaches.
 For example, KAPipe provides Document-level Relation Extraction and Proposition Extraction components for extraction, and Passage Retrieval and Graph Retrieval components for retrieval.
-Together, these components serve as building blocks for constructing knowledge acquisition systems.
+Together, these components serve as building blocks for constructing knowledge access foundations.
 
 **Note:** KAPipe is designed for research and experimentation rather than production use. It is under active development and may introduce breaking changes without prior notice.
 
